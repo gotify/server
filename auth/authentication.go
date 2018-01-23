@@ -93,6 +93,7 @@ func (a *Auth) requireToken(checkType int) gin.HandlerFunc {
 		user := a.userFromBasicAuth(ctx)
 
 		if a.isAuthenticated(checkType, token, user) {
+			RegisterAuthentication(ctx, user, token)
 			ctx.Next()
 		} else {
 			ctx.AbortWithError(401, errors.New("could not authenticate"))
