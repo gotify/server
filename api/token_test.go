@@ -76,6 +76,23 @@ func (s *TokenSuite) Test_success_withOnlyRequiredProperties() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 }
 
+func (s *TokenSuite) Test_returnTokenWithId() {
+	expected := &model.Token{Id: "PorrUa5b1IIK3yK", Name: "custom_name", UserId: 5}
+
+	s.ctx.Set("user", &model.User{Id: 5})
+	s.withFormData("name=custom_name")
+
+	s.db.On("GetTokenById", "PorrUa5b1IIK3yK").Return(nil)
+	s.db.On("CreateToken", expected).Return(nil)
+
+	s.a.CreateToken(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	bytes, _ := ioutil.ReadAll(s.recorder.Body)
+
+	assert.Equal(s.T(), `{"Id":"PorrUa5b1IIK3yK","name":"custom_name","description":"","writeOnly":false}`, string(bytes))
+}
+
 func (s *TokenSuite) Test_success_withExistingToken() {
 	expected := &model.Token{Id: "o_Pp6ww_9vZal6-", Name: "custom_name", UserId: 5}
 
