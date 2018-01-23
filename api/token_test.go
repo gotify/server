@@ -61,6 +61,19 @@ func (s *TokenSuite) Test_badRequest_emptyName() {
 	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
+func (s *TokenSuite) Test_deleteToken_notFound_onUserNotOwner() {
+	s.ctx.Set("user", &model.User{Id: 2})
+	s.ctx.Request = httptest.NewRequest("DELETE", "/token/PorrUa5b1IIK3yK", nil)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "PorrUa5b1IIK3yK"}}
+
+	s.db.On("GetTokenById", "PorrUa5b1IIK3yK").Return(&model.Token{Id: "PorrUa5b1IIK3yK", UserId: 5})
+
+	s.a.DeleteToken(s.ctx)
+
+	s.db.AssertNotCalled(s.T(), "DeleteToken", mock.Anything)
+	assert.Equal(s.T(), 404, s.recorder.Code)
+}
+
 func (s *TokenSuite) Test_success_withOnlyRequiredProperties() {
 	expected := &model.Token{Id: "PorrUa5b1IIK3yK", Name: "custom_name", UserId: 5}
 

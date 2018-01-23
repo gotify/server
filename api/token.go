@@ -44,7 +44,7 @@ func (a *TokenApi) GetTokens(ctx *gin.Context) {
 
 func (a *TokenApi) DeleteToken(ctx *gin.Context) {
 	tokenId := ctx.Param("id")
-	if token := a.DB.GetTokenById(tokenId); token != nil {
+	if token := a.DB.GetTokenById(tokenId); token != nil && token.UserId == auth.GetUserId(ctx) {
 		a.DB.DeleteToken(tokenId)
 	} else {
 		ctx.AbortWithError(404, fmt.Errorf("token with id %s doesn't exists", tokenId))
