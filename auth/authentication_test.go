@@ -123,13 +123,13 @@ type DBMock struct{}
 
 func (d *DBMock) GetTokenById(id string) *model.Token {
 	if id == "writeonly" {
-		return &model.Token{Id: "valid", WriteOnly: true, UserID: 1}
+		return &model.Token{Id: "valid", WriteOnly: true, UserId: 1}
 	}
 	if id == "all" {
-		return &model.Token{Id: "valid", WriteOnly: false, UserID: 1}
+		return &model.Token{Id: "valid", WriteOnly: false, UserId: 1}
 	}
 	if id == "admin" {
-		return &model.Token{Id: "valid", WriteOnly: false, UserID: 2}
+		return &model.Token{Id: "valid", WriteOnly: false, UserId: 2}
 	}
 	return nil
 }

@@ -81,7 +81,7 @@ func (a *Auth) isAuthenticated(checkType int, token *model.Token, user *model.Us
 		return user != nil || (token != nil && !token.WriteOnly)
 	default:
 		if user == nil {
-			user = a.DB.GetUserById(token.UserID)
+			user = a.DB.GetUserById(token.UserId)
 		}
 		return user != nil && user.Admin
 	}

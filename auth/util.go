@@ -10,17 +10,17 @@ func RegisterAuthentication(ctx *gin.Context, user *model.User, token *model.Tok
 	ctx.Set("token", token)
 }
 
-func GetUserID(ctx *gin.Context) uint {
+func GetUserId(ctx *gin.Context) uint {
 	user := ctx.MustGet("user").(*model.User);
 	if user == nil {
 		token := GetToken(ctx)
 		if token == nil {
 			panic("token and user may not be null")
 		}
-		return token.UserID
+		return token.UserId
 	}
 
-	return user.ID
+	return user.Id
 }
 
 func GetToken(ctx *gin.Context) *model.Token {

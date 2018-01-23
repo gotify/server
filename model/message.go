@@ -1,8 +1,8 @@
 package model
 
 type Message struct {
-	ID       uint `gorm:"AUTO_INCREMENT;primary_key;index"`
-	TokenID  string
+	Id       uint `gorm:"AUTO_INCREMENT;primary_key;index"`
+	TokenId  string
 	Message  string
 	Title    string
 	Priority int

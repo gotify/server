@@ -37,9 +37,9 @@ func (s *TokenSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (s *TokenSuite) Test_mapAllParameters() {
-	expected := &model.Token{Id: "PorrUa5b1IIK3yK", Name: "custom_name", UserID: 5, WriteOnly: true, Description: "description_text"}
+	expected := &model.Token{Id: "PorrUa5b1IIK3yK", Name: "custom_name", UserId: 5, WriteOnly: true, Description: "description_text"}
 
-	s.ctx.Set("user", &model.User{ID: 5})
+	s.ctx.Set("user", &model.User{Id: 5})
 	s.withFormData("name=custom_name&writeOnly=true&description=description_text")
 
 	s.db.On("GetTokenById", "PorrUa5b1IIK3yK").Return(nil)
@@ -52,7 +52,7 @@ func (s *TokenSuite) Test_mapAllParameters() {
 }
 
 func (s *TokenSuite) Test_badRequest_emptyName() {
-	s.ctx.Set("user", &model.User{ID: 5})
+	s.ctx.Set("user", &model.User{Id: 5})
 	s.withFormData("name=&writeOnly=true&description=description_text")
 
 	s.a.CreateToken(s.ctx)
@@ -62,9 +62,9 @@ func (s *TokenSuite) Test_badRequest_emptyName() {
 }
 
 func (s *TokenSuite) Test_success_withOnlyRequiredProperties() {
-	expected := &model.Token{Id: "PorrUa5b1IIK3yK", Name: "custom_name", UserID: 5}
+	expected := &model.Token{Id: "PorrUa5b1IIK3yK", Name: "custom_name", UserId: 5}
 
-	s.ctx.Set("user", &model.User{ID: 5})
+	s.ctx.Set("user", &model.User{Id: 5})
 	s.withFormData("name=custom_name")
 
 	s.db.On("GetTokenById", "PorrUa5b1IIK3yK").Return(nil)
@@ -77,9 +77,9 @@ func (s *TokenSuite) Test_success_withOnlyRequiredProperties() {
 }
 
 func (s *TokenSuite) Test_success_withExistingToken() {
-	expected := &model.Token{Id: "o_Pp6ww_9vZal6-", Name: "custom_name", UserID: 5}
+	expected := &model.Token{Id: "o_Pp6ww_9vZal6-", Name: "custom_name", UserId: 5}
 
-	s.ctx.Set("user", &model.User{ID: 5})
+	s.ctx.Set("user", &model.User{Id: 5})
 	s.withFormData("name=custom_name")
 
 	s.db.On("GetTokenById", "PorrUa5b1IIK3yK").Return(&model.Token{Id: "PorrUa5b1IIK3yK"})
@@ -93,7 +93,7 @@ func (s *TokenSuite) Test_success_withExistingToken() {
 }
 
 func (s *TokenSuite) Test_getToken() {
-	s.ctx.Set("user", &model.User{ID: 5})
+	s.ctx.Set("user", &model.User{Id: 5})
 	s.ctx.Request = httptest.NewRequest("GET", "/tokens", nil)
 
 	s.db.On("GetTokensByUser", uint(5)).Return([]*model.Token{
@@ -109,7 +109,7 @@ func (s *TokenSuite) Test_getToken() {
 }
 
 func (s *TokenSuite) Test_deleteToken_fail() {
-	s.ctx.Set("user", &model.User{ID: 5})
+	s.ctx.Set("user", &model.User{Id: 5})
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/PorrUa5b1IIK3yK", nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "PorrUa5b1IIK3yK"}}
 
@@ -122,12 +122,12 @@ func (s *TokenSuite) Test_deleteToken_fail() {
 }
 
 func (s *TokenSuite) Test_deleteToken_success() {
-	s.ctx.Set("user", &model.User{ID: 5})
+	s.ctx.Set("user", &model.User{Id: 5})
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/PorrUa5b1IIK3yK", nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "PorrUa5b1IIK3yK"}}
 
 	s.db.On("DeleteToken", "PorrUa5b1IIK3yK").Return(nil)
-	s.db.On("GetTokenById", "PorrUa5b1IIK3yK").Return(&model.Token{Id: "PorrUa5b1IIK3yK", Name: "custom_name", UserID: 5})
+	s.db.On("GetTokenById", "PorrUa5b1IIK3yK").Return(&model.Token{Id: "PorrUa5b1IIK3yK", Name: "custom_name", UserId: 5})
 
 	s.a.DeleteToken(s.ctx)
 

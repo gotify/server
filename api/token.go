@@ -30,14 +30,14 @@ func (a *TokenApi) CreateToken(ctx *gin.Context) {
 		for ok := true; ok; ok = a.DB.GetTokenById(token.Id) != nil {
 			token.Id = randToken()
 		}
-		token.UserID = auth.GetUserID(ctx)
+		token.UserId = auth.GetUserId(ctx)
 		a.DB.CreateToken(&token)
 		ctx.JSON(200, token)
 	}
 }
 
 func (a *TokenApi) GetTokens(ctx *gin.Context) {
-	userId := auth.GetUserID(ctx)
+	userId := auth.GetUserId(ctx)
 	tokens := a.DB.GetTokensByUser(userId)
 	ctx.JSON(200, tokens)
 }
