@@ -1,0 +1,2 @@
+# Memo
+[![Build Status](https://travis-ci.org/jmattheis/memo.svg?branch=master)](https://travis-ci.org/jmattheis/memo) [![codecov](https://codecov.io/gh/jmattheis/memo/branch/master/graph/badge.svg)](https://codecov.io/gh/jmattheis/memo) [![Go Report Card](https://goreportcard.com/badge/github.com/jmattheis/memo)](https://goreportcard.com/report/github.com/jmattheis/memo)
