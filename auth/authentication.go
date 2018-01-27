@@ -8,15 +8,13 @@ import (
 )
 
 const (
-	headerName    = "Authorization"
-	headerSchema  = "ApiKey "
-	typeAdmin     = 0
-	typeAll       = 1
-	typeWriteOnly = 2
+	headerName   = "Authorization"
+	headerSchema = "ApiKey "
 )
 
 type Database interface {
-	GetTokenById(id string) *model.Token
+	GetApplicationById(id string) *model.Application
+	GetClientById(id string) *model.Client
 	GetUserByName(name string) *model.User
 	GetUserById(id uint) *model.User
 }
@@ -25,39 +23,62 @@ type Auth struct {
 	DB Database
 }
 
+type authenticate func(tokenId string, user *model.User) (success bool, userId uint)
+
 func (a *Auth) RequireAdmin() gin.HandlerFunc {
-	return a.requireToken(typeAdmin)
+	return a.requireToken(func(tokenId string, user *model.User) (bool, uint) {
+		if user != nil {
+			return user.Admin, user.Id
+		}
+		if token := a.DB.GetClientById(tokenId); token != nil {
+			return a.DB.GetUserById(token.UserId).Admin, token.UserId
+		}
+		return false, 0
+	})
 }
 
 func (a *Auth) RequireAll() gin.HandlerFunc {
-	return a.requireToken(typeAll)
+	return a.requireToken(func(tokenId string, user *model.User) (bool, uint) {
+		if user != nil {
+			return true, user.Id
+		}
+		if token := a.DB.GetClientById(tokenId); token != nil {
+			return true, token.UserId
+		}
+		return false, 0
+	})
 }
 
 func (a *Auth) RequireWrite() gin.HandlerFunc {
-	return a.requireToken(typeWriteOnly)
+	return a.requireToken(func(tokenId string, user *model.User) (bool, uint) {
+		if user != nil {
+			return false, 0
+		}
+		if token := a.DB.GetApplicationById(tokenId); token != nil {
+			return true, token.UserId
+		}
+		return false, 0
+	})
 }
 
-func (a *Auth) tokenFromQueryOrHeader(ctx *gin.Context) *model.Token {
-	if token := a.tokenFromQuery(ctx); token != nil {
+func (a *Auth) tokenFromQueryOrHeader(ctx *gin.Context) string {
+	if token := a.tokenFromQuery(ctx); token != "" {
 		return token
-	} else if token := a.tokenFromHeader(ctx); token != nil {
+	} else if token := a.tokenFromHeader(ctx); token != "" {
 		return token
 	}
-	return nil
+	return ""
 }
 
-func (a *Auth) tokenFromQuery(ctx *gin.Context) *model.Token {
-	if token := ctx.Request.URL.Query().Get("token"); token != "" {
-		return a.DB.GetTokenById(token)
-	}
-	return nil
+func (a *Auth) tokenFromQuery(ctx *gin.Context) string {
+	return ctx.Request.URL.Query().Get("token")
 }
 
-func (a *Auth) tokenFromHeader(ctx *gin.Context) *model.Token {
+func (a *Auth) tokenFromHeader(ctx *gin.Context) string {
 	if header := ctx.Request.Header.Get(headerName); header != "" && strings.HasPrefix(header, headerSchema) {
-		return a.DB.GetTokenById(strings.TrimPrefix(header, headerSchema))
+		return strings.TrimPrefix(header, headerSchema)
 	}
-	return nil
+	return ""
 }
 
 func (a *Auth) userFromBasicAuth(ctx *gin.Context) *model.User {
@@ -69,33 +90,17 @@ func (a *Auth) userFromBasicAuth(ctx *gin.Context) *model.User {
 	return nil
 }
 
-func (a *Auth) isAuthenticated(checkType int, token *model.Token, user *model.User) bool {
-	if token == nil && user == nil {
-		return false
-	}
-
-	switch checkType {
-	case typeWriteOnly:
-		return true
-	case typeAll:
-		return user != nil || (token != nil && !token.WriteOnly)
-	default:
-		if user == nil {
-			user = a.DB.GetUserById(token.UserID)
-		}
-		return user != nil && user.Admin
-	}
-}
-
-func (a *Auth) requireToken(checkType int) gin.HandlerFunc {
+func (a *Auth) requireToken(auth authenticate) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := a.tokenFromQueryOrHeader(ctx)
 		user := a.userFromBasicAuth(ctx)
 
-		if a.isAuthenticated(checkType, token, user) {
-			ctx.Next()
-		} else {
-			ctx.AbortWithError(401, errors.New("could not authenticate"))
+		if user != nil || token != "" {
+			if ok, _ := auth(token, user); ok {
+				ctx.Next()
+				return
+			}
 		}
+		ctx.AbortWithError(401, errors.New("could not authenticate"))
 	}
 }
