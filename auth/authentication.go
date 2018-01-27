@@ -12,6 +12,7 @@ const (
 	headerSchema = "ApiKey "
 )
 
+// The Database interface for encapsulating database access.
 type Database interface {
 	GetApplicationById(id string) *model.Application
 	GetClientById(id string) *model.Client
@@ -19,43 +20,49 @@ type Database interface {
 	GetUserById(id uint) *model.User
 }
 
+// Auth is the provider for authentication middleware
 type Auth struct {
 	DB Database
 }
 
 type authenticate func(tokenId string, user *model.User) (success bool, userId uint)
 
+// RequireAdmin returns a gin middleware which requires a client token or basic authentication header to be supplied
+// with the request. Also the authenticated user must be an administrator.
 func (a *Auth) RequireAdmin() gin.HandlerFunc {
 	return a.requireToken(func(tokenId string, user *model.User) (bool, uint) {
 		if user != nil {
-			return user.Admin, user.Id
+			return user.Admin, user.ID
 		}
 		if token := a.DB.GetClientById(tokenId); token != nil {
-			return a.DB.GetUserById(token.UserId).Admin, token.UserId
+			return a.DB.GetUserById(token.UserID).Admin, token.UserID
 		}
 		return false, 0
 	})
 }
 
-func (a *Auth) RequireAll() gin.HandlerFunc {
+// RequireClient returns a gin middleware which requires a client token or basic authentication header to be supplied
+// with the request.
+func (a *Auth) RequireClient() gin.HandlerFunc {
 	return a.requireToken(func(tokenId string, user *model.User) (bool, uint) {
 		if user != nil {
-			return true, user.Id
+			return true, user.ID
 		}
 		if token := a.DB.GetClientById(tokenId); token != nil {
-			return true, token.UserId
+			return true, token.UserID
 		}
 		return false, 0
 	})
 }
 
-func (a *Auth) RequireWrite() gin.HandlerFunc {
+// RequireApplicationToken returns a gin middleware which requires an application token to be supplied with the request.
+func (a *Auth) RequireApplicationToken() gin.HandlerFunc {
 	return a.requireToken(func(tokenId string, user *model.User) (bool, uint) {
 		if user != nil {
 			return false, 0
 		}
 		if token := a.DB.GetApplicationById(tokenId); token != nil {
-			return true, token.UserId
+			return true, token.UserID
 		}
 		return false, 0
 	})
@@ -96,8 +103,8 @@ func (a *Auth) requireToken(auth authenticate) gin.HandlerFunc {
 		user := a.userFromBasicAuth(ctx)
 
 		if user != nil || token != "" {
-			if ok, userId := auth(token, user); ok {
-				RegisterAuthentication(ctx, user, userId)
+			if ok, userID := auth(token, user); ok {
+				RegisterAuthentication(ctx, user, userID)
 				ctx.Next()
 				return
 			}
