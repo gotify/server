@@ -1,0 +1,30 @@
+language: go
+go:
+  - 1.9
+
+notifications:
+  email: false
+
+env:
+  - DEP_VERSION="0.4.1"
+
+before_install:
+  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
+  - chmod +x $GOPATH/bin/dep
+  - chmod +x ./all-test-with-coverage.sh
+
+install:
+  - dep ensure
+  - go get github.com/golang/lint/golint
+  - go get honnef.co/go/tools/cmd/megacheck
+  - go get github.com/fzipp/gocyclo
+
+script:
+  - ./all-test-with-coverage.sh
+  - go vet ./...
+  - megacheck ./...
+  - gocyclo -over 10 $(find . -iname '*.go' -type f | grep -v /vendor/)
+#  - golint -set_exit_status $(go list ./...)
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
