@@ -1,9 +1,12 @@
 package model
 
+import "time"
+
 type Message struct {
-	ID       uint `gorm:"primary_key" gorm:"AUTO_INCREMENT;primary_key;index"`
-	TokenID  string
+	Id       uint `gorm:"AUTO_INCREMENT;primary_key;index"`
+	TokenId  string
 	Message  string
 	Title    string
 	Priority int
+	Date     time.Time
 }
