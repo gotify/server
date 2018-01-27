@@ -5,20 +5,22 @@ import (
 	"github.com/jmattheis/memo/model"
 )
 
-func RegisterAuthentication(ctx *gin.Context, user *model.User, userId uint) {
+// RegisterAuthentication registers the user or the user id; The id can later be obtained by GetUserID.
+func RegisterAuthentication(ctx *gin.Context, user *model.User, userID uint) {
 	ctx.Set("user", user)
-	ctx.Set("userid", userId)
+	ctx.Set("userid", userID)
 }
 
-func GetUserId(ctx *gin.Context) uint {
+// GetUserID returns the user id which was previously registered by RegisterAuthentication.
+func GetUserID(ctx *gin.Context) uint {
 	user := ctx.MustGet("user").(*model.User)
 	if user == nil {
-		userId := ctx.MustGet("userid").(uint)
-		if userId == 0 {
+		userID := ctx.MustGet("userid").(uint)
+		if userID == 0 {
 			panic("token and user may not be null")
 		}
-		return userId
+		return userID
 	}
 
-	return user.Id
+	return user.ID
 }

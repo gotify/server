@@ -24,7 +24,7 @@ script:
   - go vet ./...
   - megacheck ./...
   - gocyclo -over 10 $(find . -iname '*.go' -type f | grep -v /vendor/)
-#  - golint -set_exit_status $(go list ./...)
+  - golint -set_exit_status $(go list ./... | grep -v mock)
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

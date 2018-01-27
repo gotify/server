@@ -22,16 +22,16 @@ func (s *UtilSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (s *UtilSuite) Test_getId() {
-	s.expectUserIdWith(&model.User{Id: 2}, 0, 2)
-	s.expectUserIdWith(nil, 5, 5)
+	s.expectUserIDWith(&model.User{ID: 2}, 0, 2)
+	s.expectUserIDWith(nil, 5, 5)
 	assert.Panics(s.T(), func() {
-		s.expectUserIdWith(nil, 0, 0)
+		s.expectUserIDWith(nil, 0, 0)
 	})
 }
 
-func (s *UtilSuite) expectUserIdWith(user *model.User, tokenId uint, expectedId uint) {
+func (s *UtilSuite) expectUserIDWith(user *model.User, tokenID uint, expectedID uint) {
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-	RegisterAuthentication(ctx, user, tokenId)
-	actualId := GetUserId(ctx)
-	assert.Equal(s.T(), expectedId, actualId)
+	RegisterAuthentication(ctx, user, tokenID)
+	actualID := GetUserID(ctx)
+	assert.Equal(s.T(), expectedID, actualID)
 }
