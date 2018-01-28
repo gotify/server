@@ -21,7 +21,7 @@ func (s *UtilSuite) BeforeTest(suiteName, testName string) {
 	gin.SetMode(gin.TestMode)
 }
 
-func (s *UtilSuite) Test_getId() {
+func (s *UtilSuite) Test_getID() {
 	s.expectUserIDWith(&model.User{ID: 2}, 0, 2)
 	s.expectUserIDWith(nil, 5, 5)
 	assert.Panics(s.T(), func() {

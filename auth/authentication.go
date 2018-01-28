@@ -14,10 +14,10 @@ const (
 
 // The Database interface for encapsulating database access.
 type Database interface {
-	GetApplicationById(id string) *model.Application
-	GetClientById(id string) *model.Client
+	GetApplicationByID(id string) *model.Application
+	GetClientByID(id string) *model.Client
 	GetUserByName(name string) *model.User
-	GetUserById(id uint) *model.User
+	GetUserByID(id uint) *model.User
 }
 
 // Auth is the provider for authentication middleware
@@ -25,17 +25,17 @@ type Auth struct {
 	DB Database
 }
 
-type authenticate func(tokenId string, user *model.User) (success bool, userId uint)
+type authenticate func(tokenID string, user *model.User) (success bool, userId uint)
 
 // RequireAdmin returns a gin middleware which requires a client token or basic authentication header to be supplied
 // with the request. Also the authenticated user must be an administrator.
 func (a *Auth) RequireAdmin() gin.HandlerFunc {
-	return a.requireToken(func(tokenId string, user *model.User) (bool, uint) {
+	return a.requireToken(func(tokenID string, user *model.User) (bool, uint) {
 		if user != nil {
 			return user.Admin, user.ID
 		}
-		if token := a.DB.GetClientById(tokenId); token != nil {
-			return a.DB.GetUserById(token.UserID).Admin, token.UserID
+		if token := a.DB.GetClientByID(tokenID); token != nil {
+			return a.DB.GetUserByID(token.UserID).Admin, token.UserID
 		}
 		return false, 0
 	})
@@ -44,11 +44,11 @@ func (a *Auth) RequireAdmin() gin.HandlerFunc {
 // RequireClient returns a gin middleware which requires a client token or basic authentication header to be supplied
 // with the request.
 func (a *Auth) RequireClient() gin.HandlerFunc {
-	return a.requireToken(func(tokenId string, user *model.User) (bool, uint) {
+	return a.requireToken(func(tokenID string, user *model.User) (bool, uint) {
 		if user != nil {
 			return true, user.ID
 		}
-		if token := a.DB.GetClientById(tokenId); token != nil {
+		if token := a.DB.GetClientByID(tokenID); token != nil {
 			return true, token.UserID
 		}
 		return false, 0
@@ -57,11 +57,11 @@ func (a *Auth) RequireClient() gin.HandlerFunc {
 
 // RequireApplicationToken returns a gin middleware which requires an application token to be supplied with the request.
 func (a *Auth) RequireApplicationToken() gin.HandlerFunc {
-	return a.requireToken(func(tokenId string, user *model.User) (bool, uint) {
+	return a.requireToken(func(tokenID string, user *model.User) (bool, uint) {
 		if user != nil {
 			return false, 0
 		}
-		if token := a.DB.GetApplicationById(tokenId); token != nil {
+		if token := a.DB.GetApplicationByID(tokenID); token != nil {
 			return true, token.UserID
 		}
 		return false, 0

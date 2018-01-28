@@ -10,7 +10,7 @@ type MockDatabase struct {
 }
 
 // GetApplicationById provides a mock function with given fields: id
-func (_m *MockDatabase) GetApplicationById(id string) *model.Application {
+func (_m *MockDatabase) GetApplicationByID(id string) *model.Application {
 	ret := _m.Called(id)
 
 	var r0 *model.Application
@@ -26,7 +26,7 @@ func (_m *MockDatabase) GetApplicationById(id string) *model.Application {
 }
 
 // GetClientById provides a mock function with given fields: id
-func (_m *MockDatabase) GetClientById(id string) *model.Client {
+func (_m *MockDatabase) GetClientByID(id string) *model.Client {
 	ret := _m.Called(id)
 
 	var r0 *model.Client
@@ -42,7 +42,7 @@ func (_m *MockDatabase) GetClientById(id string) *model.Client {
 }
 
 // GetUserById provides a mock function with given fields: id
-func (_m *MockDatabase) GetUserById(id uint) *model.User {
+func (_m *MockDatabase) GetUserByID(id uint) *model.User {
 	ret := _m.Called(id)
 
 	var r0 *model.User
