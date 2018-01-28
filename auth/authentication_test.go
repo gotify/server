@@ -26,15 +26,15 @@ func (s *AuthenticationSuite) SetupSuite() {
 	gin.SetMode(gin.TestMode)
 	s.DB = &authmock.MockDatabase{}
 	s.auth = &Auth{s.DB}
-	s.DB.On("GetClientById", "clienttoken").Return(&model.Client{ID: "clienttoken", UserID: 1, Name: "android phone"})
-	s.DB.On("GetClientById", "clienttoken_admin").Return(&model.Client{ID: "clienttoken", UserID: 2, Name: "android phone2"})
-	s.DB.On("GetClientById", mock.Anything).Return(nil)
-	s.DB.On("GetApplicationById", "apptoken").Return(&model.Application{ID: "apptoken", UserID: 1, Name: "backup server", Description: "irrelevant"})
-	s.DB.On("GetApplicationById", "apptoken_admin").Return(&model.Application{ID: "apptoken", UserID: 2, Name: "backup server", Description: "irrelevant"})
-	s.DB.On("GetApplicationById", mock.Anything).Return(nil)
+	s.DB.On("GetClientByID", "clienttoken").Return(&model.Client{ID: "clienttoken", UserID: 1, Name: "android phone"})
+	s.DB.On("GetClientByID", "clienttoken_admin").Return(&model.Client{ID: "clienttoken", UserID: 2, Name: "android phone2"})
+	s.DB.On("GetClientByID", mock.Anything).Return(nil)
+	s.DB.On("GetApplicationByID", "apptoken").Return(&model.Application{ID: "apptoken", UserID: 1, Name: "backup server", Description: "irrelevant"})
+	s.DB.On("GetApplicationByID", "apptoken_admin").Return(&model.Application{ID: "apptoken", UserID: 2, Name: "backup server", Description: "irrelevant"})
+	s.DB.On("GetApplicationByID", mock.Anything).Return(nil)
 
-	s.DB.On("GetUserById", uint(1)).Return(&model.User{ID: 1, Name: "irrelevant", Admin: false})
-	s.DB.On("GetUserById", uint(2)).Return(&model.User{ID: 2, Name: "irrelevant", Admin: true})
+	s.DB.On("GetUserByID", uint(1)).Return(&model.User{ID: 1, Name: "irrelevant", Admin: false})
+	s.DB.On("GetUserByID", uint(2)).Return(&model.User{ID: 2, Name: "irrelevant", Admin: true})
 
 	s.DB.On("GetUserByName", "existing").Return(&model.User{Name: "existing", Pass: CreatePassword("pw")})
 	s.DB.On("GetUserByName", "admin").Return(&model.User{Name: "admin", Pass: CreatePassword("pw"), Admin: true})
