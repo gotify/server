@@ -19,14 +19,9 @@
 #  name = "github.com/x/y"
 #  version = "2.4.0"
 
-ignored = ["golang.org/x/tools/go/gcimporter15/testdata"]
 [[constraint]]
   name = "github.com/gin-gonic/gin"
   branch = "master"
-
-[[constraint]]
-  name = "gopkg.in/go-playground/validator.v8"
-  version = "8.18.2"
 
 [prune]
   unused-packages = true

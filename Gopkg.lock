@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/bouk/monkey"
+  packages = ["."]
+  revision = "b96e337f6e5b36906584cd0cf9803bbab09284f7"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -122,6 +128,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "51b1b1e1478f8646b2d5bc041005b561d738cff03a01582136d7acfb5e3bcf13"
+  inputs-digest = "37f49452e577dec701b2616f145ad6018a8408c6cc63c29a72a8bf1e889d3a4a"
   solver-name = "gps-cdcl"
   solver-version = 1
