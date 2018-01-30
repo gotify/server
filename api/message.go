@@ -61,7 +61,7 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if parsedUInt, err := strconv.ParseUint(id, 10, 32); err == nil {
-		if msg := a.DB.GetMessageByID(uint(parsedUInt)); msg != nil && a.DB.GetApplicationByID(msg.TokenID).UserID == auth.GetUserID(ctx) {
+		if msg := a.DB.GetMessageByID(uint(parsedUInt)); msg != nil && a.DB.GetApplicationByID(msg.ApplicationID).UserID == auth.GetUserID(ctx) {
 			a.DB.DeleteMessageByID(uint(parsedUInt))
 		} else {
 			ctx.AbortWithError(404, errors.New("message does not exists"))
@@ -75,7 +75,7 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	message := model.Message{}
 	if err := ctx.Bind(&message); err == nil {
-		message.TokenID = auth.GetTokenID(ctx)
+		message.ApplicationID = auth.GetTokenID(ctx)
 		message.Date = time.Now()
 		a.DB.CreateMessage(&message)
 		ctx.JSON(200, message)
