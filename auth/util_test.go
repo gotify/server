@@ -29,9 +29,16 @@ func (s *UtilSuite) Test_getID() {
 	})
 }
 
-func (s *UtilSuite) expectUserIDWith(user *model.User, tokenID uint, expectedID uint) {
+func (s *UtilSuite) Test_getToken() {
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-	RegisterAuthentication(ctx, user, tokenID)
+	RegisterAuthentication(ctx, nil, 1, "asdasda")
+	actualID := GetTokenID(ctx)
+	assert.Equal(s.T(), "asdasda", actualID)
+}
+
+func (s *UtilSuite) expectUserIDWith(user *model.User, tokenUserID uint, expectedID uint) {
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	RegisterAuthentication(ctx, user, tokenUserID, "")
 	actualID := GetUserID(ctx)
 	assert.Equal(s.T(), expectedID, actualID)
 }
