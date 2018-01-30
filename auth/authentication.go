@@ -104,7 +104,7 @@ func (a *Auth) requireToken(auth authenticate) gin.HandlerFunc {
 
 		if user != nil || token != "" {
 			if ok, userID := auth(token, user); ok {
-				RegisterAuthentication(ctx, user, userID)
+				RegisterAuthentication(ctx, user, userID, token)
 				ctx.Next()
 				return
 			}
