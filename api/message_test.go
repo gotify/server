@@ -39,27 +39,27 @@ func (s *MessageSuite) BeforeTest(suiteName, testName string) {
 func (s *MessageSuite) Test_GetMessages() {
 	auth.RegisterAuthentication(s.ctx, nil, 5, "")
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
-	s.db.On("GetMessagesByUser", uint(5)).Return([]*model.Message{{ID: 1, TokenID: "asd", Message: "OH HELLO THERE", Date: t, Title: "wup", Priority: 2}, {ID: 2, TokenID: "cloud", Message: "hi", Title: "hi", Date: t, Priority: 4}})
+	s.db.On("GetMessagesByUser", uint(5)).Return([]*model.Message{{ID: 1, ApplicationID: "asd", Message: "OH HELLO THERE", Date: t, Title: "wup", Priority: 2}, {ID: 2, ApplicationID: "cloud", Message: "hi", Title: "hi", Date: t, Priority: 4}})
 
 	s.a.GetMessages(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
 
-	assert.JSONEq(s.T(), `[{"id":1,"tokenid":"asd","message":"OH HELLO THERE","title":"wup","priority":2,"date":"2017-01-02T00:00:00Z"},{"id":2,"tokenid":"cloud","message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z"}]`, string(bytes))
+	assert.JSONEq(s.T(), `[{"id":1,"appid":"asd","message":"OH HELLO THERE","title":"wup","priority":2,"date":"2017-01-02T00:00:00Z"},{"id":2,"appid":"cloud","message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z"}]`, string(bytes))
 }
 
 func (s *MessageSuite) Test_GetMessagesWithToken() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "")
 	t, _ := time.Parse("2006/01/02", "2021/01/02")
-	s.db.On("GetMessagesByUserAndApplication", uint(4), "mytoken").Return([]*model.Message{{ID: 2, TokenID: "mytoken", Message: "hi", Title: "hi", Date: t, Priority: 4}})
+	s.db.On("GetMessagesByUserAndApplication", uint(4), "mytoken").Return([]*model.Message{{ID: 2, ApplicationID: "mytoken", Message: "hi", Title: "hi", Date: t, Priority: 4}})
 	s.ctx.Params = gin.Params{{Key: "appid", Value: "mytoken"}}
 
 	s.a.GetMessagesWithApplication(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
-	assert.JSONEq(s.T(), `[{"id":2,"tokenid":"mytoken","message":"hi","title":"hi","priority":4,"date":"2021-01-02T00:00:00Z"}]`, string(bytes))
+	assert.JSONEq(s.T(), `[{"id":2,"appid":"mytoken","message":"hi","title":"hi","priority":4,"date":"2021-01-02T00:00:00Z"}]`, string(bytes))
 }
 
 func (s *MessageSuite) Test_DeleteMessage_invalidID() {
@@ -82,7 +82,7 @@ func (s *MessageSuite) Test_DeleteMessage_notExistingID() {
 func (s *MessageSuite) Test_DeleteMessage_existingIDButNotOwner() {
 	auth.RegisterAuthentication(s.ctx, nil, 6, "")
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-	s.db.On("GetMessageByID", uint(1)).Return(&model.Message{ID: 1, TokenID: "token"})
+	s.db.On("GetMessageByID", uint(1)).Return(&model.Message{ID: 1, ApplicationID: "token"})
 	s.db.On("GetApplicationByID", "token").Return(&model.Application{ID: "token", UserID: 2})
 
 	s.a.DeleteMessage(s.ctx)
@@ -93,7 +93,7 @@ func (s *MessageSuite) Test_DeleteMessage_existingIDButNotOwner() {
 func (s *MessageSuite) Test_DeleteMessage() {
 	auth.RegisterAuthentication(s.ctx, nil, 2, "")
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-	s.db.On("GetMessageByID", uint(1)).Return(&model.Message{ID: 1, TokenID: "token"})
+	s.db.On("GetMessageByID", uint(1)).Return(&model.Message{ID: 1, ApplicationID: "token"})
 	s.db.On("GetApplicationByID", "token").Return(&model.Application{ID: "token", UserID: 2})
 	s.db.On("DeleteMessageByID", uint(1)).Return(nil)
 
@@ -154,7 +154,7 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	monkey.Patch(time.Now, func() time.Time { return t })
-	expected := &model.Message{ID: 0, TokenID: "app-token", Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	expected := &model.Message{ID: 0, ApplicationID: "app-token", Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": 1}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
@@ -171,7 +171,7 @@ func (s *MessageSuite) Test_CreateMessage_onlyRequired() {
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	monkey.Patch(time.Now, func() time.Time { return t })
-	expected := &model.Message{ID: 0, TokenID: "app-token", Title: "mytitle", Message: "mymessage", Date: t}
+	expected := &model.Message{ID: 0, ApplicationID: "app-token", Title: "mytitle", Message: "mymessage", Date: t}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
@@ -224,7 +224,7 @@ func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	monkey.Patch(time.Now, func() time.Time { return t })
-	expected := &model.Message{ID: 0, TokenID: "app-token", Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	expected := &model.Message{ID: 0, ApplicationID: "app-token", Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token?title=mytitle&message=mymessage&priority=1", nil)
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -241,7 +241,7 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	monkey.Patch(time.Now, func() time.Time { return t })
-	expected := &model.Message{ID: 0, TokenID: "app-token", Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	expected := &model.Message{ID: 0, ApplicationID: "app-token", Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader("title=mytitle&message=mymessage&priority=1"))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
