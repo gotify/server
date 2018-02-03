@@ -22,9 +22,15 @@ type MessageDatabase interface {
 	CreateMessage(message *model.Message) error
 }
 
+// Notifier notifies when a new message was created.
+type Notifier interface {
+	Notify(userID uint, message *model.Message)
+}
+
 // The MessageAPI provides handlers for managing messages.
 type MessageAPI struct {
 	DB MessageDatabase
+	Notifier Notifier
 }
 
 // GetMessages returns all messages from a user.
@@ -79,6 +85,7 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		message.ApplicationID = auth.GetTokenID(ctx)
 		message.Date = time.Now()
 		a.DB.CreateMessage(&message)
+		a.Notifier.Notify(auth.GetUserID(ctx), &message)
 		ctx.JSON(200, message)
 	}
 }
