@@ -153,7 +153,8 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
-	monkey.Patch(time.Now, func() time.Time { return t })
+	patch := monkey.Patch(time.Now, func() time.Time { return t })
+	defer patch.Unpatch()
 	expected := &model.Message{ID: 0, ApplicationID: "app-token", Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": 1}`))
@@ -170,7 +171,8 @@ func (s *MessageSuite) Test_CreateMessage_onlyRequired() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
-	monkey.Patch(time.Now, func() time.Time { return t })
+	patch := monkey.Patch(time.Now, func() time.Time { return t })
+	defer patch.Unpatch()
 	expected := &model.Message{ID: 0, ApplicationID: "app-token", Title: "mytitle", Message: "mymessage", Date: t}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage"}`))
@@ -223,7 +225,8 @@ func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
-	monkey.Patch(time.Now, func() time.Time { return t })
+	patch := monkey.Patch(time.Now, func() time.Time { return t })
+	defer patch.Unpatch()
 	expected := &model.Message{ID: 0, ApplicationID: "app-token", Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token?title=mytitle&message=mymessage&priority=1", nil)
@@ -240,7 +243,8 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
-	monkey.Patch(time.Now, func() time.Time { return t })
+	patch := monkey.Patch(time.Now, func() time.Time { return t })
+	defer patch.Unpatch()
 	expected := &model.Message{ID: 0, ApplicationID: "app-token", Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader("title=mytitle&message=mymessage&priority=1"))
