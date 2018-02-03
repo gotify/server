@@ -1,6 +1,12 @@
 package api
 
 import (
+	"io/ioutil"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/bouk/monkey"
 	"github.com/gin-gonic/gin"
 	apimock "github.com/jmattheis/memo/api/mock"
@@ -9,11 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"io/ioutil"
-	"net/http/httptest"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestMessageSuite(t *testing.T) {

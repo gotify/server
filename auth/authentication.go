@@ -2,9 +2,10 @@ package auth
 
 import (
 	"errors"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jmattheis/memo/model"
-	"strings"
 )
 
 const (

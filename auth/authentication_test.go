@@ -2,14 +2,15 @@ package auth
 
 import (
 	"fmt"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/gin-gonic/gin"
 	authmock "github.com/jmattheis/memo/auth/mock"
 	"github.com/jmattheis/memo/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestSuite(t *testing.T) {

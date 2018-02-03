@@ -2,17 +2,18 @@ package api
 
 import (
 	"errors"
+	"io/ioutil"
+	"math/rand"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
 	"github.com/gin-gonic/gin"
 	apimock "github.com/jmattheis/memo/api/mock"
 	"github.com/jmattheis/memo/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"io/ioutil"
-	"math/rand"
-	"net/http/httptest"
-	"strings"
-	"testing"
 )
 
 var (

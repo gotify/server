@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jmattheis/memo/auth"
 	"github.com/jmattheis/memo/model"
