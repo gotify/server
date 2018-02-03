@@ -27,6 +27,7 @@ type MessageSuite struct {
 	a        *MessageAPI
 	ctx      *gin.Context
 	recorder *httptest.ResponseRecorder
+	notified bool
 }
 
 func (s *MessageSuite) BeforeTest(suiteName, testName string) {
@@ -34,7 +35,12 @@ func (s *MessageSuite) BeforeTest(suiteName, testName string) {
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	s.db = &apimock.MockMessageDatabase{}
-	s.a = &MessageAPI{DB: s.db}
+	s.notified = false
+	s.a = &MessageAPI{DB: s.db, Notifier: s}
+}
+
+func (s *MessageSuite) Notify(userID uint, msg *model.Message) {
+	s.notified = true
 }
 
 func (s *MessageSuite) Test_GetMessages() {
@@ -166,6 +172,7 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 
 	s.db.AssertCalled(s.T(), "CreateMessage", expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.True(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_onlyRequired() {
@@ -184,6 +191,7 @@ func (s *MessageSuite) Test_CreateMessage_onlyRequired() {
 
 	s.db.AssertCalled(s.T(), "CreateMessage", expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.True(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenNoMessage() {
@@ -196,6 +204,7 @@ func (s *MessageSuite) Test_CreateMessage_failWhenNoMessage() {
 
 	s.db.AssertNotCalled(s.T(), "CreateMessage", mock.Anything)
 	assert.Equal(s.T(), 400, s.recorder.Code)
+	assert.False(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenNoTitle() {
@@ -208,6 +217,7 @@ func (s *MessageSuite) Test_CreateMessage_failWhenNoTitle() {
 
 	s.db.AssertNotCalled(s.T(), "CreateMessage", mock.Anything)
 	assert.Equal(s.T(), 400, s.recorder.Code)
+	assert.False(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenPriorityNotNumber() {
@@ -220,6 +230,7 @@ func (s *MessageSuite) Test_CreateMessage_failWhenPriorityNotNumber() {
 
 	s.db.AssertNotCalled(s.T(), "CreateMessage", mock.Anything)
 	assert.Equal(s.T(), 400, s.recorder.Code)
+	assert.False(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_onQueryData() {
@@ -238,6 +249,7 @@ func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 
 	s.db.AssertCalled(s.T(), "CreateMessage", expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.True(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_onFormData() {
@@ -256,4 +268,5 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 
 	s.db.AssertCalled(s.T(), "CreateMessage", expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.True(s.T(), s.notified)
 }
