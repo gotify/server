@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPasswordSuccess(t *testing.T) {

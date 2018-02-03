@@ -1,12 +1,13 @@
 package auth
 
 import (
+	"net/http/httptest"
+	"testing"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jmattheis/memo/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestUtilSuite(t *testing.T) {
