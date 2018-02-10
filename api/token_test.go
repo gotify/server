@@ -210,7 +210,7 @@ func (s *TokenSuite) Test_DeleteClient_expectNotFoundOnCurrentUserIsNotOwner() {
 
 	s.a.DeleteClient(s.ctx)
 
-	s.db.AssertNotCalled(s.T(), "DeleteClientID", mock.Anything)
+	s.db.AssertNotCalled(s.T(), "DeleteClientByID", mock.Anything)
 	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
@@ -268,7 +268,7 @@ func (s *TokenSuite) Test_DeleteClient_expectNotFound() {
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: firstClientToken}}
 
-	s.db.On("DeleteClientID", firstClientToken).Return(errors.New("what? that does not exist"))
+	s.db.On("DeleteClientByID", firstClientToken).Return(errors.New("what? that does not exist"))
 	s.db.On("GetClientByID", firstClientToken).Return(nil)
 
 	s.a.DeleteClient(s.ctx)
@@ -281,7 +281,7 @@ func (s *TokenSuite) Test_DeleteClient() {
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: firstClientToken}}
 
-	s.db.On("DeleteClientID", firstClientToken).Return(nil)
+	s.db.On("DeleteClientByID", firstClientToken).Return(nil)
 	s.db.On("GetClientByID", firstClientToken).Return(&model.Client{ID: firstClientToken, Name: "custom_name", UserID: 5})
 
 	s.a.DeleteClient(s.ctx)
