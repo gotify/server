@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/BurntSushi/toml"
+  packages = ["."]
+  revision = "b26d9c308763d68093482582cea63d69be07a0f0"
+  version = "v0.3.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/bouk/monkey"
   packages = ["."]
@@ -55,10 +61,18 @@
   version = "v1.2.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/jinzhu/configor"
+  packages = ["."]
+  revision = "6ecfe629230f24c2e92c7894c6ab21b83b757a39"
+
+[[projects]]
   name = "github.com/jinzhu/gorm"
   packages = [
     ".",
-    "dialects/mysql"
+    "dialects/mysql",
+    "dialects/postgres",
+    "dialects/sqlite"
   ]
   revision = "5174cc5c242a728b435ea2be8a2f7f998e15429b"
   version = "v1.0"
@@ -76,10 +90,26 @@
   version = "1.0.4"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "hstore",
+    "oid"
+  ]
+  revision = "88edab0803230a3898347e77b474f8c1820a1f20"
+
+[[projects]]
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
+
+[[projects]]
+  name = "github.com/mattn/go-sqlite3"
+  packages = ["."]
+  revision = "6c771bb9887719704b210e87e934f08be014bdb1"
+  version = "v1.6.0"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -140,6 +170,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cf284f7d2d5ff9e0373bc7d0362c4be6c639aceb2d9c41ad0ed0bb8782348d9a"
+  inputs-digest = "c389abe1371113a3e8bf6c4f682903966f02a2a49bd6797a86b2045a1d54fd49"
   solver-name = "gps-cdcl"
   solver-version = 1
