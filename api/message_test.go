@@ -59,7 +59,7 @@ func (s *MessageSuite) Test_GetMessages() {
 func (s *MessageSuite) Test_GetMessagesWithToken() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "")
 	t, _ := time.Parse("2006/01/02", "2021/01/02")
-	s.db.On("GetMessagesByUserAndApplication", uint(4), "mytoken").Return([]*model.Message{{ID: 2, ApplicationID: "mytoken", Message: "hi", Title: "hi", Date: t, Priority: 4}})
+	s.db.On("GetMessagesByApplication", "mytoken").Return([]*model.Message{{ID: 2, ApplicationID: "mytoken", Message: "hi", Title: "hi", Date: t, Priority: 4}})
 	s.ctx.Params = gin.Params{{Key: "appid", Value: "mytoken"}}
 
 	s.a.GetMessagesWithApplication(s.ctx)
