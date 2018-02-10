@@ -12,7 +12,7 @@ import (
 
 // The MessageDatabase interface for encapsulating database access.
 type MessageDatabase interface {
-	GetMessagesByUserAndApplication(userID uint, tokenID string) []*model.Message
+	GetMessagesByApplication(tokenID string) []*model.Message
 	GetApplicationByID(id string) *model.Application
 	GetMessagesByUser(userID uint) []*model.Message
 	DeleteMessageByID(id uint) error
@@ -43,8 +43,7 @@ func (a *MessageAPI) GetMessages(ctx *gin.Context) {
 // GetMessagesWithApplication returns all messages from a specific application.
 func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 	appID := ctx.Param("appid")
-	userID := auth.GetUserID(ctx)
-	messages := a.DB.GetMessagesByUserAndApplication(userID, appID)
+	messages := a.DB.GetMessagesByApplication(appID)
 	ctx.JSON(200, messages)
 }
 

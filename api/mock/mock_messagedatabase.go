@@ -97,13 +97,13 @@ func (_m *MockMessageDatabase) GetMessageByID(id uint) *model.Message {
 	return r0
 }
 
-// GetMessagesByUser provides a mock function with given fields: userID
-func (_m *MockMessageDatabase) GetMessagesByUser(userID uint) []*model.Message {
-	ret := _m.Called(userID)
+// GetMessagesByApplication provides a mock function with given fields: tokenID
+func (_m *MockMessageDatabase) GetMessagesByApplication(tokenID string) []*model.Message {
+	ret := _m.Called(tokenID)
 
 	var r0 []*model.Message
-	if rf, ok := ret.Get(0).(func(uint) []*model.Message); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(string) []*model.Message); ok {
+		r0 = rf(tokenID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Message)
@@ -113,13 +113,13 @@ func (_m *MockMessageDatabase) GetMessagesByUser(userID uint) []*model.Message {
 	return r0
 }
 
-// GetMessagesByUserAndApplication provides a mock function with given fields: userID, tokenID
-func (_m *MockMessageDatabase) GetMessagesByUserAndApplication(userID uint, tokenID string) []*model.Message {
-	ret := _m.Called(userID, tokenID)
+// GetMessagesByUser provides a mock function with given fields: userID
+func (_m *MockMessageDatabase) GetMessagesByUser(userID uint) []*model.Message {
+	ret := _m.Called(userID)
 
 	var r0 []*model.Message
-	if rf, ok := ret.Get(0).(func(uint, string) []*model.Message); ok {
-		r0 = rf(userID, tokenID)
+	if rf, ok := ret.Get(0).(func(uint) []*model.Message); ok {
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Message)
