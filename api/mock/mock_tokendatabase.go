@@ -51,8 +51,8 @@ func (_m *MockTokenDatabase) DeleteApplicationByID(id string) error {
 	return r0
 }
 
-// DeleteClientID provides a mock function with given fields: id
-func (_m *MockTokenDatabase) DeleteClientID(id string) error {
+// DeleteClientByID provides a mock function with given fields: id
+func (_m *MockTokenDatabase) DeleteClientByID(id string) error {
 	ret := _m.Called(id)
 
 	var r0 error

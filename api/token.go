@@ -18,7 +18,7 @@ type TokenDatabase interface {
 	CreateClient(client *model.Client) error
 	GetClientByID(id string) *model.Client
 	GetClientsByUser(userID uint) []*model.Client
-	DeleteClientID(id string) error
+	DeleteClientByID(id string) error
 }
 
 // The TokenAPI provides handlers for managing clients and applications.
@@ -76,7 +76,7 @@ func (a *TokenAPI) DeleteApplication(ctx *gin.Context) {
 func (a *TokenAPI) DeleteClient(ctx *gin.Context) {
 	clientID := ctx.Param("id")
 	if client := a.DB.GetClientByID(clientID); client != nil && client.UserID == auth.GetUserID(ctx) {
-		a.DB.DeleteClientID(clientID)
+		a.DB.DeleteClientByID(clientID)
 	} else {
 		ctx.AbortWithError(404, fmt.Errorf("client with id %s doesn't exists", clientID))
 	}
