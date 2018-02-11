@@ -136,6 +136,8 @@ func (s *UserSuite) Test_CreateUser() {
 	s.a.CreateUser(s.ctx)
 
 	s.db.AssertCalled(s.T(), "CreateUser", &model.User{Name: "tom", Pass: pwByte, Admin: true})
+
+	s.expectJSON(`{"id":0, "name":"tom", "admin":true}`)
 }
 
 func (s *UserSuite) Test_CreateUser_NoPassword() {
