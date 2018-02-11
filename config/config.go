@@ -2,7 +2,7 @@ package config
 
 import "github.com/jinzhu/configor"
 
-// Configuration the application config can be set per env variables or config file (config.yml).
+// Configuration is stuff that can be configured externally per env variables or config file (config.yml).
 type Configuration struct {
 	Port int `default:"8080"`
 	Database struct {
