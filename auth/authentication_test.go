@@ -66,7 +66,7 @@ func (s *AuthenticationSuite) TestQueryToken() {
 	// clienttoken
 	s.assertQueryRequest("token", "clienttoken", s.auth.RequireApplicationToken, 401)
 	s.assertQueryRequest("token", "clienttoken", s.auth.RequireClient, 200)
-	s.assertQueryRequest("token", "clienttoken", s.auth.RequireAdmin, 401)
+	s.assertQueryRequest("token", "clienttoken", s.auth.RequireAdmin, 403)
 	s.assertQueryRequest("token", "clienttoken_admin", s.auth.RequireApplicationToken, 401)
 	s.assertQueryRequest("token", "clienttoken_admin", s.auth.RequireClient, 200)
 	s.assertQueryRequest("token", "clienttoken_admin", s.auth.RequireAdmin, 200)
@@ -120,7 +120,7 @@ func (s *AuthenticationSuite) TestHeaderApiKeyToken() {
 	// clienttoken
 	s.assertHeaderRequest("Authorization", "ApiKey clienttoken", s.auth.RequireApplicationToken, 401)
 	s.assertHeaderRequest("Authorization", "ApiKey clienttoken", s.auth.RequireClient, 200)
-	s.assertHeaderRequest("Authorization", "ApiKey clienttoken", s.auth.RequireAdmin, 401)
+	s.assertHeaderRequest("Authorization", "ApiKey clienttoken", s.auth.RequireAdmin, 403)
 	s.assertHeaderRequest("Authorization", "ApiKey clienttoken_admin", s.auth.RequireApplicationToken, 401)
 	s.assertHeaderRequest("Authorization", "ApiKey clienttoken_admin", s.auth.RequireClient, 200)
 	s.assertHeaderRequest("Authorization", "ApiKey clienttoken_admin", s.auth.RequireAdmin, 200)
@@ -132,12 +132,12 @@ func (s *AuthenticationSuite) TestBasicAuth() {
 	s.assertHeaderRequest("Authorization", "Basic ergerogerg", s.auth.RequireAdmin, 401)
 
 	// user existing:pw
-	s.assertHeaderRequest("Authorization", "Basic ZXhpc3Rpbmc6cHc=", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("Authorization", "Basic ZXhpc3Rpbmc6cHc=", s.auth.RequireApplicationToken, 403)
 	s.assertHeaderRequest("Authorization", "Basic ZXhpc3Rpbmc6cHc=", s.auth.RequireClient, 200)
-	s.assertHeaderRequest("Authorization", "Basic ZXhpc3Rpbmc6cHc=", s.auth.RequireAdmin, 401)
+	s.assertHeaderRequest("Authorization", "Basic ZXhpc3Rpbmc6cHc=", s.auth.RequireAdmin, 403)
 
 	// user admin:pw
-	s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHc=", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHc=", s.auth.RequireApplicationToken, 403)
 	s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHc=", s.auth.RequireClient, 200)
 	s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHc=", s.auth.RequireAdmin, 200)
 
