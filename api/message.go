@@ -29,7 +29,7 @@ type Notifier interface {
 
 // The MessageAPI provides handlers for managing messages.
 type MessageAPI struct {
-	DB MessageDatabase
+	DB       MessageDatabase
 	Notifier Notifier
 }
 
