@@ -22,6 +22,17 @@ func TestDefaultErrorInternal(t *testing.T) {
 	assertJSONResponse(t, rec, 500, `{"errorCode":500, "errorDescription":"something went wrong", "error":"Internal Server Error"}`)
 }
 
+func TestBindingErrorDefault(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	rec := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(rec)
+	ctx.AbortWithError(400, errors.New("you need todo something")).SetType(gin.ErrorTypeBind)
+
+	Handler()(ctx)
+
+	assertJSONResponse(t, rec, 400, `{"errorCode":400, "errorDescription":"you need todo something", "error":"Bad Request"}`)
+}
+
 func TestDefaultErrorBadRequest(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	rec := httptest.NewRecorder()
