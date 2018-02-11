@@ -21,6 +21,7 @@ func Create(db *database.GormDatabase) (*gin.Engine, func()) {
 
 	g := gin.New()
 	g.Use(gin.Logger(), gin.Recovery(), error.Handler())
+	g.NoRoute(error.NotFound())
 
 	g.GET("/")
 
