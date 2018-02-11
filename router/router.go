@@ -25,6 +25,10 @@ func Create(db *database.GormDatabase) (*gin.Engine, func()) {
 
 	g.GET("/")
 
+	g.Use(func(ctx *gin.Context) {
+		ctx.Header("Content-Type", "application/json")
+	})
+
 	g.Group("/").Use(authentication.RequireApplicationToken()).POST("/message", messageHandler.CreateMessage)
 
 	clientAuth := g.Group("")
