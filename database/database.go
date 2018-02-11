@@ -15,6 +15,13 @@ func New(dialect, connection, defaultUser, defaultPass string) (*GormDatabase, e
 	if err != nil {
 		return nil, err
 	}
+	// we use the database connection inside the handlers from the http
+	// framework, therefore concurrent access occurs. Sqlite cannot handle
+	// concurrent writes, so we limit sqlite to one connection.
+	// see https://github.com/mattn/go-sqlite3/issues/274
+	if dialect == "sqlite3" {
+		db.DB().SetMaxOpenConns(1)
+	}
 	if !db.HasTable(new(model.User)) && !db.HasTable(new(model.Message)) &&
 		!db.HasTable(new(model.Client)) && !db.HasTable(new(model.Application)) {
 		db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client))
