@@ -1,12 +1,12 @@
 package database
 
 import (
+	"github.com/gotify/server/auth"
+	"github.com/gotify/server/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"    // enable the mysql dialect
 	_ "github.com/jinzhu/gorm/dialects/postgres" // enable the postgres dialect
 	_ "github.com/jinzhu/gorm/dialects/sqlite"   // enable the sqlite3 dialect
-	"github.com/jmattheis/memo/auth"
-	"github.com/jmattheis/memo/model"
 )
 
 // New creates a new wrapper for the gorm database framework.

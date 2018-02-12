@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/jmattheis/memo/model"
+	"github.com/gotify/server/model"
 )
 
 // GetApplicationByID returns the application for the given id or nil.

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jmattheis/memo/config"
-	"github.com/jmattheis/memo/database"
-	"github.com/jmattheis/memo/router"
+	"github.com/gotify/server/config"
+	"github.com/gotify/server/database"
+	"github.com/gotify/server/router"
 )
 
 func main() {

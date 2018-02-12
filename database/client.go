@@ -1,6 +1,6 @@
 package database
 
-import "github.com/jmattheis/memo/model"
+import "github.com/gotify/server/model"
 
 // GetClientByID returns the client for the given id or nil.
 func (d *GormDatabase) GetClientByID(id string) *model.Client {

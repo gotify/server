@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/jmattheis/memo/model"
+	"github.com/gotify/server/model"
 )
 
 // GetMessageByID returns the messages for the given id or nil.

@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	apimock "github.com/jmattheis/memo/api/mock"
-	"github.com/jmattheis/memo/model"
+	apimock "github.com/gotify/server/api/mock"
+	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"

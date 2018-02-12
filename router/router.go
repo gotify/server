@@ -4,11 +4,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jmattheis/memo/api"
-	"github.com/jmattheis/memo/auth"
-	"github.com/jmattheis/memo/database"
-	"github.com/jmattheis/memo/error"
-	"github.com/jmattheis/memo/stream"
+	"github.com/gotify/server/api"
+	"github.com/gotify/server/auth"
+	"github.com/gotify/server/database"
+	"github.com/gotify/server/error"
+	"github.com/gotify/server/stream"
 )
 
 // Create creates the gin engine with all routes.

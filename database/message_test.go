@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jmattheis/memo/model"
+	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
 )
 

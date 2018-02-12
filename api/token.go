@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jmattheis/memo/auth"
-	"github.com/jmattheis/memo/model"
+	"github.com/gotify/server/auth"
+	"github.com/gotify/server/model"
 )
 
 // The TokenDatabase interface for encapsulating database access.

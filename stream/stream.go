@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/jmattheis/memo/auth"
-	"github.com/jmattheis/memo/model"
+	"github.com/gotify/server/auth"
+	"github.com/gotify/server/model"
 )
 
 var upgrader = websocket.Upgrader{

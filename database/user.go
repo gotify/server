@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/jmattheis/memo/model"
+	"github.com/gotify/server/model"
 )
 
 // GetUserByName returns the user by the given name or nil.

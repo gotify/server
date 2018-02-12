@@ -11,8 +11,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/json"
-	"github.com/jmattheis/memo/database"
-	"github.com/jmattheis/memo/model"
+	"github.com/gotify/server/database"
+	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

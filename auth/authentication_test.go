@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	authmock "github.com/jmattheis/memo/auth/mock"
-	"github.com/jmattheis/memo/model"
+	authmock "github.com/gotify/server/auth/mock"
+	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"

@@ -8,11 +8,11 @@ import (
 )
 
 func TestConfigEnv(t *testing.T) {
-	os.Setenv("MEMO_DEFAULTUSER_NAME", "jmattheis")
+	os.Setenv("GOTIFY_DEFAULTUSER_NAME", "jmattheis")
 	conf := Get()
 	assert.Equal(t, 8080, conf.Port, "should use defaults")
 	assert.Equal(t, "jmattheis", conf.DefaultUser.Name, "should not use default but env var")
-	os.Unsetenv("MEMO_DEFAULTUSER_NAME")
+	os.Unsetenv("GOTIFY_DEFAULTUSER_NAME")
 }
 
 func TestConfigFile(t *testing.T) {

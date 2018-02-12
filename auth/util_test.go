@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jmattheis/memo/model"
+	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
