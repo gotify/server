@@ -2,15 +2,13 @@ package auth
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/model"
 )
 
 const (
-	headerName   = "Authorization"
-	headerSchema = "ApiKey "
+	headerName   = "X-Gotify-Key"
 )
 
 // The Database interface for encapsulating database access.
@@ -83,10 +81,7 @@ func (a *Auth) tokenFromQuery(ctx *gin.Context) string {
 }
 
 func (a *Auth) tokenFromHeader(ctx *gin.Context) string {
-	if header := ctx.Request.Header.Get(headerName); header != "" && strings.HasPrefix(header, headerSchema) {
-		return strings.TrimPrefix(header, headerSchema)
-	}
-	return ""
+	return ctx.Request.Header.Get(headerName)
 }
 
 func (a *Auth) userFromBasicAuth(ctx *gin.Context) *model.User {

@@ -61,7 +61,7 @@ func (s *IntegrationSuite) TestSendMessage() {
 	assert.Equal(s.T(), "backup-server", token.Name)
 
 	req = s.newRequest("POST", "message", `{"message": "backup done", "title": "backup done"}`)
-	req.Header.Add("Authorization", fmt.Sprintf("ApiKey %s", token.ID))
+	req.Header.Add("X-Gotify-Key", token.ID)
 	res, err = client.Do(req)
 	assert.Nil(s.T(), err)
 	assert.Equal(s.T(), 200, res.StatusCode)
@@ -71,10 +71,11 @@ func (s *IntegrationSuite) TestSendMessage() {
 	res, err = client.Do(req)
 	assert.Nil(s.T(), err)
 	assert.Equal(s.T(), 200, res.StatusCode)
-	msgs := &[]*model.Message{}
-	json.NewDecoder(res.Body).Decode(msgs)
-	assert.Len(s.T(), *msgs, 1)
-	msg := (*msgs)[0]
+	var msgs []model.Message
+	json.NewDecoder(res.Body).Decode(&msgs)
+	assert.Len(s.T(), msgs, 1)
+
+	msg := msgs[0]
 	assert.Equal(s.T(), "backup done", msg.Message)
 	assert.Equal(s.T(), "backup done", msg.Title)
 	assert.Equal(s.T(), uint(1), msg.ID)
