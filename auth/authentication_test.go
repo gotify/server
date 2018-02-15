@@ -90,9 +90,9 @@ func (s *AuthenticationSuite) TestNothingProvided() {
 
 func (s *AuthenticationSuite) TestHeaderApiKeyToken() {
 	// not existing token
-	s.assertHeaderRequest("Authorization", "ApiKey ergerogerg", s.auth.RequireApplicationToken, 401)
-	s.assertHeaderRequest("Authorization", "ApiKey ergerogerg", s.auth.RequireClient, 401)
-	s.assertHeaderRequest("Authorization", "ApiKey ergerogerg", s.auth.RequireAdmin, 401)
+	s.assertHeaderRequest("X-Gotify-Key", "ergerogerg", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("X-Gotify-Key", "ergerogerg", s.auth.RequireClient, 401)
+	s.assertHeaderRequest("X-Gotify-Key", "ergerogerg", s.auth.RequireAdmin, 401)
 
 	// no authentication schema
 	s.assertHeaderRequest("Authorization", "ergerogerg", s.auth.RequireApplicationToken, 401)
@@ -105,25 +105,25 @@ func (s *AuthenticationSuite) TestHeaderApiKeyToken() {
 	s.assertHeaderRequest("Authorization", "ApiKeyx clienttoken", s.auth.RequireAdmin, 401)
 
 	// not existing key
-	s.assertHeaderRequest("Authorizationx", "ApiKey clienttoken", s.auth.RequireApplicationToken, 401)
-	s.assertHeaderRequest("Authorizationx", "ApiKey clienttoken", s.auth.RequireClient, 401)
-	s.assertHeaderRequest("Authorizationx", "ApiKey clienttoken", s.auth.RequireAdmin, 401)
+	s.assertHeaderRequest("X-Gotify-Keyx", "clienttoken", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("X-Gotify-Keyx", "clienttoken", s.auth.RequireClient, 401)
+	s.assertHeaderRequest("X-Gotify-Keyx", "clienttoken", s.auth.RequireAdmin, 401)
 
 	// apptoken
-	s.assertHeaderRequest("Authorization", "ApiKey apptoken", s.auth.RequireApplicationToken, 200)
-	s.assertHeaderRequest("Authorization", "ApiKey apptoken", s.auth.RequireClient, 401)
-	s.assertHeaderRequest("Authorization", "ApiKey apptoken", s.auth.RequireAdmin, 401)
-	s.assertHeaderRequest("Authorization", "ApiKey apptoken_admin", s.auth.RequireApplicationToken, 200)
-	s.assertHeaderRequest("Authorization", "ApiKey apptoken_admin", s.auth.RequireClient, 401)
-	s.assertHeaderRequest("Authorization", "ApiKey apptoken_admin", s.auth.RequireAdmin, 401)
+	s.assertHeaderRequest("X-Gotify-Key", "apptoken", s.auth.RequireApplicationToken, 200)
+	s.assertHeaderRequest("X-Gotify-Key", "apptoken", s.auth.RequireClient, 401)
+	s.assertHeaderRequest("X-Gotify-Key", "apptoken", s.auth.RequireAdmin, 401)
+	s.assertHeaderRequest("X-Gotify-Key", "apptoken_admin", s.auth.RequireApplicationToken, 200)
+	s.assertHeaderRequest("X-Gotify-Key", "apptoken_admin", s.auth.RequireClient, 401)
+	s.assertHeaderRequest("X-Gotify-Key", "apptoken_admin", s.auth.RequireAdmin, 401)
 
 	// clienttoken
-	s.assertHeaderRequest("Authorization", "ApiKey clienttoken", s.auth.RequireApplicationToken, 401)
-	s.assertHeaderRequest("Authorization", "ApiKey clienttoken", s.auth.RequireClient, 200)
-	s.assertHeaderRequest("Authorization", "ApiKey clienttoken", s.auth.RequireAdmin, 403)
-	s.assertHeaderRequest("Authorization", "ApiKey clienttoken_admin", s.auth.RequireApplicationToken, 401)
-	s.assertHeaderRequest("Authorization", "ApiKey clienttoken_admin", s.auth.RequireClient, 200)
-	s.assertHeaderRequest("Authorization", "ApiKey clienttoken_admin", s.auth.RequireAdmin, 200)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken", s.auth.RequireClient, 200)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken", s.auth.RequireAdmin, 403)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_admin", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_admin", s.auth.RequireClient, 200)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_admin", s.auth.RequireAdmin, 200)
 }
 
 func (s *AuthenticationSuite) TestBasicAuth() {
