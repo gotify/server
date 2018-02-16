@@ -2,7 +2,11 @@ package model
 
 import "time"
 
+// Message Model
+//
 // The Message holds information about a message which was sent by an Application.
+//
+// swagger:model Message
 type Message struct {
 	ID            uint      `gorm:"AUTO_INCREMENT;primary_key;index" json:"id"`
 	ApplicationID string    `json:"appid"`
