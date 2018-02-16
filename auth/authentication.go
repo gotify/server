@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	headerName   = "X-Gotify-Key"
+	headerName = "X-Gotify-Key"
 )
 
 // The Database interface for encapsulating database access.
