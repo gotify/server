@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/gotify/server/model"
 )
 
 func TestDefaultErrorInternal(t *testing.T) {
@@ -58,7 +59,7 @@ func TestValidationError(t *testing.T) {
 	assert.NotNil(t, ctx.Bind(&testValidate{}))
 	Handler()(ctx)
 
-	err := new(errorWrapper)
+	err := new(model.Error)
 	json.NewDecoder(rec.Body).Decode(err)
 	assert.Equal(t, 400, rec.Code)
 	assert.Equal(t, "Bad Request", err.Error)

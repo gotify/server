@@ -10,13 +10,8 @@ import (
 	"unicode"
 
 	"gopkg.in/go-playground/validator.v8"
+	"github.com/gotify/server/model"
 )
-
-type errorWrapper struct {
-	Error            string `json:"error"`
-	ErrorCode        int    `json:"errorCode"`
-	ErrorDescription string `json:"errorDescription"`
-}
 
 // Handler creates a gin middleware for handling errors.
 func Handler() gin.HandlerFunc {
@@ -63,5 +58,5 @@ func writeError(ctx *gin.Context, errString string) {
 	if ctx.Writer.Status() != http.StatusOK {
 		status = ctx.Writer.Status()
 	}
-	ctx.JSON(status, &errorWrapper{Error: http.StatusText(status), ErrorCode: status, ErrorDescription: errString})
+	ctx.JSON(status, &model.Error{Error: http.StatusText(status), ErrorCode: status, ErrorDescription: errString})
 }

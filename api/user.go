@@ -9,13 +9,6 @@ import (
 	"github.com/gotify/server/model"
 )
 
-type userResponse struct {
-	ID    uint   `json:"id"`
-	Name  string `binding:"required" json:"name" query:"name" form:"name"`
-	Pass  string `json:"pass,omitempty" form:"pass" query:"pass"`
-	Admin bool   `json:"admin" form:"admin" query:"admin"`
-}
-
 // The UserDatabase interface for encapsulating database access.
 type UserDatabase interface {
 	GetUsers() []*model.User
@@ -35,7 +28,7 @@ type UserAPI struct {
 func (a *UserAPI) GetUsers(ctx *gin.Context) {
 	users := a.DB.GetUsers()
 
-	var resp []*userResponse
+	var resp []*model.UserExternal
 	for _, user := range users {
 		resp = append(resp, toExternal(user))
 	}
@@ -51,7 +44,7 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 
 // CreateUser creates a user
 func (a *UserAPI) CreateUser(ctx *gin.Context) {
-	user := userResponse{}
+	user := model.UserExternal{}
 	if err := ctx.Bind(&user); err == nil {
 		if len(user.Pass) == 0 {
 			ctx.AbortWithError(400, errors.New("password may not be empty"))
@@ -110,7 +103,7 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 // UpdateUserByID updates and user by id
 func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 	if id, err := toUInt(ctx.Param("id")); err == nil {
-		var user *userResponse
+		var user *model.UserExternal
 		if err := ctx.Bind(&user); err == nil {
 			if oldUser := a.DB.GetUserByID(id); oldUser != nil {
 				internal := toInternal(user, oldUser.Pass)
@@ -131,7 +124,7 @@ func toUInt(id string) (uint, error) {
 	return uint(parsed), err
 }
 
-func toInternal(response *userResponse, pw []byte) *model.User {
+func toInternal(response *model.UserExternal, pw []byte) *model.User {
 	user := &model.User{
 		Name:  response.Name,
 		Admin: response.Admin,
@@ -144,8 +137,8 @@ func toInternal(response *userResponse, pw []byte) *model.User {
 	return user
 }
 
-func toExternal(internal *model.User) *userResponse {
-	return &userResponse{
+func toExternal(internal *model.User) *model.UserExternal {
+	return &model.UserExternal{
 		Name:  internal.Name,
 		Admin: internal.Admin,
 		ID:    internal.ID,
