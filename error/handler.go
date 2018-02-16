@@ -9,8 +9,8 @@ import (
 	"strings"
 	"unicode"
 
-	"gopkg.in/go-playground/validator.v8"
 	"github.com/gotify/server/model"
+	"gopkg.in/go-playground/validator.v8"
 )
 
 // Handler creates a gin middleware for handling errors.
