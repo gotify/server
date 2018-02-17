@@ -1032,12 +1032,13 @@
       "type": "object",
       "title": "Application Model",
       "properties": {
-        "ID": {
-          "type": "string"
-        },
         "description": {
           "type": "string",
           "x-go-name": "Description"
+        },
+        "id": {
+          "type": "string",
+          "x-go-name": "ID"
         },
         "name": {
           "type": "string",
@@ -1051,8 +1052,9 @@
       "type": "object",
       "title": "Client Model",
       "properties": {
-        "ID": {
-          "type": "string"
+        "id": {
+          "type": "string",
+          "x-go-name": "ID"
         },
         "name": {
           "type": "string",
