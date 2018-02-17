@@ -113,7 +113,7 @@ func (s *TokenSuite) Test_CreateApplication_returnsApplicationWithID() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
 
-	assert.Equal(s.T(), `{"ID":"APorrUa5b1IIK3y","name":"custom_name","description":""}`, string(bytes))
+	assert.Equal(s.T(), `{"id":"APorrUa5b1IIK3y","name":"custom_name","description":""}`, string(bytes))
 }
 
 func (s *TokenSuite) Test_CreateApplication_withExistingToken() {
@@ -145,7 +145,7 @@ func (s *TokenSuite) Test_GetApplications() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
 
-	assert.Equal(s.T(), `[{"ID":"perfper","name":"first","description":"desc"},{"ID":"asdasd","name":"second","description":"desc2"}]`, string(bytes))
+	assert.Equal(s.T(), `[{"id":"perfper","name":"first","description":"desc"},{"id":"asdasd","name":"second","description":"desc2"}]`, string(bytes))
 }
 
 func (s *TokenSuite) Test_DeleteApplication_expectNotFound() {
@@ -228,7 +228,7 @@ func (s *TokenSuite) Test_CreateClient_returnsClientWithID() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
 
-	assert.Equal(s.T(), `{"ID":"CPorrUa5b1IIK3y","name":"custom_name"}`, string(bytes))
+	assert.Equal(s.T(), `{"id":"CPorrUa5b1IIK3y","name":"custom_name"}`, string(bytes))
 }
 
 func (s *TokenSuite) Test_CreateClient_withExistingToken() {
@@ -260,7 +260,7 @@ func (s *TokenSuite) Test_GetClients() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
 
-	assert.Equal(s.T(), `[{"ID":"perfper","name":"first"},{"ID":"asdasd","name":"second"}]`, string(bytes))
+	assert.Equal(s.T(), `[{"id":"perfper","name":"first"},{"id":"asdasd","name":"second"}]`, string(bytes))
 }
 
 func (s *TokenSuite) Test_DeleteClient_expectNotFound() {
