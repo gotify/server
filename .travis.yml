@@ -12,14 +12,18 @@ before_install:
   - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
   - chmod +x $GOPATH/bin/dep
   - chmod +x ./all-test-with-coverage.sh
+  - chmod +x ./swagger-validate.sh
 
 install:
   - dep ensure
   - go get github.com/golang/lint/golint
   - go get honnef.co/go/tools/cmd/megacheck
   - go get github.com/fzipp/gocyclo
+  - go get -u github.com/gobuffalo/packr/...
+  - go get -u github.com/go-swagger/go-swagger/cmd/swagger
 
 script:
+  - ./swagger-validate.sh
   - ./all-test-with-coverage.sh
   - go vet ./...
   - megacheck ./...
