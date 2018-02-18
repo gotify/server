@@ -4,7 +4,22 @@ import "github.com/jinzhu/configor"
 
 // Configuration is stuff that can be configured externally per env variables or config file (config.yml).
 type Configuration struct {
-	Port     int `default:"8080"`
+	Server struct {
+		Port int `default:"80"`
+		SSL struct {
+			Enabled         *bool  `default:"false"`
+			RedirectToHTTPS *bool  `default:"true"`
+			Port            int    `default:"443"`
+			CertFile        string `default:""`
+			CertKey         string `default:""`
+			LetsEncrypt struct {
+				Enabled   *bool  `default:"false"`
+				AcceptTOS *bool  `default:"false"`
+				Cache     string `default:"certs"`
+				Hosts     []string
+			}
+		}
+	}
 	Database struct {
 		Dialect    string `default:"sqlite3"`
 		Connection string `default:"gotify.db"`
