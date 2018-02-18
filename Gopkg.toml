@@ -27,5 +27,9 @@
   name = "github.com/jmattheis/go-packr-swagger-ui"
   revision = "v3.10.0"
 
+[[constraint]]
+  name = "github.com/golang/crypto"
+  branch = "master"
+
 [prune]
   unused-packages = true

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/database"
 	"github.com/gotify/server/router"
+	"github.com/gotify/server/runner"
 )
 
 func main() {
@@ -23,5 +23,6 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	engine, closeable := router.Create(db)
 	defer closeable()
-	engine.Run(fmt.Sprintf(":%d", conf.Port))
+
+	runner.Run(engine, conf)
 }
