@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/http"
 
+	"log"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/config"
 	"golang.org/x/crypto/acme/autocert"
@@ -35,9 +37,9 @@ func Run(engine *gin.Engine, conf *config.Configuration) {
 			httpHandler = certManager.HTTPHandler(httpHandler)
 			s.TLSConfig = &tls.Config{GetCertificate: certManager.GetCertificate}
 		}
-		go s.ListenAndServeTLS(conf.Server.SSL.CertFile, conf.Server.SSL.CertKey)
+		go log.Fatal(s.ListenAndServeTLS(conf.Server.SSL.CertFile, conf.Server.SSL.CertKey))
 	}
-	http.ListenAndServe(fmt.Sprintf(":%d", conf.Server.Port), httpHandler)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", conf.Server.Port), httpHandler))
 }
 
 func redirectToHTTPS(port string) http.HandlerFunc {
