@@ -1024,6 +1024,26 @@
           }
         }
       }
+    },
+    "/version": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "version"
+        ],
+        "summary": "Get version information.",
+        "operationId": "getVersion",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/VersionInfo"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -1143,6 +1163,29 @@
         }
       },
       "x-go-name": "UserExternal",
+      "x-go-package": "github.com/gotify/server/model"
+    },
+    "VersionInfo": {
+      "description": "VersionInfo Model",
+      "type": "object",
+      "properties": {
+        "branch": {
+          "type": "string",
+          "x-go-name": "Branch"
+        },
+        "buildDate": {
+          "type": "string",
+          "x-go-name": "BuildDate"
+        },
+        "commit": {
+          "type": "string",
+          "x-go-name": "Commit"
+        },
+        "version": {
+          "type": "string",
+          "x-go-name": "Version"
+        }
+      },
       "x-go-package": "github.com/gotify/server/model"
     }
   },
