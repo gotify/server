@@ -14,10 +14,11 @@ import (
 
 	"github.com/gotify/server/docs"
 	"github.com/gotify/server/stream"
+	"github.com/gotify/server/model"
 )
 
 // Create creates the gin engine with all routes.
-func Create(db *database.GormDatabase) (*gin.Engine, func()) {
+func Create(db *database.GormDatabase, vInfo *model.VersionInfo) (*gin.Engine, func()) {
 	streamHandler := stream.New(200*time.Second, 15*time.Second)
 	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
@@ -34,6 +35,22 @@ func Create(db *database.GormDatabase) (*gin.Engine, func()) {
 
 	g.Use(func(ctx *gin.Context) {
 		ctx.Header("Content-Type", "application/json")
+	})
+
+	// swagger:operation GET /version version getVersion
+	//
+	// Get version information.
+	//
+	// ---
+	// produces:
+	// - application/json
+	// responses:
+	//   200:
+	//     description: Ok
+	//     schema:
+	//         $ref: "#/definitions/VersionInfo"
+	g.GET("version", func(ctx *gin.Context) {
+		ctx.JSON(200, vInfo)
 	})
 
 	// swagger:operation POST /message message createMessage
