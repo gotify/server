@@ -21,7 +21,8 @@ type UserDatabase interface {
 
 // The UserAPI provides handlers for managing users.
 type UserAPI struct {
-	DB UserDatabase
+	DB               UserDatabase
+	PasswordStrength int
 }
 
 // GetUsers returns all the users
@@ -49,7 +50,7 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 		if len(user.Pass) == 0 {
 			ctx.AbortWithError(400, errors.New("password may not be empty"))
 		} else {
-			internal := toInternal(&user, []byte{})
+			internal := a.toInternal(&user, []byte{})
 			if a.DB.GetUserByName(internal.Name) == nil {
 				a.DB.CreateUser(internal)
 				ctx.JSON(200, toExternal(internal))
@@ -95,7 +96,7 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 	pw := userPassword{}
 	if err := ctx.Bind(&pw); err == nil {
 		user := a.DB.GetUserByID(auth.GetUserID(ctx))
-		user.Pass = auth.CreatePassword(pw.Pass)
+		user.Pass = auth.CreatePassword(pw.Pass, a.PasswordStrength)
 		a.DB.UpdateUser(user)
 	}
 }
@@ -106,7 +107,7 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 		var user *model.UserExternal
 		if err := ctx.Bind(&user); err == nil {
 			if oldUser := a.DB.GetUserByID(id); oldUser != nil {
-				internal := toInternal(user, oldUser.Pass)
+				internal := a.toInternal(user, oldUser.Pass)
 				internal.ID = id
 				a.DB.UpdateUser(internal)
 				ctx.JSON(200, toExternal(internal))
@@ -124,13 +125,13 @@ func toUInt(id string) (uint, error) {
 	return uint(parsed), err
 }
 
-func toInternal(response *model.UserExternal, pw []byte) *model.User {
+func (a *UserAPI) toInternal(response *model.UserExternal, pw []byte) *model.User {
 	user := &model.User{
 		Name:  response.Name,
 		Admin: response.Admin,
 	}
 	if response.Pass != "" {
-		user.Pass = auth.CreatePassword(response.Pass)
+		user.Pass = auth.CreatePassword(response.Pass, a.PasswordStrength)
 	} else {
 		user.Pass = pw
 	}

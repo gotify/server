@@ -15,6 +15,7 @@ import (
 	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/gotify/server/config"
 )
 
 var (
@@ -36,9 +37,9 @@ type IntegrationSuite struct {
 func (s *IntegrationSuite) BeforeTest(string, string) {
 	gin.SetMode(gin.TestMode)
 	var err error
-	s.db, err = database.New("sqlite3", "itest.db", "admin", "pw")
+	s.db, err = database.New("sqlite3", "itest.db", "admin", "pw", 5)
 	assert.Nil(s.T(), err)
-	g, closable := Create(s.db, &model.VersionInfo{Version:"1.0.0", BuildDate:"2018-02-20-17:30:47", Branch:"master", Commit:"asdasds"})
+	g, closable := Create(s.db, &model.VersionInfo{Version:"1.0.0", BuildDate:"2018-02-20-17:30:47", Branch:"master", Commit:"asdasds"}, &config.Configuration{PassStrength:5})
 	s.closable = closable
 	s.server = httptest.NewServer(g)
 }

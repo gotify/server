@@ -119,7 +119,7 @@ func (s *UserSuite) Test_DeleteUserByID() {
 
 func (s *UserSuite) Test_CreateUser() {
 	pwByte := []byte{1, 2, 3}
-	patch := monkey.Patch(auth.CreatePassword, func(pw string) []byte {
+	patch := monkey.Patch(auth.CreatePassword, func(pw string, strength int) []byte {
 		if pw == "mylittlepony" {
 			return pwByte
 		}
@@ -160,7 +160,7 @@ func (s *UserSuite) Test_CreateUser_NoName() {
 
 func (s *UserSuite) Test_CreateUser_NameAlreadyExists() {
 	pwByte := []byte{1, 2, 3}
-	monkey.Patch(auth.CreatePassword, func(pw string) []byte { return pwByte })
+	monkey.Patch(auth.CreatePassword, func(pw string, strength int) []byte { return pwByte })
 
 	s.db.On("GetUserByName", "tom").Return(&model.User{ID: 3, Name: "tom"})
 
@@ -215,7 +215,7 @@ func (s *UserSuite) Test_UpdateUserByID_UpdateNotPassword() {
 
 func (s *UserSuite) Test_UpdateUserByID_UpdatePassword() {
 	pwByte := []byte{1, 2, 3}
-	patch := monkey.Patch(auth.CreatePassword, func(pw string) []byte { return pwByte })
+	patch := monkey.Patch(auth.CreatePassword, func(pw string, strength int) []byte { return pwByte })
 	defer patch.Unpatch()
 
 	s.db.On("GetUserByID", uint(2)).Return(normalUser)
@@ -236,7 +236,7 @@ func (s *UserSuite) Test_UpdateUserByID_UpdatePassword() {
 
 func (s *UserSuite) Test_UpdatePassword() {
 	pwByte := []byte{1, 2, 3}
-	createPasswordPatch := monkey.Patch(auth.CreatePassword, func(pw string) []byte { return pwByte })
+	createPasswordPatch := monkey.Patch(auth.CreatePassword, func(pw string, strength int) []byte { return pwByte })
 	defer createPasswordPatch.Unpatch()
 	patchUser := monkey.Patch(auth.GetUserID, func(*gin.Context) uint { return 1 })
 	defer patchUser.Unpatch()

@@ -12,18 +12,19 @@ import (
 
 	"net/http"
 
+	"github.com/gotify/server/config"
 	"github.com/gotify/server/docs"
-	"github.com/gotify/server/stream"
 	"github.com/gotify/server/model"
+	"github.com/gotify/server/stream"
 )
 
 // Create creates the gin engine with all routes.
-func Create(db *database.GormDatabase, vInfo *model.VersionInfo) (*gin.Engine, func()) {
+func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Configuration) (*gin.Engine, func()) {
 	streamHandler := stream.New(200*time.Second, 15*time.Second)
 	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
 	tokenHandler := api.TokenAPI{DB: db}
-	userHandler := api.UserAPI{DB: db}
+	userHandler := api.UserAPI{DB: db, PasswordStrength: conf.PassStrength}
 
 	g := gin.New()
 

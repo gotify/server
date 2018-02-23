@@ -31,14 +31,14 @@ func main() {
 	fmt.Println("Starting Gotify version", vInfo.Version+"@"+BuildDate)
 	rand.Seed(time.Now().UnixNano())
 	conf := config.Get()
-	db, err := database.New(conf.Database.Dialect, conf.Database.Connection, conf.DefaultUser.Name, conf.DefaultUser.Pass)
+	db, err := database.New(conf.Database.Dialect, conf.Database.Connection, conf.DefaultUser.Name, conf.DefaultUser.Pass, conf.PassStrength)
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 
 	gin.SetMode(gin.ReleaseMode)
-	engine, closeable := router.Create(db, vInfo)
+	engine, closeable := router.Create(db, vInfo, conf)
 	defer closeable()
 
 	runner.Run(engine, conf)

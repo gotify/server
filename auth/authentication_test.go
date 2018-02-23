@@ -39,8 +39,8 @@ func (s *AuthenticationSuite) SetupSuite() {
 	s.DB.On("GetUserByID", uint(1)).Return(&model.User{ID: 1, Name: "irrelevant", Admin: false})
 	s.DB.On("GetUserByID", uint(2)).Return(&model.User{ID: 2, Name: "irrelevant", Admin: true})
 
-	s.DB.On("GetUserByName", "existing").Return(&model.User{Name: "existing", Pass: CreatePassword("pw")})
-	s.DB.On("GetUserByName", "admin").Return(&model.User{Name: "admin", Pass: CreatePassword("pw"), Admin: true})
+	s.DB.On("GetUserByName", "existing").Return(&model.User{Name: "existing", Pass: CreatePassword("pw", 5)})
+	s.DB.On("GetUserByName", "admin").Return(&model.User{Name: "admin", Pass: CreatePassword("pw", 5), Admin: true})
 	s.DB.On("GetUserByName", mock.Anything).Return(nil)
 }
 
