@@ -1,9 +1,13 @@
+sudo: required
 language: go
 go:
   - 1.9
 
 notifications:
   email: false
+
+services:
+  - docker
 
 env:
   - DEP_VERSION="0.4.1"
@@ -13,6 +17,10 @@ before_install:
   - chmod +x $GOPATH/bin/dep
   - chmod +x ./all-test-with-coverage.sh
   - chmod +x ./swagger-validate.sh
+  - chmod +x ./build.sh
+  - chmod +x ./docker-build.sh
+  - chmod +x ./docker-push.sh
+  - mkdir build
 
 install:
   - dep ensure
@@ -32,3 +40,23 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+before_deploy:
+  - docker pull karalabe/xgo-latest
+  - go get github.com/karalabe/xgo
+  - ./build.sh ${TRAVIS_TAG#v}
+  - ./docker-build.sh ${TRAVIS_TAG#v}
+
+deploy:
+  - provider: releases
+    api_key: $GH_TOKEN
+    file_glob: true
+    file: build/*.zip
+    skip_cleanup: true
+    on:
+      tags: true
+  - provider: script
+    script: bash docker_push.sh
+    skip_cleanup: true
+    on:
+        tags: true
