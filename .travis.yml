@@ -56,7 +56,7 @@ deploy:
     on:
       tags: true
   - provider: script
-    script: bash docker_push.sh
+    script: bash docker-push.sh
     skip_cleanup: true
     on:
         tags: true
