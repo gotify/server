@@ -15,37 +15,21 @@ env:
 before_install:
   - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
   - chmod +x $GOPATH/bin/dep
-  - chmod +x ./all-test-with-coverage.sh
-  - chmod +x ./swagger-validate.sh
-  - chmod +x ./build.sh
-  - chmod +x ./docker-build.sh
-  - chmod +x ./docker-push.sh
-  - mkdir build
+  - make download-tools
 
 install:
-  - dep ensure
-  - go get github.com/golang/lint/golint
-  - go get honnef.co/go/tools/cmd/megacheck
-  - go get github.com/fzipp/gocyclo
-  - go get -u github.com/gobuffalo/packr/...
-  - go get -u github.com/go-swagger/go-swagger/cmd/swagger
+  - dep ensure -v
 
 script:
-  - ./swagger-validate.sh
-  - ./all-test-with-coverage.sh
-  - go vet ./...
-  - megacheck ./...
-  - gocyclo -over 10 $(find . -iname '*.go' -type f | grep -v /vendor/)
-  - golint -set_exit_status $(go list ./... | grep -v mock)
+  - make test
+  - make check
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 
 before_deploy:
-  - docker pull karalabe/xgo-latest
-  - go get github.com/karalabe/xgo
-  - ./build.sh ${TRAVIS_TAG#v}
-  - ./docker-build.sh ${TRAVIS_TAG#v}
+  - if [[ $TRAVIS_TAG != "v"* ]]; then exit 1; fi
+  - VERSION=$(echo $TRAVIS_TAG | cut -c 2-) make build-all
 
 deploy:
   - provider: releases
