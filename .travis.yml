@@ -28,8 +28,11 @@ after_success:
   - bash <(curl -s https://codecov.io/bash)
 
 before_deploy:
-  - if [[ $TRAVIS_TAG != "v"* ]]; then exit 1; fi
-  - VERSION=$(echo $TRAVIS_TAG | cut -c 2-) make build-all
+  - >
+    if ! [ "$BEFORE_DEPLOY_RUN" ]; then
+      if [[ $TRAVIS_TAG != "v"* ]]; then exit 1; fi;
+      VERSION=$(echo $TRAVIS_TAG | cut -c 2-) make build-all;
+    fi
 
 deploy:
   - provider: releases
