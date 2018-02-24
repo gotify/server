@@ -2,3 +2,6 @@ vendor/
 .idea/
 build/
 certs/
+build/
+licenses/
+coverage.txt
