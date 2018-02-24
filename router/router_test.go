@@ -39,7 +39,7 @@ func (s *IntegrationSuite) BeforeTest(string, string) {
 	var err error
 	s.db, err = database.New("sqlite3", "itest.db", "admin", "pw", 5)
 	assert.Nil(s.T(), err)
-	g, closable := Create(s.db, &model.VersionInfo{Version:"1.0.0", BuildDate:"2018-02-20-17:30:47", Branch:"master", Commit:"asdasds"}, &config.Configuration{PassStrength:5})
+	g, closable := Create(s.db, &model.VersionInfo{Version:"1.0.0", BuildDate:"2018-02-20-17:30:47", Commit:"asdasds"}, &config.Configuration{PassStrength:5})
 	s.closable = closable
 	s.server = httptest.NewServer(g)
 }
@@ -54,7 +54,7 @@ func (s *IntegrationSuite) AfterTest(string, string) {
 func (s *IntegrationSuite) TestVersionInfo() {
 	req := s.newRequest("GET", "version", "")
 
-	doRequestAndExpect(s.T(), req, 200, `{"version":"1.0.0", "commit":"asdasds", "buildDate":"2018-02-20-17:30:47", "branch":"master"}`)
+	doRequestAndExpect(s.T(), req, 200, `{"version":"1.0.0", "commit":"asdasds", "buildDate":"2018-02-20-17:30:47"}`)
 }
 
 func (s *IntegrationSuite) TestSendMessage() {

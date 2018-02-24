@@ -1169,10 +1169,6 @@
       "description": "VersionInfo Model",
       "type": "object",
       "properties": {
-        "branch": {
-          "type": "string",
-          "x-go-name": "Branch"
-        },
         "buildDate": {
           "type": "string",
           "x-go-name": "BuildDate"

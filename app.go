@@ -21,12 +21,10 @@ var (
 	Commit = "unknown"
 	// BuildDate the date on which this binary was build.
 	BuildDate = "unknown"
-	// Branch the git branch of this version.
-	Branch = "unknown"
 )
 
 func main() {
-	vInfo := &model.VersionInfo{Version: Version, Commit: Commit, BuildDate: BuildDate, Branch: Branch}
+	vInfo := &model.VersionInfo{Version: Version, Commit: Commit, BuildDate: BuildDate}
 
 	fmt.Println("Starting Gotify version", vInfo.Version+"@"+BuildDate)
 	rand.Seed(time.Now().UnixNano())
