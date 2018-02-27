@@ -38,15 +38,18 @@ download-tools:
 	go get -u github.com/go-swagger/go-swagger/cmd/swagger
 	go get github.com/karalabe/xgo
 
-update-swagger:
+update-swagger-spec:
 	swagger generate spec --scan-models -o docs/spec.json
 
-check-swagger: update-swagger
+update-swagger: update-swagger-spec
+	(cd docs && packr)
+
+check-swagger: update-swagger-spec
 ## add the docs to git, this changes line endings in git, otherwise this does not work on windows
 	git add docs
 	if [ -n "$(shell git status --porcelain | grep docs)" ]; then \
         git status --porcelain | grep docs; \
-        echo Swagger or the Packr file is not up-to-date; \
+        echo Swagger Spec is not up-to-date; \
         exit 1; \
     fi
 
