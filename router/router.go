@@ -58,6 +58,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	//
 	// Create a message.
 	//
+	// __NOTE__: This API ONLY accepts an application token as authentication.
+	//
 	// ---
 	// consumes:
 	// - application/json

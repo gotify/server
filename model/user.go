@@ -16,8 +16,24 @@ type User struct {
 //
 // swagger:model User
 type UserExternal struct {
+	// The user id.
+	//
+	// read only: true
+	// required: true
+	// example: 25
 	ID    uint   `json:"id"`
+	// The user name. For login.
+	//
+	// required: true
+	// example: unicorn
 	Name  string `binding:"required" json:"name" query:"name" form:"name"`
+	// The user password. For login. (Will not be returned by any API)
+	//
+	// required: true
+	// example: mypassword; !will not be returned by any API!
 	Pass  string `json:"pass,omitempty" form:"pass" query:"pass"`
+	// If the user is an administrator.
+	//
+	// example: true
 	Admin bool   `json:"admin" form:"admin" query:"admin"`
 }
