@@ -11,11 +11,8 @@
   ],
   "swagger": "2.0",
   "info": {
-    "description": "This is the documentation of the Gotify REST-API.",
+    "description": "This is the documentation of the Gotify REST-API.\n\n# Authentication\nIn Gotify there are two token types:\n__clientToken__: a client is something that receives message and manages stuff like creating new tokens or delete messages. (f.ex this token should be used for an android app)\n__appToken__: an application is something that sends messages (f.ex. this token should be used for a shell script)\n\nThe token can be either transmitted through a header named `X-Gotify-Key` or a query parameter named `token`.\nThere is also the possibility to authenticate through basic auth, this should only be used for creating a clientToken.\n\n\\---\n\nFound a bug or have some questions? [Create an issue on GitHub](https://github.com/gotify/server/issues)",
     "title": "Gotify REST-API.",
-    "contact": {
-      "url": "https://github.com/gotify/server/issues"
-    },
     "license": {
       "name": "MIT",
       "url": "https://github.com/gotify/server/blob/master/LICENSE"
@@ -589,6 +586,7 @@
             "appTokenQuery": []
           }
         ],
+        "description": "__NOTE__: This API ONLY accepts an application token as authentication.",
         "consumes": [
           "application/json"
         ],
@@ -1051,18 +1049,30 @@
       "description": "The Application holds information about an app which can send notifications.",
       "type": "object",
       "title": "Application Model",
+      "required": [
+        "id",
+        "name",
+        "description"
+      ],
       "properties": {
         "description": {
+          "description": "The description of the application.",
           "type": "string",
-          "x-go-name": "Description"
+          "x-go-name": "Description",
+          "example": "Backup server for the interwebs"
         },
         "id": {
+          "description": "The application id. Can be used as `appToken`. See Authentication.",
           "type": "string",
-          "x-go-name": "ID"
+          "x-go-name": "ID",
+          "readOnly": true,
+          "example": "AWH0wZ5r0Mbac.r"
         },
         "name": {
+          "description": "The application name. This is how the application should be displayed to the user.",
           "type": "string",
-          "x-go-name": "Name"
+          "x-go-name": "Name",
+          "example": "Backup Server"
         }
       },
       "x-go-package": "github.com/gotify/server/model"
@@ -1071,14 +1081,23 @@
       "description": "The Client holds information about a device which can receive notifications (and other stuff).",
       "type": "object",
       "title": "Client Model",
+      "required": [
+        "id",
+        "name"
+      ],
       "properties": {
         "id": {
+          "description": "The client id. Can be used as `clientToken`. See Authentication.",
           "type": "string",
-          "x-go-name": "ID"
+          "x-go-name": "ID",
+          "readOnly": true,
+          "example": "CWH0wZ5r0Mbac.r"
         },
         "name": {
+          "description": "The client name. This is how the client should be displayed to the user.",
           "type": "string",
-          "x-go-name": "Name"
+          "x-go-name": "Name",
+          "example": "Android Phone"
         }
       },
       "x-go-package": "github.com/gotify/server/model"
@@ -1087,19 +1106,30 @@
       "description": "The Error contains error relevant information.",
       "type": "object",
       "title": "Error Model",
+      "required": [
+        "error",
+        "errorCode",
+        "errorDescription"
+      ],
       "properties": {
         "error": {
+          "description": "The general error message",
           "type": "string",
-          "x-go-name": "Error"
+          "x-go-name": "Error",
+          "example": "Unauthorized"
         },
         "errorCode": {
+          "description": "The http error code.",
           "type": "integer",
           "format": "int64",
-          "x-go-name": "ErrorCode"
+          "x-go-name": "ErrorCode",
+          "example": 401
         },
         "errorDescription": {
+          "description": "The http error code.",
           "type": "string",
-          "x-go-name": "ErrorDescription"
+          "x-go-name": "ErrorDescription",
+          "example": "you need to provide a valid access token or user credentials to access this api"
         }
       },
       "x-go-package": "github.com/gotify/server/model"
@@ -1108,33 +1138,55 @@
       "description": "The Message holds information about a message which was sent by an Application.",
       "type": "object",
       "title": "Message Model",
+      "required": [
+        "id",
+        "appid",
+        "message",
+        "title",
+        "date"
+      ],
       "properties": {
         "appid": {
+          "description": "The application id that send this message.",
           "type": "string",
-          "x-go-name": "ApplicationID"
+          "x-go-name": "ApplicationID",
+          "readOnly": true,
+          "example": "AWH0wZ5r0Mbac.r"
         },
         "date": {
+          "description": "The date the message was created.",
           "type": "string",
           "format": "date-time",
-          "x-go-name": "Date"
+          "x-go-name": "Date",
+          "readOnly": true,
+          "example": "2018-02-27T19:36:10.5045044+01:00"
         },
         "id": {
+          "description": "The message id.",
           "type": "integer",
           "format": "uint64",
-          "x-go-name": "ID"
+          "x-go-name": "ID",
+          "readOnly": true,
+          "example": 25
         },
         "message": {
+          "description": "The actual message.",
           "type": "string",
-          "x-go-name": "Message"
+          "x-go-name": "Message",
+          "example": "Backup was successfully finished."
         },
         "priority": {
+          "description": "The priority of the message.",
           "type": "integer",
           "format": "int64",
-          "x-go-name": "Priority"
+          "x-go-name": "Priority",
+          "example": 2
         },
         "title": {
+          "description": "The title of the message.",
           "type": "string",
-          "x-go-name": "Title"
+          "x-go-name": "Title",
+          "example": "Backup"
         }
       },
       "x-go-package": "github.com/gotify/server/model"
@@ -1143,23 +1195,37 @@
       "description": "The User holds information about the credentials and other stuff.",
       "type": "object",
       "title": "UserExternal Model",
+      "required": [
+        "id",
+        "name",
+        "pass"
+      ],
       "properties": {
         "admin": {
+          "description": "If the user is an administrator.",
           "type": "boolean",
-          "x-go-name": "Admin"
+          "x-go-name": "Admin",
+          "example": true
         },
         "id": {
+          "description": "The user id.",
           "type": "integer",
           "format": "uint64",
-          "x-go-name": "ID"
+          "x-go-name": "ID",
+          "readOnly": true,
+          "example": 25
         },
         "name": {
+          "description": "The user name. For login.",
           "type": "string",
-          "x-go-name": "Name"
+          "x-go-name": "Name",
+          "example": "unicorn"
         },
         "pass": {
+          "description": "The user password. For login. (Will not be returned by any API)",
           "type": "string",
-          "x-go-name": "Pass"
+          "x-go-name": "Pass",
+          "example": "mypassword; !will not be returned by any API!"
         }
       },
       "x-go-name": "UserExternal",
@@ -1168,18 +1234,29 @@
     "VersionInfo": {
       "description": "VersionInfo Model",
       "type": "object",
+      "required": [
+        "version",
+        "commit",
+        "buildDate"
+      ],
       "properties": {
         "buildDate": {
+          "description": "The date on which this binary was built.",
           "type": "string",
-          "x-go-name": "BuildDate"
+          "x-go-name": "BuildDate",
+          "example": "2018-02-27T19:36:10.5045044+01:00"
         },
         "commit": {
+          "description": "The git commit hash on which this binary was built.",
           "type": "string",
-          "x-go-name": "Commit"
+          "x-go-name": "Commit",
+          "example": "ae9512b6b6feea56a110d59a3353ea3b9c293864"
         },
         "version": {
+          "description": "The current version.",
           "type": "string",
-          "x-go-name": "Version"
+          "x-go-name": "Version",
+          "example": "5.2.6"
         }
       },
       "x-go-package": "github.com/gotify/server/model"
