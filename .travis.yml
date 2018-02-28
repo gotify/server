@@ -30,6 +30,7 @@ after_success:
 before_deploy:
   - >
     if ! [ "$BEFORE_DEPLOY_RUN" ]; then
+      export BEFORE_DEPLOY_RUN=1;
       if [[ $TRAVIS_TAG != "v"* ]]; then exit 1; fi;
       VERSION=$(echo $TRAVIS_TAG | cut -c 2-) make build-all;
     fi
