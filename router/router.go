@@ -515,7 +515,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		//   description: the user
 		//   required: true
 		//   schema:
-		//     $ref: "#/definitions/User"
+		//     $ref: "#/definitions/UserPass"
 		// responses:
 		//   200:
 		//     description: Ok
@@ -581,7 +581,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		//   description: the user to add
 		//   required: true
 		//   schema:
-		//     $ref: "#/definitions/User"
+		//     $ref: "#/definitions/UserWithPass"
 		// responses:
 		//   200:
 		//     description: Ok
@@ -685,7 +685,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		//   description: the updated user
 		//   required: true
 		//   schema:
-		//     $ref: "#/definitions/User"
+		//     $ref: "#/definitions/UserWithPass"
 		// responses:
 		//   200:
 		//     description: Ok

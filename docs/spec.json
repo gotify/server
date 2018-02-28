@@ -509,7 +509,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/User"
+              "$ref": "#/definitions/UserPass"
             }
           }
         ],
@@ -833,7 +833,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/User"
+              "$ref": "#/definitions/UserWithPass"
             }
           }
         ],
@@ -950,7 +950,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/User"
+              "$ref": "#/definitions/UserWithPass"
             }
           }
         ],
@@ -1192,9 +1192,60 @@
       "x-go-package": "github.com/gotify/server/model"
     },
     "User": {
-      "description": "The User holds information about the credentials and other stuff.",
+      "description": "The User holds information about permission and other stuff.",
       "type": "object",
       "title": "UserExternal Model",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "admin": {
+          "description": "If the user is an administrator.",
+          "type": "boolean",
+          "x-go-name": "Admin",
+          "example": true
+        },
+        "id": {
+          "description": "The user id.",
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "ID",
+          "readOnly": true,
+          "example": 25
+        },
+        "name": {
+          "description": "The user name. For login.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "unicorn"
+        }
+      },
+      "x-go-name": "UserExternal",
+      "x-go-package": "github.com/gotify/server/model"
+    },
+    "UserPass": {
+      "description": "The Password for updating the user.",
+      "type": "object",
+      "title": "UserExternalPass Model",
+      "required": [
+        "pass"
+      ],
+      "properties": {
+        "pass": {
+          "description": "The user password. For login.",
+          "type": "string",
+          "x-go-name": "Pass",
+          "example": "nrocinu"
+        }
+      },
+      "x-go-name": "UserExternalPass",
+      "x-go-package": "github.com/gotify/server/model"
+    },
+    "UserWithPass": {
+      "description": "The UserWithPass holds information about the credentials and other stuff.",
+      "type": "object",
+      "title": "UserExternalWithPass Model",
       "required": [
         "id",
         "name",
@@ -1222,13 +1273,13 @@
           "example": "unicorn"
         },
         "pass": {
-          "description": "The user password. For login. (Will not be returned by any API)",
+          "description": "The user password. For login.",
           "type": "string",
           "x-go-name": "Pass",
-          "example": "mypassword; !will not be returned by any API!"
+          "example": "nrocinu"
         }
       },
-      "x-go-name": "UserExternal",
+      "x-go-name": "UserExternalWithPass",
       "x-go-package": "github.com/gotify/server/model"
     },
     "VersionInfo": {

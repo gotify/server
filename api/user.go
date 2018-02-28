@@ -45,7 +45,7 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 
 // CreateUser creates a user
 func (a *UserAPI) CreateUser(ctx *gin.Context) {
-	user := model.UserExternal{}
+	user := model.UserExternalWithPass{}
 	if err := ctx.Bind(&user); err == nil {
 		if len(user.Pass) == 0 {
 			ctx.AbortWithError(400, errors.New("password may not be empty"))
@@ -87,13 +87,9 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 	}
 }
 
-type userPassword struct {
-	Pass string `binding:"required" json:"pass" form:"pass" query:"pass" `
-}
-
 // ChangePassword changes the password from the current user
 func (a *UserAPI) ChangePassword(ctx *gin.Context) {
-	pw := userPassword{}
+	pw := model.UserExternalPass{}
 	if err := ctx.Bind(&pw); err == nil {
 		user := a.DB.GetUserByID(auth.GetUserID(ctx))
 		user.Pass = auth.CreatePassword(pw.Pass, a.PasswordStrength)
@@ -104,7 +100,7 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 // UpdateUserByID updates and user by id
 func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 	if id, err := toUInt(ctx.Param("id")); err == nil {
-		var user *model.UserExternal
+		var user *model.UserExternalWithPass
 		if err := ctx.Bind(&user); err == nil {
 			if oldUser := a.DB.GetUserByID(id); oldUser != nil {
 				internal := a.toInternal(user, oldUser.Pass)
@@ -125,7 +121,7 @@ func toUInt(id string) (uint, error) {
 	return uint(parsed), err
 }
 
-func (a *UserAPI) toInternal(response *model.UserExternal, pw []byte) *model.User {
+func (a *UserAPI) toInternal(response *model.UserExternalWithPass, pw []byte) *model.User {
 	user := &model.User{
 		Name:  response.Name,
 		Admin: response.Admin,
