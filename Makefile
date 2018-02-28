@@ -26,13 +26,11 @@ test-coverage:
 
 additional-checks:
 	go vet ./...
-	megacheck ./...
 	gocyclo -over 10 $(shell find . -iname '*.go' -type f | grep -v /vendor/)
 	golint -set_exit_status $(shell go list ./... | grep -v mock)
 
 download-tools:
 	go get github.com/golang/lint/golint
-	go get honnef.co/go/tools/cmd/megacheck
 	go get github.com/fzipp/gocyclo
 	go get -u github.com/gobuffalo/packr/...
 	go get -u github.com/go-swagger/go-swagger/cmd/swagger
