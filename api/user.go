@@ -47,16 +47,12 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 func (a *UserAPI) CreateUser(ctx *gin.Context) {
 	user := model.UserExternalWithPass{}
 	if err := ctx.Bind(&user); err == nil {
-		if len(user.Pass) == 0 {
-			ctx.AbortWithError(400, errors.New("password may not be empty"))
+		internal := a.toInternal(&user, []byte{})
+		if a.DB.GetUserByName(internal.Name) == nil {
+			a.DB.CreateUser(internal)
+			ctx.JSON(200, toExternal(internal))
 		} else {
-			internal := a.toInternal(&user, []byte{})
-			if a.DB.GetUserByName(internal.Name) == nil {
-				a.DB.CreateUser(internal)
-				ctx.JSON(200, toExternal(internal))
-			} else {
-				ctx.AbortWithError(400, errors.New("username already exists"))
-			}
+			ctx.AbortWithError(400, errors.New("username already exists"))
 		}
 	}
 }
