@@ -106,10 +106,7 @@ go build app.go
 ```
 
 ### Cross-Platform
-The project has a CGO reference (because of sqlite3), therefore a GCO cross compiler is needed for compiling for other platforms. We use [karalabe/xgo](https://github.com/karalabe/xgo) for this, xgo is a bundle of docker containers for building go apps.
-``` bash
-VERSION=mybuild1 make build-binary
-```
+The project has a CGO reference (because of sqlite3), therefore a GCO cross compiler is needed for compiling for other platforms. See [.travis.yml](.travis.yml) on how we do that.
 
 ## Tests
 The tests can be executed with:
