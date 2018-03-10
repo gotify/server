@@ -28,7 +28,7 @@ func (d *GormDatabase) GetMessagesByUser(userID uint) []*model.Message {
 }
 
 // GetMessagesByApplication returns all messages from an application.
-func (d *GormDatabase) GetMessagesByApplication(tokenID string) []*model.Message {
+func (d *GormDatabase) GetMessagesByApplication(tokenID uint) []*model.Message {
 	var messages []*model.Message
 	d.DB.Where("application_id = ?", tokenID).Order("date desc").Find(&messages)
 	return messages
@@ -40,7 +40,7 @@ func (d *GormDatabase) DeleteMessageByID(id uint) error {
 }
 
 // DeleteMessagesByApplication deletes all messages from an application.
-func (d *GormDatabase) DeleteMessagesByApplication(applicationID string) error {
+func (d *GormDatabase) DeleteMessagesByApplication(applicationID uint) error {
 	return d.DB.Where("application_id = ?", applicationID).Delete(&model.Message{}).Error
 }
 

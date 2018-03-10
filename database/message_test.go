@@ -15,7 +15,7 @@ func (s *DatabaseSuite) TestMessage() {
 	s.db.CreateUser(user)
 	assert.NotEqual(s.T(), 0, user.ID)
 
-	backupServer := &model.Application{UserID: user.ID, ID: "A0000000000", Name: "backupserver"}
+	backupServer := &model.Application{UserID: user.ID, Token: "A0000000000", Name: "backupserver"}
 	s.db.CreateApplication(backupServer)
 	assert.NotEqual(s.T(), 0, backupServer.ID)
 
@@ -38,7 +38,7 @@ func (s *DatabaseSuite) TestMessage() {
 	assert.Len(s.T(), msgs, 1)
 	assertEquals(s.T(), msgs[0], backupdone)
 
-	loginServer := &model.Application{UserID: user.ID, ID: "A0000000001", Name: "loginserver"}
+	loginServer := &model.Application{UserID: user.ID, Token: "A0000000001", Name: "loginserver"}
 	s.db.CreateApplication(loginServer)
 	assert.NotEqual(s.T(), 0, loginServer.ID)
 
