@@ -43,8 +43,12 @@ func (a *MessageAPI) GetMessages(ctx *gin.Context) {
 // GetMessagesWithApplication returns all messages from a specific application.
 func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 	withID(ctx, "appid", func(id uint) {
-		messages := a.DB.GetMessagesByApplication(id)
-		ctx.JSON(200, messages)
+		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
+			messages := a.DB.GetMessagesByApplication(id)
+			ctx.JSON(200, messages)
+		} else {
+			ctx.AbortWithError(404, errors.New("application does not exist"))
+		}
 	})
 }
 
