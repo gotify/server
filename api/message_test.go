@@ -60,6 +60,7 @@ func (s *MessageSuite) Test_GetMessagesWithToken() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "")
 	t, _ := time.Parse("2006/01/02", "2021/01/02")
 	s.db.On("GetMessagesByApplication", uint(1)).Return([]*model.Message{{ID: 2, ApplicationID: 1, Message: "hi", Title: "hi", Date: t, Priority: 4}})
+	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token:"irrelevant", UserID: 4})
 	s.ctx.Params = gin.Params{{Key: "appid", Value: "1"}}
 
 	s.a.GetMessagesWithApplication(s.ctx)
@@ -67,6 +68,18 @@ func (s *MessageSuite) Test_GetMessagesWithToken() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
 	assert.JSONEq(s.T(), `[{"id":2,"appid":1,"message":"hi","title":"hi","priority":4,"date":"2021-01-02T00:00:00Z"}]`, string(bytes))
+}
+
+func (s *MessageSuite) Test_GetMessagesWithToken_withWrongUser_expectNotFound() {
+	auth.RegisterAuthentication(s.ctx, nil, 4, "")
+	t, _ := time.Parse("2006/01/02", "2021/01/02")
+	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token:"irrelevant", UserID: 2})
+	s.db.On("GetMessagesByApplication", uint(1)).Return([]*model.Message{{ID: 2, ApplicationID: 1, Message: "hi", Title: "hi", Date: t, Priority: 4}})
+	s.ctx.Params = gin.Params{{Key: "appid", Value: "1"}}
+
+	s.a.GetMessagesWithApplication(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
 func (s *MessageSuite) Test_DeleteMessage_invalidID() {
