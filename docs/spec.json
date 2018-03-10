@@ -151,7 +151,7 @@
         "operationId": "deleteApp",
         "parameters": [
           {
-            "type": "string",
+            "type": "integer",
             "description": "the application id",
             "name": "id",
             "in": "path",
@@ -200,7 +200,7 @@
         "operationId": "getAppMessages",
         "parameters": [
           {
-            "type": "string",
+            "type": "integer",
             "description": "the application id",
             "name": "id",
             "in": "path",
@@ -253,7 +253,7 @@
         "operationId": "deleteAppMessages",
         "parameters": [
           {
-            "type": "string",
+            "type": "integer",
             "description": "the application id",
             "name": "id",
             "in": "path",
@@ -409,7 +409,7 @@
         "operationId": "deleteClient",
         "parameters": [
           {
-            "type": "string",
+            "type": "integer",
             "description": "the client id",
             "name": "id",
             "in": "path",
@@ -1051,6 +1051,7 @@
       "title": "Application Model",
       "required": [
         "id",
+        "token",
         "name",
         "description"
       ],
@@ -1062,17 +1063,25 @@
           "example": "Backup server for the interwebs"
         },
         "id": {
-          "description": "The application id. Can be used as `appToken`. See Authentication.",
-          "type": "string",
+          "description": "The application id.",
+          "type": "integer",
+          "format": "uint64",
           "x-go-name": "ID",
           "readOnly": true,
-          "example": "AWH0wZ5r0Mbac.r"
+          "example": 5
         },
         "name": {
           "description": "The application name. This is how the application should be displayed to the user.",
           "type": "string",
           "x-go-name": "Name",
           "example": "Backup Server"
+        },
+        "token": {
+          "description": "The application token. Can be used as `appToken`. See Authentication.",
+          "type": "string",
+          "x-go-name": "Token",
+          "readOnly": true,
+          "example": "AWH0wZ5r0Mbac.r"
         }
       },
       "x-go-package": "github.com/gotify/server/model"
@@ -1083,21 +1092,30 @@
       "title": "Client Model",
       "required": [
         "id",
+        "token",
         "name"
       ],
       "properties": {
         "id": {
-          "description": "The client id. Can be used as `clientToken`. See Authentication.",
-          "type": "string",
+          "description": "The client id.",
+          "type": "integer",
+          "format": "uint64",
           "x-go-name": "ID",
           "readOnly": true,
-          "example": "CWH0wZ5r0Mbac.r"
+          "example": 5
         },
         "name": {
           "description": "The client name. This is how the client should be displayed to the user.",
           "type": "string",
           "x-go-name": "Name",
           "example": "Android Phone"
+        },
+        "token": {
+          "description": "The client token. Can be used as `clientToken`. See Authentication.",
+          "type": "string",
+          "x-go-name": "Token",
+          "readOnly": true,
+          "example": "CWH0wZ5r0Mbac.r"
         }
       },
       "x-go-package": "github.com/gotify/server/model"
@@ -1148,10 +1166,11 @@
       "properties": {
         "appid": {
           "description": "The application id that send this message.",
-          "type": "string",
+          "type": "integer",
+          "format": "uint64",
           "x-go-name": "ApplicationID",
           "readOnly": true,
-          "example": "AWH0wZ5r0Mbac.r"
+          "example": 5
         },
         "date": {
           "description": "The date the message was created.",
