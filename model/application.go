@@ -6,18 +6,24 @@ package model
 //
 // swagger:model Application
 type Application struct {
-	// The application id. Can be used as `appToken`. See Authentication.
+	// The application id.
+	//
+	// read only: true
+	// required: true
+	// example: 5
+	ID uint `gorm:"primary_key;unique_index;AUTO_INCREMENT" json:"id"`
+	// The application token. Can be used as `appToken`. See Authentication.
 	//
 	// read only: true
 	// required: true
 	// example: AWH0wZ5r0Mbac.r
-	ID          string    `gorm:"primary_key;unique_index" json:"id"`
-	UserID      uint      `gorm:"index" json:"-"`
+	Token  string `gorm:"unique_index" json:"token"`
+	UserID uint   `gorm:"index" json:"-"`
 	// The application name. This is how the application should be displayed to the user.
 	//
 	// required: true
 	// example: Backup Server
-	Name        string    `form:"name" query:"name" json:"name" binding:"required"`
+	Name string `form:"name" query:"name" json:"name" binding:"required"`
 	// The description of the application.
 	//
 	// required: true
