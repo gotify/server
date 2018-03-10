@@ -42,7 +42,7 @@ func (a *MessageAPI) GetMessages(ctx *gin.Context) {
 
 // GetMessagesWithApplication returns all messages from a specific application.
 func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
-	withID(ctx, "appid", func(id uint) {
+	withID(ctx, "id", func(id uint) {
 		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
 			messages := a.DB.GetMessagesByApplication(id)
 			ctx.JSON(200, messages)
@@ -60,7 +60,7 @@ func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 
 // DeleteMessageWithApplication deletes all messages from a specific application.
 func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
-	withID(ctx, "appid", func(id uint) {
+	withID(ctx, "id", func(id uint) {
 		if application := a.DB.GetApplicationByID(id); application != nil && application.UserID == auth.GetUserID(ctx) {
 			a.DB.DeleteMessagesByApplication(id)
 		} else {

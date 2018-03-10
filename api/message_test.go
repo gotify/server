@@ -61,7 +61,7 @@ func (s *MessageSuite) Test_GetMessagesWithToken() {
 	t, _ := time.Parse("2006/01/02", "2021/01/02")
 	s.db.On("GetMessagesByApplication", uint(1)).Return([]*model.Message{{ID: 2, ApplicationID: 1, Message: "hi", Title: "hi", Date: t, Priority: 4}})
 	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token:"irrelevant", UserID: 4})
-	s.ctx.Params = gin.Params{{Key: "appid", Value: "1"}}
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 
 	s.a.GetMessagesWithApplication(s.ctx)
 
@@ -75,7 +75,7 @@ func (s *MessageSuite) Test_GetMessagesWithToken_withWrongUser_expectNotFound() 
 	t, _ := time.Parse("2006/01/02", "2021/01/02")
 	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token:"irrelevant", UserID: 2})
 	s.db.On("GetMessagesByApplication", uint(1)).Return([]*model.Message{{ID: 2, ApplicationID: 1, Message: "hi", Title: "hi", Date: t, Priority: 4}})
-	s.ctx.Params = gin.Params{{Key: "appid", Value: "1"}}
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 
 	s.a.GetMessagesWithApplication(s.ctx)
 
@@ -125,7 +125,7 @@ func (s *MessageSuite) Test_DeleteMessage() {
 
 func (s *MessageSuite) Test_DeleteMessageWithToken() {
 	auth.RegisterAuthentication(s.ctx, nil, 2, "")
-	s.ctx.Params = gin.Params{{Key: "appid", Value: "5"}}
+	s.ctx.Params = gin.Params{{Key: "id", Value: "5"}}
 	s.db.On("GetApplicationByID", uint(5)).Return(&model.Application{ID: 5, Token: "mytoken", UserID: 2})
 	s.db.On("DeleteMessagesByApplication", uint(5)).Return(nil)
 
@@ -137,7 +137,7 @@ func (s *MessageSuite) Test_DeleteMessageWithToken() {
 
 func (s *MessageSuite) Test_DeleteMessageWithToken_notExistingToken() {
 	auth.RegisterAuthentication(s.ctx, nil, 2, "")
-	s.ctx.Params = gin.Params{{Key: "appid", Value: "55"}}
+	s.ctx.Params = gin.Params{{Key: "id", Value: "55"}}
 	s.db.On("GetApplicationByID", uint(55)).Return(nil)
 	s.db.On("DeleteMessagesByApplication", mock.Anything).Return(nil)
 
@@ -149,7 +149,7 @@ func (s *MessageSuite) Test_DeleteMessageWithToken_notExistingToken() {
 
 func (s *MessageSuite) Test_DeleteMessageWithToken_notOwner() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "")
-	s.ctx.Params = gin.Params{{Key: "appid", Value: "55"}}
+	s.ctx.Params = gin.Params{{Key: "id", Value: "55"}}
 	s.db.On("GetApplicationByID", uint(55)).Return(&model.Application{ID: 55, Token: "mytoken", UserID: 2})
 	s.db.On("DeleteMessagesByApplication", uint(55)).Return(nil)
 
