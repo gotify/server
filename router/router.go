@@ -172,7 +172,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//   in: path
 			//   description: the application id
 			//   required: true
-			//   type: string
+			//   type: integer
 			// security:
 			// - clientTokenHeader: []
 			// - clientTokenQuery: []
@@ -208,7 +208,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 				//   in: path
 				//   description: the application id
 				//   required: true
-				//   type: string
+				//   type: integer
 				// responses:
 				//   200:
 				//     description: Ok
@@ -242,7 +242,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 				//   in: path
 				//   description: the application id
 				//   required: true
-				//   type: string
+				//   type: integer
 				// responses:
 				//   200:
 				//     description: Ok
@@ -339,7 +339,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//   in: path
 			//   description: the client id
 			//   required: true
-			//   type: string
+			//   type: integer
 			// security:
 			// - clientTokenHeader: []
 			// - clientTokenQuery: []
