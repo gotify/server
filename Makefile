@@ -5,7 +5,6 @@ SHELL := /bin/bash
 
 test: test-coverage test-race
 check: additional-checks check-swagger
-build-all: build-zip build-docker
 
 require-version:
 	if [ -n ${VERSION} ] && [[ $$VERSION == "v"* ]]; then echo "The version may not start with v" && exit 1; fi
@@ -34,7 +33,6 @@ download-tools:
 	go get github.com/fzipp/gocyclo
 	go get -u github.com/gobuffalo/packr/...
 	go get -u github.com/go-swagger/go-swagger/cmd/swagger
-	go get github.com/karalabe/xgo
 
 update-swagger-spec:
 	swagger generate spec --scan-models -o docs/spec.json
@@ -58,24 +56,13 @@ extract-licenses:
         cp $$LICENSE ${LICENSE_DIR}$$DIR ; \
     done
 
-build-binary: require-version
-	mkdir build || true
-	docker pull karalabe/xgo-latest;
-	xgo -ldflags "-X main.Version=${VERSION} \
-				-X main.BuildDate=$(shell date "+%F-%T") \
-				-X main.Commit=$(shell git rev-parse --verify HEAD)" \
-				-targets linux/arm64,linux/amd64,linux/arm-7,windows-10/amd64 \
-				-dest ${BUILD_DIR} \
-				-out gotify \
-				github.com/gotify/server
-
-build-zip: build-binary extract-licenses
+package-zip: extract-licenses
 	for BUILD in $(shell find ${BUILD_DIR}*); do \
        zip -j $$BUILD.zip $$BUILD ./LICENSE; \
        zip -ur $$BUILD.zip ${LICENSE_DIR}; \
     done
 
-build-docker: require-version build-binary
+build-docker: require-version
 	cp ${BUILD_DIR}gotify-linux-amd64 ./docker/gotify-app
 	(cd ${DOCKER_DIR} && docker build -t gotify/server:latest -t gotify/server:${VERSION} .)
 	rm ${DOCKER_DIR}gotify-app
@@ -83,4 +70,4 @@ build-docker: require-version build-binary
 	(cd ${DOCKER_DIR} && docker build -f Dockerfile.arm7 -t gotify/server-arm7:latest -t gotify/server-arm7:${VERSION} .)
 	rm ${DOCKER_DIR}gotify-app
 
-.PHONY: test-race test-coverage test additional-checks verify-swagger check download-tools update-swagger build-binary build-zip build-docker build-all
+.PHONY: test-race test-coverage test additional-checks verify-swagger check download-tools update-swagger package-zip build-docker
