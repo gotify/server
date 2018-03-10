@@ -30,6 +30,8 @@ install:
   - dep ensure -v
 
 script:
+# packr builds a go file for all packr "boxes", this would be f.ex. the spec.json file.
+  - packr
   - make test
   - make check
 
