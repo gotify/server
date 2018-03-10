@@ -47,12 +47,12 @@ func (s *TokenSuite) BeforeTest(suiteName, testName string) {
 // test application api
 
 func (s *TokenSuite) Test_CreateApplication_mapAllParameters() {
-	expected := &model.Application{ID: firstApplicationToken, UserID: 5, Name: "custom_name", Description: "description_text"}
+	expected := &model.Application{Token: firstApplicationToken, UserID: 5, Name: "custom_name", Description: "description_text"}
 
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.withFormData("name=custom_name&description=description_text")
 
-	s.db.On("GetApplicationByID", firstApplicationToken).Return(nil)
+	s.db.On("GetApplicationByToken", firstApplicationToken).Return(nil)
 	s.db.On("CreateApplication", expected).Return(nil)
 
 	s.a.CreateApplication(s.ctx)
@@ -73,10 +73,10 @@ func (s *TokenSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {
 
 func (s *TokenSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwner() {
 	s.ctx.Set("user", &model.User{ID: 2})
-	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstApplicationToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: firstApplicationToken}}
+	s.ctx.Request = httptest.NewRequest("DELETE", "/token/5", nil)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "5"}}
 
-	s.db.On("GetApplicationByID", firstApplicationToken).Return(&model.Application{ID: firstApplicationToken, UserID: 5})
+	s.db.On("GetApplicationByID", uint(5)).Return(&model.Application{ID: 5, Token: firstApplicationToken, UserID: 5})
 
 	s.a.DeleteApplication(s.ctx)
 
@@ -85,12 +85,12 @@ func (s *TokenSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwne
 }
 
 func (s *TokenSuite) Test_CreateApplication_onlyRequiredParameters() {
-	expected := &model.Application{ID: firstApplicationToken, Name: "custom_name", UserID: 5}
+	expected := &model.Application{Token: firstApplicationToken, Name: "custom_name", UserID: 5}
 
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.withFormData("name=custom_name")
 
-	s.db.On("GetApplicationByID", firstApplicationToken).Return(nil)
+	s.db.On("GetApplicationByToken", firstApplicationToken).Return(nil)
 	s.db.On("CreateApplication", expected).Return(nil)
 
 	s.a.CreateApplication(s.ctx)
@@ -100,12 +100,12 @@ func (s *TokenSuite) Test_CreateApplication_onlyRequiredParameters() {
 }
 
 func (s *TokenSuite) Test_CreateApplication_returnsApplicationWithID() {
-	expected := &model.Application{ID: firstApplicationToken, Name: "custom_name", UserID: 5}
+	expected := &model.Application{Token: firstApplicationToken, Name: "custom_name", UserID: 5}
 
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.withFormData("name=custom_name")
 
-	s.db.On("GetApplicationByID", firstApplicationToken).Return(nil)
+	s.db.On("GetApplicationByToken", firstApplicationToken).Return(nil)
 	s.db.On("CreateApplication", expected).Return(nil)
 
 	s.a.CreateApplication(s.ctx)
@@ -113,17 +113,17 @@ func (s *TokenSuite) Test_CreateApplication_returnsApplicationWithID() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
 
-	assert.Equal(s.T(), `{"id":"APorrUa5b1IIK3y","name":"custom_name","description":""}`, string(bytes))
+	assert.Equal(s.T(), `{"id":0,"token":"APorrUa5b1IIK3y","name":"custom_name","description":""}`, string(bytes))
 }
 
 func (s *TokenSuite) Test_CreateApplication_withExistingToken() {
-	expected := &model.Application{ID: secondApplicationToken, Name: "custom_name", UserID: 5}
+	expected := &model.Application{Token: secondApplicationToken, Name: "custom_name", UserID: 5}
 
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.withFormData("name=custom_name")
 
-	s.db.On("GetApplicationByID", firstApplicationToken).Return(&model.Application{ID: firstApplicationToken})
-	s.db.On("GetApplicationByID", secondApplicationToken).Return(nil)
+	s.db.On("GetApplicationByToken", firstApplicationToken).Return(&model.Application{Token: firstApplicationToken})
+	s.db.On("GetApplicationByToken", secondApplicationToken).Return(nil)
 	s.db.On("CreateApplication", expected).Return(nil)
 
 	s.a.CreateApplication(s.ctx)
@@ -137,24 +137,24 @@ func (s *TokenSuite) Test_GetApplications() {
 	s.ctx.Request = httptest.NewRequest("GET", "/tokens", nil)
 
 	s.db.On("GetApplicationsByUser", uint(5)).Return([]*model.Application{
-		{ID: "perfper", Name: "first", Description: "desc"},
-		{ID: "asdasd", Name: "second", Description: "desc2"},
+		{Token: "perfper", Name: "first", Description: "desc"},
+		{Token: "asdasd", Name: "second", Description: "desc2"},
 	})
 	s.a.GetApplications(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
 
-	assert.Equal(s.T(), `[{"id":"perfper","name":"first","description":"desc"},{"id":"asdasd","name":"second","description":"desc2"}]`, string(bytes))
+	assert.Equal(s.T(), `[{"id":0,"token":"perfper","name":"first","description":"desc"},{"id":0,"token":"asdasd","name":"second","description":"desc2"}]`, string(bytes))
 }
 
 func (s *TokenSuite) Test_DeleteApplication_expectNotFound() {
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstApplicationToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: firstApplicationToken}}
+	s.ctx.Params = gin.Params{{Key: "id", Value: "4"}}
 
-	s.db.On("DeleteApplicationByID", firstApplicationToken).Return(errors.New("what? that does not exist"))
-	s.db.On("GetApplicationByID", firstApplicationToken).Return(nil)
+	s.db.On("DeleteApplicationByID", uint(4)).Return(errors.New("what? that does not exist"))
+	s.db.On("GetApplicationByID", uint(4)).Return(nil)
 
 	s.a.DeleteApplication(s.ctx)
 
@@ -164,10 +164,10 @@ func (s *TokenSuite) Test_DeleteApplication_expectNotFound() {
 func (s *TokenSuite) Test_DeleteApplication() {
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstApplicationToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: firstApplicationToken}}
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 
-	s.db.On("DeleteApplicationByID", firstApplicationToken).Return(nil)
-	s.db.On("GetApplicationByID", firstApplicationToken).Return(&model.Application{ID: firstApplicationToken, Name: "custom_name", UserID: 5})
+	s.db.On("DeleteApplicationByID", uint(1)).Return(nil)
+	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{Token: firstApplicationToken, Name: "custom_name", UserID: 5})
 
 	s.a.DeleteApplication(s.ctx)
 
@@ -177,12 +177,12 @@ func (s *TokenSuite) Test_DeleteApplication() {
 // test client api
 
 func (s *TokenSuite) Test_CreateClient_mapAllParameters() {
-	expected := &model.Client{ID: firstClientToken, UserID: 5, Name: "custom_name"}
+	expected := &model.Client{Token: firstClientToken, UserID: 5, Name: "custom_name"}
 
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.withFormData("name=custom_name&description=description_text")
 
-	s.db.On("GetClientByID", firstClientToken).Return(nil)
+	s.db.On("GetClientByToken", firstClientToken).Return(nil)
 	s.db.On("CreateClient", expected).Return(nil)
 
 	s.a.CreateClient(s.ctx)
@@ -203,10 +203,10 @@ func (s *TokenSuite) Test_CreateClient_expectBadRequestOnEmptyName() {
 
 func (s *TokenSuite) Test_DeleteClient_expectNotFoundOnCurrentUserIsNotOwner() {
 	s.ctx.Set("user", &model.User{ID: 2})
-	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: firstClientToken}}
+	s.ctx.Request = httptest.NewRequest("DELETE", "/token/7", nil)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "7"}}
 
-	s.db.On("GetClientByID", firstClientToken).Return(&model.Client{ID: firstClientToken, UserID: 5})
+	s.db.On("GetClientByID", uint(7)).Return(&model.Client{Token: firstClientToken, UserID: 5})
 
 	s.a.DeleteClient(s.ctx)
 
@@ -215,12 +215,12 @@ func (s *TokenSuite) Test_DeleteClient_expectNotFoundOnCurrentUserIsNotOwner() {
 }
 
 func (s *TokenSuite) Test_CreateClient_returnsClientWithID() {
-	expected := &model.Client{ID: firstClientToken, Name: "custom_name", UserID: 5}
+	expected := &model.Client{Token: firstClientToken, Name: "custom_name", UserID: 5}
 
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.withFormData("name=custom_name")
 
-	s.db.On("GetClientByID", firstClientToken).Return(nil)
+	s.db.On("GetClientByToken", firstClientToken).Return(nil)
 	s.db.On("CreateClient", expected).Return(nil)
 
 	s.a.CreateClient(s.ctx)
@@ -228,17 +228,17 @@ func (s *TokenSuite) Test_CreateClient_returnsClientWithID() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
 
-	assert.Equal(s.T(), `{"id":"CPorrUa5b1IIK3y","name":"custom_name"}`, string(bytes))
+	assert.Equal(s.T(), `{"id":0,"token":"CPorrUa5b1IIK3y","name":"custom_name"}`, string(bytes))
 }
 
 func (s *TokenSuite) Test_CreateClient_withExistingToken() {
-	expected := &model.Client{ID: secondClientToken, Name: "custom_name", UserID: 5}
+	expected := &model.Client{Token: secondClientToken, Name: "custom_name", UserID: 5}
 
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.withFormData("name=custom_name")
 
-	s.db.On("GetClientByID", firstClientToken).Return(&model.Client{ID: firstClientToken})
-	s.db.On("GetClientByID", secondClientToken).Return(nil)
+	s.db.On("GetClientByToken", firstClientToken).Return(&model.Client{Token: firstClientToken})
+	s.db.On("GetClientByToken", secondClientToken).Return(nil)
 	s.db.On("CreateClient", expected).Return(nil)
 
 	s.a.CreateClient(s.ctx)
@@ -252,24 +252,24 @@ func (s *TokenSuite) Test_GetClients() {
 	s.ctx.Request = httptest.NewRequest("GET", "/tokens", nil)
 
 	s.db.On("GetClientsByUser", uint(5)).Return([]*model.Client{
-		{ID: "perfper", Name: "first"},
-		{ID: "asdasd", Name: "second"},
+		{Token: "perfper", Name: "first"},
+		{Token: "asdasd", Name: "second"},
 	})
 	s.a.GetClients(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bytes, _ := ioutil.ReadAll(s.recorder.Body)
 
-	assert.Equal(s.T(), `[{"id":"perfper","name":"first"},{"id":"asdasd","name":"second"}]`, string(bytes))
+	assert.Equal(s.T(), `[{"id":0,"token":"perfper","name":"first"},{"id":0,"token":"asdasd","name":"second"}]`, string(bytes))
 }
 
 func (s *TokenSuite) Test_DeleteClient_expectNotFound() {
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: firstClientToken}}
+	s.ctx.Params = gin.Params{{Key: "id", Value: "8"}}
 
-	s.db.On("DeleteClientByID", firstClientToken).Return(errors.New("what? that does not exist"))
-	s.db.On("GetClientByID", firstClientToken).Return(nil)
+	s.db.On("DeleteClientByID", uint(8)).Return(errors.New("what? that does not exist"))
+	s.db.On("GetClientByID", uint(8)).Return(nil)
 
 	s.a.DeleteClient(s.ctx)
 
@@ -279,10 +279,10 @@ func (s *TokenSuite) Test_DeleteClient_expectNotFound() {
 func (s *TokenSuite) Test_DeleteClient() {
 	s.ctx.Set("user", &model.User{ID: 5})
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: firstClientToken}}
+	s.ctx.Params = gin.Params{{Key: "id", Value: "8"}}
 
-	s.db.On("DeleteClientByID", firstClientToken).Return(nil)
-	s.db.On("GetClientByID", firstClientToken).Return(&model.Client{ID: firstClientToken, Name: "custom_name", UserID: 5})
+	s.db.On("DeleteClientByID", uint(8)).Return(nil)
+	s.db.On("GetClientByID", uint(8)).Return(&model.Client{Token: firstClientToken, Name: "custom_name", UserID: 5})
 
 	s.a.DeleteClient(s.ctx)
 
