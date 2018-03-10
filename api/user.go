@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/auth"
@@ -59,28 +58,24 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 
 // GetUserByID returns the user by id
 func (a *UserAPI) GetUserByID(ctx *gin.Context) {
-	if id, err := toUInt(ctx.Param("id")); err == nil {
+	withID(ctx, "id", func(id uint) {
 		if user := a.DB.GetUserByID(uint(id)); user != nil {
 			ctx.JSON(200, toExternal(user))
 		} else {
 			ctx.AbortWithError(404, errors.New("user does not exist"))
 		}
-	} else {
-		ctx.AbortWithError(400, errors.New("invalid id"))
-	}
+	})
 }
 
 // DeleteUserByID deletes the user by id
 func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
-	if id, err := toUInt(ctx.Param("id")); err == nil {
+	withID(ctx, "id", func(id uint) {
 		if user := a.DB.GetUserByID(id); user != nil {
 			a.DB.DeleteUserByID(id)
 		} else {
 			ctx.AbortWithError(404, errors.New("user does not exist"))
 		}
-	} else {
-		ctx.AbortWithError(400, errors.New("invalid id"))
-	}
+	})
 }
 
 // ChangePassword changes the password from the current user
@@ -95,7 +90,7 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 
 // UpdateUserByID updates and user by id
 func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
-	if id, err := toUInt(ctx.Param("id")); err == nil {
+	withID(ctx, "id", func(id uint) {
 		var user *model.UserExternalWithPass
 		if err := ctx.Bind(&user); err == nil {
 			if oldUser := a.DB.GetUserByID(id); oldUser != nil {
@@ -107,14 +102,7 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 				ctx.AbortWithError(404, errors.New("user does not exist"))
 			}
 		}
-	} else {
-		ctx.AbortWithError(400, errors.New("invalid id"))
-	}
-}
-
-func toUInt(id string) (uint, error) {
-	parsed, err := strconv.ParseUint(id, 10, 32)
-	return uint(parsed), err
+	})
 }
 
 func (a *UserAPI) toInternal(response *model.UserExternalWithPass, pw []byte) *model.User {
