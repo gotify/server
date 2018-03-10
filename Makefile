@@ -34,17 +34,13 @@ download-tools:
 	go get -u github.com/gobuffalo/packr/...
 	go get -u github.com/go-swagger/go-swagger/cmd/swagger
 
-update-swagger-spec:
+update-swagger:
 	swagger generate spec --scan-models -o docs/spec.json
 
-update-swagger: update-swagger-spec
-	(cd docs && packr)
-
-check-swagger: update-swagger-spec
+check-swagger: update-swagger
 ## add the docs to git, this changes line endings in git, otherwise this does not work on windows
 	git add docs
 	if [ -n "$(shell git status --porcelain | grep docs)" ]; then \
-        git status --porcelain | grep docs; \
         echo Swagger Spec is not up-to-date; \
         exit 1; \
     fi
