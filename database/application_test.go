@@ -6,7 +6,8 @@ import (
 )
 
 func (s *DatabaseSuite) TestApplication() {
-	assert.Nil(s.T(), s.db.GetApplicationByID("asdasdf"), "not existing app")
+	assert.Nil(s.T(), s.db.GetApplicationByToken("asdasdf"), "not existing app")
+	assert.Nil(s.T(), s.db.GetApplicationByID(uint(1)), "not existing app")
 
 	user := &model.User{Name: "test", Pass: []byte{1}}
 	s.db.CreateUser(user)
@@ -15,14 +16,17 @@ func (s *DatabaseSuite) TestApplication() {
 	apps := s.db.GetApplicationsByUser(user.ID)
 	assert.Empty(s.T(), apps)
 
-	app := &model.Application{UserID: user.ID, ID: "C0000000000", Name: "backupserver"}
+	app := &model.Application{UserID: user.ID, Token: "C0000000000", Name: "backupserver"}
 	s.db.CreateApplication(app)
 
 	apps = s.db.GetApplicationsByUser(user.ID)
 	assert.Len(s.T(), apps, 1)
 	assert.Contains(s.T(), apps, app)
 
-	newApp := s.db.GetApplicationByID(app.ID)
+	newApp := s.db.GetApplicationByToken(app.Token)
+	assert.Equal(s.T(), app, newApp)
+
+	newApp = s.db.GetApplicationByID(app.ID)
 	assert.Equal(s.T(), app, newApp)
 
 	s.db.DeleteApplicationByID(app.ID)
