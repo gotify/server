@@ -6,7 +6,8 @@ import (
 )
 
 func (s *DatabaseSuite) TestClient() {
-	assert.Nil(s.T(), s.db.GetClientByID("asdasdf"), "not existing client")
+	assert.Nil(s.T(), s.db.GetClientByID(1), "not existing client")
+	assert.Nil(s.T(), s.db.GetClientByToken("asdasd"), "not existing client")
 
 	user := &model.User{Name: "test", Pass: []byte{1}}
 	s.db.CreateUser(user)
@@ -15,7 +16,7 @@ func (s *DatabaseSuite) TestClient() {
 	clients := s.db.GetClientsByUser(user.ID)
 	assert.Empty(s.T(), clients)
 
-	client := &model.Client{UserID: user.ID, ID: "C0000000000", Name: "android"}
+	client := &model.Client{UserID: user.ID, Token: "C0000000000", Name: "android"}
 	s.db.CreateClient(client)
 
 	clients = s.db.GetClientsByUser(user.ID)
@@ -23,6 +24,9 @@ func (s *DatabaseSuite) TestClient() {
 	assert.Contains(s.T(), clients, client)
 
 	newClient := s.db.GetClientByID(client.ID)
+	assert.Equal(s.T(), client, newClient)
+
+	newClient = s.db.GetClientByToken(client.Token)
 	assert.Equal(s.T(), client, newClient)
 
 	s.db.DeleteClientByID(client.ID)

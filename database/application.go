@@ -4,8 +4,18 @@ import (
 	"github.com/gotify/server/model"
 )
 
+// GetApplicationByToken returns the application for the given token or nil.
+func (d *GormDatabase) GetApplicationByToken(token string) *model.Application {
+	app := new(model.Application)
+	d.DB.Where("token = ?", token).Find(app)
+	if app.Token == token {
+		return app
+	}
+	return nil
+}
+
 // GetApplicationByID returns the application for the given id or nil.
-func (d *GormDatabase) GetApplicationByID(id string) *model.Application {
+func (d *GormDatabase) GetApplicationByID(id uint) *model.Application {
 	app := new(model.Application)
 	d.DB.Where("id = ?", id).Find(app)
 	if app.ID == id {
@@ -20,7 +30,7 @@ func (d *GormDatabase) CreateApplication(application *model.Application) error {
 }
 
 // DeleteApplicationByID deletes an application by its id.
-func (d *GormDatabase) DeleteApplicationByID(id string) error {
+func (d *GormDatabase) DeleteApplicationByID(id uint) error {
 	return d.DB.Where("id = ?", id).Delete(&model.Application{}).Error
 }
 
