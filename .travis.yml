@@ -9,6 +9,15 @@ notifications:
 services:
   - docker
 
+addons:
+  apt:
+    packages:
+     - mingw-w64
+     - gcc-aarch64-linux-gnu
+     - g++-aarch64-linux-gnu
+     - gcc-arm-linux-gnueabihf
+     - g++-arm-linux-gnueabihf
+
 env:
   - DEP_VERSION="0.4.1"
 
@@ -32,7 +41,15 @@ before_deploy:
     if ! [ "$BEFORE_DEPLOY_RUN" ]; then
       export BEFORE_DEPLOY_RUN=1;
       if [[ $TRAVIS_TAG != "v"* ]]; then exit 1; fi;
-      VERSION=$(echo $TRAVIS_TAG | cut -c 2-) make build-all;
+      export VERSION=$(echo $TRAVIS_TAG | cut -c 2-);
+      export LD_FLAGS="-X main.Version=${VERSION} -X main.BuildDate=$(date "+%F-%T") -X main.Commit=$(git rev-parse --verify HEAD)";
+      go build -ldflags="$LD_FLAGS" -o build/gotify-linux-amd64;
+      CC=x86_64-w64-mingw32-gcc  CXX=x86_64-w64-mingw32-g++  CGO_ENABLED=1 GOOS=windows GOARCH=amd64       go build -ldflags="$LD_FLAGS" -o build/gotify-windows-amd64.exe;
+      CC=aarch64-linux-gnu-gcc   CXX=aarch64-linux-gnu-g++   CGO_ENABLED=1 GOOS=linux   GOARCH=arm64       go build -ldflags="$LD_FLAGS" -o build/gotify-linux-arm64;
+      CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++ CGO_ENABLED=1 GOOS=linux   GOARCH=arm GOARM=7 go build -ldflags="$LD_FLAGS" -o build/gotify-linux-arm-7;
+      make package-zip;
+      ls -lath build;
+      make build-docker;
     fi
 
 deploy:
