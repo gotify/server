@@ -6,3 +6,4 @@ build/
 licenses/
 coverage.txt
 */node_modules/
+**/*-packr.go
