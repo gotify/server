@@ -13,8 +13,8 @@ const (
 
 // The Database interface for encapsulating database access.
 type Database interface {
-	GetApplicationByID(id string) *model.Application
-	GetClientByID(id string) *model.Client
+	GetApplicationByToken(token string) *model.Application
+	GetClientByToken(token string) *model.Client
 	GetUserByName(name string) *model.User
 	GetUserByID(id uint) *model.User
 }
@@ -33,7 +33,7 @@ func (a *Auth) RequireAdmin() gin.HandlerFunc {
 		if user != nil {
 			return true, user.Admin, user.ID
 		}
-		if token := a.DB.GetClientByID(tokenID); token != nil {
+		if token := a.DB.GetClientByToken(tokenID); token != nil {
 			return true, a.DB.GetUserByID(token.UserID).Admin, token.UserID
 		}
 		return false, false, 0
@@ -47,7 +47,7 @@ func (a *Auth) RequireClient() gin.HandlerFunc {
 		if user != nil {
 			return true, true, user.ID
 		}
-		if token := a.DB.GetClientByID(tokenID); token != nil {
+		if token := a.DB.GetClientByToken(tokenID); token != nil {
 			return true, true, token.UserID
 		}
 		return false, false, 0
@@ -60,7 +60,7 @@ func (a *Auth) RequireApplicationToken() gin.HandlerFunc {
 		if user != nil {
 			return true, false, 0
 		}
-		if token := a.DB.GetApplicationByID(tokenID); token != nil {
+		if token := a.DB.GetApplicationByToken(tokenID); token != nil {
 			return true, true, token.UserID
 		}
 		return false, false, 0

@@ -29,12 +29,12 @@ func (s *AuthenticationSuite) SetupSuite() {
 	gin.SetMode(gin.TestMode)
 	s.DB = &authmock.MockDatabase{}
 	s.auth = &Auth{s.DB}
-	s.DB.On("GetClientByID", "clienttoken").Return(&model.Client{ID: "clienttoken", UserID: 1, Name: "android phone"})
-	s.DB.On("GetClientByID", "clienttoken_admin").Return(&model.Client{ID: "clienttoken", UserID: 2, Name: "android phone2"})
-	s.DB.On("GetClientByID", mock.Anything).Return(nil)
-	s.DB.On("GetApplicationByID", "apptoken").Return(&model.Application{ID: "apptoken", UserID: 1, Name: "backup server", Description: "irrelevant"})
-	s.DB.On("GetApplicationByID", "apptoken_admin").Return(&model.Application{ID: "apptoken", UserID: 2, Name: "backup server", Description: "irrelevant"})
-	s.DB.On("GetApplicationByID", mock.Anything).Return(nil)
+	s.DB.On("GetClientByToken", "clienttoken").Return(&model.Client{ID: 1, Token: "clienttoken", UserID: 1, Name: "android phone"})
+	s.DB.On("GetClientByToken", "clienttoken_admin").Return(&model.Client{ID: 2, Token: "clienttoken_admin", UserID: 2, Name: "android phone2"})
+	s.DB.On("GetClientByToken", mock.Anything).Return(nil)
+	s.DB.On("GetApplicationByToken", "apptoken").Return(&model.Application{ID: 3, Token: "apptoken", UserID: 1, Name: "backup server", Description: "irrelevant"})
+	s.DB.On("GetApplicationByToken", "apptoken_admin").Return(&model.Application{ID: 4, Token: "apptoken_admin", UserID: 2, Name: "backup server", Description: "irrelevant"})
+	s.DB.On("GetApplicationByToken", mock.Anything).Return(nil)
 
 	s.DB.On("GetUserByID", uint(1)).Return(&model.User{ID: 1, Name: "irrelevant", Admin: false})
 	s.DB.On("GetUserByID", uint(2)).Return(&model.User{ID: 2, Name: "irrelevant", Admin: true})
