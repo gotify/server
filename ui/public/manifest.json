@@ -1,0 +1,8 @@
+{
+  "short_name": "Gotify",
+  "name": "Gotify WebApp",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#3f51b5",
+  "background_color": "#303030"
+}
