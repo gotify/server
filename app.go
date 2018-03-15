@@ -12,6 +12,7 @@ import (
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/router"
 	"github.com/gotify/server/runner"
+	"github.com/gotify/server/mode"
 )
 
 var (
@@ -21,10 +22,13 @@ var (
 	Commit = "unknown"
 	// BuildDate the date on which this binary was build.
 	BuildDate = "unknown"
+	// Mode the build mode
+	Mode = mode.Dev
 )
 
 func main() {
 	vInfo := &model.VersionInfo{Version: Version, Commit: Commit, BuildDate: BuildDate}
+	mode.Set(Mode);
 
 	fmt.Println("Starting Gotify version", vInfo.Version+"@"+BuildDate)
 	rand.Seed(time.Now().UnixNano())
@@ -35,7 +39,6 @@ func main() {
 	}
 	defer db.Close()
 
-	gin.SetMode(gin.ReleaseMode)
 	engine, closeable := router.Create(db, vInfo, conf)
 	defer closeable()
 
