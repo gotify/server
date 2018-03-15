@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"github.com/gotify/server/mode"
 )
 
 var (
@@ -37,7 +38,7 @@ type UserSuite struct {
 }
 
 func (s *UserSuite) BeforeTest(suiteName, testName string) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	s.db = &apimock.MockUserDatabase{}

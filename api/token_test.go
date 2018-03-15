@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"github.com/gotify/server/mode"
 )
 
 var (
@@ -36,7 +37,7 @@ type TokenSuite struct {
 }
 
 func (s *TokenSuite) BeforeTest(suiteName, testName string) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	rand.Seed(50)
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
