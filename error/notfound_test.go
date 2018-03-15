@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/mode"
 )
 
 func TestNotFound(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	rec := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(rec)
 

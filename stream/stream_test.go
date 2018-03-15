@@ -21,6 +21,7 @@ import (
 	"github.com/gotify/server/auth"
 	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/gotify/server/mode"
 )
 
 func TestFailureOnNormalHttpRequest(t *testing.T) {
@@ -296,7 +297,7 @@ func (c *testingClient) expectNoMessage() {
 }
 
 func bootTestServer(handlerFunc gin.HandlerFunc) (*httptest.Server, *API) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 
 	r := gin.New()
 	r.Use(handlerFunc)

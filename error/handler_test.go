@@ -10,10 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/gotify/server/mode"
 )
 
 func TestDefaultErrorInternal(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	rec := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(rec)
 	ctx.AbortWithError(500, errors.New("something went wrong"))
@@ -24,7 +25,7 @@ func TestDefaultErrorInternal(t *testing.T) {
 }
 
 func TestBindingErrorDefault(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	rec := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(rec)
 	ctx.AbortWithError(400, errors.New("you need todo something")).SetType(gin.ErrorTypeBind)
@@ -35,7 +36,7 @@ func TestBindingErrorDefault(t *testing.T) {
 }
 
 func TestDefaultErrorBadRequest(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	rec := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(rec)
 	ctx.AbortWithError(400, errors.New("you need todo something"))
@@ -51,7 +52,7 @@ type testValidate struct {
 }
 
 func TestValidationError(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	rec := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(rec)
 	ctx.Request = httptest.NewRequest("GET", "/uri", nil)

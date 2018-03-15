@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"github.com/gotify/server/mode"
 )
 
 func TestMessageSuite(t *testing.T) {
@@ -31,7 +32,7 @@ type MessageSuite struct {
 }
 
 func (s *MessageSuite) BeforeTest(suiteName, testName string) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	s.db = &apimock.MockMessageDatabase{}
@@ -60,7 +61,7 @@ func (s *MessageSuite) Test_GetMessagesWithToken() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "")
 	t, _ := time.Parse("2006/01/02", "2021/01/02")
 	s.db.On("GetMessagesByApplication", uint(1)).Return([]*model.Message{{ID: 2, ApplicationID: 1, Message: "hi", Title: "hi", Date: t, Priority: 4}})
-	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token:"irrelevant", UserID: 4})
+	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token: "irrelevant", UserID: 4})
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 
 	s.a.GetMessagesWithApplication(s.ctx)
@@ -73,7 +74,7 @@ func (s *MessageSuite) Test_GetMessagesWithToken() {
 func (s *MessageSuite) Test_GetMessagesWithToken_withWrongUser_expectNotFound() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "")
 	t, _ := time.Parse("2006/01/02", "2021/01/02")
-	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token:"irrelevant", UserID: 2})
+	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token: "irrelevant", UserID: 2})
 	s.db.On("GetMessagesByApplication", uint(1)).Return([]*model.Message{{ID: 2, ApplicationID: 1, Message: "hi", Title: "hi", Date: t, Priority: 4}})
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"github.com/gotify/server/mode"
 )
 
 func TestSuite(t *testing.T) {
@@ -26,7 +27,7 @@ type AuthenticationSuite struct {
 }
 
 func (s *AuthenticationSuite) SetupSuite() {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	s.DB = &authmock.MockDatabase{}
 	s.auth = &Auth{s.DB}
 	s.DB.On("GetClientByToken", "clienttoken").Return(&model.Client{ID: 1, Token: "clienttoken", UserID: 1, Name: "android phone"})

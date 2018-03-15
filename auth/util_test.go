@@ -8,6 +8,7 @@ import (
 	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/gotify/server/mode"
 )
 
 func TestUtilSuite(t *testing.T) {
@@ -19,7 +20,7 @@ type UtilSuite struct {
 }
 
 func (s *UtilSuite) BeforeTest(suiteName, testName string) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 }
 
 func (s *UtilSuite) Test_getID() {

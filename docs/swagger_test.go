@@ -6,10 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/gotify/server/mode"
 )
 
 func TestServe(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	recorder := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest("GET", "/swagger", nil)
