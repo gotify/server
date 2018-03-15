@@ -9,13 +9,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/json"
 	"github.com/gotify/server/database"
 	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/gotify/server/config"
+	"github.com/gotify/server/mode"
 )
 
 var (
@@ -35,7 +35,7 @@ type IntegrationSuite struct {
 }
 
 func (s *IntegrationSuite) BeforeTest(string, string) {
-	gin.SetMode(gin.TestMode)
+	mode.Set(mode.TestDev)
 	var err error
 	s.db, err = database.New("sqlite3", "itest.db", "admin", "pw", 5)
 	assert.Nil(s.T(), err)
@@ -55,6 +55,32 @@ func (s *IntegrationSuite) TestVersionInfo() {
 	req := s.newRequest("GET", "version", "")
 
 	doRequestAndExpect(s.T(), req, 200, `{"version":"1.0.0", "commit":"asdasds", "buildDate":"2018-02-20-17:30:47"}`)
+}
+
+func (s *IntegrationSuite) TestHeaderInDev() {
+	mode.Set(mode.TestDev)
+	req := s.newRequest("GET", "version", "")
+
+	res, err := client.Do(req)
+	assert.Nil(s.T(), err)
+	assert.NotEmpty(s.T(), res.Header.Get("Access-Control-Allow-Origin"))
+}
+
+func (s *IntegrationSuite) TestHeaderInProd() {
+	mode.Set(mode.Prod)
+	req := s.newRequest("GET", "version", "")
+
+	res, err := client.Do(req)
+	assert.Nil(s.T(), err)
+	assert.Empty(s.T(), res.Header.Get("Access-Control-Allow-Origin"))
+}
+
+func (s *IntegrationSuite) TestOptionsRequest() {
+	req := s.newRequest("OPTIONS", "version", "")
+
+	res, err := client.Do(req)
+	assert.Nil(s.T(), err)
+	assert.Equal(s.T(), res.StatusCode, 200)
 }
 
 func (s *IntegrationSuite) TestSendMessage() {

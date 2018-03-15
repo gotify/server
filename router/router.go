@@ -16,6 +16,7 @@ import (
 	"github.com/gotify/server/docs"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/stream"
+	"github.com/gotify/server/mode"
 )
 
 // Create creates the gin engine with all routes.
@@ -36,7 +37,14 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	g.Use(func(ctx *gin.Context) {
 		ctx.Header("Content-Type", "application/json")
+		if mode.IsDev() {
+			ctx.Header("Access-Control-Allow-Origin", "*")
+			ctx.Header("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS,PUT")
+			ctx.Header("Access-Control-Allow-Headers", "X-Gotify-Key,Authorization,Content-Type,Upgrade,Origin,Connection,Accept-Encoding,Accept-Language,Host")
+		}
 	})
+
+	g.OPTIONS("/*any")
 
 	// swagger:operation GET /version version getVersion
 	//
