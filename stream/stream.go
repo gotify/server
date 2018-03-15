@@ -8,11 +8,16 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/auth"
 	"github.com/gotify/server/model"
+	"net/http"
+	"github.com/gotify/server/mode"
 )
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return mode.IsDev();
+	},
 }
 
 // The API provides a handler for a WebSocket stream API.
