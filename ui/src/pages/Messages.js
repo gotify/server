@@ -42,7 +42,7 @@ class Messages extends Component {
             return -1;
         }
         const {match} = props;
-        return match.params.id !== undefined ? parseInt(match.params.id) : -1;
+        return match.params.id !== undefined ? parseInt(match.params.id, 10) : -1;
     }
 
     render() {
