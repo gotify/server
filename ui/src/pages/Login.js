@@ -33,12 +33,12 @@ class Login extends Component {
             <DefaultPage title="Login" maxWidth={250} hideButton={true}>
                 <Grid item xs={12} style={{textAlign: 'center'}}>
                     <Container>
-                        <form>
+                        <form onSubmit={(e) => e.preventDefault()}>
                             <TextField id="name" label="Username" margin="dense" value={username}
                                        onChange={this.handleChange.bind(this, 'username')}/>
                             <TextField type="password" id="password" label="Password" margin="normal"
                                        value={password} onChange={this.handleChange.bind(this, 'password')}/>
-                            <Button variant="raised" size="large" color="primary"
+                            <Button type="submit" variant="raised" size="large" color="primary"
                                     style={{marginTop: 15, marginBottom: 5}} onClick={this.login}>
                                 Login
                             </Button>
