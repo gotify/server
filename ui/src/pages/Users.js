@@ -121,7 +121,7 @@ class AddEditDialog extends Component {
     static defaultProps = {
         name: '',
         pass: '',
-        admin: '',
+        admin: false,
         isEdit: false,
     };
 
