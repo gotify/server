@@ -6,7 +6,6 @@ import (
 
 	"fmt"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/database"
 	"github.com/gotify/server/model"
