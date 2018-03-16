@@ -5,6 +5,11 @@ class CurrentUserStore extends EventEmitter {
     constructor() {
         super();
         this.currentUser = null;
+        this.loginFailed = false;
+    }
+
+    isLoginFailed() {
+        return this.loginFailed;
     }
 
     get() {
@@ -30,9 +35,14 @@ class CurrentUserStore extends EventEmitter {
 
     handle(data) {
         if (data.type === 'REMOVE_CURRENT_USER') {
+            this.loginFailed = false;
             this.set(null);
         } else if (data.type === 'SET_CURRENT_USER') {
+            this.loginFailed = false;
             this.set(data.payload);
+        } else if (data.type === 'LOGIN_FAILED') {
+            this.loginFailed = true;
+            this.emit('change');
         }
     }
 }

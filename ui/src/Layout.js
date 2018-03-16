@@ -51,6 +51,7 @@ class Layout extends Component {
         loggedIn: CurrentUserStore.isLoggedIn(),
         admin: CurrentUserStore.isAdmin(),
         name: CurrentUserStore.getName(),
+        loginFailed: CurrentUserStore.isLoginFailed(),
         version: Layout.defaultVersion,
     };
 
@@ -77,6 +78,7 @@ class Layout extends Component {
             ...this.state,
             loggedIn: CurrentUserStore.isLoggedIn(),
             admin: CurrentUserStore.isAdmin(),
+            loginFailed: CurrentUserStore.isLoginFailed(),
             name: CurrentUserStore.getName(),
         });
     };
@@ -85,7 +87,7 @@ class Layout extends Component {
     showSettings = () => this.setState({...this.state, showSettings: true});
 
     render() {
-        const {name, admin, version, loggedIn, showSettings} = this.state;
+        const {name, admin, version, loggedIn, showSettings, loginFailed} = this.state;
         const {classes} = this.props;
         const theme = this.state.darkTheme ? darkTheme : lightTheme;
         return (
@@ -102,7 +104,7 @@ class Layout extends Component {
                         <main className={classes.content}>
                             <Switch>
                                 <Route exact path="/login" render={() =>
-                                    (loggedIn ? (<Redirect to="/"/>) : (<Login/>))}/>
+                                    (loggedIn ? (<Redirect to="/"/>) : (<Login loginFailed={loginFailed}/>))}/>
                                 {(loggedIn || getToken() != null) ? null : <Redirect to="/login"/>}
                                 <Route exact path="/" component={Messages}/>
                                 <Route exact path="/messages/:id" component={Messages}/>

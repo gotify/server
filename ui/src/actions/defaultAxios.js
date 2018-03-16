@@ -26,7 +26,6 @@ axios.interceptors.response.use(null, (error) => {
         dispatcher.dispatch({type: 'REMOVE_CURRENT_USER'});
     }
 
-    console.warn('Error status', error.response.status);
     return Promise.reject(error);
 });
 

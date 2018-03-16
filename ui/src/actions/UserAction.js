@@ -21,6 +21,8 @@ export function login(username, password) {
     }).then(function(resp) {
         setAuthorizationToken(resp.data.token);
         GlobalAction.initialLoad();
+    }).catch(() => {
+        dispatcher.dispatch({type: 'LOGIN_FAILED'});
     });
 }
 
@@ -61,7 +63,7 @@ export function fetchUsers() {
  * @param {int} id the user id
  */
 export function deleteUser(id) {
-    axios.delete(config.get('url') + 'user/' + id).then(function(resp) {
+    axios.delete(config.get('url') + 'user/' + id).then(function() {
         fetchUsers();
     });
 }
@@ -73,7 +75,7 @@ export function deleteUser(id) {
  * @param {bool} admin if true, the user is an administrator
  */
 export function createUser(name, pass, admin) {
-    axios.post(config.get('url') + 'user', {name, pass, admin}).then(function(resp) {
+    axios.post(config.get('url') + 'user', {name, pass, admin}).then(function() {
         fetchUsers();
     });
 }
@@ -86,7 +88,7 @@ export function createUser(name, pass, admin) {
  * @param {bool} admin if true, the user is an administrator
  */
 export function updateUser(id, name, pass, admin) {
-    axios.post(config.get('url') + 'user/' + id, {name, pass, admin}).then(function(resp) {
+    axios.post(config.get('url') + 'user/' + id, {name, pass, admin}).then(function() {
         fetchUsers();
         fetchCurrentUser(); // just in case update current user
     });
