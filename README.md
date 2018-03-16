@@ -10,7 +10,12 @@
       * [File](#file)
       * [Environment](#environment)
       * [Database](#database)
+   * [Setup Dev Environment](#setup-dev-environment)
+      * [Server](#setup-server)
+      * [UI](#setup-ui)
    * [Building](#building)
+      * [Server](#build-server)
+      * [UI](#build-ui)
       * [Cross-Platform](#cross-platform)
    * [Tests](#tests)
    * [Versioning](#versioning)
@@ -34,11 +39,11 @@ We wanted a simple server for sending and receiving messages (in real time per w
 The docker image is available on docker hub at [gotify/server](https://hub.docker.com/r/gotify/server/).
 
 ``` bash
-docker run -p 80:80 gotify/server
+$ docker run -p 80:80 gotify/server
 ```
 Also there is a specific docker image for arm-7 processors (raspberry pi), named [gotify/server-arm7](https://hub.docker.com/r/gotify/server-arm7/).
 ``` bash
-docker run -p 80:80 gotify/server-arm7
+$ docker run -p 80:80 gotify/server-arm7
 ```
 
 ### Binary
@@ -98,11 +103,43 @@ GOTIFY_PASSSTRENGTH=10
 | mysql     | `gotify:secret@/gotifydb?charset=utf8&parseTime=True&loc=Local `     |
 | postgres  | `host=localhost port=3306 user=gotify dbname=gotify password=secret` |
 
+## Setup Dev Environment
+
+### Setup Server
+Download go dependencies with [golang/dep](https://github.com/golang/dep).
+```
+$ dep ensure
+```
+Run golang server.
+```
+$ go run app.go
+```
+
+### Setup UI
+*Commands must be executed inside the ui directory.*
+
+Download dependencies with [npm](https://github.com/npm/npm).
+``` bash
+$ npm install
+```
+Star the UI development server.
+``` bash
+$ npm start
+```
+Open `http://localhost:3030` inside your favorite browser.
+
+The UI requires a Gotify server running on `localhost:80` this can be adjusted inside the [ui/src/index.js](ui/src/index.js).
+
 ## Building
 
-The app can be built with the default golang build command.
+### Build Server
 ``` bash
-go build app.go
+$ go build app.go
+```
+
+### Build UI
+``` bash
+$ npm run build
 ```
 
 ### Cross-Platform
@@ -111,9 +148,9 @@ The project has a CGO reference (because of sqlite3), therefore a GCO cross comp
 ## Tests
 The tests can be executed with:
 ``` bash
-make test
+$ make test
 # or
-go test ./...
+$ go test ./...
 ```
 
 ## Versioning
