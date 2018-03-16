@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "axios": "^0.18.0",
-    "config": "^1.30.0",
     "detect-browser": "^2.1.0",
     "flux": "^3.1.3",
     "material-ui": "^1.0.0-beta.35",
@@ -18,8 +17,7 @@
     "react-scripts": "1.1.1",
     "react-timeago": "^3.4.3",
     "typeface-roboto": "0.0.54",
-    "typeface-roboto-mono": "0.0.54",
-    "ws": "^5.0.0"
+    "typeface-roboto-mono": "0.0.54"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -29,7 +27,6 @@
   },
   "devDependencies": {
     "babel-eslint": "^8.2.2",
-    "cross-env": "^5.1.4",
     "eslint": "^4.18.2",
     "eslint-config-google": "^0.9.1",
     "eslint-plugin-babel": "^4.1.2",
