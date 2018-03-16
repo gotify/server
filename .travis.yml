@@ -28,9 +28,11 @@ before_install:
 
 install:
   - dep ensure -v
+  - (cd ui && npm install)
 
 script:
 # packr builds a go file for all packr "boxes", this would be f.ex. the spec.json file.
+  - (cd ui && npm run build)
   - packr
   - make test
   - make check
