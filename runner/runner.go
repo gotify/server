@@ -38,7 +38,9 @@ func Run(engine *gin.Engine, conf *config.Configuration) {
 			s.TLSConfig = &tls.Config{GetCertificate: certManager.GetCertificate}
 		}
 		fmt.Println("Started Listening on port", conf.Server.SSL.Port)
-		go log.Fatal(s.ListenAndServeTLS(conf.Server.SSL.CertFile, conf.Server.SSL.CertKey))
+		go func() {
+			log.Fatal(s.ListenAndServeTLS(conf.Server.SSL.CertFile, conf.Server.SSL.CertKey))
+		}()
 	}
 	fmt.Println("Started Listening on port", conf.Server.Port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", conf.Server.Port), httpHandler))
