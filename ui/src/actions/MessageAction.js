@@ -38,8 +38,8 @@ export function listenToWebSocket() {
     if (!getToken()) {
         return;
     }
-
-    const ws = new WebSocket('ws://localhost:80/stream?token=' + getToken());
+    const wsUrl = config.get('url').replace('http', 'ws').replace('https', 'wss');
+    const ws = new WebSocket(wsUrl + 'stream?token=' + getToken());
 
     ws.onerror = (e) => {
         console.log('WebSocket connection errored; trying again in 60 seconds', e);

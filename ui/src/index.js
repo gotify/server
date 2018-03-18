@@ -11,8 +11,13 @@ const defaultDevConfig = {
     url: 'http://localhost:80/',
 };
 
+const {port, hostname, protocol} = window.location;
+const slashes = protocol.concat('//');
+const url = slashes.concat(hostname.concat(':', port));
+const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
+
 const defaultProdConfig = {
-    url: './',
+    url: urlWithSlash,
 };
 
 (function clientJS() {
@@ -22,6 +27,6 @@ const defaultProdConfig = {
         config.set(window.config || defaultDevConfig);
     }
     checkIfAlreadyLoggedIn();
-    ReactDOM.render(<Layout />, document.getElementById('root'));
+    ReactDOM.render(<Layout/>, document.getElementById('root'));
     registerServiceWorker();
 }());
