@@ -1,6 +1,8 @@
 # Gotify Server
 [![Build Status][badge-travis]][travis] [![codecov][badge-codecov]][codecov] [![Go Report Card][badge-go-report]][go-report] [![Swagger Valid][badge-swagger]][swagger] [![Api Docs][badge-api-docs]][api-docs] [![latest release version][badge-release]][release]
 
+<img align="right" src="logo.png" />
+
    * [Motivation](#motivation)
    * [Features](#features)
    * [Installation](#installation)
