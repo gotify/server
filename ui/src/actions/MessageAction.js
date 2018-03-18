@@ -35,6 +35,10 @@ export function deleteMessage(id) {
  * Starts listening to the stream for new messages.
  */
 export function listenToWebSocket() {
+    if (!getToken()) {
+        return;
+    }
+
     const ws = new WebSocket('ws://localhost:80/stream?token=' + getToken());
 
     ws.onerror = (e) => {
