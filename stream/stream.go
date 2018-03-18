@@ -10,14 +10,30 @@ import (
 	"github.com/gotify/server/model"
 	"net/http"
 	"github.com/gotify/server/mode"
+	"net/url"
 )
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return mode.IsDev();
+		if mode.IsDev() {
+			return true
+		}
+		return checkSameOrigin(r)
 	},
+}
+
+func checkSameOrigin(r *http.Request) bool {
+	origin := r.Header["Origin"]
+	if len(origin) == 0 {
+		return true
+	}
+	u, err := url.Parse(origin[0])
+	if err != nil {
+		return false
+	}
+	return u.Host == r.Host
 }
 
 // The API provides a handler for a WebSocket stream API.
