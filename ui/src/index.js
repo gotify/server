@@ -4,6 +4,7 @@ import Layout from './Layout';
 import registerServiceWorker from './registerServiceWorker';
 import {checkIfAlreadyLoggedIn} from './actions/defaultAxios';
 import config from 'react-global-configuration';
+import * as Notifications from './stores/Notifications';
 import 'typeface-roboto';
 import 'typeface-roboto-mono';
 
@@ -21,6 +22,8 @@ const defaultProdConfig = {
 };
 
 (function clientJS() {
+    Notifications.requestPermission();
+
     if (process.env.NODE_ENV === 'production') {
         config.set(window.config || defaultProdConfig);
     } else {
