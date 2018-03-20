@@ -15,13 +15,19 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int) (*G
 	if err != nil {
 		return nil, err
 	}
-	// we use the database connection inside the handlers from the http
-	// framework, therefore concurrent access occurs. Sqlite cannot handle
-	// concurrent writes, so we limit sqlite to one connection.
-	// see https://github.com/mattn/go-sqlite3/issues/274
+
+	// We normally don't need that much connections, so we limit them. F.ex. mysql complains about
+	// "too many connections", while load testing Gotify.
+	db.DB().SetMaxOpenConns(10)
+
 	if dialect == "sqlite3" {
+		// We use the database connection inside the handlers from the http
+		// framework, therefore concurrent access occurs. Sqlite cannot handle
+		// concurrent writes, so we limit sqlite to one connection.
+		// see https://github.com/mattn/go-sqlite3/issues/274
 		db.DB().SetMaxOpenConns(1)
 	}
+
 	if !db.HasTable(new(model.User)) && !db.HasTable(new(model.Message)) &&
 		!db.HasTable(new(model.Client)) && !db.HasTable(new(model.Application)) {
 		db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client))
