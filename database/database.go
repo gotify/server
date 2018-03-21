@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/gotify/server/auth"
+	"github.com/gotify/server/auth/password"
 	"github.com/gotify/server/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"    // enable the mysql dialect
@@ -31,7 +31,7 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int) (*G
 	if !db.HasTable(new(model.User)) && !db.HasTable(new(model.Message)) &&
 		!db.HasTable(new(model.Client)) && !db.HasTable(new(model.Application)) {
 		db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client))
-		db.Create(&model.User{Name: defaultUser, Pass: auth.CreatePassword(defaultPass, strength), Admin: true})
+		db.Create(&model.User{Name: defaultUser, Pass: password.CreatePassword(defaultPass, strength), Admin: true})
 	}
 
 	return &GormDatabase{DB: db}, nil

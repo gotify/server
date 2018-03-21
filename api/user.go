@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/auth"
 	"github.com/gotify/server/model"
+	"github.com/gotify/server/auth/password"
 )
 
 // The UserDatabase interface for encapsulating database access.
@@ -83,7 +84,7 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 	pw := model.UserExternalPass{}
 	if err := ctx.Bind(&pw); err == nil {
 		user := a.DB.GetUserByID(auth.GetUserID(ctx))
-		user.Pass = auth.CreatePassword(pw.Pass, a.PasswordStrength)
+		user.Pass = password.CreatePassword(pw.Pass, a.PasswordStrength)
 		a.DB.UpdateUser(user)
 	}
 }
@@ -111,7 +112,7 @@ func (a *UserAPI) toInternal(response *model.UserExternalWithPass, pw []byte) *m
 		Admin: response.Admin,
 	}
 	if response.Pass != "" {
-		user.Pass = auth.CreatePassword(response.Pass, a.PasswordStrength)
+		user.Pass = password.CreatePassword(response.Pass, a.PasswordStrength)
 	} else {
 		user.Pass = pw
 	}
