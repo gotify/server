@@ -8,7 +8,7 @@ import (
 	"github.com/gotify/server/auth"
 	"github.com/gotify/server/database"
 	"github.com/gotify/server/error"
-	"github.com/gotify/server/uigo"
+	"github.com/gotify/server/ui"
 	"github.com/jmattheis/go-packr-swagger-ui"
 
 	"net/http"
@@ -32,7 +32,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	g.Use(gin.Logger(), gin.Recovery(), error.Handler())
 	g.NoRoute(error.NotFound())
 
-	uigo.Register(g)
+	ui.Register(g)
 
 	g.GET("/swagger", docs.Serve)
 	g.GET("/docs/*any", gin.WrapH(http.StripPrefix("/docs/", http.FileServer(swaggerui.GetBox()))))
