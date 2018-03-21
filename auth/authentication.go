@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/model"
+	"github.com/gotify/server/auth/password"
 )
 
 const (
@@ -86,7 +87,7 @@ func (a *Auth) tokenFromHeader(ctx *gin.Context) string {
 
 func (a *Auth) userFromBasicAuth(ctx *gin.Context) *model.User {
 	if name, pass, ok := ctx.Request.BasicAuth(); ok {
-		if user := a.DB.GetUserByName(name); user != nil && ComparePassword(user.Pass, []byte(pass)) {
+		if user := a.DB.GetUserByName(name); user != nil && password.ComparePassword(user.Pass, []byte(pass)) {
 			return user
 		}
 	}

@@ -1,6 +1,6 @@
 // +build !race
 
-package auth
+package password
 
 import (
 	"testing"
