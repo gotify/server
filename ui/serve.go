@@ -1,4 +1,4 @@
-package uigo
+package ui
 
 import (
 	"github.com/gobuffalo/packr"
