@@ -16,7 +16,7 @@ import (
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/docs"
 	"github.com/gotify/server/model"
-	"github.com/gotify/server/stream"
+	"github.com/gotify/server/api/stream"
 	"github.com/gotify/server/mode"
 )
 
