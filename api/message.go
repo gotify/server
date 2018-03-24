@@ -66,7 +66,7 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 		} else {
 			ctx.AbortWithError(404, errors.New("application does not exists"))
 		}
-	});
+	})
 }
 
 // DeleteMessage deletes a message with an id.

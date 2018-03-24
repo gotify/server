@@ -10,12 +10,12 @@ type Error struct {
 	//
 	// required: true
 	// example: Unauthorized
-	Error            string `json:"error"`
+	Error string `json:"error"`
 	// The http error code.
 	//
 	// required: true
 	// example: 401
-	ErrorCode        int    `json:"errorCode"`
+	ErrorCode int `json:"errorCode"`
 	// The http error code.
 	//
 	// required: true

@@ -1,9 +1,10 @@
 package ui
 
 import (
-	"github.com/gobuffalo/packr"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gobuffalo/packr"
 )
 
 var box = packr.NewBox("../ui/build")
