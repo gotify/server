@@ -1,28 +1,18 @@
 package api
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/bouk/monkey"
 	"github.com/gin-gonic/gin"
-	apimock "github.com/gotify/server/api/mock"
-	"github.com/gotify/server/auth"
-	"github.com/gotify/server/model"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
+	"github.com/gotify/server/auth/password"
 	"github.com/gotify/server/mode"
-)
-
-var (
-	adminUser      = &model.User{ID: 1, Name: "jmattheis", Pass: []byte{1, 2}, Admin: true}
-	adminUserJSON  = `{"id":1,"name":"jmattheis","admin":true}`
-	normalUser     = &model.User{ID: 2, Name: "nicories", Pass: []byte{2, 3}, Admin: false}
-	normalUserJSON = `{"id":2,"name":"nicories","admin":false}`
+	"github.com/gotify/server/model"
+	"github.com/gotify/server/test"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 func TestUserSuite(t *testing.T) {
@@ -31,7 +21,7 @@ func TestUserSuite(t *testing.T) {
 
 type UserSuite struct {
 	suite.Suite
-	db       *apimock.MockUserDatabase
+	db       *test.Database
 	a        *UserAPI
 	ctx      *gin.Context
 	recorder *httptest.ResponseRecorder
@@ -41,39 +31,47 @@ func (s *UserSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
-	s.db = &apimock.MockUserDatabase{}
+	s.db = test.NewDB(s.T())
 	s.a = &UserAPI{DB: s.db}
 }
 
+func (s *UserSuite) AfterTest(suiteName, testName string) {
+	s.db.Close()
+}
+
 func (s *UserSuite) Test_GetUsers() {
-	s.db.On("GetUsers").Return([]*model.User{adminUser, normalUser})
+	first := s.db.NewUser(2)
+	second := s.db.NewUser(5)
 
 	s.a.GetUsers(s.ctx)
 
-	s.expectJSON(fmt.Sprintf("[%s, %s]", adminUserJSON, normalUserJSON))
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	test.BodyEquals(s.T(), []*model.UserExternal{externalOf(first), externalOf(second)}, s.recorder)
 }
 
 func (s *UserSuite) Test_GetCurrentUser() {
-	patch := monkey.Patch(auth.GetUserID, func(*gin.Context) uint { return 1 })
-	defer patch.Unpatch()
-	s.db.On("GetUserByID", uint(1)).Return(adminUser)
+	user := s.db.NewUser(5)
 
+	test.WithUser(s.ctx, 5)
 	s.a.GetCurrentUser(s.ctx)
 
-	s.expectJSON(adminUserJSON)
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	test.BodyEquals(s.T(), externalOf(user), s.recorder)
 }
 
 func (s *UserSuite) Test_GetUserByID() {
-	s.db.On("GetUserByID", uint(2)).Return(normalUser)
+	user := s.db.NewUser(2)
+
 	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 
 	s.a.GetUserByID(s.ctx)
 
-	s.expectJSON(normalUserJSON)
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	test.BodyEquals(s.T(), externalOf(user), s.recorder)
 }
 
 func (s *UserSuite) Test_GetUserByID_InvalidID() {
-	s.db.On("GetUserByID", uint(2)).Return(normalUser)
+	s.db.User(2)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "abc"}}
 
 	s.a.GetUserByID(s.ctx)
@@ -82,7 +80,8 @@ func (s *UserSuite) Test_GetUserByID_InvalidID() {
 }
 
 func (s *UserSuite) Test_GetUserByID_UnknownUser() {
-	s.db.On("GetUserByID", mock.Anything).Return(nil)
+	s.db.User(2)
+
 	s.ctx.Params = gin.Params{{Key: "id", Value: "3"}}
 
 	s.a.GetUserByID(s.ctx)
@@ -99,7 +98,8 @@ func (s *UserSuite) Test_DeleteUserByID_InvalidID() {
 }
 
 func (s *UserSuite) Test_DeleteUserByID_UnknownUser() {
-	s.db.On("GetUserByID", mock.Anything).Return(nil)
+	s.db.User(2)
+
 	s.ctx.Params = gin.Params{{Key: "id", Value: "3"}}
 
 	s.a.DeleteUserByID(s.ctx)
@@ -108,37 +108,29 @@ func (s *UserSuite) Test_DeleteUserByID_UnknownUser() {
 }
 
 func (s *UserSuite) Test_DeleteUserByID() {
-	s.db.On("GetUserByID", uint(2)).Return(normalUser)
-	s.db.On("DeleteUserByID", uint(2)).Return(nil)
+	s.db.User(2)
+
 	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 
 	s.a.DeleteUserByID(s.ctx)
 
-	s.db.AssertCalled(s.T(), "DeleteUserByID", uint(2))
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	s.db.AssertUserNotExist(2)
 }
 
 func (s *UserSuite) Test_CreateUser() {
-	pwByte := []byte{1, 2, 3}
-	patch := monkey.Patch(auth.CreatePassword, func(pw string, strength int) []byte {
-		if pw == "mylittlepony" {
-			return pwByte
-		}
-		return []byte{5, 67}
-	})
-	defer patch.Unpatch()
-
-	s.db.On("GetUserByName", "tom").Return(nil)
-	s.db.On("CreateUser", mock.Anything).Return(nil)
-
 	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "mylittlepony", "admin": true}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateUser(s.ctx)
 
-	s.db.AssertCalled(s.T(), "CreateUser", &model.User{Name: "tom", Pass: pwByte, Admin: true})
+	user := &model.UserExternal{ID: 1, Name: "tom", Admin: true}
+	test.BodyEquals(s.T(), user, s.recorder)
+	assert.Equal(s.T(), 200, s.recorder.Code)
 
-	s.expectJSON(`{"id":0, "name":"tom", "admin":true}`)
+	created := s.db.GetUserByName("tom")
+	assert.NotNil(s.T(), created)
+	assert.True(s.T(), password.ComparePassword(created.Pass, []byte("mylittlepony")))
 }
 
 func (s *UserSuite) Test_CreateUser_NoPassword() {
@@ -160,10 +152,7 @@ func (s *UserSuite) Test_CreateUser_NoName() {
 }
 
 func (s *UserSuite) Test_CreateUser_NameAlreadyExists() {
-	pwByte := []byte{1, 2, 3}
-	monkey.Patch(auth.CreatePassword, func(pw string, strength int) []byte { return pwByte })
-
-	s.db.On("GetUserByName", "tom").Return(&model.User{ID: 3, Name: "tom"})
+	s.db.NewUserWithName(1, "tom")
 
 	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "mylittlepony", "admin": true}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
@@ -185,8 +174,6 @@ func (s *UserSuite) Test_UpdateUserByID_InvalidID() {
 }
 
 func (s *UserSuite) Test_UpdateUserByID_UnknownUser() {
-	s.db.On("GetUserByID", uint(2)).Return(nil)
-
 	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/user/2", strings.NewReader(`{"name": "tom", "pass": "", "admin": false}`))
@@ -198,10 +185,7 @@ func (s *UserSuite) Test_UpdateUserByID_UnknownUser() {
 }
 
 func (s *UserSuite) Test_UpdateUserByID_UpdateNotPassword() {
-	s.db.On("GetUserByID", uint(2)).Return(&model.User{Name: "nico", Pass: []byte{5}, Admin: false})
-	expected := &model.User{ID: 2, Name: "tom", Pass: []byte{5}, Admin: true}
-
-	s.db.On("UpdateUser", expected).Return(nil)
+	s.db.CreateUser(&model.User{ID: 2, Name: "nico", Pass: password.CreatePassword("old", 5)})
 
 	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 
@@ -211,59 +195,59 @@ func (s *UserSuite) Test_UpdateUserByID_UpdateNotPassword() {
 	s.a.UpdateUserByID(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	s.db.AssertCalled(s.T(), "UpdateUser", expected)
+	user := s.db.GetUserByID(2)
+	assert.NotNil(s.T(), user)
+	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("old")))
 }
 
 func (s *UserSuite) Test_UpdateUserByID_UpdatePassword() {
-	pwByte := []byte{1, 2, 3}
-	patch := monkey.Patch(auth.CreatePassword, func(pw string, strength int) []byte { return pwByte })
-	defer patch.Unpatch()
-
-	s.db.On("GetUserByID", uint(2)).Return(normalUser)
-	expected := &model.User{ID: 2, Name: "tom", Pass: pwByte, Admin: true}
-
-	s.db.On("UpdateUser", expected).Return(nil)
+	s.db.CreateUser(&model.User{ID: 2, Name: "tom", Pass: password.CreatePassword("old", 5)})
 
 	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 
-	s.ctx.Request = httptest.NewRequest("POST", "/user/2", strings.NewReader(`{"name": "tom", "pass": "secret", "admin": true}`))
+	s.ctx.Request = httptest.NewRequest("POST", "/user/2", strings.NewReader(`{"name": "tom", "pass": "new", "admin": true}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.UpdateUserByID(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	s.db.AssertCalled(s.T(), "UpdateUser", expected)
+	user := s.db.GetUserByID(2)
+	assert.NotNil(s.T(), user)
+	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("new")))
 }
 
 func (s *UserSuite) Test_UpdatePassword() {
-	pwByte := []byte{1, 2, 3}
-	createPasswordPatch := monkey.Patch(auth.CreatePassword, func(pw string, strength int) []byte { return pwByte })
-	defer createPasswordPatch.Unpatch()
-	patchUser := monkey.Patch(auth.GetUserID, func(*gin.Context) uint { return 1 })
-	defer patchUser.Unpatch()
-	s.ctx.Request = httptest.NewRequest("POST", "/user/current/password", strings.NewReader(`{"pass": "secret"}`))
+	s.db.CreateUser(&model.User{ID: 1, Name: "jmattheis", Pass: password.CreatePassword("old", 5)})
+
+	test.WithUser(s.ctx, 1)
+	s.ctx.Request = httptest.NewRequest("POST", "/user/current/password", strings.NewReader(`{"pass": "new"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
-	s.db.On("GetUserByID", uint(1)).Return(&model.User{ID: 1, Name: "jmattheis", Pass: []byte{1}})
-	s.db.On("UpdateUser", mock.Anything).Return(nil)
 
 	s.a.ChangePassword(s.ctx)
 
-	s.db.AssertCalled(s.T(), "UpdateUser", &model.User{ID: 1, Name: "jmattheis", Pass: pwByte})
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	user := s.db.GetUserByID(1)
+	assert.NotNil(s.T(), user)
+	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("new")))
 }
 
 func (s *UserSuite) Test_UpdatePassword_EmptyPassword() {
-	patchUser := monkey.Patch(auth.GetUserID, func(*gin.Context) uint { return 1 })
-	defer patchUser.Unpatch()
+	s.db.CreateUser(&model.User{ID: 1, Name: "jmattheis", Pass: password.CreatePassword("old", 5)})
+
+	test.WithUser(s.ctx, 1)
 	s.ctx.Request = httptest.NewRequest("POST", "/user/current/password", strings.NewReader(`{"pass":""}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
-	s.db.On("UpdateUser", mock.Anything).Return(nil)
-
-	s.db.On("GetUserByID", uint(1)).Return(&model.User{ID: 1, Name: "jmattheis", Pass: []byte{1}})
 
 	s.a.ChangePassword(s.ctx)
 
-	s.db.AssertNotCalled(s.T(), "UpdateUser", mock.Anything)
 	assert.Equal(s.T(), 400, s.recorder.Code)
+	user := s.db.GetUserByID(1)
+	assert.NotNil(s.T(), user)
+	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("old")))
+}
+
+func externalOf(user *model.User) *model.UserExternal {
+	return &model.UserExternal{Name: user.Name, Admin: user.Admin, ID: user.ID}
 }
 
 func (s *UserSuite) expectJSON(json string) {
