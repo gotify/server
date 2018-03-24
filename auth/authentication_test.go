@@ -8,12 +8,12 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	authmock "github.com/gotify/server/auth/mock"
-	"github.com/gotify/server/model"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
+	"github.com/gotify/server/auth/password"
 	"github.com/gotify/server/mode"
+	"github.com/gotify/server/model"
+	"github.com/gotify/server/test"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 func TestSuite(t *testing.T) {
@@ -23,26 +23,33 @@ func TestSuite(t *testing.T) {
 type AuthenticationSuite struct {
 	suite.Suite
 	auth *Auth
-	DB   *authmock.MockDatabase
+	DB   *test.Database
 }
 
 func (s *AuthenticationSuite) SetupSuite() {
 	mode.Set(mode.TestDev)
-	s.DB = &authmock.MockDatabase{}
+	s.DB = test.NewDB(s.T())
 	s.auth = &Auth{s.DB}
-	s.DB.On("GetClientByToken", "clienttoken").Return(&model.Client{ID: 1, Token: "clienttoken", UserID: 1, Name: "android phone"})
-	s.DB.On("GetClientByToken", "clienttoken_admin").Return(&model.Client{ID: 2, Token: "clienttoken_admin", UserID: 2, Name: "android phone2"})
-	s.DB.On("GetClientByToken", mock.Anything).Return(nil)
-	s.DB.On("GetApplicationByToken", "apptoken").Return(&model.Application{ID: 3, Token: "apptoken", UserID: 1, Name: "backup server", Description: "irrelevant"})
-	s.DB.On("GetApplicationByToken", "apptoken_admin").Return(&model.Application{ID: 4, Token: "apptoken_admin", UserID: 2, Name: "backup server", Description: "irrelevant"})
-	s.DB.On("GetApplicationByToken", mock.Anything).Return(nil)
 
-	s.DB.On("GetUserByID", uint(1)).Return(&model.User{ID: 1, Name: "irrelevant", Admin: false})
-	s.DB.On("GetUserByID", uint(2)).Return(&model.User{ID: 2, Name: "irrelevant", Admin: true})
+	s.DB.CreateUser(&model.User{
+		Name:         "existing",
+		Pass:         password.CreatePassword("pw", 5),
+		Admin:        false,
+		Applications: []model.Application{{Token: "apptoken", Name: "backup server1", Description: "irrelevant"}},
+		Clients:      []model.Client{{Token: "clienttoken", Name: "android phone1"}},
+	})
 
-	s.DB.On("GetUserByName", "existing").Return(&model.User{Name: "existing", Pass: CreatePassword("pw", 5)})
-	s.DB.On("GetUserByName", "admin").Return(&model.User{Name: "admin", Pass: CreatePassword("pw", 5), Admin: true})
-	s.DB.On("GetUserByName", mock.Anything).Return(nil)
+	s.DB.CreateUser(&model.User{
+		Name:         "admin",
+		Pass:         password.CreatePassword("pw", 5),
+		Admin:        true,
+		Applications: []model.Application{{Token: "apptoken_admin", Name: "backup server2", Description: "irrelevant"}},
+		Clients:      []model.Client{{Token: "clienttoken_admin", Name: "android phone2"}},
+	})
+}
+
+func (s *AuthenticationSuite) TearDownSuite() {
+	s.DB.Close()
 }
 
 func (s *AuthenticationSuite) TestQueryToken() {
