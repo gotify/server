@@ -1,21 +1,21 @@
 package api
 
 import (
-	"io/ioutil"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/bouk/monkey"
 	"github.com/gin-gonic/gin"
-	apimock "github.com/gotify/server/api/mock"
-	"github.com/gotify/server/auth"
-	"github.com/gotify/server/model"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 	"github.com/gotify/server/mode"
+	"github.com/gotify/server/model"
+	"github.com/gotify/server/test"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+
+	"strings"
+
+	"github.com/bouk/monkey"
+	"github.com/gotify/server/auth"
 )
 
 func TestMessageSuite(t *testing.T) {
@@ -24,7 +24,7 @@ func TestMessageSuite(t *testing.T) {
 
 type MessageSuite struct {
 	suite.Suite
-	db       *apimock.MockMessageDatabase
+	db       *test.Database
 	a        *MessageAPI
 	ctx      *gin.Context
 	recorder *httptest.ResponseRecorder
@@ -35,49 +35,53 @@ func (s *MessageSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
-	s.db = &apimock.MockMessageDatabase{}
+	s.db = test.NewDB(s.T())
 	s.notified = false
 	s.a = &MessageAPI{DB: s.db, Notifier: s}
+}
+
+func (s *MessageSuite) AfterTest(string, string) {
+	s.db.Close()
 }
 
 func (s *MessageSuite) Notify(userID uint, msg *model.Message) {
 	s.notified = true
 }
 
-func (s *MessageSuite) Test_GetMessages() {
-	auth.RegisterAuthentication(s.ctx, nil, 5, "")
+func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
-	s.db.On("GetMessagesByUser", uint(5)).Return([]*model.Message{{ID: 1, ApplicationID: 1, Message: "OH HELLO THERE", Date: t, Title: "wup", Priority: 2}, {ID: 2, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: 4}})
 
+	actual := model.Message{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: 4}
+	test.JSONEquals(s.T(), actual, `{"id":55,"appid":2,"message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z"}`)
+}
+
+func (s *MessageSuite) Test_GetMessages() {
+	user := s.db.User(5)
+	first := user.App(1).NewMessage(1)
+	second := user.App(2).NewMessage(2)
+
+	test.WithUser(s.ctx, 5)
 	s.a.GetMessages(s.ctx)
 
-	assert.Equal(s.T(), 200, s.recorder.Code)
-	bytes, _ := ioutil.ReadAll(s.recorder.Body)
-
-	assert.JSONEq(s.T(), `[{"id":1,"appid":1,"message":"OH HELLO THERE","title":"wup","priority":2,"date":"2017-01-02T00:00:00Z"},{"id":2,"appid":2,"message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z"}]`, string(bytes))
+	test.BodyEquals(s.T(), &[]model.Message{first, second}, s.recorder)
 }
 
 func (s *MessageSuite) Test_GetMessagesWithToken() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "")
-	t, _ := time.Parse("2006/01/02", "2021/01/02")
-	s.db.On("GetMessagesByApplication", uint(1)).Return([]*model.Message{{ID: 2, ApplicationID: 1, Message: "hi", Title: "hi", Date: t, Priority: 4}})
-	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token: "irrelevant", UserID: 4})
-	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	expected := s.db.User(4).App(2).NewMessage(1)
 
+	test.WithUser(s.ctx, 4)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 	s.a.GetMessagesWithApplication(s.ctx)
 
-	assert.Equal(s.T(), 200, s.recorder.Code)
-	bytes, _ := ioutil.ReadAll(s.recorder.Body)
-	assert.JSONEq(s.T(), `[{"id":2,"appid":1,"message":"hi","title":"hi","priority":4,"date":"2021-01-02T00:00:00Z"}]`, string(bytes))
+	test.BodyEquals(s.T(), []model.Message{expected}, s.recorder)
 }
 
 func (s *MessageSuite) Test_GetMessagesWithToken_withWrongUser_expectNotFound() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "")
-	t, _ := time.Parse("2006/01/02", "2021/01/02")
-	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token: "irrelevant", UserID: 2})
-	s.db.On("GetMessagesByApplication", uint(1)).Return([]*model.Message{{ID: 2, ApplicationID: 1, Message: "hi", Title: "hi", Date: t, Priority: 4}})
-	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	s.db.User(4)
+	s.db.User(5).App(2).Message(66)
 
+	test.WithUser(s.ctx, 4)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 	s.a.GetMessagesWithApplication(s.ctx)
 
 	assert.Equal(s.T(), 404, s.recorder.Code)
@@ -92,198 +96,205 @@ func (s *MessageSuite) Test_DeleteMessage_invalidID() {
 }
 
 func (s *MessageSuite) Test_DeleteMessage_notExistingID() {
-	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-	s.db.On("GetMessageByID", uint(1)).Return(nil)
+	s.db.User(1).App(5).Message(55)
 
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 	s.a.DeleteMessage(s.ctx)
 
 	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
 func (s *MessageSuite) Test_DeleteMessage_existingIDButNotOwner() {
-	auth.RegisterAuthentication(s.ctx, nil, 6, "")
-	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-	s.db.On("GetMessageByID", uint(1)).Return(&model.Message{ID: 1, ApplicationID: 1})
-	s.db.On("GetApplicationByID", uint(1)).Return(&model.Application{ID: 1, Token: "token", UserID: 2})
+	s.db.User(1).App(10).Message(100)
+	s.db.User(2)
 
+	test.WithUser(s.ctx, 2)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "100"}}
 	s.a.DeleteMessage(s.ctx)
 
 	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
 func (s *MessageSuite) Test_DeleteMessage() {
-	auth.RegisterAuthentication(s.ctx, nil, 2, "")
-	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-	s.db.On("GetMessageByID", uint(1)).Return(&model.Message{ID: 1, ApplicationID: 5})
-	s.db.On("GetApplicationByID", uint(5)).Return(&model.Application{ID: 5, Token: "token", UserID: 2})
-	s.db.On("DeleteMessageByID", uint(1)).Return(nil)
+	s.db.User(6).App(1).Message(50)
 
+	test.WithUser(s.ctx, 6)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "50"}}
 	s.a.DeleteMessage(s.ctx)
 
-	s.db.AssertCalled(s.T(), "DeleteMessageByID", uint(1))
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	s.db.AssertMessageNotExist(50)
 }
 
-func (s *MessageSuite) Test_DeleteMessageWithToken() {
-	auth.RegisterAuthentication(s.ctx, nil, 2, "")
+func (s *MessageSuite) Test_DeleteMessageWithID() {
+	s.db.User(2).AppWithToken(5, "mytoken").Message(55)
+
+	test.WithUser(s.ctx, 2)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "5"}}
-	s.db.On("GetApplicationByID", uint(5)).Return(&model.Application{ID: 5, Token: "mytoken", UserID: 2})
-	s.db.On("DeleteMessagesByApplication", uint(5)).Return(nil)
-
 	s.a.DeleteMessageWithApplication(s.ctx)
 
-	s.db.AssertCalled(s.T(), "DeleteMessagesByApplication", uint(5))
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	s.db.AssertMessageNotExist(55)
 }
 
-func (s *MessageSuite) Test_DeleteMessageWithToken_notExistingToken() {
-	auth.RegisterAuthentication(s.ctx, nil, 2, "")
-	s.ctx.Params = gin.Params{{Key: "id", Value: "55"}}
-	s.db.On("GetApplicationByID", uint(55)).Return(nil)
-	s.db.On("DeleteMessagesByApplication", mock.Anything).Return(nil)
+func (s *MessageSuite) Test_DeleteMessageWithToken_notExistingID() {
+	s.db.User(2).AppWithToken(1, "wrong").Message(1)
 
+	test.WithUser(s.ctx, 2)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "55"}}
 	s.a.DeleteMessageWithApplication(s.ctx)
 
-	s.db.AssertNotCalled(s.T(), "DeleteMessagesByApplication", mock.Anything)
+	s.db.AssertMessageExist(1)
 	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
 func (s *MessageSuite) Test_DeleteMessageWithToken_notOwner() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "")
-	s.ctx.Params = gin.Params{{Key: "id", Value: "55"}}
-	s.db.On("GetApplicationByID", uint(55)).Return(&model.Application{ID: 55, Token: "mytoken", UserID: 2})
-	s.db.On("DeleteMessagesByApplication", uint(55)).Return(nil)
+	s.db.User(4)
+	s.db.User(2).App(55).Message(5)
 
+	test.WithUser(s.ctx, 4)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "55"}}
 	s.a.DeleteMessageWithApplication(s.ctx)
 
-	s.db.AssertNotCalled(s.T(), "DeleteMessagesByApplication", mock.Anything)
+	s.db.AssertMessageExist(5)
 	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
 func (s *MessageSuite) Test_DeleteMessages() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "")
-	s.db.On("DeleteMessagesByUser", uint(4)).Return(nil)
+	userBuilder := s.db.User(4)
+	userBuilder.App(5).Message(5).Message(6)
+	userBuilder.App(2).Message(7).Message(8)
+	s.db.User(5).App(7).Message(22)
 
+	test.WithUser(s.ctx, 4)
 	s.a.DeleteMessages(s.ctx)
 
-	s.db.AssertCalled(s.T(), "DeleteMessagesByUser", uint(4))
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	s.db.AssertMessageExist(22)
+	s.db.AssertMessageNotExist(5, 6, 7, 8)
 }
 
 func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.On("GetApplicationByToken", "app-token").Return(&model.Application{ID: 7})
-
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	patch := monkey.Patch(time.Now, func() time.Time { return t })
 	defer patch.Unpatch()
-	expected := &model.Message{ID: 0, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
+	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
+	s.db.User(4).AppWithToken(7, "app-token")
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": 1}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
-	s.db.On("CreateMessage", expected).Return(nil)
 
 	s.a.CreateMessage(s.ctx)
 
-	s.db.AssertCalled(s.T(), "CreateMessage", expected)
+	msgs := s.db.GetMessagesByApplication(7)
+	expected := &model.Message{ID: 1, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	assert.Len(s.T(), msgs, 1)
+	assert.Contains(s.T(), msgs, expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.True(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_onlyRequired() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.On("GetApplicationByToken", "app-token").Return(&model.Application{ID: 5})
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	patch := monkey.Patch(time.Now, func() time.Time { return t })
 	defer patch.Unpatch()
-	expected := &model.Message{ID: 0, ApplicationID: 5, Title: "mytitle", Message: "mymessage", Date: t}
 
+	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
+	s.db.User(4).AppWithToken(5, "app-token")
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
-	s.db.On("CreateMessage", expected).Return(nil)
 
 	s.a.CreateMessage(s.ctx)
 
-	s.db.AssertCalled(s.T(), "CreateMessage", expected)
+	msgs := s.db.GetMessagesByApplication(5)
+	expected := &model.Message{ID: 1, ApplicationID: 5, Title: "mytitle", Message: "mymessage", Date: t}
+	assert.Len(s.T(), msgs, 1)
+	assert.Contains(s.T(), msgs, expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.True(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenNoMessage() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
+	s.db.User(4).AppWithToken(1, "app-token")
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
 
-	s.db.AssertNotCalled(s.T(), "CreateMessage", mock.Anything)
+	assert.Empty(s.T(), s.db.GetMessagesByApplication(1))
 	assert.Equal(s.T(), 400, s.recorder.Code)
 	assert.False(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenNoTitle() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
+	s.db.User(4).AppWithToken(8, "app-token")
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"message": "mymessage"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
 
-	s.db.AssertNotCalled(s.T(), "CreateMessage", mock.Anything)
+	assert.Empty(s.T(), s.db.GetMessagesByApplication(8))
 	assert.Equal(s.T(), 400, s.recorder.Code)
 	assert.False(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenPriorityNotNumber() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
+	s.db.User(4).AppWithToken(8, "app-token")
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": "asd"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
 
-	s.db.AssertNotCalled(s.T(), "CreateMessage", mock.Anything)
 	assert.Equal(s.T(), 400, s.recorder.Code)
 	assert.False(s.T(), s.notified)
+	assert.Empty(s.T(), s.db.GetMessagesByApplication(1))
 }
 
 func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.On("GetApplicationByToken", "app-token").Return(&model.Application{ID: 2})
+	s.db.User(4).AppWithToken(2, "app-token")
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	patch := monkey.Patch(time.Now, func() time.Time { return t })
 	defer patch.Unpatch()
-	expected := &model.Message{ID: 0, ApplicationID: 2, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token?title=mytitle&message=mymessage&priority=1", nil)
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	s.db.On("CreateMessage", expected).Return(nil)
 
 	s.a.CreateMessage(s.ctx)
 
-	s.db.AssertCalled(s.T(), "CreateMessage", expected)
+	expected := &model.Message{ID: 1, ApplicationID: 2, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+
+	msgs := s.db.GetMessagesByApplication(2)
+	assert.Len(s.T(), msgs, 1)
+	assert.Contains(s.T(), msgs, expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.True(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.On("GetApplicationByToken", "app-token").Return(&model.Application{ID: 99})
+	s.db.User(4).AppWithToken(99, "app-token")
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	patch := monkey.Patch(time.Now, func() time.Time { return t })
 	defer patch.Unpatch()
-	expected := &model.Message{ID: 0, ApplicationID: 99, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader("title=mytitle&message=mymessage&priority=1"))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	s.db.On("CreateMessage", expected).Return(nil)
 
 	s.a.CreateMessage(s.ctx)
 
-	s.db.AssertCalled(s.T(), "CreateMessage", expected)
+	expected := &model.Message{ID: 1, ApplicationID: 99, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	msgs := s.db.GetMessagesByApplication(99)
+	assert.Len(s.T(), msgs, 1)
+	assert.Contains(s.T(), msgs, expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.True(s.T(), s.notified)
 }
