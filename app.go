@@ -8,10 +8,10 @@ import (
 
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/database"
+	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/router"
 	"github.com/gotify/server/runner"
-	"github.com/gotify/server/mode"
 )
 
 var (
@@ -27,12 +27,12 @@ var (
 
 func main() {
 	vInfo := &model.VersionInfo{Version: Version, Commit: Commit, BuildDate: BuildDate}
-	mode.Set(Mode);
+	mode.Set(Mode)
 
 	fmt.Println("Starting Gotify version", vInfo.Version+"@"+BuildDate)
 	rand.Seed(time.Now().UnixNano())
 	conf := config.Get()
-	db, err := database.New(conf.Database.Dialect, conf.Database.Connection, conf.DefaultUser.Name, conf.DefaultUser.Pass, conf.PassStrength)
+	db, err := database.New(conf.Database.Dialect, conf.Database.Connection, conf.DefaultUser.Name, conf.DefaultUser.Pass, conf.PassStrength, true)
 	if err != nil {
 		panic(err)
 	}

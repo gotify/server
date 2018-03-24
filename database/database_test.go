@@ -18,7 +18,7 @@ type DatabaseSuite struct {
 }
 
 func (s *DatabaseSuite) BeforeTest(suiteName, testName string) {
-	db, err := New("sqlite3", "testdb.db", "defaultUser", "defaultPass", 5)
+	db, err := New("sqlite3", "testdb.db", "defaultUser", "defaultPass", 5, true)
 	assert.Nil(s.T(), err)
 	s.db = db
 }
@@ -29,6 +29,6 @@ func (s *DatabaseSuite) AfterTest(suiteName, testName string) {
 }
 
 func TestInvalidDialect(t *testing.T) {
-	_, err := New("asdf", "testdb.db", "defaultUser", "defaultPass", 5)
+	_, err := New("asdf", "testdb.db", "defaultUser", "defaultPass", 5, true)
 	assert.NotNil(t, err)
 }

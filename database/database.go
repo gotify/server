@@ -10,7 +10,7 @@ import (
 )
 
 // New creates a new wrapper for the gorm database framework.
-func New(dialect, connection, defaultUser, defaultPass string, strength int) (*GormDatabase, error) {
+func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUser bool) (*GormDatabase, error) {
 	db, err := gorm.Open(dialect, connection)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,9 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int) (*G
 	if !db.HasTable(new(model.User)) && !db.HasTable(new(model.Message)) &&
 		!db.HasTable(new(model.Client)) && !db.HasTable(new(model.Application)) {
 		db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client))
-		db.Create(&model.User{Name: defaultUser, Pass: password.CreatePassword(defaultPass, strength), Admin: true})
+		if createDefaultUser {
+			db.Create(&model.User{Name: defaultUser, Pass: password.CreatePassword(defaultPass, strength), Admin: true})
+		}
 	}
 
 	return &GormDatabase{DB: db}, nil
