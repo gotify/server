@@ -1,7 +1,6 @@
 package api
 
 import (
-	"io/ioutil"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -248,11 +247,4 @@ func (s *UserSuite) Test_UpdatePassword_EmptyPassword() {
 
 func externalOf(user *model.User) *model.UserExternal {
 	return &model.UserExternal{Name: user.Name, Admin: user.Admin, ID: user.ID}
-}
-
-func (s *UserSuite) expectJSON(json string) {
-	assert.Equal(s.T(), 200, s.recorder.Code)
-	bytes, _ := ioutil.ReadAll(s.recorder.Body)
-
-	assert.JSONEq(s.T(), json, string(bytes))
 }
