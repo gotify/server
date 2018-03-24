@@ -47,7 +47,7 @@ func (d *GormDatabase) DeleteMessagesByApplication(applicationID uint) error {
 // DeleteMessagesByUser deletes all messages from a user.
 func (d *GormDatabase) DeleteMessagesByUser(userID uint) error {
 	for _, app := range d.GetApplicationsByUser(userID) {
-		d.DB.Model(app).Association("Messages").Clear()
+		d.DeleteMessagesByApplication(app.ID)
 	}
 	return nil
 }
