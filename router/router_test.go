@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin/json"
-	"github.com/gotify/server/database"
-	"github.com/gotify/server/model"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/mode"
+	"github.com/gotify/server/model"
+	"github.com/gotify/server/test"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 var (
@@ -29,7 +28,7 @@ func TestIntegrationSuite(t *testing.T) {
 
 type IntegrationSuite struct {
 	suite.Suite
-	db       *database.GormDatabase
+	db       *test.Database
 	server   *httptest.Server
 	closable func()
 }
@@ -37,9 +36,9 @@ type IntegrationSuite struct {
 func (s *IntegrationSuite) BeforeTest(string, string) {
 	mode.Set(mode.TestDev)
 	var err error
-	s.db, err = database.New("sqlite3", "itest.db", "admin", "pw", 5)
+	s.db = test.NewDBWithDefaultUser(s.T())
 	assert.Nil(s.T(), err)
-	g, closable := Create(s.db, &model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"}, &config.Configuration{PassStrength: 5})
+	g, closable := Create(s.db.GormDatabase, &model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"}, &config.Configuration{PassStrength: 5})
 	s.closable = closable
 	s.server = httptest.NewServer(g)
 }
@@ -47,7 +46,6 @@ func (s *IntegrationSuite) BeforeTest(string, string) {
 func (s *IntegrationSuite) AfterTest(string, string) {
 	s.closable()
 	s.db.Close()
-	assert.Nil(s.T(), os.Remove("itest.db"))
 	s.server.Close()
 }
 
