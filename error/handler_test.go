@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/gotify/server/mode"
 )
 
 func TestDefaultErrorInternal(t *testing.T) {

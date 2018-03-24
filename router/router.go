@@ -13,11 +13,11 @@ import (
 
 	"net/http"
 
+	"github.com/gotify/server/api/stream"
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/docs"
-	"github.com/gotify/server/model"
-	"github.com/gotify/server/api/stream"
 	"github.com/gotify/server/mode"
+	"github.com/gotify/server/model"
 )
 
 // Create creates the gin engine with all routes.

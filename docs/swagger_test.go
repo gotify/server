@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
 	"github.com/gotify/server/mode"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestServe(t *testing.T) {

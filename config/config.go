@@ -6,13 +6,13 @@ import "github.com/jinzhu/configor"
 type Configuration struct {
 	Server struct {
 		Port int `default:"80"`
-		SSL struct {
+		SSL  struct {
 			Enabled         *bool  `default:"false"`
 			RedirectToHTTPS *bool  `default:"true"`
 			Port            int    `default:"443"`
 			CertFile        string `default:""`
 			CertKey         string `default:""`
-			LetsEncrypt struct {
+			LetsEncrypt     struct {
 				Enabled   *bool  `default:"false"`
 				AcceptTOS *bool  `default:"false"`
 				Cache     string `default:"certs"`

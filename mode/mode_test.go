@@ -2,8 +2,9 @@ package mode
 
 import (
 	"testing"
-	"github.com/stretchr/testify/assert"
+
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDevMode(t *testing.T) {
@@ -12,7 +13,6 @@ func TestDevMode(t *testing.T) {
 	assert.True(t, IsDev())
 	assert.Equal(t, gin.Mode(), gin.DebugMode)
 }
-
 
 func TestTestDevMode(t *testing.T) {
 	Set(TestDev)

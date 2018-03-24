@@ -19,9 +19,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/auth"
+	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/gotify/server/mode"
 )
 
 func TestFailureOnNormalHttpRequest(t *testing.T) {

@@ -11,22 +11,22 @@ const (
 	TestDev = "testdev"
 )
 
-var mode = Dev;
+var mode = Dev
 
 // Set sets the new mode.
 func Set(newMode string) {
-	mode = newMode;
+	mode = newMode
 	updateGinMode()
 }
 
 // Get returns the current mode.
 func Get() string {
-	return mode;
+	return mode
 }
 
 // IsDev returns true if the current mode is dev mode.
 func IsDev() bool {
-	return Get() == Dev || Get() == TestDev;
+	return Get() == Dev || Get() == TestDev
 }
 
 func updateGinMode() {

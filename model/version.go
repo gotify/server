@@ -20,4 +20,3 @@ type VersionInfo struct {
 	// example: 2018-02-27T19:36:10.5045044+01:00
 	BuildDate string `json:"buildDate"`
 }
-

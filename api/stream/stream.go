@@ -4,13 +4,14 @@ import (
 	"sync"
 	"time"
 
+	"net/http"
+	"net/url"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/auth"
-	"github.com/gotify/server/model"
-	"net/http"
 	"github.com/gotify/server/mode"
-	"net/url"
+	"github.com/gotify/server/model"
 )
 
 var upgrader = websocket.Upgrader{

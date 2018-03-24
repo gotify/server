@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"github.com/gotify/server/mode"
 )
 
 func TestUtilSuite(t *testing.T) {
