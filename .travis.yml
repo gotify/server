@@ -32,9 +32,8 @@ install:
 
 script:
 # packr builds a go file for all packr "boxes", this would be f.ex. the spec.json file.
-  - (cd ui && npm run build)
+  - make build-js
   - packr
-  - ui/node_modules/.bin/eslint ui/src
   - make test
   - make check
 
