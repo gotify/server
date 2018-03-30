@@ -1053,7 +1053,8 @@
         "id",
         "token",
         "name",
-        "description"
+        "description",
+        "image"
       ],
       "properties": {
         "description": {
@@ -1069,6 +1070,13 @@
           "x-go-name": "ID",
           "readOnly": true,
           "example": 5
+        },
+        "image": {
+          "description": "The image of the application.",
+          "type": "string",
+          "x-go-name": "Image",
+          "readOnly": true,
+          "example": "https://example.com/image.jpeg"
         },
         "name": {
           "description": "The application name. This is how the application should be displayed to the user.",
