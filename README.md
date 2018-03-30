@@ -66,6 +66,7 @@ defaultuser: # on database creation, gotify creates an admin user
   name: admin # the username of the default user
   pass: admin # the password of the default user
 passstrength: 10 # the bcrypt password strength (higher = better but also slower)
+uploadedimagesdir: images # the directory for storing uploaded images
 ```
 
 ### Environment
@@ -86,6 +87,7 @@ GOTIFY_DATABASE_CONNECTION=gotify.db
 GOTIFY_DEFAULTUSER_NAME=admin
 GOTIFY_DEFAULTUSER_PASS=admin
 GOTIFY_PASSSTRENGTH=10
+GOTIFY_UPLOADEDIMAGESDIR=images
 ```
 
 ### Database

@@ -1,6 +1,11 @@
 package config
 
-import "github.com/jinzhu/configor"
+import (
+	"path/filepath"
+	"strings"
+
+	"github.com/jinzhu/configor"
+)
 
 // Configuration is stuff that can be configured externally per env variables or config file (config.yml).
 type Configuration struct {
@@ -28,12 +33,20 @@ type Configuration struct {
 		Name string `default:"admin"`
 		Pass string `default:"admin"`
 	}
-	PassStrength int `default:"10"`
+	PassStrength      int    `default:"10"`
+	UploadedImagesDir string `default:"images"`
 }
 
 // Get returns the configuration extracted from env variables or config file.
 func Get() *Configuration {
 	conf := new(Configuration)
 	configor.New(&configor.Config{ENVPrefix: "GOTIFY"}).Load(conf, "config.yml", "/etc/gotify/config.yml")
+	addTrailingSlashToPaths(conf)
 	return conf
+}
+
+func addTrailingSlashToPaths(conf *Configuration) {
+	if !strings.HasSuffix(conf.UploadedImagesDir, "/") && !strings.HasSuffix(conf.UploadedImagesDir, "\\") {
+		conf.UploadedImagesDir = conf.UploadedImagesDir + string(filepath.Separator)
+	}
 }
