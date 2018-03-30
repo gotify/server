@@ -4,7 +4,7 @@ DOCKER_DIR=./docker/
 SHELL := /bin/bash
 
 test: test-coverage test-race
-check: additional-checks check-swagger
+check: check-go check-swagger check-js
 
 require-version:
 	if [ -n ${VERSION} ] && [[ $$VERSION == "v"* ]]; then echo "The version may not start with v" && exit 1; fi
@@ -23,10 +23,13 @@ test-coverage:
 		fi \
 	done
 
-additional-checks:
+check-go:
 	go vet ./...
 	gocyclo -over 10 $(shell find . -iname '*.go' -type f | grep -v /vendor/)
 	golint -set_exit_status $(shell go list ./... | grep -v mock)
+
+check-js:
+	(cd ui && npm run lint)
 
 download-tools:
 	go get github.com/golang/lint/golint
@@ -66,4 +69,7 @@ build-docker: require-version
 	(cd ${DOCKER_DIR} && docker build -f Dockerfile.arm7 -t gotify/server-arm7:latest -t gotify/server-arm7:${VERSION} .)
 	rm ${DOCKER_DIR}gotify-app
 
-.PHONY: test-race test-coverage test additional-checks verify-swagger check download-tools update-swagger package-zip build-docker
+build-js:
+	(cd ui && npm run build)
+
+.PHONY: test-race test-coverage test check-go check-js verify-swagger check download-tools update-swagger package-zip build-docker build-js
