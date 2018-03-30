@@ -6,6 +6,8 @@ import (
 
 	"fmt"
 
+	"os"
+
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/database"
 	"github.com/gotify/server/mode"
@@ -32,6 +34,11 @@ func main() {
 	fmt.Println("Starting Gotify version", vInfo.Version+"@"+BuildDate)
 	rand.Seed(time.Now().UnixNano())
 	conf := config.Get()
+
+	if err := os.MkdirAll(conf.UploadedImagesDir, os.ModeDir); err != nil {
+		panic(err)
+	}
+
 	db, err := database.New(conf.Database.Dialect, conf.Database.Connection, conf.DefaultUser.Name, conf.DefaultUser.Pass, conf.PassStrength, true)
 	if err != nil {
 		panic(err)
