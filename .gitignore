@@ -9,3 +9,4 @@ coverage.txt
 **/*-packr.go
 config.yml
 gotify.db
+images/
