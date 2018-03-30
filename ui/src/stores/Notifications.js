@@ -29,7 +29,7 @@ dispatcher.register((data) => {
 
         const notify = new Notify(msg.title, {
             body: msg.message,
-            icon: '/static/favicon.ico',
+            icon: msg.image,
             notifyClick: closeAndFocus,
             notifyShow: closeAfterTimeout,
         });
