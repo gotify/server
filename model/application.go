@@ -28,6 +28,12 @@ type Application struct {
 	//
 	// required: true
 	// example: Backup server for the interwebs
-	Description string    `form:"description" query:"description" json:"description"`
-	Messages    []Message `json:"-"`
+	Description string `form:"description" query:"description" json:"description"`
+	// The image of the application.
+	//
+	// read only: true
+	// required: true
+	// example: https://example.com/image.jpeg
+	Image    string    `json:"image"`
+	Messages []Message `json:"-"`
 }
