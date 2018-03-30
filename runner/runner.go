@@ -18,7 +18,6 @@ func Run(engine *gin.Engine, conf *config.Configuration) {
 	var httpHandler http.Handler = engine
 
 	if *conf.Server.SSL.Enabled {
-		fmt.Println(*conf.Server.SSL.RedirectToHTTPS)
 		if *conf.Server.SSL.RedirectToHTTPS {
 			httpHandler = redirectToHTTPS(string(conf.Server.SSL.Port))
 		}
