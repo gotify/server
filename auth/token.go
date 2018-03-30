@@ -21,10 +21,19 @@ func GenerateClientToken() string {
 	return generateRandomToken(clientPrefix)
 }
 
+// GenerateImageName generates an image name.
+func GenerateImageName() string {
+	return generateRandomString(25)
+}
+
 func generateRandomToken(prefix string) string {
-	b := make([]rune, randomTokenLength)
+	return prefix + generateRandomString(randomTokenLength)
+}
+
+func generateRandomString(length int) string {
+	b := make([]rune, length)
 	for i := range b {
 		b[i] = tokenCharacters[rand.Intn(len(tokenCharacters))]
 	}
-	return prefix + string(b)
+	return string(b)
 }
