@@ -18,34 +18,47 @@ const styles = () => ({
         marginTop: -15,
         marginRight: -15,
     },
+    messageContentWrapper: {
+        width: '100%',
+    },
+    image: {
+        marginRight: 15,
+    },
+    imageWrapper: {
+        display: 'flex',
+    },
 });
 
 class Message extends Component {
     static propTypes = {
         classes: PropTypes.object.isRequired,
         title: PropTypes.string.isRequired,
+        image: PropTypes.string.isRequired,
         date: PropTypes.string.isRequired,
         content: PropTypes.string.isRequired,
         fDelete: PropTypes.func.isRequired,
     };
 
     render() {
-        const {fDelete, classes, title, date, content} = this.props;
+        const {fDelete, classes, title, date, content, image} = this.props;
 
         return (
-            <Container>
-                <div className={classes.header}>
-                    <Typography className={classes.headerTitle} variant="headline">
-                        {title}
-                    </Typography>
-                    <Typography variant="body1">
-                        <TimeAgo date={date}/>
-                    </Typography>
-                    <IconButton onClick={fDelete} className={classes.trash}><Delete/></IconButton>
+            <Container style={{display: 'flex'}}>
+                <div className={classes.imageWrapper}>
+                    <img src={image} alt="app logo" width="70" height="70" className={classes.image}/>
                 </div>
-                <Typography component="p">
-                    {content}
-                </Typography>
+                <div className={classes.messageContentWrapper}>
+                    <div className={classes.header}>
+                        <Typography className={classes.headerTitle} variant="headline">
+                            {title}
+                        </Typography>
+                        <Typography variant="body1">
+                            <TimeAgo date={date}/>
+                        </Typography>
+                        <IconButton onClick={fDelete} className={classes.trash}><Delete/></IconButton>
+                    </div>
+                    <Typography component="p">{content}</Typography>
+                </div>
             </Container>
         );
     }
