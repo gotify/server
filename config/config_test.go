@@ -4,6 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"path/filepath"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,6 +18,20 @@ func TestConfigEnv(t *testing.T) {
 	assert.Equal(t, []string{"push.example.tld", "push.other.tld"}, conf.Server.SSL.LetsEncrypt.Hosts)
 	os.Unsetenv("GOTIFY_DEFAULTUSER_NAME")
 	os.Unsetenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS")
+}
+
+func TestAddSlash(t *testing.T) {
+	os.Setenv("GOTIFY_UPLOADEDIMAGESDIR", "../data/images")
+	conf := Get()
+	assert.Equal(t, "../data/images"+string(filepath.Separator), conf.UploadedImagesDir)
+	os.Unsetenv("GOTIFY_UPLOADEDIMAGESDIR")
+}
+
+func TestNotAddSlash(t *testing.T) {
+	os.Setenv("GOTIFY_UPLOADEDIMAGESDIR", "../data/")
+	conf := Get()
+	assert.Equal(t, "../data/", conf.UploadedImagesDir)
+	os.Unsetenv("GOTIFY_UPLOADEDIMAGESDIR")
 }
 
 func TestConfigFile(t *testing.T) {
