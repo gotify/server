@@ -36,6 +36,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	ui.Register(g)
 
 	g.GET("/swagger", docs.Serve)
+	g.Static("/image", conf.UploadedImagesDir)
 	g.GET("/docs/*any", gin.WrapH(http.StripPrefix("/docs/", http.FileServer(swaggerui.GetBox()))))
 
 	g.Use(func(ctx *gin.Context) {
