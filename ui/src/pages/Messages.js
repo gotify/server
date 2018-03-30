@@ -59,7 +59,7 @@ class Messages extends Component {
                     return (
                         <Grid item xs={12} key={message.id}>
                             <Message fDelete={() => MessageAction.deleteMessage(message.id)} title={message.title}
-                                     date={message.date} content={message.message}/>
+                                     date={message.date} content={message.message} image={message.image}/>
                         </Grid>
                     );
                 })}

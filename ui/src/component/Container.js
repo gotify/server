@@ -13,12 +13,13 @@ class Container extends Component {
     static propTypes = {
         classes: PropTypes.object.isRequired,
         children: PropTypes.node,
+        style: PropTypes.object,
     };
 
     render() {
-        const {classes, children} = this.props;
+        const {classes, children, style} = this.props;
         return (
-            <Paper elevation={6} className={classes.paper}>
+            <Paper elevation={6} className={classes.paper} style={style}>
                 {children}
             </Paper>
         );
