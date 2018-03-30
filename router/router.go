@@ -13,6 +13,7 @@ import (
 
 	"net/http"
 
+	"github.com/gotify/location"
 	"github.com/gotify/server/api/stream"
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/docs"
@@ -25,11 +26,11 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	streamHandler := stream.New(200*time.Second, 15*time.Second)
 	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
-	tokenHandler := api.TokenAPI{DB: db}
+	tokenHandler := api.TokenAPI{DB: db, ImageDir: conf.UploadedImagesDir}
 	userHandler := api.UserAPI{DB: db, PasswordStrength: conf.PassStrength}
 	g := gin.New()
 
-	g.Use(gin.Logger(), gin.Recovery(), error.Handler())
+	g.Use(gin.Logger(), gin.Recovery(), error.Handler(), location.Default())
 	g.NoRoute(error.NotFound())
 
 	ui.Register(g)
@@ -167,6 +168,45 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//     schema:
 			//         $ref: "#/definitions/Error"
 			app.POST("", tokenHandler.CreateApplication)
+
+			// swagger:operation POST /application/{id}/image token uploadAppImage
+			//
+			// Upload an image for an application
+			//
+			// ---
+			// consumes:
+			// - multipart/form-data
+			// produces:
+			// - application/json
+			// security:
+			// - clientTokenHeader: []
+			// - clientTokenQuery: []
+			// - basicAuth: []
+			// parameters:
+			// - name: file
+			//   in: formData
+			//   description: the application image
+			//   required: true
+			//   type: file
+			// - name: id
+			//   in: path
+			//   description: the application id
+			//   required: true
+			//   type: integer
+			// responses:
+			//   200:
+			//     description: Ok
+			//     schema:
+			//         $ref: "#/definitions/Application"
+			//   401:
+			//     description: Unauthorized
+			//     schema:
+			//         $ref: "#/definitions/Error"
+			//   403:
+			//     description: Forbidden
+			//     schema:
+			//         $ref: "#/definitions/Error"
+			app.POST("/:id/image", tokenHandler.UploadApplicationImage)
 
 			// swagger:operation DELETE /application/{id} token deleteApp
 			//
