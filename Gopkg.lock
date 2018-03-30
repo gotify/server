@@ -68,6 +68,18 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/gotify/location"
+  packages = ["."]
+  revision = "03bc4ad20437a145024eaac6d47b82ef0979e738"
+
+[[projects]]
+  name = "github.com/h2non/filetype"
+  packages = ["."]
+  revision = "cc14fdc9ca0e4c2bafad7458f6ff79fd3947cfbb"
+  version = "v1.0.5"
+
+[[projects]]
+  branch = "master"
   name = "github.com/jinzhu/configor"
   packages = ["."]
   revision = "6ecfe629230f24c2e92c7894c6ab21b83b757a39"
@@ -135,16 +147,9 @@
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/stretchr/objx"
-  packages = ["."]
-  revision = "facf9a85c22f48d2f52f2380e4efce1768749a89"
-  version = "v0.1"
-
-[[projects]]
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
-    "mock",
     "require",
     "suite"
   ]
@@ -181,6 +186,15 @@
   version = "v8.18.2"
 
 [[projects]]
+  name = "gopkg.in/h2non/filetype.v1"
+  packages = [
+    "matchers",
+    "types"
+  ]
+  revision = "cc14fdc9ca0e4c2bafad7458f6ff79fd3947cfbb"
+  version = "v1.0.5"
+
+[[projects]]
   branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -189,6 +203,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c3c460b8861fdd2b2e1ebd3b9eafda81016511f59d0610308231f41d4111e687"
+  inputs-digest = "272b085d12075d5deae7a7eac7472448f76f798644d80b17a4c6a4d5c7a8cfe9"
   solver-name = "gps-cdcl"
   solver-version = 1

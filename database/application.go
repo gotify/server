@@ -40,3 +40,8 @@ func (d *GormDatabase) GetApplicationsByUser(userID uint) []*model.Application {
 	d.DB.Where("user_id = ?", userID).Find(&apps)
 	return apps
 }
+
+// UpdateApplication updates an application.
+func (d *GormDatabase) UpdateApplication(app *model.Application) {
+	d.DB.Save(app)
+}

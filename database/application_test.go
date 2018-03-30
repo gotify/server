@@ -29,6 +29,12 @@ func (s *DatabaseSuite) TestApplication() {
 	newApp = s.db.GetApplicationByID(app.ID)
 	assert.Equal(s.T(), app, newApp)
 
+	newApp.Image = "asdasd"
+	s.db.UpdateApplication(newApp)
+
+	newApp = s.db.GetApplicationByID(app.ID)
+	assert.Equal(s.T(), "asdasd", newApp.Image)
+
 	s.db.DeleteApplicationByID(app.ID)
 
 	apps = s.db.GetApplicationsByUser(user.ID)

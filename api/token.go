@@ -3,9 +3,15 @@ package api
 import (
 	"fmt"
 
+	"errors"
+	"net/http"
+	"path/filepath"
+
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/location"
 	"github.com/gotify/server/auth"
 	"github.com/gotify/server/model"
+	"github.com/h2non/filetype"
 )
 
 // The TokenDatabase interface for encapsulating database access.
@@ -15,6 +21,7 @@ type TokenDatabase interface {
 	GetApplicationByID(id uint) *model.Application
 	GetApplicationsByUser(userID uint) []*model.Application
 	DeleteApplicationByID(id uint) error
+	UpdateApplication(application *model.Application)
 
 	CreateClient(client *model.Client) error
 	GetClientByToken(token string) *model.Client
@@ -25,7 +32,8 @@ type TokenDatabase interface {
 
 // The TokenAPI provides handlers for managing clients and applications.
 type TokenAPI struct {
-	DB TokenDatabase
+	DB       TokenDatabase
+	ImageDir string
 }
 
 // CreateApplication creates an application and returns the access token.
@@ -35,7 +43,7 @@ func (a *TokenAPI) CreateApplication(ctx *gin.Context) {
 		app.Token = generateNotExistingToken(auth.GenerateApplicationToken, a.applicationExists)
 		app.UserID = auth.GetUserID(ctx)
 		a.DB.CreateApplication(&app)
-		ctx.JSON(200, app)
+		ctx.JSON(200, withAbsoluteURL(ctx, &app))
 	}
 }
 
@@ -54,14 +62,17 @@ func (a *TokenAPI) CreateClient(ctx *gin.Context) {
 func (a *TokenAPI) GetApplications(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	apps := a.DB.GetApplicationsByUser(userID)
+	for _, app := range apps {
+		withAbsoluteURL(ctx, app)
+	}
 	ctx.JSON(200, apps)
 }
 
 // GetClients returns all clients a user has.
 func (a *TokenAPI) GetClients(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
-	apps := a.DB.GetClientsByUser(userID)
-	ctx.JSON(200, apps)
+	clients := a.DB.GetClientsByUser(userID)
+	ctx.JSON(200, clients)
 }
 
 // DeleteApplication deletes an application by its id.
@@ -84,6 +95,55 @@ func (a *TokenAPI) DeleteClient(ctx *gin.Context) {
 			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
 		}
 	})
+}
+
+// UploadApplicationImage uploads an image for an application.
+func (a *TokenAPI) UploadApplicationImage(ctx *gin.Context) {
+	withID(ctx, "id", func(id uint) {
+		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
+			file, err := ctx.FormFile("file")
+			if err == http.ErrMissingFile {
+				ctx.AbortWithError(400, errors.New("file with key 'file' must be present"))
+				return
+			} else if err != nil {
+				ctx.AbortWithError(500, err)
+				return
+			}
+			head := make([]byte, 261)
+			open, _ := file.Open()
+			open.Read(head)
+			if !filetype.IsImage(head) {
+				ctx.AbortWithError(400, errors.New("file must be an image"))
+				return
+			}
+
+			name := auth.GenerateImageName()
+			ext := filepath.Ext(file.Filename)
+			err = ctx.SaveUploadedFile(file, a.ImageDir+name+ext)
+			if err != nil {
+				ctx.AbortWithError(500, err)
+				return
+			}
+
+			app.Image = name + ext
+			a.DB.UpdateApplication(app)
+			ctx.JSON(200, withAbsoluteURL(ctx, app))
+		} else {
+			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
+		}
+	})
+}
+
+func withAbsoluteURL(ctx *gin.Context, app *model.Application) *model.Application {
+	url := location.Get(ctx)
+
+	if app.Image == "" {
+		url.Path = "static/defaultapp.png"
+	} else {
+		url.Path = "image/" + app.Image
+	}
+	app.Image = url.String()
+	return app
 }
 
 func (a *TokenAPI) applicationExists(token string) bool {
