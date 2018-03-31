@@ -2,17 +2,11 @@ import React, {Component} from 'react';
 import Button from 'material-ui/Button';
 import Grid from 'material-ui/Grid';
 import TextField from 'material-ui/TextField';
-import Typography from 'material-ui/Typography';
 import Container from '../component/Container';
 import * as UserAction from '../actions/UserAction';
 import DefaultPage from '../component/DefaultPage';
-import PropTypes from 'prop-types';
 
 class Login extends Component {
-    static propTypes = {
-        loginFailed: PropTypes.bool.isRequired,
-    };
-
     constructor() {
         super();
         this.state = {username: '', password: ''};
@@ -28,7 +22,6 @@ class Login extends Component {
 
     render() {
         const {username, password} = this.state;
-        const {loginFailed} = this.props;
         return (
             <DefaultPage title="Login" maxWidth={250} hideButton={true}>
                 <Grid item xs={12} style={{textAlign: 'center'}}>
@@ -42,7 +35,6 @@ class Login extends Component {
                                     style={{marginTop: 15, marginBottom: 5}} onClick={this.login}>
                                 Login
                             </Button>
-                            {loginFailed && <Typography>Login Failed</Typography>}
                         </form>
                     </Container>
                 </Grid>
