@@ -35,7 +35,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	conf := config.Get()
 
-	if err := os.MkdirAll(conf.UploadedImagesDir, os.ModeDir); err != nil {
+	if err := os.MkdirAll(conf.UploadedImagesDir, 0777); err != nil {
 		panic(err)
 	}
 
