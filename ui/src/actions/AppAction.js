@@ -1,6 +1,7 @@
 import dispatcher from '../stores/dispatcher';
 import config from 'react-global-configuration';
 import axios from 'axios';
+import {snack} from './GlobalAction';
 
 /** Fetches all applications. */
 export function fetchApps() {
@@ -14,7 +15,7 @@ export function fetchApps() {
  * @param {int} id the application id
  */
 export function deleteApp(id) {
-    axios.delete(config.get('url') + 'application/' + id).then(fetchApps);
+    axios.delete(config.get('url') + 'application/' + id).then(fetchApps).then(() => snack('Application deleted'));
 }
 
 /**
@@ -23,7 +24,9 @@ export function deleteApp(id) {
  * @param {string} description the description of the application.
  */
 export function createApp(name, description) {
-    axios.post(config.get('url') + 'application', {name, description}).then(fetchApps);
+    axios.post(config.get('url') + 'application', {name, description})
+        .then(fetchApps)
+        .then(() => snack('Application created'));
 }
 
 /**
@@ -35,5 +38,6 @@ export function uploadImage(id, file) {
     const formData = new FormData();
     formData.append('file', file);
     axios.post(config.get('url') + 'application/' + id + '/image', formData,
-        {headers: {'content-type': 'multipart/form-data'}}).then(fetchApps);
+        {headers: {'content-type': 'multipart/form-data'}}).then(fetchApps)
+        .then(() => snack('Application image updated'));
 }

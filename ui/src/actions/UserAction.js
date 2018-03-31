@@ -5,6 +5,7 @@ import * as GlobalAction from './GlobalAction';
 import axios from 'axios';
 import {detect} from 'detect-browser';
 import ClientStore from '../stores/ClientStore';
+import {snack} from './GlobalAction';
 
 /**
  * Login the user.
@@ -14,14 +15,16 @@ import ClientStore from '../stores/ClientStore';
 export function login(username, password) {
     const browser = detect();
     const name = (browser && browser.name + ' ' + browser.version) || 'unknown browser';
-    axios.request(config.get('url') + 'client', {
+    axios.create().request(config.get('url') + 'client', {
         method: 'POST',
         data: {name: name},
         auth: {username: username, password: password},
     }).then(function(resp) {
+        snack(`A client named '${name}' was created for your session.`);
         setAuthorizationToken(resp.data.token);
         GlobalAction.initialLoad();
     }).catch(() => {
+        snack('Login failed');
         dispatcher.dispatch({type: 'LOGIN_FAILED'});
     });
 }
@@ -48,7 +51,7 @@ export function fetchCurrentUser() {
  * @param {string} pass
  */
 export function changeCurrentUser(pass) {
-    axios.post(config.get('url') + 'current/user/password', {pass});
+    axios.post(config.get('url') + 'current/user/password', {pass}).then(() => snack('Password changed'));
 }
 
 /** Fetches all users. */
@@ -63,9 +66,7 @@ export function fetchUsers() {
  * @param {int} id the user id
  */
 export function deleteUser(id) {
-    axios.delete(config.get('url') + 'user/' + id).then(function() {
-        fetchUsers();
-    });
+    axios.delete(config.get('url') + 'user/' + id).then(fetchUsers).then(() => snack('User deleted'));
 }
 
 /**
@@ -75,9 +76,7 @@ export function deleteUser(id) {
  * @param {bool} admin if true, the user is an administrator
  */
 export function createUser(name, pass, admin) {
-    axios.post(config.get('url') + 'user', {name, pass, admin}).then(function() {
-        fetchUsers();
-    });
+    axios.post(config.get('url') + 'user', {name, pass, admin}).then(fetchUsers).then(() => snack('User created'));
 }
 
 /**
@@ -91,5 +90,6 @@ export function updateUser(id, name, pass, admin) {
     axios.post(config.get('url') + 'user/' + id, {name, pass, admin}).then(function() {
         fetchUsers();
         fetchCurrentUser(); // just in case update current user
+        snack('User updated');
     });
 }

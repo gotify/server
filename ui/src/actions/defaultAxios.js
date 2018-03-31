@@ -1,6 +1,7 @@
 import axios from 'axios';
 import dispatcher from '../stores/dispatcher';
 import * as GlobalAction from './GlobalAction';
+import {snack} from './GlobalAction';
 
 let currentToken = null;
 const tokenKey = 'gotify-login-key';
@@ -20,8 +21,14 @@ export function setAuthorizationToken(token) {
     }
 }
 
-axios.interceptors.response.use(null, (error) => {
+axios.interceptors.response.use(undefined, (error) => {
+    if (!error.response) {
+        snack('Gotify server is not reachable, try refreshing the page.');
+        return Promise.reject(error);
+    }
+
     if (error.response.status === 401) {
+        snack('Authentication failed');
         setAuthorizationToken(null);
         dispatcher.dispatch({type: 'REMOVE_CURRENT_USER'});
     }
