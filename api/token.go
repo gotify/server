@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/location"
 	"github.com/gotify/server/auth"
@@ -80,6 +82,9 @@ func (a *TokenAPI) DeleteApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
 			a.DB.DeleteApplicationByID(id)
+			if app.Image != "" {
+				os.Remove(a.ImageDir + app.Image)
+			}
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
 		}
@@ -117,12 +122,21 @@ func (a *TokenAPI) UploadApplicationImage(ctx *gin.Context) {
 				return
 			}
 
-			name := auth.GenerateImageName()
 			ext := filepath.Ext(file.Filename)
+
+			name := auth.GenerateImageName()
+			for exist(a.ImageDir + name + ext) {
+				name = auth.GenerateImageName()
+			}
+
 			err = ctx.SaveUploadedFile(file, a.ImageDir+name+ext)
 			if err != nil {
 				ctx.AbortWithError(500, err)
 				return
+			}
+
+			if app.Image != "" {
+				os.Remove(a.ImageDir + app.Image)
 			}
 
 			app.Image = name + ext
@@ -132,6 +146,13 @@ func (a *TokenAPI) UploadApplicationImage(ctx *gin.Context) {
 			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
 		}
 	})
+}
+
+func exist(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
 
 func withAbsoluteURL(ctx *gin.Context, app *model.Application) *model.Application {

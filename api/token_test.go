@@ -15,6 +15,8 @@ import (
 	"os"
 	"reflect"
 
+	"io/ioutil"
+
 	"github.com/bouk/monkey"
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/mode"
@@ -359,7 +361,56 @@ func (s *TokenSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	_, err = os.Stat("PorrUa5b1IIK3yKo_Pp6ww_9v.png")
 	assert.Nil(s.T(), err)
-	assert.Nil(s.T(), os.Remove("PorrUa5b1IIK3yKo_Pp6ww_9v.png"))
+
+	s.a.DeleteApplication(s.ctx)
+
+	_, err = os.Stat("PorrUa5b1IIK3yKo_Pp6ww_9v.png")
+	assert.True(s.T(), os.IsNotExist(err))
+}
+
+func (s *TokenSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageAndGenerateNewName() {
+	s.db.User(5)
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: "PorrUa5b1IIK3yKo_Pp6ww_9v.png"})
+
+	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
+	assert.Nil(s.T(), err)
+	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant", &buffer)
+	s.ctx.Request.Header.Set("Content-Type", cType)
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	fakeImage(s.T(), "PorrUa5b1IIK3yKo_Pp6ww_9v.png")
+
+	s.a.UploadApplicationImage(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+
+	_, err = os.Stat("PorrUa5b1IIK3yKo_Pp6ww_9v.png")
+	assert.True(s.T(), os.IsNotExist(err))
+	_, err = os.Stat("Zal6-ySIuL-T3EMLCcFtityHn.png")
+	assert.Nil(s.T(), err)
+	assert.Nil(s.T(), os.Remove("Zal6-ySIuL-T3EMLCcFtityHn.png"))
+}
+
+func (s *TokenSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage() {
+	s.db.User(5)
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: "existing.png"})
+
+	fakeImage(s.T(), "existing.png")
+	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
+	assert.Nil(s.T(), err)
+	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant", &buffer)
+	s.ctx.Request.Header.Set("Content-Type", cType)
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	s.a.UploadApplicationImage(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+
+	_, err = os.Stat("existing.png")
+	assert.True(s.T(), os.IsNotExist(err))
+
+	os.Remove("PorrUa5b1IIK3yKo_Pp6ww_9v.png")
 }
 
 func (s *TokenSuite) Test_UploadAppImage_WithTextFile_expectBadRequest() {
@@ -443,4 +494,12 @@ func mustOpen(f string) *os.File {
 		panic(err)
 	}
 	return r
+}
+
+func fakeImage(t *testing.T, path string) {
+	data, err := ioutil.ReadFile("../test/assets/image.png")
+	assert.Nil(t, err)
+	// Write data to dst
+	err = ioutil.WriteFile(path, data, 0644)
+	assert.Nil(t, err)
 }
