@@ -16,6 +16,7 @@ import Clients from './pages/Clients';
 import Users from './pages/Users';
 import PropTypes from 'prop-types';
 import SettingsDialog from './component/SettingsDialog';
+import SnackBarHandler from './component/SnackBarHandler';
 
 const lightTheme = createMuiTheme({
     palette: {
@@ -115,6 +116,7 @@ class Layout extends Component {
                         </main>
                         {showSettings && <SettingsDialog fClose={this.hideSettings}/>}
                         <ScrollUpButton/>
+                        <SnackBarHandler/>
                     </div>
                 </HashRouter>
 
