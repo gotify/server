@@ -2,6 +2,7 @@ import dispatcher from '../stores/dispatcher';
 import config from 'react-global-configuration';
 import axios from 'axios';
 import {getToken} from './defaultAxios';
+import {snack} from './GlobalAction';
 
 /** Fetches all messages from the current user. */
 export function fetchMessages() {
@@ -12,7 +13,7 @@ export function fetchMessages() {
 
 /** Deletes all messages from the current user. */
 export function deleteMessages() {
-    axios.delete(config.get('url') + 'message').then(fetchMessages);
+    axios.delete(config.get('url') + 'message').then(fetchMessages).then(() => snack('Messages deleted'));
 }
 
 /**
@@ -20,7 +21,8 @@ export function deleteMessages() {
  * @param {int} id the application id
  */
 export function deleteMessagesByApp(id) {
-    axios.delete(config.get('url') + 'application/' + id + '/message').then(fetchMessages);
+    axios.delete(config.get('url') + 'application/' + id + '/message').then(fetchMessages)
+        .then(() => snack('Deleted all messages from the application'));
 }
 
 /**
@@ -28,7 +30,7 @@ export function deleteMessagesByApp(id) {
  * @param {int} id the message id
  */
 export function deleteMessage(id) {
-    axios.delete(config.get('url') + 'message/' + id).then(fetchMessages);
+    axios.delete(config.get('url') + 'message/' + id).then(fetchMessages).then(() => snack('Message deleted'));
 }
 
 /**
@@ -43,6 +45,7 @@ export function listenToWebSocket() {
 
     ws.onerror = (e) => {
         console.log('WebSocket connection errored; trying again in 60 seconds', e);
+        snack('Could not connect to the web socket, trying again in 60 seconds.');
         setTimeout(listenToWebSocket, 60000);
     };
 

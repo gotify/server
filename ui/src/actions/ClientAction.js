@@ -1,6 +1,7 @@
 import dispatcher from '../stores/dispatcher';
 import config from 'react-global-configuration';
 import axios from 'axios';
+import {snack} from './GlobalAction';
 
 /** Fetches all clients. */
 export function fetchClients() {
@@ -17,7 +18,7 @@ export function fetchClients() {
  * @param {int} id the client id
  */
 export function deleteClient(id) {
-    axios.delete(config.get('url') + 'client/' + id).then(fetchClients);
+    axios.delete(config.get('url') + 'client/' + id).then(fetchClients).then(() => snack('Client deleted'));
 }
 
 /**
@@ -25,5 +26,5 @@ export function deleteClient(id) {
  * @param {string} name the client name
  */
 export function createClient(name) {
-    axios.post(config.get('url') + 'client', {name}).then(fetchClients);
+    axios.post(config.get('url') + 'client', {name}).then(fetchClients).then(() => snack('Client created'));
 }
