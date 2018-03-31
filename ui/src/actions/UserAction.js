@@ -23,10 +23,7 @@ export function login(username, password) {
         snack(`A client named '${name}' was created for your session.`);
         setAuthorizationToken(resp.data.token);
         GlobalAction.initialLoad();
-    }).catch(() => {
-        snack('Login failed');
-        dispatcher.dispatch({type: 'LOGIN_FAILED'});
-    });
+    }).catch(() => snack('Login failed'));
 }
 
 /** Log the user out. */
