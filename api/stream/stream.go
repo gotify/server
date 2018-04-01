@@ -57,21 +57,30 @@ func New(pingPeriod, pongTimeout time.Duration) *API {
 	}
 }
 
-func (a *API) getClients(userID uint) ([]*client, bool) {
-	a.lock.RLock()
-	defer a.lock.RUnlock()
-	clients, ok := a.clients[userID]
-	return clients, ok
+// NotifyDeleted closes existing connections with the given token.
+func (a *API) NotifyDeleted(userID uint, token string) {
+	a.lock.Lock()
+	defer a.lock.Unlock()
+	if clients, ok := a.clients[userID]; ok {
+		for i := len(clients) - 1; i >= 0; i-- {
+			client := clients[i]
+			if client.token == token {
+				client.Close()
+				clients = append(clients[:i], clients[i+1:]...)
+			}
+		}
+		a.clients[userID] = clients
+	}
 }
 
 // Notify notifies the clients with the given userID that a new messages was created.
 func (a *API) Notify(userID uint, msg *model.Message) {
-	if clients, ok := a.getClients(userID); ok {
-		go func() {
-			for _, c := range clients {
-				c.write <- msg
-			}
-		}()
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+	if clients, ok := a.clients[userID]; ok {
+		for _, c := range clients {
+			c.write <- msg
+		}
 	}
 }
 
@@ -102,7 +111,7 @@ func (a *API) Handle(ctx *gin.Context) {
 		return
 	}
 
-	client := newClient(conn, auth.GetUserID(ctx), a.remove)
+	client := newClient(conn, auth.GetUserID(ctx), auth.GetTokenID(ctx), a.remove)
 	a.register(client)
 	go client.startReading(a.pongTimeout)
 	go client.startWriteHandler(a.pingPeriod)

@@ -55,11 +55,11 @@ func TestWriteMessageFails(t *testing.T) {
 
 	// the server may take some time to register the client
 	time.Sleep(100 * time.Millisecond)
-	client, _ := api.getClients(1)
-	assert.NotEmpty(t, client)
+	clients := clients(api, 1)
+	assert.NotEmpty(t, clients)
 
 	// try emulate an write error, mostly this should kill the ReadMessage goroutine first but you'll never know.
-	patch := monkey.PatchInstanceMethod(reflect.TypeOf(client[0].conn), "WriteJSON", func(*websocket.Conn, interface{}) error {
+	patch := monkey.PatchInstanceMethod(reflect.TypeOf(clients[0].conn), "WriteJSON", func(*websocket.Conn, interface{}) error {
 		return errors.New("could not do something")
 	})
 	defer patch.Unpatch()
@@ -83,10 +83,11 @@ func TestWritePingFails(t *testing.T) {
 
 	// the server may take some time to register the client
 	time.Sleep(100 * time.Millisecond)
-	client, _ := api.getClients(1)
-	assert.NotEmpty(t, client)
+	clients := clients(api, 1)
+
+	assert.NotEmpty(t, clients)
 	// try emulate an write error, mostly this should kill the ReadMessage gorouting first but you'll never know.
-	patch := monkey.PatchInstanceMethod(reflect.TypeOf(client[0].conn), "WriteMessage", func(*websocket.Conn, int, []byte) error {
+	patch := monkey.PatchInstanceMethod(reflect.TypeOf(clients[0].conn), "WriteMessage", func(*websocket.Conn, int, []byte) error {
 		return errors.New("could not do something")
 	})
 	defer patch.Unpatch()
@@ -146,13 +147,11 @@ func TestCloseClientOnNotReading(t *testing.T) {
 
 	// the server may take some time to register the client
 	time.Sleep(100 * time.Millisecond)
-	clients, _ := api.getClients(1)
-	assert.NotEmpty(t, clients)
+	assert.NotEmpty(t, clients(api, 1))
 
 	time.Sleep(7 * time.Second)
 
-	clients, _ = api.getClients(1)
-	assert.Empty(t, clients)
+	assert.Empty(t, clients(api, 1))
 }
 
 func TestMessageDirectlyAfterConnect(t *testing.T) {
@@ -172,6 +171,92 @@ func TestMessageDirectlyAfterConnect(t *testing.T) {
 	user.expectMessage(&model.Message{Message: "msg"})
 }
 
+func TestDeleteClientShouldCloseConnection(t *testing.T) {
+	mode.Set(mode.Prod)
+	defer leaktest.Check(t)()
+	server, api := bootTestServer(staticUserID())
+	defer server.Close()
+	defer api.Close()
+
+	wsURL := wsURL(server.URL)
+
+	user := testClient(t, wsURL)
+	defer user.conn.Close()
+	// the server may take some time to register the client
+	time.Sleep(100 * time.Millisecond)
+	api.Notify(1, &model.Message{Message: "msg"})
+	user.expectMessage(&model.Message{Message: "msg"})
+
+	api.NotifyDeleted(1, "customtoken")
+
+	api.Notify(1, &model.Message{Message: "msg"})
+	user.expectNoMessage()
+}
+
+func TestDeleteMultipleClients(t *testing.T) {
+	mode.Set(mode.TestDev)
+
+	defer leaktest.Check(t)()
+	userIDs := []uint{1, 1, 1, 1, 2, 2, 3}
+	tokens := []string{"1-1", "1-2", "1-2", "1-3", "2-1", "2-2", "3"}
+	i := 0
+	server, api := bootTestServer(func(context *gin.Context) {
+		auth.RegisterAuthentication(context, nil, userIDs[i], tokens[i])
+		i++
+	})
+	defer server.Close()
+
+	wsURL := wsURL(server.URL)
+
+	userOneIPhone := testClient(t, wsURL)
+	defer userOneIPhone.conn.Close()
+	userOneAndroid := testClient(t, wsURL)
+	defer userOneAndroid.conn.Close()
+	userOneBrowser := testClient(t, wsURL)
+	defer userOneBrowser.conn.Close()
+	userOneOther := testClient(t, wsURL)
+	defer userOneOther.conn.Close()
+	userOne := []*testingClient{userOneAndroid, userOneBrowser, userOneIPhone, userOneOther}
+
+	userTwoBrowser := testClient(t, wsURL)
+	defer userTwoBrowser.conn.Close()
+	userTwoAndroid := testClient(t, wsURL)
+	defer userTwoAndroid.conn.Close()
+	userTwo := []*testingClient{userTwoAndroid, userTwoBrowser}
+
+	userThreeAndroid := testClient(t, wsURL)
+	defer userThreeAndroid.conn.Close()
+	userThree := []*testingClient{userThreeAndroid}
+
+	// the server may take some time to register the client
+	time.Sleep(100 * time.Millisecond)
+
+	api.Notify(1, &model.Message{ID: 4, Message: "there"})
+	expectMessage(&model.Message{ID: 4, Message: "there"}, userOne...)
+	expectNoMessage(userTwo...)
+	expectNoMessage(userThree...)
+
+	api.NotifyDeleted(1, "1-2")
+
+	api.Notify(1, &model.Message{ID: 2, Message: "there"})
+	expectMessage(&model.Message{ID: 2, Message: "there"}, userOneIPhone, userOneOther)
+	expectNoMessage(userOneBrowser, userOneAndroid)
+	expectNoMessage(userThree...)
+	expectNoMessage(userTwo...)
+
+	api.Notify(2, &model.Message{ID: 2, Message: "there"})
+	expectNoMessage(userOne...)
+	expectMessage(&model.Message{ID: 2, Message: "there"}, userTwo...)
+	expectNoMessage(userThree...)
+
+	api.Notify(3, &model.Message{ID: 5, Message: "there"})
+	expectNoMessage(userOne...)
+	expectNoMessage(userTwo...)
+	expectMessage(&model.Message{ID: 5, Message: "there"}, userThree...)
+
+	api.Close()
+}
+
 func TestMultipleClients(t *testing.T) {
 	mode.Set(mode.TestDev)
 
@@ -179,7 +264,7 @@ func TestMultipleClients(t *testing.T) {
 	userIDs := []uint{1, 1, 1, 2, 2, 3}
 	i := 0
 	server, api := bootTestServer(func(context *gin.Context) {
-		auth.RegisterAuthentication(context, nil, userIDs[i], "")
+		auth.RegisterAuthentication(context, nil, userIDs[i], "t"+string(userIDs[i]))
 		i++
 	})
 	defer server.Close()
@@ -281,6 +366,13 @@ func Test_invalidOrigin_returnsFalse(t *testing.T) {
 	assert.False(t, actual)
 }
 
+func clients(api *API, user uint) []*client {
+	api.lock.RLock()
+	defer api.lock.RUnlock()
+
+	return api.clients[user]
+}
+
 func testClient(t *testing.T, url string) *testingClient {
 	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
 	assert.Nil(t, err)
@@ -357,6 +449,6 @@ func wsURL(httpURL string) string {
 
 func staticUserID() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		auth.RegisterAuthentication(context, nil, 1, "")
+		auth.RegisterAuthentication(context, nil, 1, "customtoken")
 	}
 }

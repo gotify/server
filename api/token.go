@@ -34,8 +34,9 @@ type TokenDatabase interface {
 
 // The TokenAPI provides handlers for managing clients and applications.
 type TokenAPI struct {
-	DB       TokenDatabase
-	ImageDir string
+	DB            TokenDatabase
+	ImageDir      string
+	NotifyDeleted func(uint, string)
 }
 
 // CreateApplication creates an application and returns the access token.
@@ -95,6 +96,7 @@ func (a *TokenAPI) DeleteApplication(ctx *gin.Context) {
 func (a *TokenAPI) DeleteClient(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if client := a.DB.GetClientByID(id); client != nil && client.UserID == auth.GetUserID(ctx) {
+			a.NotifyDeleted(client.UserID, client.Token)
 			a.DB.DeleteClientByID(id)
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
