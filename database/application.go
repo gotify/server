@@ -31,6 +31,7 @@ func (d *GormDatabase) CreateApplication(application *model.Application) error {
 
 // DeleteApplicationByID deletes an application by its id.
 func (d *GormDatabase) DeleteApplicationByID(id uint) error {
+	d.DeleteMessagesByApplication(id)
 	return d.DB.Where("id = ?", id).Delete(&model.Application{}).Error
 }
 

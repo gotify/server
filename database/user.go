@@ -33,6 +33,12 @@ func (d *GormDatabase) GetUsers() []*model.User {
 
 // DeleteUserByID deletes a user by its id.
 func (d *GormDatabase) DeleteUserByID(id uint) error {
+	for _, app := range d.GetApplicationsByUser(id) {
+		d.DeleteApplicationByID(app.ID)
+	}
+	for _, client := range d.GetClientsByUser(id) {
+		d.DeleteClientByID(client.ID)
+	}
 	return d.DB.Where("id = ?", id).Delete(&model.User{}).Error
 }
 
