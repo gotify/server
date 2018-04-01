@@ -45,3 +45,33 @@ func (s *DatabaseSuite) TestUser() {
 	users = s.db.GetUsers()
 	assert.Empty(s.T(), users)
 }
+
+func (s *DatabaseSuite) TestDeleteUserDeletesApplicationsAndClients() {
+	s.db.CreateUser(&model.User{Name: "nicories", ID: 10})
+	s.db.CreateApplication(&model.Application{ID: 100, Token: "apptoken", UserID: 10})
+	s.db.CreateMessage(&model.Message{ID: 1000, ApplicationID: 100})
+	s.db.CreateClient(&model.Client{ID: 10000, Token: "clienttoken", UserID: 10})
+
+	s.db.CreateUser(&model.User{Name: "nicories2", ID: 20})
+	s.db.CreateApplication(&model.Application{ID: 200, Token: "apptoken2", UserID: 20})
+	s.db.CreateMessage(&model.Message{ID: 2000, ApplicationID: 200})
+	s.db.CreateClient(&model.Client{ID: 20000, Token: "clienttoken2", UserID: 20})
+
+	s.db.DeleteUserByID(10)
+
+	assert.Nil(s.T(), s.db.GetApplicationByToken("apptoken"))
+	assert.Nil(s.T(), s.db.GetClientByToken("clienttoken"))
+	assert.Empty(s.T(), s.db.GetClientsByUser(10))
+	assert.Empty(s.T(), s.db.GetApplicationsByUser(10))
+	assert.Empty(s.T(), s.db.GetMessagesByApplication(100))
+	assert.Empty(s.T(), s.db.GetMessagesByUser(10))
+	assert.Nil(s.T(), s.db.GetMessageByID(1000))
+
+	assert.NotNil(s.T(), s.db.GetApplicationByToken("apptoken2"))
+	assert.NotNil(s.T(), s.db.GetClientByToken("clienttoken2"))
+	assert.NotEmpty(s.T(), s.db.GetClientsByUser(20))
+	assert.NotEmpty(s.T(), s.db.GetApplicationsByUser(20))
+	assert.NotEmpty(s.T(), s.db.GetMessagesByApplication(200))
+	assert.NotEmpty(s.T(), s.db.GetMessagesByUser(20))
+	assert.NotNil(s.T(), s.db.GetMessageByID(2000))
+}
