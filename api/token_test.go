@@ -43,6 +43,7 @@ type TokenSuite struct {
 	a        *TokenAPI
 	ctx      *gin.Context
 	recorder *httptest.ResponseRecorder
+	notified bool
 }
 
 func (s *TokenSuite) BeforeTest(suiteName, testName string) {
@@ -52,7 +53,12 @@ func (s *TokenSuite) BeforeTest(suiteName, testName string) {
 	s.db = test.NewDB(s.T())
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	withURL(s.ctx, "http", "example.com")
-	s.a = &TokenAPI{DB: s.db}
+	s.notified = false
+	s.a = &TokenAPI{DB: s.db, NotifyDeleted: s.notify}
+}
+
+func (s *TokenSuite) notify(uint, string) {
+	s.notified = true
 }
 
 func (s *TokenSuite) AfterTest(suiteName, testName string) {
@@ -306,10 +312,13 @@ func (s *TokenSuite) Test_DeleteClient() {
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "8"}}
 
+	assert.False(s.T(), s.notified)
+
 	s.a.DeleteClient(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	s.db.AssertClientNotExist(8)
+	assert.True(s.T(), s.notified)
 }
 
 func (s *TokenSuite) Test_UploadAppImage_NoImageProvided_expectBadRequest() {

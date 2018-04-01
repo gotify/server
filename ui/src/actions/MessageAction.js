@@ -49,7 +49,7 @@ export function listenToWebSocket() {
         setTimeout(listenToWebSocket, 60000);
     };
 
-    ws.onmessage = (data) => {
-        dispatcher.dispatch({type: 'ONE_MESSAGE', payload: JSON.parse(data.data)});
-    };
+    ws.onmessage = (data) => dispatcher.dispatch({type: 'ONE_MESSAGE', payload: JSON.parse(data.data)});
+
+    ws.onclose = (data) => console.log('WebSocket closed, this normally means the client was deleted.', data);
 }
