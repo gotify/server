@@ -10,6 +10,7 @@ class SnackBarHandler extends Component {
 
     state = {
         current: '',
+        hasNext: false,
         open: false,
         openWhen: 0,
     };
@@ -40,6 +41,7 @@ class SnackBarHandler extends Component {
                 open: true,
                 openWhen: Date.now(),
                 current: SnackBarStore.next(),
+                hasNext: SnackBarStore.hasNext(),
             });
         }
     };
@@ -47,19 +49,22 @@ class SnackBarHandler extends Component {
     closeCurrentSnack = () => this.setState({...this.state, open: false});
 
     render() {
-        const {open, current} = this.state;
+        const {open, current, hasNext} = this.state;
+        const duration = hasNext
+            ? SnackBarHandler.MIN_VISIBLE_SNACK_TIME_IN_MS
+            : SnackBarHandler.MAX_VISIBLE_SNACK_TIME_IN_MS;
 
         return (
             <Snackbar
                 anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
-                open={open} autoHideDuration={SnackBarHandler.MAX_VISIBLE_SNACK_TIME_IN_MS}
+                open={open} autoHideDuration={duration}
                 onClose={this.closeCurrentSnack} onExited={this.openNextSnack}
                 message={<span id="message-id">{current}</span>}
-                action={[
+                action={
                     <IconButton key="close" aria-label="Close" color="inherit" onClick={this.closeCurrentSnack}>
                         <Close/>
-                    </IconButton>,
-                ]}
+                    </IconButton>
+                }
             />
         );
     }
