@@ -24,6 +24,7 @@ type UserSuite struct {
 	a        *UserAPI
 	ctx      *gin.Context
 	recorder *httptest.ResponseRecorder
+	notified bool
 }
 
 func (s *UserSuite) BeforeTest(suiteName, testName string) {
@@ -31,7 +32,12 @@ func (s *UserSuite) BeforeTest(suiteName, testName string) {
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	s.db = test.NewDB(s.T())
-	s.a = &UserAPI{DB: s.db}
+	s.notified = false
+	s.a = &UserAPI{DB: s.db, NotifyDeleted: s.notify}
+}
+
+func (s *UserSuite) notify(uint) {
+	s.notified = true
 }
 
 func (s *UserSuite) AfterTest(suiteName, testName string) {
@@ -107,6 +113,8 @@ func (s *UserSuite) Test_DeleteUserByID_UnknownUser() {
 }
 
 func (s *UserSuite) Test_DeleteUserByID() {
+	assert.False(s.T(), s.notified)
+
 	s.db.User(2)
 
 	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
@@ -115,6 +123,7 @@ func (s *UserSuite) Test_DeleteUserByID() {
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	s.db.AssertUserNotExist(2)
+	assert.True(s.T(), s.notified)
 }
 
 func (s *UserSuite) Test_CreateUser() {

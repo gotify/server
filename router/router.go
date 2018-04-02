@@ -26,8 +26,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	streamHandler := stream.New(200*time.Second, 15*time.Second)
 	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
-	tokenHandler := api.TokenAPI{DB: db, ImageDir: conf.UploadedImagesDir, NotifyDeleted: streamHandler.NotifyDeleted}
-	userHandler := api.UserAPI{DB: db, PasswordStrength: conf.PassStrength}
+	tokenHandler := api.TokenAPI{DB: db, ImageDir: conf.UploadedImagesDir, NotifyDeleted: streamHandler.NotifyDeletedClient}
+	userHandler := api.UserAPI{DB: db, PasswordStrength: conf.PassStrength, NotifyDeleted: streamHandler.NotifyDeletedUser}
 	g := gin.New()
 
 	g.Use(gin.Logger(), gin.Recovery(), error.Handler(), location.Default())

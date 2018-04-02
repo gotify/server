@@ -187,7 +187,7 @@ func TestDeleteClientShouldCloseConnection(t *testing.T) {
 	api.Notify(1, &model.Message{Message: "msg"})
 	user.expectMessage(&model.Message{Message: "msg"})
 
-	api.NotifyDeleted(1, "customtoken")
+	api.NotifyDeletedClient(1, "customtoken")
 
 	api.Notify(1, &model.Message{Message: "msg"})
 	user.expectNoMessage()
@@ -236,11 +236,74 @@ func TestDeleteMultipleClients(t *testing.T) {
 	expectNoMessage(userTwo...)
 	expectNoMessage(userThree...)
 
-	api.NotifyDeleted(1, "1-2")
+	api.NotifyDeletedClient(1, "1-2")
 
 	api.Notify(1, &model.Message{ID: 2, Message: "there"})
 	expectMessage(&model.Message{ID: 2, Message: "there"}, userOneIPhone, userOneOther)
 	expectNoMessage(userOneBrowser, userOneAndroid)
+	expectNoMessage(userThree...)
+	expectNoMessage(userTwo...)
+
+	api.Notify(2, &model.Message{ID: 2, Message: "there"})
+	expectNoMessage(userOne...)
+	expectMessage(&model.Message{ID: 2, Message: "there"}, userTwo...)
+	expectNoMessage(userThree...)
+
+	api.Notify(3, &model.Message{ID: 5, Message: "there"})
+	expectNoMessage(userOne...)
+	expectNoMessage(userTwo...)
+	expectMessage(&model.Message{ID: 5, Message: "there"}, userThree...)
+
+	api.Close()
+}
+
+func TestDeleteUser(t *testing.T) {
+	mode.Set(mode.TestDev)
+
+	defer leaktest.Check(t)()
+	userIDs := []uint{1, 1, 1, 1, 2, 2, 3}
+	tokens := []string{"1-1", "1-2", "1-2", "1-3", "2-1", "2-2", "3"}
+	i := 0
+	server, api := bootTestServer(func(context *gin.Context) {
+		auth.RegisterAuthentication(context, nil, userIDs[i], tokens[i])
+		i++
+	})
+	defer server.Close()
+
+	wsURL := wsURL(server.URL)
+
+	userOneIPhone := testClient(t, wsURL)
+	defer userOneIPhone.conn.Close()
+	userOneAndroid := testClient(t, wsURL)
+	defer userOneAndroid.conn.Close()
+	userOneBrowser := testClient(t, wsURL)
+	defer userOneBrowser.conn.Close()
+	userOneOther := testClient(t, wsURL)
+	defer userOneOther.conn.Close()
+	userOne := []*testingClient{userOneAndroid, userOneBrowser, userOneIPhone, userOneOther}
+
+	userTwoBrowser := testClient(t, wsURL)
+	defer userTwoBrowser.conn.Close()
+	userTwoAndroid := testClient(t, wsURL)
+	defer userTwoAndroid.conn.Close()
+	userTwo := []*testingClient{userTwoAndroid, userTwoBrowser}
+
+	userThreeAndroid := testClient(t, wsURL)
+	defer userThreeAndroid.conn.Close()
+	userThree := []*testingClient{userThreeAndroid}
+
+	// the server may take some time to register the client
+	time.Sleep(100 * time.Millisecond)
+
+	api.Notify(1, &model.Message{ID: 4, Message: "there"})
+	expectMessage(&model.Message{ID: 4, Message: "there"}, userOne...)
+	expectNoMessage(userTwo...)
+	expectNoMessage(userThree...)
+
+	api.NotifyDeletedUser(1)
+
+	api.Notify(1, &model.Message{ID: 2, Message: "there"})
+	expectNoMessage(userOne...)
 	expectNoMessage(userThree...)
 	expectNoMessage(userTwo...)
 
