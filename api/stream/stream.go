@@ -57,8 +57,20 @@ func New(pingPeriod, pongTimeout time.Duration) *API {
 	}
 }
 
-// NotifyDeleted closes existing connections with the given token.
-func (a *API) NotifyDeleted(userID uint, token string) {
+// NotifyDeletedUser closes existing connections for the given user.
+func (a *API) NotifyDeletedUser(userID uint) {
+	a.lock.Lock()
+	defer a.lock.Unlock()
+	if clients, ok := a.clients[userID]; ok {
+		for _, client := range clients {
+			client.Close()
+		}
+		delete(a.clients, userID)
+	}
+}
+
+// NotifyDeletedClient closes existing connections with the given token.
+func (a *API) NotifyDeletedClient(userID uint, token string) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	if clients, ok := a.clients[userID]; ok {

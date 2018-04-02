@@ -23,6 +23,7 @@ type UserDatabase interface {
 type UserAPI struct {
 	DB               UserDatabase
 	PasswordStrength int
+	NotifyDeleted    func(uint)
 }
 
 // GetUsers returns all the users
@@ -72,6 +73,7 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if user := a.DB.GetUserByID(id); user != nil {
+			a.NotifyDeleted(id)
 			a.DB.DeleteUserByID(id)
 		} else {
 			ctx.AbortWithError(404, errors.New("user does not exist"))
