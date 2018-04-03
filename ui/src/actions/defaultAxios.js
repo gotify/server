@@ -24,8 +24,14 @@ axios.interceptors.response.use(undefined, (error) => {
         return Promise.reject(error);
     }
 
-    if (error.response.status === 401) {
+    const status = error.response.status;
+
+    if (status === 401) {
         tryAuthenticate().then(() => snack('Could not complete request.'));
+    }
+
+    if (status === 400) {
+        snack(error.response.data.error + ': ' + error.response.data.errorDescription);
     }
 
     return Promise.reject(error);
