@@ -38,7 +38,7 @@ export default class SettingsDialog extends Component {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={fClose}>Cancel</Button>
-                    <Tooltip title={pass.length === 0 ? '' : 'pass is required'}>
+                    <Tooltip title={pass.length !== 0 ? '' : 'pass is required'}>
                         <div>
                             <Button disabled={pass.length === 0} onClick={submitAndClose} color="primary"
                                     variant="raised">
