@@ -3,6 +3,7 @@ import config from 'react-global-configuration';
 import axios from 'axios';
 import {getToken} from './defaultAxios';
 import {snack} from './GlobalAction';
+import * as UserAction from './UserAction';
 
 /** Fetches all messages from the current user. */
 export function fetchMessages() {
@@ -51,5 +52,5 @@ export function listenToWebSocket() {
 
     ws.onmessage = (data) => dispatcher.dispatch({type: 'ONE_MESSAGE', payload: JSON.parse(data.data)});
 
-    ws.onclose = (data) => console.log('WebSocket closed, this normally means the client was deleted.', data);
+    ws.onclose = () => UserAction.tryAuthenticate().then(listenToWebSocket);
 }

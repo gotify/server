@@ -1,17 +1,14 @@
 import axios from 'axios';
-import dispatcher from '../stores/dispatcher';
-import * as GlobalAction from './GlobalAction';
 import {snack} from './GlobalAction';
+import {tryAuthenticate} from './UserAction';
 
-let currentToken = null;
 const tokenKey = 'gotify-login-key';
 
 /**
  * Set the authorization token for the next requests.
- * @param {string} token the gotify application token
+ * @param {string|null} token the gotify application token
  */
 export function setAuthorizationToken(token) {
-    currentToken = token;
     if (token) {
         localStorage.setItem(tokenKey, token);
         axios.defaults.headers.common['X-Gotify-Key'] = token;
@@ -28,9 +25,7 @@ axios.interceptors.response.use(undefined, (error) => {
     }
 
     if (error.response.status === 401) {
-        snack('Authentication failed');
-        setAuthorizationToken(null);
-        dispatcher.dispatch({type: 'REMOVE_CURRENT_USER'});
+        tryAuthenticate().then(() => snack('Could not complete request.'));
     }
 
     return Promise.reject(error);
@@ -40,14 +35,5 @@ axios.interceptors.response.use(undefined, (error) => {
  * @return {string} the application token
  */
 export function getToken() {
-    return currentToken;
-}
-
-/** Checks if the current user is logged, if so update the state. */
-export function checkIfAlreadyLoggedIn() {
-    const key = localStorage.getItem(tokenKey);
-    if (key) {
-        setAuthorizationToken(key);
-        GlobalAction.initialLoad();
-    }
+    return localStorage.getItem(tokenKey);
 }

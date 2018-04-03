@@ -4,14 +4,14 @@ import * as MessageAction from './MessageAction';
 import * as ClientAction from './ClientAction';
 import dispatcher from '../stores/dispatcher';
 
-/** Calls all actions to initialize the state. */
-export function initialLoad() {
+export function initialLoad(resp) {
     AppAction.fetchApps();
-    UserAction.fetchCurrentUser();
     MessageAction.fetchMessages();
     MessageAction.listenToWebSocket();
     ClientAction.fetchClients();
-    UserAction.fetchUsers();
+    if (resp.data.admin) {
+        UserAction.fetchUsers();
+    }
 }
 
 export function snack(message) {

@@ -2,11 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Layout from './Layout';
 import registerServiceWorker from './registerServiceWorker';
-import {checkIfAlreadyLoggedIn} from './actions/defaultAxios';
 import config from 'react-global-configuration';
 import * as Notifications from './stores/Notifications';
 import 'typeface-roboto';
 import 'typeface-roboto-mono';
+import * as UserAction from './actions/UserAction';
 
 const defaultDevConfig = {
     url: 'http://localhost:80/',
@@ -29,7 +29,7 @@ const defaultProdConfig = {
     } else {
         config.set(window.config || defaultDevConfig);
     }
-    checkIfAlreadyLoggedIn();
+    UserAction.checkIfAlreadyLoggedIn();
     ReactDOM.render(<Layout/>, document.getElementById('root'));
     registerServiceWorker();
 }());
