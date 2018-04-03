@@ -34,23 +34,32 @@ export function deleteMessage(id) {
     axios.delete(config.get('url') + 'message/' + id).then(fetchMessages).then(() => snack('Message deleted'));
 }
 
+let wsActive = false;
+
 /**
  * Starts listening to the stream for new messages.
  */
 export function listenToWebSocket() {
-    if (!getToken()) {
+    if (!getToken() || wsActive) {
         return;
     }
+    wsActive = true;
+
     const wsUrl = config.get('url').replace('http', 'ws').replace('https', 'wss');
     const ws = new WebSocket(wsUrl + 'stream?token=' + getToken());
 
     ws.onerror = (e) => {
-        console.log('WebSocket connection errored; trying again in 60 seconds', e);
-        snack('Could not connect to the web socket, trying again in 60 seconds.');
-        setTimeout(listenToWebSocket, 60000);
+        wsActive = false;
+        console.log('WebSocket connection errored', e);
     };
 
     ws.onmessage = (data) => dispatcher.dispatch({type: 'ONE_MESSAGE', payload: JSON.parse(data.data)});
 
-    ws.onclose = () => UserAction.tryAuthenticate().then(listenToWebSocket);
+    ws.onclose = () => {
+        wsActive = false;
+        UserAction.tryAuthenticate().then(() => {
+            snack('WebSocket connection closed, trying again in 30 seconds.');
+            setTimeout(listenToWebSocket, 30000);
+        });
+    };
 }
