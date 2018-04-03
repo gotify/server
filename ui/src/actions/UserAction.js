@@ -15,6 +15,7 @@ import {snack} from './GlobalAction';
 export function login(username, password) {
     const browser = detect();
     const name = (browser && browser.name + ' ' + browser.version) || 'unknown browser';
+    authenticating();
     axios.create().request(config.get('url') + 'client', {
         method: 'POST',
         data: {name: name},
@@ -22,8 +23,12 @@ export function login(username, password) {
     }).then(function(resp) {
         snack(`A client named '${name}' was created for your session.`);
         setAuthorizationToken(resp.data.token);
-        GlobalAction.initialLoad();
-    }).catch(() => snack('Login failed'));
+        tryAuthenticate().then(GlobalAction.initialLoad)
+            .catch(() => console.log('create client succeeded, but authenticated with given token failed'));
+    }).catch(() => {
+        snack('Login failed');
+        noAuthentication();
+    });
 }
 
 /** Log the user out. */
@@ -31,16 +36,41 @@ export function logout() {
     if (getToken() !== null) {
         axios.delete(config.get('url') + 'client/' + ClientStore.getIdByToken(getToken())).then(() => {
             setAuthorizationToken(null);
-            dispatcher.dispatch({type: 'REMOVE_CURRENT_USER'});
+            noAuthentication();
         });
     }
 }
 
-/** Fetches the current user. */
-export function fetchCurrentUser() {
-    axios.get(config.get('url') + 'current/user').then(function(resp) {
-        dispatcher.dispatch({type: 'SET_CURRENT_USER', payload: resp.data});
+export function tryAuthenticate() {
+    return axios.create().get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': getToken()}}).then((resp) => {
+        dispatcher.dispatch({type: 'AUTHENTICATED', payload: resp.data});
+        return resp;
+    }).catch((resp) => {
+        if (getToken()) {
+            setAuthorizationToken(null);
+            snack('Authentication failed, try to re-login. (client or user was deleted)');
+        }
+        noAuthentication();
+        return Promise.reject(resp);
     });
+}
+
+export function checkIfAlreadyLoggedIn() {
+    const token = getToken();
+    if (token) {
+        setAuthorizationToken(token);
+        tryAuthenticate().then(GlobalAction.initialLoad);
+    } else {
+        noAuthentication();
+    }
+}
+
+function noAuthentication() {
+    dispatcher.dispatch({type: 'NO_AUTHENTICATION'});
+}
+
+function authenticating() {
+    dispatcher.dispatch({type: 'AUTHENTICATING'});
 }
 
 /**
@@ -86,7 +116,7 @@ export function createUser(name, pass, admin) {
 export function updateUser(id, name, pass, admin) {
     axios.post(config.get('url') + 'user/' + id, {name, pass, admin}).then(function() {
         fetchUsers();
-        fetchCurrentUser(); // just in case update current user
+        tryAuthenticate(); // try authenticate updates the current user
         snack('User updated');
     });
 }
