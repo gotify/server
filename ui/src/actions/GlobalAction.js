@@ -6,7 +6,6 @@ import dispatcher from '../stores/dispatcher';
 
 export function initialLoad(resp) {
     AppAction.fetchApps();
-    MessageAction.fetchMessages();
     MessageAction.listenToWebSocket();
     ClientAction.fetchClients();
     if (resp.data.admin) {
