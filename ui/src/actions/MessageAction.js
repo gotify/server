@@ -5,16 +5,27 @@ import {getToken} from './defaultAxios';
 import {snack} from './GlobalAction';
 import * as UserAction from './UserAction';
 
-/** Fetches all messages from the current user. */
-export function fetchMessages() {
-    axios.get(config.get('url') + 'message').then((resp) => {
-        dispatcher.dispatch({type: 'UPDATE_MESSAGES', payload: resp.data});
-    });
+export function fetchMessagesApp(id, since) {
+    if (id === -1) {
+        return axios.get(config.get('url') + 'message?since=' + since).then((resp) => {
+            newMessages(-1, resp.data);
+        });
+    } else {
+        return axios.get(config.get('url') + 'application/' + id + '/message?since=' + since).then((resp) => {
+            newMessages(id, resp.data);
+        });
+    }
 }
 
-/** Deletes all messages from the current user. */
-export function deleteMessages() {
-    axios.delete(config.get('url') + 'message').then(fetchMessages).then(() => snack('Messages deleted'));
+function newMessages(id, data) {
+    dispatcher.dispatch({
+        type: 'UPDATE_MESSAGES', payload: {
+            messages: data.messages,
+            hasMore: 'next' in data.paging,
+            nextSince: data.paging.since,
+            id,
+        },
+    });
 }
 
 /**
@@ -22,16 +33,25 @@ export function deleteMessages() {
  * @param {int} id the application id
  */
 export function deleteMessagesByApp(id) {
-    axios.delete(config.get('url') + 'application/' + id + '/message').then(fetchMessages)
-        .then(() => snack('Deleted all messages from the application'));
+    if (id === -1) {
+        axios.delete(config.get('url') + 'message').then(() => {
+            dispatcher.dispatch({type: 'DELETE_MESSAGES', id: -1});
+            snack('Messages deleted');
+        });
+    } else {
+        axios.delete(config.get('url') + 'application/' + id + '/message')
+            .then(() => {
+                dispatcher.dispatch({type: 'DELETE_MESSAGES', id});
+                snack('Deleted all messages from the application');
+            });
+    }
 }
 
-/**
- * Deletes a message by id.
- * @param {int} id the message id
- */
-export function deleteMessage(id) {
-    axios.delete(config.get('url') + 'message/' + id).then(fetchMessages).then(() => snack('Message deleted'));
+export function deleteMessage(msg) {
+    axios.delete(config.get('url') + 'message/' + msg.id).then(() => {
+        dispatcher.dispatch({type: 'DELETE_MESSAGE', payload: msg});
+        snack('Message deleted');
+    });
 }
 
 let wsActive = false;
