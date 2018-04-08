@@ -23,14 +23,39 @@ func (d *GormDatabase) CreateMessage(message *model.Message) error {
 func (d *GormDatabase) GetMessagesByUser(userID uint) []*model.Message {
 	var messages []*model.Message
 	d.DB.Joins("JOIN applications ON applications.user_id = ?", userID).
-		Where("messages.application_id = applications.id").Order("date desc").Find(&messages)
+		Where("messages.application_id = applications.id").Order("id desc").Find(&messages)
+	return messages
+}
+
+// GetMessagesByUserSince returns limited messages from a user.
+// If since is 0 it will be ignored.
+func (d *GormDatabase) GetMessagesByUserSince(userID uint, limit int, since uint) []*model.Message {
+	var messages []*model.Message
+	db := d.DB.Joins("JOIN applications ON applications.user_id = ?", userID).
+		Where("messages.application_id = applications.id").Order("id desc").Limit(limit)
+	if since != 0 {
+		db = db.Where("messages.id < ?", since)
+	}
+	db.Find(&messages)
 	return messages
 }
 
 // GetMessagesByApplication returns all messages from an application.
 func (d *GormDatabase) GetMessagesByApplication(tokenID uint) []*model.Message {
 	var messages []*model.Message
-	d.DB.Where("application_id = ?", tokenID).Order("date desc").Find(&messages)
+	d.DB.Where("application_id = ?", tokenID).Order("id desc").Find(&messages)
+	return messages
+}
+
+// GetMessagesByApplicationSince returns limited messages from an application.
+// If since is 0 it will be ignored.
+func (d *GormDatabase) GetMessagesByApplicationSince(appID uint, limit int, since uint) []*model.Message {
+	var messages []*model.Message
+	db := d.DB.Where("application_id = ?", appID).Order("id desc").Limit(limit)
+	if since != 0 {
+		db = db.Where("messages.id < ?", since)
+	}
+	db.Find(&messages)
 	return messages
 }
 

@@ -121,6 +121,81 @@ func (s *DatabaseSuite) TestMessage() {
 	assert.Empty(s.T(), s.db.GetMessagesByUser(user.ID))
 }
 
+func (s *DatabaseSuite) TestGetMessagesSince() {
+	user := &model.User{Name: "test", Pass: []byte{1}}
+	s.db.CreateUser(user)
+
+	app := &model.Application{UserID: user.ID, Token: "A0000000000"}
+	app2 := &model.Application{UserID: user.ID, Token: "A0000000001"}
+	s.db.CreateApplication(app)
+	s.db.CreateApplication(app2)
+
+	curDate := time.Now()
+	for i := 1; i <= 500; i++ {
+		s.db.CreateMessage(&model.Message{ApplicationID: app.ID, Message: "abc", Date: curDate.Add(time.Duration(i) * time.Second)})
+		s.db.CreateMessage(&model.Message{ApplicationID: app2.ID, Message: "abc", Date: curDate.Add(time.Duration(i) * time.Second)})
+	}
+
+	actual := s.db.GetMessagesByUserSince(user.ID, 50, 0)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 1000, 951, 1)
+
+	actual = s.db.GetMessagesByUserSince(user.ID, 50, 951)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 950, 901, 1)
+
+	actual = s.db.GetMessagesByUserSince(user.ID, 100, 951)
+	assert.Len(s.T(), actual, 100)
+	hasIDInclusiveBetween(s.T(), actual, 950, 851, 1)
+
+	actual = s.db.GetMessagesByUserSince(user.ID, 100, 51)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 50, 1, 1)
+
+	actual = s.db.GetMessagesByApplicationSince(app.ID, 50, 0)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 999, 901, 2)
+
+	actual = s.db.GetMessagesByApplicationSince(app.ID, 50, 901)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 899, 801, 2)
+
+	actual = s.db.GetMessagesByApplicationSince(app.ID, 100, 666)
+	assert.Len(s.T(), actual, 100)
+	hasIDInclusiveBetween(s.T(), actual, 665, 467, 2)
+
+	actual = s.db.GetMessagesByApplicationSince(app.ID, 100, 101)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 99, 1, 2)
+
+	actual = s.db.GetMessagesByApplicationSince(app2.ID, 50, 0)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 1000, 902, 2)
+
+	actual = s.db.GetMessagesByApplicationSince(app2.ID, 50, 902)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 900, 802, 2)
+
+	actual = s.db.GetMessagesByApplicationSince(app2.ID, 100, 667)
+	assert.Len(s.T(), actual, 100)
+	hasIDInclusiveBetween(s.T(), actual, 666, 468, 2)
+
+	actual = s.db.GetMessagesByApplicationSince(app2.ID, 100, 102)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 100, 2, 2)
+}
+
+func hasIDInclusiveBetween(t *testing.T, msgs []*model.Message, from, to, decrement int) {
+	index := 0
+	for expectedID := from; expectedID >= to; expectedID -= decrement {
+		if !assert.Equal(t, uint(expectedID), msgs[index].ID) {
+			break
+		}
+		index++
+	}
+	assert.Equal(t, index, len(msgs), "not all entries inside msgs were checked")
+}
+
 // assertEquals compares messages and correctly check dates
 func assertEquals(t *testing.T, left *model.Message, right *model.Message) {
 	assert.Equal(t, left.Date.Unix(), right.Date.Unix())
