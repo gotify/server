@@ -18,7 +18,10 @@ class Login extends Component {
         this.setState(state);
     }
 
-    login = () => UserAction.login(this.state.username, this.state.password);
+    login = (e) => {
+        e.preventDefault();
+        UserAction.login(this.state.username, this.state.password);
+    };
 
     render() {
         const {username, password} = this.state;
