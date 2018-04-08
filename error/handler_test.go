@@ -49,6 +49,8 @@ func TestDefaultErrorBadRequest(t *testing.T) {
 type testValidate struct {
 	Username string `json:"username" binding:"required"`
 	Mail     string `json:"mail" binding:"email"`
+	Age      int    `json:"age" binding:"max=100"`
+	Limit    int    `json:"limit" binding:"min=50"`
 }
 
 func TestValidationError(t *testing.T) {
@@ -57,7 +59,7 @@ func TestValidationError(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(rec)
 	ctx.Request = httptest.NewRequest("GET", "/uri", nil)
 
-	assert.NotNil(t, ctx.Bind(&testValidate{}))
+	assert.NotNil(t, ctx.Bind(&testValidate{Age: 150, Limit: 20}))
 	Handler()(ctx)
 
 	err := new(model.Error)
@@ -67,6 +69,8 @@ func TestValidationError(t *testing.T) {
 	assert.Equal(t, 400, err.ErrorCode)
 	assert.Contains(t, err.ErrorDescription, "Field 'username' is required")
 	assert.Contains(t, err.ErrorDescription, "Field 'mail' is not valid")
+	assert.Contains(t, err.ErrorDescription, "Field 'age' must be less or equal to 100")
+	assert.Contains(t, err.ErrorDescription, "Field 'limit' must be more or equal to 50")
 }
 
 func assertJSONResponse(t *testing.T, rec *httptest.ResponseRecorder, code int, json string) {
