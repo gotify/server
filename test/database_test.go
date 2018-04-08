@@ -116,9 +116,9 @@ func (s *DatabaseSuite) Test_Messages() {
 	s.db.User(1).App(1).Message(1).Message(2)
 	s.db.User(2).App(2).Message(4).Message(5)
 
-	userOneExpected := []*model.Message{{ID: 1, ApplicationID: 1}, {ID: 2, ApplicationID: 1}}
+	userOneExpected := []*model.Message{{ID: 2, ApplicationID: 1}, {ID: 1, ApplicationID: 1}}
 	assert.Equal(s.T(), userOneExpected, s.db.GetMessagesByUser(1))
-	userTwoExpected := []*model.Message{{ID: 4, ApplicationID: 2}, {ID: 5, ApplicationID: 2}}
+	userTwoExpected := []*model.Message{{ID: 5, ApplicationID: 2}, {ID: 4, ApplicationID: 2}}
 	assert.Equal(s.T(), userTwoExpected, s.db.GetMessagesByUser(2))
 
 	s.db.AssertMessageExist(1)
