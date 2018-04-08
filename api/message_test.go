@@ -14,6 +14,8 @@ import (
 
 	"strings"
 
+	"net/url"
+
 	"github.com/bouk/monkey"
 	"github.com/gotify/server/auth"
 )
@@ -35,6 +37,7 @@ func (s *MessageSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
+	s.ctx.Request = httptest.NewRequest("GET", "/irrelevant", nil)
 	s.db = test.NewDB(s.T())
 	s.notified = false
 	s.a = &MessageAPI{DB: s.db, Notifier: s}
@@ -51,8 +54,12 @@ func (s *MessageSuite) Notify(userID uint, msg *model.Message) {
 func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 
-	actual := model.Message{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: 4}
-	test.JSONEquals(s.T(), actual, `{"id":55,"appid":2,"message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z"}`)
+	actual := &model.PagedMessages{
+		Paging:   model.Paging{Limit: 5, Since: 122, Size: 5, Next: "http://example.com/message?limit=5&since=122"},
+		Messages: []*model.Message{{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: 4}},
+	}
+	test.JSONEquals(s.T(), actual, `{"paging": {"limit":5, "since": 122, "size": 5, "next": "http://example.com/message?limit=5&since=122"},
+                                              "messages": [{"id":55,"appid":2,"message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z"}]}`)
 }
 
 func (s *MessageSuite) Test_GetMessages() {
@@ -63,17 +70,148 @@ func (s *MessageSuite) Test_GetMessages() {
 	test.WithUser(s.ctx, 5)
 	s.a.GetMessages(s.ctx)
 
-	test.BodyEquals(s.T(), &[]model.Message{first, second}, s.recorder)
+	expected := &model.PagedMessages{
+		Paging:   model.Paging{Limit: 100, Size: 2, Next: ""},
+		Messages: []*model.Message{&second, &first},
+	}
+
+	test.BodyEquals(s.T(), expected, s.recorder)
+}
+
+func (s *MessageSuite) Test_GetMessages_WithLimit_ReturnsNext() {
+	user := s.db.User(5)
+	app1 := user.App(1)
+	app2 := user.App(2)
+	var messages []*model.Message
+	for i := 100; i >= 1; i -= 2 {
+		one := app2.NewMessage(uint(i))
+		two := app1.NewMessage(uint(i - 1))
+		messages = append(messages, &one, &two)
+	}
+
+	s.withURL("http", "example.com", "/messages", "limit=5")
+	test.WithUser(s.ctx, 5)
+	s.a.GetMessages(s.ctx)
+
+	// Since: entries with ids from 100 - 96 will be returned (5 entries)
+	expected := &model.PagedMessages{
+		Paging:   model.Paging{Limit: 5, Size: 5, Since: 96, Next: "http://example.com/messages?limit=5&since=96"},
+		Messages: messages[:5],
+	}
+
+	test.BodyEquals(s.T(), expected, s.recorder)
+}
+
+func (s *MessageSuite) Test_GetMessages_WithLimit_WithSince_ReturnsNext() {
+	user := s.db.User(5)
+	app1 := user.App(1)
+	app2 := user.App(2)
+	var messages []*model.Message
+	for i := 100; i >= 1; i -= 2 {
+		one := app2.NewMessage(uint(i))
+		two := app1.NewMessage(uint(i - 1))
+		messages = append(messages, &one, &two)
+	}
+
+	s.withURL("http", "example.com", "/messages", "limit=13&since=55")
+	test.WithUser(s.ctx, 5)
+	s.a.GetMessages(s.ctx)
+
+	// Since: entries with ids from 54 - 42 will be returned (13 entries)
+	expected := &model.PagedMessages{
+		Paging:   model.Paging{Limit: 13, Size: 13, Since: 42, Next: "http://example.com/messages?limit=13&since=42"},
+		Messages: messages[46 : 46+13],
+	}
+	test.BodyEquals(s.T(), expected, s.recorder)
+}
+
+func (s *MessageSuite) Test_GetMessages_BadRequestOnInvalidLimit() {
+	s.db.User(5)
+	test.WithUser(s.ctx, 5)
+	s.withURL("http", "example.com", "/messages", "limit=555")
+	s.a.GetMessages(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
+func (s *MessageSuite) Test_GetMessages_BadRequestOnInvalidLimit_Negative() {
+	s.db.User(5)
+	test.WithUser(s.ctx, 5)
+	s.withURL("http", "example.com", "/messages", "limit=-5")
+	s.a.GetMessages(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
+func (s *MessageSuite) Test_GetMessagesWithToken_InvalidLimit_BadRequest() {
+	s.db.User(4).App(2).NewMessage(1)
+
+	test.WithUser(s.ctx, 4)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+	s.withURL("http", "example.com", "/messages", "limit=555")
+	s.a.GetMessagesWithApplication(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
 func (s *MessageSuite) Test_GetMessagesWithToken() {
-	expected := s.db.User(4).App(2).NewMessage(1)
+	msg := s.db.User(4).App(2).NewMessage(1)
 
 	test.WithUser(s.ctx, 4)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 	s.a.GetMessagesWithApplication(s.ctx)
 
-	test.BodyEquals(s.T(), []model.Message{expected}, s.recorder)
+	expected := &model.PagedMessages{
+		Paging:   model.Paging{Limit: 100, Size: 1, Next: ""},
+		Messages: []*model.Message{&msg},
+	}
+
+	test.BodyEquals(s.T(), expected, s.recorder)
+}
+
+func (s *MessageSuite) Test_GetMessagesWithToken_WithLimit_ReturnsNext() {
+	user := s.db.User(5)
+	app1 := user.App(2)
+	var messages []*model.Message
+	for i := 100; i >= 1; i-- {
+		msg := app1.NewMessage(uint(i))
+		messages = append(messages, &msg)
+	}
+
+	s.withURL("http", "example.com", "/app/2/message", "limit=9")
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+	s.a.GetMessagesWithApplication(s.ctx)
+
+	// Since: entries with ids from 100 - 92 will be returned (9 entries)
+	expected := &model.PagedMessages{
+		Paging:   model.Paging{Limit: 9, Size: 9, Since: 92, Next: "http://example.com/app/2/message?limit=9&since=92"},
+		Messages: messages[:9],
+	}
+
+	test.BodyEquals(s.T(), expected, s.recorder)
+}
+
+func (s *MessageSuite) Test_GetMessagesWithToken_WithLimit_WithSince_ReturnsNext() {
+	user := s.db.User(5)
+	app1 := user.App(2)
+	var messages []*model.Message
+	for i := 100; i >= 1; i-- {
+		msg := app1.NewMessage(uint(i))
+		messages = append(messages, &msg)
+	}
+
+	s.withURL("http", "example.com", "/app/2/message", "limit=13&since=55")
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+	s.a.GetMessagesWithApplication(s.ctx)
+
+	// Since: entries with ids from 54 - 42 will be returned (13 entries)
+	expected := &model.PagedMessages{
+		Paging:   model.Paging{Limit: 13, Size: 13, Since: 42, Next: "http://example.com/app/2/message?limit=13&since=42"},
+		Messages: messages[46 : 46+13],
+	}
+	test.BodyEquals(s.T(), expected, s.recorder)
 }
 
 func (s *MessageSuite) Test_GetMessagesWithToken_withWrongUser_expectNotFound() {
@@ -297,4 +435,9 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	assert.Contains(s.T(), msgs, expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.True(s.T(), s.notified)
+}
+
+func (s *MessageSuite) withURL(scheme, host, path, query string) {
+	s.ctx.Request.URL = &url.URL{Path: path, RawQuery: query}
+	s.ctx.Set("location", &url.URL{Scheme: scheme, Host: host})
 }
