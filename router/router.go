@@ -260,13 +260,27 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 				//   description: the application id
 				//   required: true
 				//   type: integer
+				// - name: limit
+				//   in: query
+				//   description: the maximal amount of messages to return
+				//   required: false
+				//   maximum: 200
+				//   minimum: 1
+				//   default: 100
+				//   type: integer
+				// - name: since
+				//   in: query
+				//   description: return all messages with an ID less than this value
+				//   minimum: 0
+				//   required: false
+				//   type: integer
 				// responses:
 				//   200:
 				//     description: Ok
 				//     schema:
 				//       type: array
 				//       items:
-				//         $ref: "#/definitions/Message"
+				//         $ref: "#/definitions/PagedMessages"
 				//   401:
 				//     description: Unauthorized
 				//     schema:
@@ -422,13 +436,28 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			// - clientTokenHeader: []
 			// - clientTokenQuery: []
 			// - basicAuth: []
+			// parameters:
+			// - name: limit
+			//   in: query
+			//   description: the maximal amount of messages to return
+			//   required: false
+			//   maximum: 200
+			//   minimum: 1
+			//   default: 100
+			//   type: integer
+			// - name: since
+			//   in: query
+			//   description: return all messages with an ID less than this value
+			//   minimum: 0
+			//   required: false
+			//   type: integer
 			// responses:
 			//   200:
 			//     description: Ok
 			//     schema:
 			//       type: array
 			//       items:
-			//         $ref: "#/definitions/Message"
+			//         $ref: "#/definitions/PagedMessages"
 			//   401:
 			//     description: Unauthorized
 			//     schema:

@@ -17,7 +17,7 @@
       "name": "MIT",
       "url": "https://github.com/gotify/server/blob/master/LICENSE"
     },
-    "version": "1.0.3"
+    "version": "1.0.4"
   },
   "host": "localhost",
   "paths": {
@@ -267,6 +267,22 @@
             "name": "id",
             "in": "path",
             "required": true
+          },
+          {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "default": 100,
+            "description": "the maximal amount of messages to return",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "minimum": 0,
+            "type": "integer",
+            "description": "return all messages with an ID less than this value",
+            "name": "since",
+            "in": "query"
           }
         ],
         "responses": {
@@ -275,7 +291,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/Message"
+                "$ref": "#/definitions/PagedMessages"
               }
             }
           },
@@ -615,13 +631,31 @@
         ],
         "summary": "Return all messages.",
         "operationId": "getMessages",
+        "parameters": [
+          {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "default": 100,
+            "description": "the maximal amount of messages to return",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "minimum": 0,
+            "type": "integer",
+            "description": "return all messages with an ID less than this value",
+            "name": "since",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Ok",
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/Message"
+                "$ref": "#/definitions/PagedMessages"
               }
             }
           },
@@ -1276,6 +1310,77 @@
           "type": "string",
           "x-go-name": "Title",
           "example": "Backup"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/model"
+    },
+    "PagedMessages": {
+      "description": "Wrapper for the paging and the messages",
+      "type": "object",
+      "title": "PagedMessages Model",
+      "required": [
+        "paging",
+        "messages"
+      ],
+      "properties": {
+        "messages": {
+          "description": "The messages.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Message"
+          },
+          "x-go-name": "Messages",
+          "readOnly": true
+        },
+        "paging": {
+          "$ref": "#/definitions/Paging"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/model"
+    },
+    "Paging": {
+      "description": "The Paging holds holds information about the limit and making requests to the next page.",
+      "type": "object",
+      "title": "Paging Model",
+      "required": [
+        "size",
+        "since",
+        "limit"
+      ],
+      "properties": {
+        "limit": {
+          "description": "The limit of the messages for the current request.",
+          "type": "integer",
+          "format": "int64",
+          "maximum": 200,
+          "minimum": 1,
+          "x-go-name": "Limit",
+          "readOnly": true,
+          "example": 123
+        },
+        "next": {
+          "description": "The request url for the next page. Empty/Null when no next page is available.",
+          "type": "string",
+          "x-go-name": "Next",
+          "readOnly": true,
+          "example": "http://example.com/message?limit=50\u0026since=123456"
+        },
+        "since": {
+          "description": "The ID of the last message returned in the current request. Use this as alternative to the next link.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0,
+          "x-go-name": "Since",
+          "readOnly": true,
+          "example": 5
+        },
+        "size": {
+          "description": "The amount of messages that got returned in the current request.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Size",
+          "readOnly": true,
+          "example": 5
         }
       },
       "x-go-package": "github.com/gotify/server/model"

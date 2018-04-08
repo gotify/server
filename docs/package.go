@@ -16,7 +16,7 @@
 //
 //     Schemes: http, https
 //     Host: localhost
-//     Version: 1.0.3
+//     Version: 1.0.4
 //     License: MIT https://github.com/gotify/server/blob/master/LICENSE
 //
 //     Consumes:
