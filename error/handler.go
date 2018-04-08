@@ -49,6 +49,10 @@ func validationErrorToText(e *validator.FieldError) string {
 	switch e.Tag {
 	case "required":
 		return fmt.Sprintf("Field '%s' is required", fieldName)
+	case "max":
+		return fmt.Sprintf("Field '%s' must be less or equal to %s", fieldName, e.Param)
+	case "min":
+		return fmt.Sprintf("Field '%s' must be more or equal to %s", fieldName, e.Param)
 	}
 	return fmt.Sprintf("Field '%s' is not valid", fieldName)
 }
