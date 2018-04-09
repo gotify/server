@@ -58,6 +58,15 @@ class MessageStore extends EventEmitter {
                 }
             });
             this.emit('change');
+        } else if (data.type === 'DELETE_MESSAGES') {
+            const id = data.payload;
+            if (id === -1) {
+                this.appToMessages = {};
+            } else {
+                delete this.appToMessages[-1];
+                delete this.appToMessages[id];
+            }
+            this.emit('change');
         }
     }
 
