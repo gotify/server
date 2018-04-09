@@ -82,7 +82,8 @@ class Messages extends Component {
                 {hasMessages
                     ? (
                         <div style={{width: '100%'}}>
-                            <ReactList ref={(el) => this.list = el}
+                            <ReactList key={appId}
+                                       ref={(el) => this.list = el}
                                        itemRenderer={this.renderMessage}
                                        length={messages.length}
                                        threshold={1000}
