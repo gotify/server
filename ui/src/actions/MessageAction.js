@@ -35,13 +35,13 @@ function newMessages(id, data) {
 export function deleteMessagesByApp(id) {
     if (id === -1) {
         axios.delete(config.get('url') + 'message').then(() => {
-            dispatcher.dispatch({type: 'DELETE_MESSAGES', id: -1});
+            dispatcher.dispatch({type: 'DELETE_MESSAGES', payload: -1});
             snack('Messages deleted');
         });
     } else {
         axios.delete(config.get('url') + 'application/' + id + '/message')
             .then(() => {
-                dispatcher.dispatch({type: 'DELETE_MESSAGES', id});
+                dispatcher.dispatch({type: 'DELETE_MESSAGES', payload: id});
                 snack('Deleted all messages from the application');
             });
     }
