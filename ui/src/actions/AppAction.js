@@ -15,7 +15,10 @@ export function fetchApps() {
  * @param {int} id the application id
  */
 export function deleteApp(id) {
-    axios.delete(config.get('url') + 'application/' + id).then(fetchApps).then(() => snack('Application deleted'));
+    axios.delete(config.get('url') + 'application/' + id).then(() => {
+        fetchApps();
+        dispatcher.dispatch({type: 'DELETE_MESSAGES', payload: id});
+    }).then(() => snack('Application deleted'));
 }
 
 /**
