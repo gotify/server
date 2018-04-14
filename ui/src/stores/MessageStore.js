@@ -10,7 +10,10 @@ class MessageStore extends EventEmitter {
         this.reset = false;
         this.resetOnAll = false;
         this.loading = false;
-        AppStore.on('change', this.updateApps);
+        AppStore.on('change', () => {
+            this.updateApps();
+            this.emit('change');
+        });
     }
 
     shouldReset(appId) {
