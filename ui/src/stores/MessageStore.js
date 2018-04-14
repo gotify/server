@@ -7,8 +7,19 @@ class MessageStore extends EventEmitter {
     constructor() {
         super();
         this.appToMessages = {};
+        this.reset = false;
+        this.resetOnAll = false;
         this.loading = false;
         AppStore.on('change', this.updateApps);
+    }
+
+    shouldReset(appId) {
+        let reset = appId === -1 ? this.resetOnAll : this.reset;
+        if (reset !== false) {
+            this.reset = false;
+            this.resetOnAll = false;
+        }
+        return reset;
     }
 
     loadNext(id) {
@@ -32,8 +43,8 @@ class MessageStore extends EventEmitter {
     }
 
     handle(data) {
+        const {payload} = data;
         if (data.type === 'UPDATE_MESSAGES') {
-            const payload = data.payload;
             if (this.exists(payload.id)) {
                 payload.messages = this.get(payload.id).messages.concat(payload.messages);
             }
@@ -42,32 +53,40 @@ class MessageStore extends EventEmitter {
             this.loading = false;
             this.emit('change');
         } else if (data.type === 'ONE_MESSAGE') {
-            const {payload} = data;
             this.createIfNotExist(payload.appid);
             this.createIfNotExist(-1);
             this.appToMessages[payload.appid].messages.unshift(payload);
             this.appToMessages[-1].messages.unshift(payload);
+            this.reset = 0;
+            this.resetOnAll = 0;
             this.updateApps();
             this.emit('change');
         } else if (data.type === 'DELETE_MESSAGE') {
-            Object.keys(this.appToMessages).forEach((key) => {
-                const appMessages = this.appToMessages[key];
-                const index = appMessages.messages.indexOf(data.payload);
-                if (index !== -1) {
-                    appMessages.messages.splice(index, 1);
-                }
-            });
+            this.resetOnAll = this.removeFromList(this.appToMessages[-1], payload);
+            this.reset = this.removeFromList(this.appToMessages[payload.appid], payload);
             this.emit('change');
         } else if (data.type === 'DELETE_MESSAGES') {
-            const id = data.payload;
+            const id = payload;
             if (id === -1) {
                 this.appToMessages = {};
             } else {
                 delete this.appToMessages[-1];
                 delete this.appToMessages[id];
             }
+            this.reset = 0;
             this.emit('change');
         }
+    }
+
+    removeFromList(messages, messageToDelete) {
+        if (messages) {
+            const index = messages.messages.findIndex((message) => message.id === messageToDelete.id);
+            if (index !== -1) {
+                messages.messages.splice(index, 1);
+                return index;
+            }
+        }
+        return false;
     }
 
     updateApps = () => {

@@ -6,7 +6,7 @@ import MessageStore from '../stores/MessageStore';
 import AppStore from '../stores/AppStore';
 import * as MessageAction from '../actions/MessageAction';
 import DefaultPage from '../component/DefaultPage';
-import ReactList from 'react-list';
+import ReactList from '../component/FixedReactList';
 import {CircularProgress} from 'material-ui/Progress';
 
 class Messages extends Component {
@@ -29,6 +29,12 @@ class Messages extends Component {
 
     updateAllWithProps = (props) => {
         const appId = Messages.appId(props);
+
+        const reset = MessageStore.shouldReset(appId);
+        if (reset !== false && this.list) {
+            this.list.clearCacheFromIndex(reset);
+        }
+
         this.setState({...MessageStore.get(appId), appId, name: AppStore.getName(appId)});
         if (!MessageStore.exists(appId)) {
             MessageStore.loadNext(appId);
