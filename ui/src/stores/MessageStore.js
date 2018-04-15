@@ -56,12 +56,14 @@ class MessageStore extends EventEmitter {
             this.loading = false;
             this.emit('change');
         } else if (data.type === 'ONE_MESSAGE') {
-            this.createIfNotExist(payload.appid);
-            this.createIfNotExist(-1);
-            this.appToMessages[payload.appid].messages.unshift(payload);
-            this.appToMessages[-1].messages.unshift(payload);
-            this.reset = 0;
-            this.resetOnAll = 0;
+            if (this.exists(payload.appid)) {
+                this.appToMessages[payload.appid].messages.unshift(payload);
+                this.reset = 0;
+            }
+            if (this.exists(-1)) {
+                this.appToMessages[-1].messages.unshift(payload);
+                this.resetOnAll = 0;
+            }
             this.updateApps();
             this.emit('change');
         } else if (data.type === 'DELETE_MESSAGE') {
@@ -100,12 +102,6 @@ class MessageStore extends EventEmitter {
             appMessages.messages.forEach((message) => message.image = appToUrl[message.appid]);
         });
     };
-
-    createIfNotExist(id) {
-        if (!(id in this.appToMessages)) {
-            this.appToMessages[id] = this.get(id);
-        }
-    }
 }
 
 const store = new MessageStore();
