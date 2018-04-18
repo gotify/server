@@ -1,5 +1,5 @@
 import dispatcher from '../stores/dispatcher';
-import config from 'react-global-configuration';
+import * as config from '../config';
 import {getToken, setAuthorizationToken} from './defaultAxios';
 import * as GlobalAction from './GlobalAction';
 import axios from 'axios';

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Layout from './Layout';
 import registerServiceWorker from './registerServiceWorker';
-import config from 'react-global-configuration';
+import * as config from './config'
 import * as Notifications from './stores/Notifications';
 import 'typeface-roboto';
 import 'typeface-roboto-mono';

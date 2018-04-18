@@ -1,5 +1,5 @@
 import dispatcher from '../stores/dispatcher';
-import config from 'react-global-configuration';
+import * as config from '../config';
 import axios from 'axios';
 import {snack} from './GlobalAction';
 
