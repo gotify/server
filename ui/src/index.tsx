@@ -1,12 +1,12 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import Layout from './Layout';
-import registerServiceWorker from './registerServiceWorker';
-import * as config from './config'
-import * as Notifications from './stores/Notifications';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import 'typeface-roboto';
 import 'typeface-roboto-mono';
 import * as UserAction from './actions/UserAction';
+import * as config from './config'
+import Layout from './Layout';
+import registerServiceWorker from './registerServiceWorker';
+import * as Notifications from './stores/Notifications';
 
 const defaultDevConfig = {
     url: 'http://localhost:80/',
@@ -21,9 +21,15 @@ const defaultProdConfig = {
     url: urlWithSlash,
 };
 
+declare global {
+    // tslint:disable-next-line
+    interface Window {
+        config: config.IConfig;
+    }
+}
+
 (function clientJS() {
     Notifications.requestPermission();
-
     if (process.env.NODE_ENV === 'production') {
         config.set(window.config || defaultProdConfig);
     } else {
