@@ -1,22 +1,21 @@
-import React, {Component} from 'react';
-import Reboot from 'material-ui/Reboot';
-import ScrollUpButton from './component/ScrollUpButton';
-import Header from './component/Header';
-import Navigation from './component/Navigation';
-import Messages from './pages/Messages';
-import Login from './pages/Login';
-import axios from 'axios';
-import {createMuiTheme, MuiThemeProvider, withStyles} from 'material-ui/styles';
-import * as config from './config';
-import GlobalStore from './stores/GlobalStore';
+import axios, {AxiosResponse} from 'axios';
+import CssBaseline from 'material-ui/CssBaseline';
+import {createMuiTheme, MuiThemeProvider, Theme, WithStyles, withStyles} from 'material-ui/styles';
+import * as React from 'react';
 import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
-import Applications from './pages/Applications';
-import Clients from './pages/Clients';
-import Users from './pages/Users';
-import PropTypes from 'prop-types';
+import Header from './component/Header';
+import LoadingSpinner from './component/LoadingSpinner';
+import Navigation from './component/Navigation';
+import ScrollUpButton from './component/ScrollUpButton';
 import SettingsDialog from './component/SettingsDialog';
 import SnackBarHandler from './component/SnackBarHandler';
-import LoadingSpinner from './component/LoadingSpinner';
+import * as config from './config';
+import Applications from './pages/Applications';
+import Clients from './pages/Clients';
+import Login from './pages/Login';
+import Messages from './pages/Messages';
+import Users from './pages/Users';
+import GlobalStore from './stores/GlobalStore';
 
 const lightTheme = createMuiTheme({
     palette: {
@@ -29,73 +28,81 @@ const darkTheme = createMuiTheme({
     },
 });
 
-const styles = (theme) => ({
+const styles = (theme: Theme) => ({
     content: {
+        margin: '0 auto',
         marginTop: 64,
         padding: theme.spacing.unit * 4,
-        margin: '0 auto',
         width: '100%',
     },
 });
 
-class Layout extends Component {
-    static propTypes = {
-        classes: PropTypes.object.isRequired,
-    };
+interface IState {
+    darkTheme: boolean
+    redirect: boolean
+    showSettings: boolean
+    loggedIn: boolean
+    admin: boolean
+    name: string
+    authenticating: boolean
+    version: string
+}
 
-    static defaultVersion = '0.0.0';
+class Layout extends React.Component<WithStyles<'content'>, IState> {
+    private static defaultVersion = '0.0.0';
 
-    state = {
+    public state = {
+        admin: GlobalStore.isAdmin(),
+        authenticating: GlobalStore.authenticating(),
         darkTheme: true,
+        loggedIn: GlobalStore.isLoggedIn(),
+        name: GlobalStore.getName(),
         redirect: false,
         showSettings: false,
-        loggedIn: GlobalStore.isLoggedIn(),
-        admin: GlobalStore.isAdmin(),
-        name: GlobalStore.getName(),
-        authenticating: GlobalStore.authenticating(),
         version: Layout.defaultVersion,
     };
 
-    componentDidMount() {
+    public componentDidMount() {
         if (this.state.version === Layout.defaultVersion) {
-            axios.get(config.get('url') + 'version').then((resp) => {
+            axios.get(config.get('url') + 'version').then((resp:AxiosResponse<IVersion>) => {
                 this.setState({...this.state, version: resp.data.version});
             });
         }
     }
 
-    componentWillMount() {
+    public componentWillMount() {
         GlobalStore.on('change', this.updateUser);
     }
 
-    componentWillUnmount() {
+    public componentWillUnmount() {
         GlobalStore.removeListener('change', this.updateUser);
     }
 
-    toggleTheme = () => this.setState({...this.state, darkTheme: !this.state.darkTheme});
+    public toggleTheme = () => this.setState({...this.state, darkTheme: !this.state.darkTheme});
 
-    updateUser = () => {
+    public updateUser = () => {
         this.setState({
             ...this.state,
-            loggedIn: GlobalStore.isLoggedIn(),
             admin: GlobalStore.isAdmin(),
-            name: GlobalStore.getName(),
             authenticating: GlobalStore.authenticating(),
+            loggedIn: GlobalStore.isLoggedIn(),
+            name: GlobalStore.getName(),
         });
     };
 
-    hideSettings = () => this.setState({...this.state, showSettings: false});
-    showSettings = () => this.setState({...this.state, showSettings: true});
+    public hideSettings = () => this.setState({...this.state, showSettings: false});
+    public showSettings = () => this.setState({...this.state, showSettings: true});
 
-    render() {
+    public render() {
         const {name, admin, version, loggedIn, showSettings, authenticating} = this.state;
         const {classes} = this.props;
         const theme = this.state.darkTheme ? darkTheme : lightTheme;
+        const loginRoute = () => (loggedIn ? (<Redirect to="/"/>) : (<Login/>));
         return (
             <MuiThemeProvider theme={theme}>
                 <HashRouter>
                     <div style={{display: 'flex'}}>
-                        <Reboot/>
+                        <CssBaseline/>
                         <Header admin={admin} name={name} version={version} loggedIn={loggedIn}
                                 toggleTheme={this.toggleTheme} showSettings={this.showSettings}/>
                         <Navigation loggedIn={loggedIn}/>
@@ -103,8 +110,7 @@ class Layout extends Component {
                         <main className={classes.content}>
                             <Switch>
                                 {authenticating ? <Route path="/"><LoadingSpinner/></Route> : null}
-                                <Route exact path="/login" render={() =>
-                                    (loggedIn ? (<Redirect to="/"/>) : (<Login/>))}/>
+                                <Route exact path="/login" render={loginRoute}/>
                                 {loggedIn ? null : <Redirect to="/login"/>}
                                 <Route exact path="/" component={Messages}/>
                                 <Route exact path="/messages/:id" component={Messages}/>
@@ -123,4 +129,4 @@ class Layout extends Component {
     }
 }
 
-export default withStyles(styles, {withTheme: true})(Layout);
+export default withStyles(styles, {withTheme: true})<{}>(Layout);
