@@ -7,7 +7,7 @@ import Messages from './pages/Messages';
 import Login from './pages/Login';
 import axios from 'axios';
 import {createMuiTheme, MuiThemeProvider, withStyles} from 'material-ui/styles';
-import config from 'react-global-configuration';
+import * as config from './config';
 import GlobalStore from './stores/GlobalStore';
 import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
 import Applications from './pages/Applications';
