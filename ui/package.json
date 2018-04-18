@@ -1,6 +1,6 @@
 {
   "name": "gotify-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "dependencies": {
     "axios": "^0.18.0",
@@ -10,29 +10,34 @@
     "material-ui-icons": "^1.0.0-beta.36",
     "notifyjs": "^3.0.0",
     "prop-types": "^15.6.1",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
-    "react-global-configuration": "^1.2.1",
+    "react": "^16.3.2",
+    "react-dom": "^16.3.2",
     "react-list": "^0.8.8",
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
-    "react-scripts": "1.1.1",
+    "react-scripts-ts": "2.15.1",
     "react-timeago": "^3.4.3",
     "typeface-roboto": "0.0.54",
     "typeface-roboto-mono": "0.0.54"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
-    "lint": "eslint src",
-    "eject": "react-scripts eject"
+    "start": "react-scripts-ts start",
+    "build": "react-scripts-ts build",
+    "test": "react-scripts-ts test --env=jsdom",
+    "eject": "react-scripts-ts eject",
+    "lint": "tslint --project .",
+    "lintfix": "tslint --fix --project ."
   },
   "devDependencies": {
-    "babel-eslint": "^8.2.2",
-    "eslint": "^4.18.2",
-    "eslint-config-google": "^0.9.1",
-    "eslint-plugin-babel": "^4.1.2",
-    "eslint-plugin-react": "^7.7.0"
+    "@types/notifyjs": "^1.2.30",
+    "@types/detect-browser": "^2.0.1",
+    "@types/flux": "^3.1.7",
+    "@types/jest": "^22.2.3",
+    "@types/node": "^9.6.5",
+    "@types/react": "^16.3.11",
+    "@types/react-dom": "^16.0.5",
+    "@types/react-list": "^0.8.3",
+    "@types/react-router-dom": "^4.2.6",
+    "typescript": "^2.8.1"
   }
 }
