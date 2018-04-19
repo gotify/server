@@ -1,21 +1,22 @@
 import {EventEmitter} from 'events';
-import dispatcher from './dispatcher';
+import dispatcher, {IEvent} from './dispatcher';
 
 class UserStore extends EventEmitter {
-    constructor() {
-        super();
-        this.users = [];
-    }
+    private users: IUser[] = [];
 
-    get() {
+    public get(): IUser[] {
         return this.users;
     }
 
-    getById(id) {
-        return this.users.find((app) => app.id === id);
+    public getById(id: number): IUser {
+        const user = this.users.find((u) => u.id === id);
+        if (!user) {
+            throw new Error('user must exist');
+        }
+        return user;
     }
 
-    handle(data) {
+    public handle(data: IEvent): void {
         if (data.type === 'UPDATE_USERS') {
             this.users = data.payload;
             this.emit('change');
