@@ -1,5 +1,5 @@
-import dispatcher from './dispatcher';
 import Notify from 'notifyjs';
+import dispatcher, {IEvent} from './dispatcher';
 
 export function requestPermission() {
     if (Notify.needsPermission && Notify.isSupported()) {
@@ -8,22 +8,24 @@ export function requestPermission() {
     }
 }
 
-function closeAndFocus(event) {
+function closeAndFocus(event: Event) {
     if (window.parent) {
         window.parent.focus();
     }
     window.focus();
     window.location.href = '/';
-    event.target.close();
+    const target = event.target as Notification;
+    target.close();
 }
 
-function closeAfterTimeout(event) {
+function closeAfterTimeout(event: Event) {
     setTimeout(() => {
-        event.target.close();
+        const target = event.target as Notification;
+        target.close();
     }, 5000);
 }
 
-dispatcher.register((data) => {
+dispatcher.register((data: IEvent): void => {
     if (data.type === 'ONE_MESSAGE') {
         const msg = data.payload;
 

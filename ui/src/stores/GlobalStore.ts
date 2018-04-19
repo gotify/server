@@ -1,40 +1,31 @@
 import {EventEmitter} from 'events';
-import dispatcher from './dispatcher';
+import dispatcher, {IEvent} from './dispatcher';
 
 class GlobalStore extends EventEmitter {
-    constructor() {
-        super();
-        this.currentUser = null;
-        this.isAuthenticating = true;
-    }
+    private currentUser: IUser | null = null;
+    private isAuthenticating = true;
 
-    authenticating() {
+    public authenticating(): boolean {
         return this.isAuthenticating;
     }
 
-    get() {
-        return this.currentUser || {name: 'unknown', admin: false};
+    public get(): IUser {
+        return this.currentUser || {name: 'unknown', admin: false, id: -1};
     }
 
-    isAdmin() {
+    public isAdmin(): boolean {
         return this.get().admin;
     }
 
-    getName() {
+    public getName(): string {
         return this.get().name;
     }
 
-    isLoggedIn() {
+    public isLoggedIn(): boolean {
         return this.currentUser != null;
     }
 
-    set(user) {
-        this.isAuthenticating = false;
-        this.currentUser = user;
-        this.emit('change');
-    }
-
-    handle(data) {
+    public handle(data: IEvent): void {
         if (data.type === 'NO_AUTHENTICATION') {
             this.set(null);
         } else if (data.type === 'AUTHENTICATED') {
@@ -43,6 +34,12 @@ class GlobalStore extends EventEmitter {
             this.isAuthenticating = true;
             this.emit('change');
         }
+    }
+
+    private set(user: IUser | null): void {
+        this.isAuthenticating = false;
+        this.currentUser = user;
+        this.emit('change');
     }
 }
 

@@ -1,23 +1,25 @@
 import {EventEmitter} from 'events';
-import dispatcher from './dispatcher';
-import AppStore from './AppStore';
 import * as MessageAction from '../actions/MessageAction';
+import AppStore from './AppStore';
+import dispatcher, {IEvent} from './dispatcher';
 
 class MessageStore extends EventEmitter {
+
+    private appToMessages: { [appId: number]: IAppMessages } = {};
+    private reset: false | number = false;
+    private resetOnAll: false | number = false;
+    private loading = false;
+
     constructor() {
         super();
-        this.appToMessages = {};
-        this.reset = false;
-        this.resetOnAll = false;
-        this.loading = false;
         AppStore.on('change', () => {
             this.updateApps();
             this.emit('change');
         });
     }
 
-    shouldReset(appId) {
-        let reset = appId === -1 ? this.resetOnAll : this.reset;
+    public shouldReset(appId: number): false | number {
+        const reset = appId === -1 ? this.resetOnAll : this.reset;
         if (reset !== false) {
             this.reset = false;
             this.resetOnAll = false;
@@ -25,7 +27,7 @@ class MessageStore extends EventEmitter {
         return reset;
     }
 
-    loadNext(id) {
+    public loadNext(id: number): void {
         if (this.loading || !this.get(id).hasMore) {
             return;
         }
@@ -33,7 +35,7 @@ class MessageStore extends EventEmitter {
         MessageAction.fetchMessagesApp(id, this.get(id).nextSince).catch(() => this.loading = false);
     }
 
-    get(id) {
+    public get(id: number): IAppMessages {
         if (this.exists(id)) {
             return this.appToMessages[id];
         } else {
@@ -41,11 +43,11 @@ class MessageStore extends EventEmitter {
         }
     }
 
-    exists(id) {
+    public exists(id: number): boolean {
         return this.appToMessages[id] !== undefined;
     }
 
-    handle(data) {
+    public handle(data: IEvent): void {
         const {payload} = data;
         if (data.type === 'UPDATE_MESSAGES') {
             if (this.exists(payload.id)) {
@@ -83,7 +85,7 @@ class MessageStore extends EventEmitter {
         }
     }
 
-    removeFromList(messages, messageToDelete) {
+    private removeFromList(messages: IAppMessages, messageToDelete: IMessage): false | number {
         if (messages) {
             const index = messages.messages.findIndex((message) => message.id === messageToDelete.id);
             if (index !== -1) {
@@ -94,11 +96,11 @@ class MessageStore extends EventEmitter {
         return false;
     }
 
-    updateApps = () => {
-        const appToUrl = {};
+    private updateApps = (): void => {
+        const appToUrl: { [appId: number]: string } = {};
         AppStore.get().forEach((app) => appToUrl[app.id] = app.image);
         Object.keys(this.appToMessages).forEach((key) => {
-            const appMessages = this.appToMessages[key];
+            const appMessages: IAppMessages = this.appToMessages[key];
             appMessages.messages.forEach((message) => message.image = appToUrl[message.appid]);
         });
     };

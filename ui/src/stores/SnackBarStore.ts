@@ -1,18 +1,21 @@
 import {EventEmitter} from 'events';
-import dispatcher from './dispatcher';
+import dispatcher, {IEvent} from './dispatcher';
 
 class SnackBarStore extends EventEmitter {
-    messages = [];
+    public messages: string[] = [];
 
-    next() {
-        return this.messages.shift();
+    public next(): string {
+        if (!this.hasNext()) {
+            throw new Error("no such element")
+        }
+        return this.messages.shift() as string;
     }
 
-    hasNext() {
+    public hasNext(): boolean {
         return this.messages.length !== 0;
     }
 
-    handle(data) {
+    public handle(data: IEvent): void {
         if (data.type === 'SNACK') {
             this.messages.push(data.payload);
             this.emit('change');
