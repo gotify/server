@@ -1,10 +1,10 @@
-import React, {Component} from 'react';
-import {CircularProgress} from 'material-ui/Progress';
-import DefaultPage from './DefaultPage';
 import Grid from 'material-ui/Grid';
+import {CircularProgress} from 'material-ui/Progress';
+import React, {Component} from 'react';
+import DefaultPage from './DefaultPage';
 
 class LoadingSpinner extends Component {
-    render() {
+    public render() {
         return (
             <DefaultPage title="" maxWidth={250} hideButton={true}>
                 <Grid item xs={12} style={{textAlign: 'center'}}>

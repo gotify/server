@@ -1,17 +1,16 @@
-import React, {Component} from 'react';
 import Button from 'material-ui/Button';
 import Dialog, {DialogActions, DialogContent, DialogContentText, DialogTitle} from 'material-ui/Dialog';
-import PropTypes from 'prop-types';
+import React, {Component} from 'react';
 
-export default class ConfirmDialog extends Component {
-    static propTypes = {
-        title: PropTypes.string.isRequired,
-        text: PropTypes.string.isRequired,
-        fClose: PropTypes.func.isRequired,
-        fOnSubmit: PropTypes.func.isRequired,
-    };
+interface IProps {
+    title: string
+    text: string
+    fClose: VoidFunction
+    fOnSubmit: VoidFunction
+}
 
-    render() {
+export default class ConfirmDialog extends Component<IProps> {
+    public render() {
         const {title, text, fClose, fOnSubmit} = this.props;
         const submitAndClose = () => {
             fOnSubmit();

@@ -1,24 +1,22 @@
-import React, {Component} from 'react';
-import Typography from 'material-ui/Typography';
-import IconButton from 'material-ui/IconButton';
-import VisibilityOff from 'material-ui-icons/VisibilityOff';
 import Visibility from 'material-ui-icons/Visibility';
-import PropTypes from 'prop-types';
+import VisibilityOff from 'material-ui-icons/VisibilityOff';
+import IconButton from 'material-ui/IconButton';
+import Typography from 'material-ui/Typography';
+import React, {Component} from 'react';
 
-class ToggleVisibility extends Component {
-    static propTypes = {
-        value: PropTypes.string.isRequired,
-        style: PropTypes.object,
-    };
+interface IProps {
+    value: string
+    style?: object
+}
 
-    constructor() {
-        super();
-        this.state = {visible: false};
-    }
+interface IState {
+    visible: boolean
+}
 
-    toggleVisibility = () => this.setState({visible: !this.state.visible});
+class ToggleVisibility extends Component<IProps, IState> {
+    public state = {visible: false};
 
-    render() {
+    public render() {
         const {value, style} = this.props;
         const text = this.state.visible ? value : '•••••••••••••••';
         return (
@@ -32,6 +30,8 @@ class ToggleVisibility extends Component {
             </div>
         );
     }
+
+    private toggleVisibility = () => this.setState({visible: !this.state.visible});
 }
 
 
