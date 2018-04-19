@@ -1,10 +1,11 @@
-import * as AppAction from './AppAction';
-import * as UserAction from './UserAction';
-import * as MessageAction from './MessageAction';
-import * as ClientAction from './ClientAction';
+import {AxiosResponse} from "axios";
 import dispatcher from '../stores/dispatcher';
+import * as AppAction from './AppAction';
+import * as ClientAction from './ClientAction';
+import * as MessageAction from './MessageAction';
+import * as UserAction from './UserAction';
 
-export function initialLoad(resp) {
+export function initialLoad(resp: AxiosResponse<IUser>) {
     AppAction.fetchApps();
     MessageAction.listenToWebSocket();
     ClientAction.fetchClients();
@@ -13,6 +14,6 @@ export function initialLoad(resp) {
     }
 }
 
-export function snack(message) {
+export function snack(message: string) {
     dispatcher.dispatch({type: 'SNACK', payload: message});
 }
