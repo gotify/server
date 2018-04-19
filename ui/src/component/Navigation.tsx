@@ -1,47 +1,47 @@
-import React, {Component} from 'react';
+import {Theme, WithStyles} from "material-ui";
 import Divider from 'material-ui/Divider';
 import Drawer from 'material-ui/Drawer';
 import {ListItem, ListItemText} from 'material-ui/List';
 import {withStyles} from 'material-ui/styles';
-import PropTypes from 'prop-types';
-import AppStore from '../stores/AppStore';
+import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
+import AppStore from '../stores/AppStore';
 
-const styles = (theme) => ({
+const styles = (theme: Theme) => ({
     drawerPaper: {
-        position: 'relative',
+        position: 'relative' as 'relative',
         width: 250,
         minHeight: '100%',
     },
-    toolbar: theme.mixins.toolbar,
+    toolbar: theme.mixins.toolbar as any,
     link: {
         color: 'inherit',
         textDecoration: 'none',
     },
 });
 
-class Navigation extends Component {
-    static propTypes = {
-        classes: PropTypes.object.isRequired,
-        loggedIn: PropTypes.bool.isRequired,
-    };
+type Styles = WithStyles<'drawerPaper' | 'toolbar' | 'link'>
 
-    constructor() {
-        super();
-        this.state = {apps: []};
-    }
+interface IProps {
+    loggedIn: boolean
+}
 
-    componentWillMount() {
+interface IState {
+    apps: IApplication[]
+}
+
+class Navigation extends Component<IProps & Styles, IState> {
+    public state: IState = {apps: []};
+
+    public componentWillMount() {
         AppStore.on('change', this.updateApps);
     }
 
-    componentWillUnmount() {
+    public componentWillUnmount() {
         AppStore.removeListener('change', this.updateApps);
     }
 
-    updateApps = () => this.setState({apps: AppStore.get()});
-
-    render() {
+    public render() {
         const {classes, loggedIn} = this.props;
         const {apps} = this.state;
 
@@ -49,7 +49,7 @@ class Navigation extends Component {
             <ListItemText primary="you have no applications :("/>
         </ListItem>);
 
-        const userApps = apps.length === 0 ? empty : apps.map(function(app) {
+        const userApps = apps.length === 0 ? empty : apps.map((app) => {
             return (
                 <Link className={classes.link} to={'/messages/' + app.id} key={app.id}>
                     <ListItem button>
@@ -82,6 +82,8 @@ class Navigation extends Component {
             </Drawer>
         );
     }
+
+    private updateApps = () => this.setState({apps: AppStore.get()});
 }
 
-export default withStyles(styles, {withTheme: true})(Navigation);
+export default withStyles(styles,{withTheme: true})<IProps>(Navigation);

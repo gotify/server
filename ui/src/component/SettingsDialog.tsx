@@ -1,28 +1,22 @@
-import React, {Component} from 'react';
 import Button from 'material-ui/Button';
+import Dialog, {DialogActions, DialogContent, DialogTitle} from 'material-ui/Dialog';
 import TextField from 'material-ui/TextField';
 import Tooltip from 'material-ui/Tooltip';
-import Dialog, {DialogActions, DialogContent, DialogTitle} from 'material-ui/Dialog';
-import PropTypes from 'prop-types';
+import React, {ChangeEvent, Component} from 'react';
 import * as UserAction from '../actions/UserAction';
 
-export default class SettingsDialog extends Component {
-    static propTypes = {
-        fClose: PropTypes.func.isRequired,
-    };
+interface IState {
+    pass: string
+}
 
-    constructor() {
-        super();
-        this.state = {pass: ''};
-    }
+interface IProps {
+    fClose: VoidFunction
+}
 
-    handleChange(propertyName, event) {
-        const state = this.state;
-        state[propertyName] = event.target.value;
-        this.setState(state);
-    }
+export default class SettingsDialog extends Component<IProps, IState> {
+    public state = {pass: ''};
 
-    render() {
+    public render() {
         const {pass} = this.state;
         const {fClose} = this.props;
         const submitAndClose = () => {
@@ -49,5 +43,11 @@ export default class SettingsDialog extends Component {
                 </DialogActions>
             </Dialog>
         );
+    }
+
+    private handleChange(propertyName: string, event: ChangeEvent<HTMLInputElement>) {
+        const state = this.state;
+        state[propertyName] = event.target.value;
+        this.setState(state);
     }
 }

@@ -1,11 +1,11 @@
-import React, {Component} from 'react';
+import {WithStyles} from "material-ui";
+import Delete from 'material-ui-icons/Delete';
+import IconButton from 'material-ui/IconButton';
 import {withStyles} from 'material-ui/styles';
 import Typography from 'material-ui/Typography';
-import IconButton from 'material-ui/IconButton';
-import PropTypes from 'prop-types';
-import Container from './Container';
+import React, {Component} from 'react';
 import TimeAgo from 'react-timeago';
-import Delete from 'material-ui-icons/Delete';
+import Container from './Container';
 
 const styles = () => ({
     header: {
@@ -32,16 +32,18 @@ const styles = () => ({
     },
 });
 
-class Message extends Component {
-    static propTypes = {
-        classes: PropTypes.object.isRequired,
-        title: PropTypes.string.isRequired,
-        image: PropTypes.string,
-        date: PropTypes.string.isRequired,
-        content: PropTypes.string.isRequired,
-        fDelete: PropTypes.func.isRequired,
-    };
-    render() {
+type Style = WithStyles<'header' | 'headerTitle' | 'trash' | 'wrapperPadding' | 'messageContentWrapper' | 'image' | 'imageWrapper'>;
+
+interface IProps {
+    title: string
+    image?: string
+    date: string
+    content: string
+    fDelete: VoidFunction
+}
+
+class Message extends Component<IProps & Style> {
+    public render() {
         const {fDelete, classes, title, date, content, image} = this.props;
 
         return (
@@ -68,4 +70,4 @@ class Message extends Component {
     }
 }
 
-export default withStyles(styles)(Message);
+export default withStyles(styles)<IProps>(Message);
