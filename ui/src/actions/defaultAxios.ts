@@ -8,7 +8,7 @@ const tokenKey = 'gotify-login-key';
  * Set the authorization token for the next requests.
  * @param {string|null} token the gotify application token
  */
-export function setAuthorizationToken(token) {
+export function setAuthorizationToken(token: string | null) {
     if (token) {
         localStorage.setItem(tokenKey, token);
         axios.defaults.headers.common['X-Gotify-Key'] = token;
@@ -40,6 +40,6 @@ axios.interceptors.response.use(undefined, (error) => {
 /**
  * @return {string} the application token
  */
-export function getToken() {
+export function getToken(): string | null {
     return localStorage.getItem(tokenKey);
 }

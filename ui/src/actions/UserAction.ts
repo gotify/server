@@ -1,10 +1,10 @@
-import dispatcher from '../stores/dispatcher';
+import axios, {AxiosResponse} from 'axios';
+import {detect} from 'detect-browser';
 import * as config from '../config';
+import ClientStore from '../stores/ClientStore';
+import dispatcher from '../stores/dispatcher';
 import {getToken, setAuthorizationToken} from './defaultAxios';
 import * as GlobalAction from './GlobalAction';
-import axios from 'axios';
-import {detect} from 'detect-browser';
-import ClientStore from '../stores/ClientStore';
 import {snack} from './GlobalAction';
 
 /**
@@ -12,15 +12,16 @@ import {snack} from './GlobalAction';
  * @param {string} username
  * @param {string} password
  */
-export function login(username, password) {
+export function login(username: string, password: string) {
     const browser = detect();
     const name = (browser && browser.name + ' ' + browser.version) || 'unknown browser';
     authenticating();
-    axios.create().request(config.get('url') + 'client', {
+    axios.create().request({
+        url: config.get('url') + 'client',
         method: 'POST',
-        data: {name: name},
-        auth: {username: username, password: password},
-    }).then(function(resp) {
+        data: {name},
+        auth: {username, password},
+    }).then((resp) => {
         snack(`A client named '${name}' was created for your session.`);
         setAuthorizationToken(resp.data.token);
         tryAuthenticate().then(GlobalAction.initialLoad)
@@ -33,8 +34,9 @@ export function login(username, password) {
 
 /** Log the user out. */
 export function logout() {
-    if (getToken() !== null) {
-        axios.delete(config.get('url') + 'client/' + ClientStore.getIdByToken(getToken())).then(() => {
+    const token = getToken();
+    if (token !== null) {
+        axios.delete(config.get('url') + 'client/' + ClientStore.getIdByToken(token)).then(() => {
             setAuthorizationToken(null);
             noAuthentication();
         });
@@ -77,13 +79,13 @@ function authenticating() {
  * Changes the current user.
  * @param {string} pass
  */
-export function changeCurrentUser(pass) {
+export function changeCurrentUser(pass: string) {
     axios.post(config.get('url') + 'current/user/password', {pass}).then(() => snack('Password changed'));
 }
 
 /** Fetches all users. */
 export function fetchUsers() {
-    axios.get(config.get('url') + 'user').then(function(resp) {
+    axios.get(config.get('url') + 'user').then((resp: AxiosResponse<IUser[]>) => {
         dispatcher.dispatch({type: 'UPDATE_USERS', payload: resp.data});
     });
 }
@@ -92,7 +94,7 @@ export function fetchUsers() {
  * Delete a user.
  * @param {int} id the user id
  */
-export function deleteUser(id) {
+export function deleteUser(id: number) {
     axios.delete(config.get('url') + 'user/' + id).then(fetchUsers).then(() => snack('User deleted'));
 }
 
@@ -102,7 +104,7 @@ export function deleteUser(id) {
  * @param {string} pass
  * @param {bool} admin if true, the user is an administrator
  */
-export function createUser(name, pass, admin) {
+export function createUser(name: string, pass: string, admin: boolean) {
     axios.post(config.get('url') + 'user', {name, pass, admin}).then(fetchUsers).then(() => snack('User created'));
 }
 
@@ -113,8 +115,8 @@ export function createUser(name, pass, admin) {
  * @param {string} pass empty if no change
  * @param {bool} admin if true, the user is an administrator
  */
-export function updateUser(id, name, pass, admin) {
-    axios.post(config.get('url') + 'user/' + id, {name, pass, admin}).then(function() {
+export function updateUser(id: number, name: string, pass: string | null, admin: boolean) {
+    axios.post(config.get('url') + 'user/' + id, {name, pass, admin}).then(() => {
         fetchUsers();
         tryAuthenticate(); // try authenticate updates the current user
         snack('User updated');

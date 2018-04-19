@@ -1,23 +1,24 @@
-import dispatcher from '../stores/dispatcher';
+import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
-import axios from 'axios';
+import dispatcher from '../stores/dispatcher';
 import {getToken} from './defaultAxios';
 import {snack} from './GlobalAction';
 import * as UserAction from './UserAction';
 
-export function fetchMessagesApp(id, since) {
+export function fetchMessagesApp(id: number, since: number) {
     if (id === -1) {
-        return axios.get(config.get('url') + 'message?since=' + since).then((resp) => {
+        return axios.get(config.get('url') + 'message?since=' + since).then((resp: AxiosResponse<IPagedMessages>) => {
             newMessages(-1, resp.data);
         });
     } else {
-        return axios.get(config.get('url') + 'application/' + id + '/message?since=' + since).then((resp) => {
-            newMessages(id, resp.data);
-        });
+        return axios.get(config.get('url') + 'application/' + id + '/message?since=' + since)
+            .then((resp: AxiosResponse<IPagedMessages>) => {
+                newMessages(id, resp.data);
+            });
     }
 }
 
-function newMessages(id, data) {
+function newMessages(id: number, data: IPagedMessages) {
     dispatcher.dispatch({
         type: 'UPDATE_MESSAGES', payload: {
             messages: data.messages,
@@ -32,7 +33,7 @@ function newMessages(id, data) {
  * Deletes all messages from the current user and an application.
  * @param {int} id the application id
  */
-export function deleteMessagesByApp(id) {
+export function deleteMessagesByApp(id: number) {
     if (id === -1) {
         axios.delete(config.get('url') + 'message').then(() => {
             dispatcher.dispatch({type: 'DELETE_MESSAGES', payload: -1});
@@ -47,7 +48,7 @@ export function deleteMessagesByApp(id) {
     }
 }
 
-export function deleteMessage(msg) {
+export function deleteMessage(msg: IMessage) {
     axios.delete(config.get('url') + 'message/' + msg.id).then(() => {
         dispatcher.dispatch({type: 'DELETE_MESSAGE', payload: msg});
         snack('Message deleted');
@@ -73,7 +74,7 @@ export function listenToWebSocket() {
         console.log('WebSocket connection errored', e);
     };
 
-    ws.onmessage = (data) => dispatcher.dispatch({type: 'ONE_MESSAGE', payload: JSON.parse(data.data)});
+    ws.onmessage = (data) => dispatcher.dispatch({type: 'ONE_MESSAGE', payload: JSON.parse(data.data) as IMessage});
 
     ws.onclose = () => {
         wsActive = false;
