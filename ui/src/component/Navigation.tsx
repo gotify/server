@@ -45,11 +45,7 @@ class Navigation extends Component<IProps & Styles, IState> {
         const {classes, loggedIn} = this.props;
         const {apps} = this.state;
 
-        const empty = (<ListItem disabled>
-            <ListItemText primary="you have no applications :("/>
-        </ListItem>);
-
-        const userApps = apps.length === 0 ? empty : apps.map((app) => {
+        const userApps = apps.length === 0 ? null : apps.map((app) => {
             return (
                 <Link className={classes.link} to={'/messages/' + app.id} key={app.id}>
                     <ListItem button>
