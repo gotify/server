@@ -13,15 +13,12 @@ interface IProps {
     style?: object,
 }
 
-class Container extends React.Component<IProps & WithStyles<'paper'>, {}> {
-    public render() {
-        const {classes, children, style} = this.props;
-        return (
-            <Paper elevation={6} className={classes.paper} style={style}>
-                {children}
-            </Paper>
-        );
-    }
-}
+const Container: React.SFC<IProps & WithStyles<'paper'>> = ({classes, children, style}) => {
+    return (
+        <Paper elevation={6} className={classes.paper} style={style}>
+            {children}
+        </Paper>
+    );
+};
 
 export default withStyles(styles)<IProps>(Container);
