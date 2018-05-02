@@ -55,18 +55,18 @@ server:
     letsencrypt:
       enabled: false # if the certificate should be requested from letsencrypt
       accepttos: false # if you accept the tos from letsencrypt
-      cache: certs # the directory of the cache from letsencrypt
+      cache: data/certs # the directory of the cache from letsencrypt
       hosts: # the hosts for which letsencrypt should request certificates
       - mydomain.tld
       - myotherdomain.tld
 database: # for database see (configure database section)
   dialect: sqlite3
-  connection: gotify.db
+  connection: data/gotify.db
 defaultuser: # on database creation, gotify creates an admin user
   name: admin # the username of the default user
   pass: admin # the password of the default user
 passstrength: 10 # the bcrypt password strength (higher = better but also slower)
-uploadedimagesdir: images # the directory for storing uploaded images
+uploadedimagesdir: data/images # the directory for storing uploaded images
 ```
 
 ### Environment

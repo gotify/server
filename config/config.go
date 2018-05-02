@@ -20,21 +20,21 @@ type Configuration struct {
 			LetsEncrypt     struct {
 				Enabled   *bool  `default:"false"`
 				AcceptTOS *bool  `default:"false"`
-				Cache     string `default:"certs"`
+				Cache     string `default:"data/certs"`
 				Hosts     []string
 			}
 		}
 	}
 	Database struct {
 		Dialect    string `default:"sqlite3"`
-		Connection string `default:"gotify.db"`
+		Connection string `default:"data/gotify.db"`
 	}
 	DefaultUser struct {
 		Name string `default:"admin"`
 		Pass string `default:"admin"`
 	}
 	PassStrength      int    `default:"10"`
-	UploadedImagesDir string `default:"images"`
+	UploadedImagesDir string `default:"data/images"`
 }
 
 // Get returns the configuration extracted from env variables or config file.
