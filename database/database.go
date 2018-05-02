@@ -1,6 +1,9 @@
 package database
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/gotify/server/auth/password"
 	"github.com/gotify/server/model"
 	"github.com/jinzhu/gorm"
@@ -11,6 +14,8 @@ import (
 
 // New creates a new wrapper for the gorm database framework.
 func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUser bool) (*GormDatabase, error) {
+	createDirectoryIfSqlite(dialect, connection)
+
 	db, err := gorm.Open(dialect, connection)
 	if err != nil {
 		return nil, err
@@ -37,6 +42,16 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 	}
 
 	return &GormDatabase{DB: db}, nil
+}
+
+func createDirectoryIfSqlite(dialect string, connection string) {
+	if dialect == "sqlite3" {
+		if _, err := os.Stat(filepath.Dir(connection)); os.IsNotExist(err) {
+			if err := os.MkdirAll(filepath.Dir(connection), 0777); err != nil {
+				panic(err)
+			}
+		}
+	}
 }
 
 // GormDatabase is a wrapper for the gorm framework.
