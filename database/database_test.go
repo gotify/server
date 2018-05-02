@@ -4,6 +4,9 @@ import (
 	"os"
 	"testing"
 
+	"errors"
+
+	"github.com/bouk/monkey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -31,4 +34,40 @@ func (s *DatabaseSuite) AfterTest(suiteName, testName string) {
 func TestInvalidDialect(t *testing.T) {
 	_, err := New("asdf", "testdb.db", "defaultUser", "defaultPass", 5, true)
 	assert.NotNil(t, err)
+}
+
+func TestCreateSqliteFolder(t *testing.T) {
+	// ensure path not exists
+	os.RemoveAll("somepath")
+
+	db, err := New("sqlite3", "somepath/testdb.db", "defaultUser", "defaultPass", 5, true)
+	assert.Nil(t, err)
+	assert.DirExists(t, "somepath")
+	db.Close()
+
+	assert.Nil(t, os.RemoveAll("somepath"))
+}
+
+func TestWithAlreadyExistingSqliteFolder(t *testing.T) {
+	// ensure path not exists
+	os.RemoveAll("somepath")
+	os.MkdirAll("somepath", 0777)
+
+	db, err := New("sqlite3", "somepath/testdb.db", "defaultUser", "defaultPass", 5, true)
+	assert.Nil(t, err)
+	assert.DirExists(t, "somepath")
+	db.Close()
+
+	assert.Nil(t, os.RemoveAll("somepath"))
+}
+
+func TestPanicsOnMkdirError(t *testing.T) {
+	patch := monkey.Patch(os.MkdirAll, func(string, os.FileMode) error { return errors.New("whoops") })
+	defer patch.Unpatch()
+	// ensure path not exists
+	os.RemoveAll("somepath")
+
+	assert.Panics(t, func() {
+		New("sqlite3", "somepath/testdb.db", "defaultUser", "defaultPass", 5, true)
+	})
 }
