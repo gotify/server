@@ -91,9 +91,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	//   200:
 	//     description: Ok
 	//     schema:
-	//       type: array
-	//       items:
-	//         $ref: "#/definitions/Message"
+	//       $ref: "#/definitions/Message"
 	//   401:
 	//     description: Unauthorized
 	//     schema:
@@ -278,8 +276,6 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 				//   200:
 				//     description: Ok
 				//     schema:
-				//       type: array
-				//       items:
 				//         $ref: "#/definitions/PagedMessages"
 				//   401:
 				//     description: Unauthorized
@@ -455,8 +451,6 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//   200:
 			//     description: Ok
 			//     schema:
-			//       type: array
-			//       items:
 			//         $ref: "#/definitions/PagedMessages"
 			//   401:
 			//     description: Unauthorized

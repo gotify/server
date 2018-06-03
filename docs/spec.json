@@ -289,10 +289,7 @@
           "200": {
             "description": "Ok",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/PagedMessages"
-              }
+              "$ref": "#/definitions/PagedMessages"
             }
           },
           "401": {
@@ -653,10 +650,7 @@
           "200": {
             "description": "Ok",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/PagedMessages"
-              }
+              "$ref": "#/definitions/PagedMessages"
             }
           },
           "401": {
@@ -709,10 +703,7 @@
           "200": {
             "description": "Ok",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Message"
-              }
+              "$ref": "#/definitions/Message"
             }
           },
           "401": {
