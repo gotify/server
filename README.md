@@ -129,7 +129,7 @@ $ npm start
 ```
 Open `http://localhost:3000` inside your favorite browser.
 
-The UI requires a Gotify server running on `localhost:80` this can be adjusted inside the [ui/src/index.js](ui/src/index.js).
+The UI requires a Gotify server running on `localhost:80` this can be adjusted inside the [ui/src/index.tsx](ui/src/index.tsx).
 
 ## Building
 
