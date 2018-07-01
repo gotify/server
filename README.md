@@ -14,26 +14,33 @@
    * [License](#license)
 
 ## Motivation
-We wanted a simple server for sending and receiving messages (in real time per websocket). For this, not many open source projects existed and most of the existing ones were abandoned. Also, a requirement was that it can be self-hosted. We know there are many free and commercial push services out there.
+We wanted a simple server for sending and receiving messages (in real time per web socket). For this, not many open source projects existed and most of the existing ones were abandoned. Also, a requirement was that it can be self-hosted. We know there are many free and commercial push services out there.
 
 ## Features
-* API (see [api docs][api-docs]) for
+* REST-API for
   * sending messages
   * receiving messages per websocket
   * user management
   * client/device & application management
-* *[In Progress]* Web-UI
-* *[In Progress]* Android-App -> [gotify/android](https://github.com/gotify/android)
+* [REST-API Documentation][api-docs] (also available at `/docs`) 
+* Web-UI
+<img alt="Gotify UI screenshot" src="ui.png" />
+
+* Android-App -> [gotify/android](https://github.com/gotify/android)
+
+[<img src="https://play.google.com/intl/en_gb/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" width="150" />][playstore]
+
+Google Play and the Google Play logo are trademarks of Google LLC.
 
 ## Installation
 
 ### Docker
-The docker image is available on docker hub at [gotify/server](https://hub.docker.com/r/gotify/server/).
+The docker image is available on docker hub at [gotify/server][docker-normal].
 
 ``` bash
 $ docker run -p 80:80 gotify/server
 ```
-Also there is a specific docker image for arm-7 processors (raspberry pi), named [gotify/server-arm7](https://hub.docker.com/r/gotify/server-arm7/).
+Also there is a specific docker image for arm-7 processors (raspberry pi), named [gotify/server-arm7][docker-arm7].
 ``` bash
 $ docker run -p 80:80 gotify/server-arm7
 ```
@@ -165,3 +172,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
  [go-report]: https://goreportcard.com/report/github.com/gotify/server
  [swagger]: https://github.com/gotify/server/blob/master/docs/spec.json
  [api-docs]: https://gotify.github.io/api-docs/
+ [docker-normal]: https://hub.docker.com/r/gotify/server/
+ [docker-arm7]: https://hub.docker.com/r/gotify/server-arm7/
+ [playstore]: https://play.google.com/store/apps/details?id=com.github.gotify
