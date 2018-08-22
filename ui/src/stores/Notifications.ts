@@ -3,8 +3,10 @@ import dispatcher, {IEvent} from './dispatcher';
 
 export function requestPermission() {
     if (Notify.needsPermission && Notify.isSupported()) {
-        Notify.requestPermission(() => console.log('granted notification permissions'),
-            () => console.log('notification permission denied'));
+        Notify.requestPermission(
+            () => console.log('granted notification permissions'),
+            () => console.log('notification permission denied')
+        );
     }
 }
 
@@ -25,16 +27,18 @@ function closeAfterTimeout(event: Event) {
     }, 5000);
 }
 
-dispatcher.register((data: IEvent): void => {
-    if (data.type === 'ONE_MESSAGE') {
-        const msg = data.payload;
+dispatcher.register(
+    (data: IEvent): void => {
+        if (data.type === 'ONE_MESSAGE') {
+            const msg = data.payload;
 
-        const notify = new Notify(msg.title, {
-            body: msg.message,
-            icon: msg.image,
-            notifyClick: closeAndFocus,
-            notifyShow: closeAfterTimeout,
-        });
-        notify.show();
+            const notify = new Notify(msg.title, {
+                body: msg.message,
+                icon: msg.image,
+                notifyClick: closeAndFocus,
+                notifyShow: closeAfterTimeout,
+            });
+            notify.show();
+        }
     }
-});
+);

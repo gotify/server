@@ -14,9 +14,9 @@ import AppStore from '../stores/AppStore';
 import AddApplicationDialog from './dialog/AddApplicationDialog';
 
 interface IState {
-    apps: IApplication[]
-    createDialog: boolean
-    deleteId: number
+    apps: IApplication[];
+    createDialog: boolean;
+    deleteId: number;
 }
 
 class Applications extends Component<{}, IState> {
@@ -36,40 +36,61 @@ class Applications extends Component<{}, IState> {
     public render() {
         const {apps, createDialog, deleteId} = this.state;
         return (
-            <DefaultPage title="Applications" buttonTitle="Create Application" maxWidth={1000}
-                         fButton={this.showCreateDialog}>
+            <DefaultPage
+                title="Applications"
+                buttonTitle="Create Application"
+                maxWidth={1000}
+                fButton={this.showCreateDialog}>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table>
                             <TableHead>
                                 <TableRow>
-                                    <TableCell padding="checkbox" style={{width: 80}}/>
+                                    <TableCell padding="checkbox" style={{width: 80}} />
                                     <TableCell>Name</TableCell>
                                     <TableCell>Token</TableCell>
                                     <TableCell>Description</TableCell>
-                                    <TableCell/>
+                                    <TableCell />
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {apps.map((app: IApplication) => {
                                     return (
-                                        <Row key={app.id} description={app.description} image={app.image}
-                                             name={app.name} value={app.token} fUpload={() => this.uploadImage(app.id)}
-                                             fDelete={() => this.showCloseDialog(app.id)}/>
+                                        <Row
+                                            key={app.id}
+                                            description={app.description}
+                                            image={app.image}
+                                            name={app.name}
+                                            value={app.token}
+                                            fUpload={() => this.uploadImage(app.id)}
+                                            fDelete={() => this.showCloseDialog(app.id)}
+                                        />
                                     );
                                 })}
                             </TableBody>
                         </Table>
-                        <input ref={(upload) => this.upload = upload} type="file" style={{display: 'none'}}
-                               onChange={this.onUploadImage}/>
+                        <input
+                            ref={(upload) => (this.upload = upload)}
+                            type="file"
+                            style={{display: 'none'}}
+                            onChange={this.onUploadImage}
+                        />
                     </Paper>
                 </Grid>
-                {createDialog && <AddApplicationDialog fClose={this.hideCreateDialog} fOnSubmit={AppAction.createApp}/>}
-                {deleteId !== -1 && <ConfirmDialog title="Confirm Delete"
-                                                   text={'Delete ' + AppStore.getById(deleteId).name + '?'}
-                                                   fClose={this.hideCloseDialog}
-                                                   fOnSubmit={() => AppAction.deleteApp(deleteId)}
-                />}
+                {createDialog && (
+                    <AddApplicationDialog
+                        fClose={this.hideCreateDialog}
+                        fOnSubmit={AppAction.createApp}
+                    />
+                )}
+                {deleteId !== -1 && (
+                    <ConfirmDialog
+                        title="Confirm Delete"
+                        text={'Delete ' + AppStore.getById(deleteId).name + '?'}
+                        fClose={this.hideCloseDialog}
+                        fOnSubmit={() => AppAction.deleteApp(deleteId)}
+                    />
+                )}
             </DefaultPage>
         );
     }
@@ -102,28 +123,33 @@ class Applications extends Component<{}, IState> {
 }
 
 interface IRowProps {
-    name: string
-    value: string
-    description: string
-    fUpload: VoidFunction
-    image: string
-    fDelete: VoidFunction
+    name: string;
+    value: string;
+    description: string;
+    fUpload: VoidFunction;
+    image: string;
+    fDelete: VoidFunction;
 }
 
 const Row: SFC<IRowProps> = ({name, value, description, fDelete, fUpload, image}) => (
     <TableRow>
         <TableCell padding="checkbox">
             <div style={{display: 'flex'}}>
-                <Avatar src={image}/><IconButton onClick={fUpload} style={{height: 40}}><Edit/></IconButton>
+                <Avatar src={image} />
+                <IconButton onClick={fUpload} style={{height: 40}}>
+                    <Edit />
+                </IconButton>
             </div>
         </TableCell>
         <TableCell>{name}</TableCell>
         <TableCell>
-            <ToggleVisibility value={value} style={{display: 'flex', alignItems: 'center'}}/>
+            <ToggleVisibility value={value} style={{display: 'flex', alignItems: 'center'}} />
         </TableCell>
         <TableCell>{description}</TableCell>
         <TableCell numeric padding="none">
-            <IconButton onClick={fDelete}><Delete/></IconButton>
+            <IconButton onClick={fDelete}>
+                <Delete />
+            </IconButton>
         </TableCell>
     </TableRow>
 );

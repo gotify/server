@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 import 'typeface-roboto';
 import 'typeface-roboto-mono';
 import * as UserAction from './actions/UserAction';
-import * as config from './config'
+import * as config from './config';
 import Layout from './Layout';
 import registerServiceWorker from './registerServiceWorker';
 import * as Notifications from './stores/Notifications';
@@ -36,6 +36,6 @@ declare global {
         config.set(window.config || defaultDevConfig);
     }
     UserAction.checkIfAlreadyLoggedIn();
-    ReactDOM.render(<Layout/>, document.getElementById('root'));
+    ReactDOM.render(<Layout />, document.getElementById('root'));
     registerServiceWorker();
-}());
+})();

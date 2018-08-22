@@ -1,4 +1,4 @@
-import {AxiosResponse} from "axios";
+import {AxiosResponse} from 'axios';
 import dispatcher from '../stores/dispatcher';
 import * as AppAction from './AppAction';
 import * as ClientAction from './ClientAction';

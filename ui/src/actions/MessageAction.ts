@@ -7,11 +7,14 @@ import * as UserAction from './UserAction';
 
 export function fetchMessagesApp(id: number, since: number) {
     if (id === -1) {
-        return axios.get(config.get('url') + 'message?since=' + since).then((resp: AxiosResponse<IPagedMessages>) => {
-            newMessages(-1, resp.data);
-        });
+        return axios
+            .get(config.get('url') + 'message?since=' + since)
+            .then((resp: AxiosResponse<IPagedMessages>) => {
+                newMessages(-1, resp.data);
+            });
     } else {
-        return axios.get(config.get('url') + 'application/' + id + '/message?since=' + since)
+        return axios
+            .get(config.get('url') + 'application/' + id + '/message?since=' + since)
             .then((resp: AxiosResponse<IPagedMessages>) => {
                 newMessages(id, resp.data);
             });
@@ -20,7 +23,8 @@ export function fetchMessagesApp(id: number, since: number) {
 
 function newMessages(id: number, data: IPagedMessages) {
     dispatcher.dispatch({
-        type: 'UPDATE_MESSAGES', payload: {
+        type: 'UPDATE_MESSAGES',
+        payload: {
             messages: data.messages,
             hasMore: 'next' in data.paging,
             nextSince: data.paging.since,
@@ -40,11 +44,10 @@ export function deleteMessagesByApp(id: number) {
             snack('Messages deleted');
         });
     } else {
-        axios.delete(config.get('url') + 'application/' + id + '/message')
-            .then(() => {
-                dispatcher.dispatch({type: 'DELETE_MESSAGES', payload: id});
-                snack('Deleted all messages from the application');
-            });
+        axios.delete(config.get('url') + 'application/' + id + '/message').then(() => {
+            dispatcher.dispatch({type: 'DELETE_MESSAGES', payload: id});
+            snack('Deleted all messages from the application');
+        });
     }
 }
 
@@ -66,7 +69,10 @@ export function listenToWebSocket() {
     }
     wsActive = true;
 
-    const wsUrl = config.get('url').replace('http', 'ws').replace('https', 'wss');
+    const wsUrl = config
+        .get('url')
+        .replace('http', 'ws')
+        .replace('https', 'wss');
     const ws = new WebSocket(wsUrl + 'stream?token=' + getToken());
 
     ws.onerror = (e) => {
@@ -74,7 +80,8 @@ export function listenToWebSocket() {
         console.log('WebSocket connection errored', e);
     };
 
-    ws.onmessage = (data) => dispatcher.dispatch({type: 'ONE_MESSAGE', payload: JSON.parse(data.data) as IMessage});
+    ws.onmessage = (data) =>
+        dispatcher.dispatch({type: 'ONE_MESSAGE', payload: JSON.parse(data.data) as IMessage});
 
     ws.onclose = () => {
         wsActive = false;

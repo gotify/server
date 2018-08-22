@@ -18,7 +18,10 @@ export function fetchClients() {
  * @param {int} id the client id
  */
 export function deleteClient(id: number) {
-    axios.delete(config.get('url') + 'client/' + id).then(fetchClients).then(() => snack('Client deleted'));
+    axios
+        .delete(config.get('url') + 'client/' + id)
+        .then(fetchClients)
+        .then(() => snack('Client deleted'));
 }
 
 /**
@@ -26,5 +29,8 @@ export function deleteClient(id: number) {
  * @param {string} name the client name
  */
 export function createClient(name: string) {
-    axios.post(config.get('url') + 'client', {name}).then(fetchClients).then(() => snack('Client created'));
+    axios
+        .post(config.get('url') + 'client', {name})
+        .then(fetchClients)
+        .then(() => snack('Client created'));
 }

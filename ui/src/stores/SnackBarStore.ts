@@ -6,7 +6,7 @@ class SnackBarStore extends EventEmitter {
 
     public next(): string {
         if (!this.hasNext()) {
-            throw new Error("no such element")
+            throw new Error('no such element');
         }
         return this.messages.shift() as string;
     }

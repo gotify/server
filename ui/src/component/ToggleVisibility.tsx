@@ -5,12 +5,12 @@ import Typography from 'material-ui/Typography';
 import React, {Component} from 'react';
 
 interface IProps {
-    value: string
-    style?: object
+    value: string;
+    style?: object;
 }
 
 interface IState {
-    visible: boolean
+    visible: boolean;
 }
 
 class ToggleVisibility extends Component<IProps, IState> {
@@ -22,17 +22,14 @@ class ToggleVisibility extends Component<IProps, IState> {
         return (
             <div style={style}>
                 <IconButton onClick={this.toggleVisibility}>
-                    {this.state.visible ? <VisibilityOff/> : <Visibility/>}
+                    {this.state.visible ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
-                <Typography style={{fontFamily: '\'Roboto Mono\', monospace'}}>
-                    {text}
-                </Typography>
+                <Typography style={{fontFamily: "'Roboto Mono', monospace"}}>{text}</Typography>
             </div>
         );
     }
 
     private toggleVisibility = () => this.setState({visible: !this.state.visible});
 }
-
 
 export default ToggleVisibility;

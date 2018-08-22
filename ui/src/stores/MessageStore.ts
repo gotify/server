@@ -4,8 +4,7 @@ import AppStore from './AppStore';
 import dispatcher, {IEvent} from './dispatcher';
 
 class MessageStore extends EventEmitter {
-
-    private appToMessages: { [appId: number]: IAppMessages } = {};
+    private appToMessages: {[appId: number]: IAppMessages} = {};
     private reset: false | number = false;
     private resetOnAll: false | number = false;
     private loading = false;
@@ -32,7 +31,9 @@ class MessageStore extends EventEmitter {
             return;
         }
         this.loading = true;
-        MessageAction.fetchMessagesApp(id, this.get(id).nextSince).catch(() => this.loading = false);
+        MessageAction.fetchMessagesApp(id, this.get(id).nextSince).catch(
+            () => (this.loading = false)
+        );
     }
 
     public get(id: number): IAppMessages {
@@ -87,7 +88,9 @@ class MessageStore extends EventEmitter {
 
     private removeFromList(messages: IAppMessages, messageToDelete: IMessage): false | number {
         if (messages) {
-            const index = messages.messages.findIndex((message) => message.id === messageToDelete.id);
+            const index = messages.messages.findIndex(
+                (message) => message.id === messageToDelete.id
+            );
             if (index !== -1) {
                 messages.messages.splice(index, 1);
                 return index;
@@ -97,11 +100,11 @@ class MessageStore extends EventEmitter {
     }
 
     private updateApps = (): void => {
-        const appToUrl: { [appId: number]: string } = {};
-        AppStore.get().forEach((app) => appToUrl[app.id] = app.image);
+        const appToUrl: {[appId: number]: string} = {};
+        AppStore.get().forEach((app) => (appToUrl[app.id] = app.image));
         Object.keys(this.appToMessages).forEach((key) => {
             const appMessages: IAppMessages = this.appToMessages[key];
-            appMessages.messages.forEach((message) => message.image = appToUrl[message.appid]);
+            appMessages.messages.forEach((message) => (message.image = appToUrl[message.appid]));
         });
     };
 }

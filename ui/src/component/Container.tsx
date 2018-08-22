@@ -1,4 +1,4 @@
-import {WithStyles} from "material-ui";
+import {WithStyles} from 'material-ui';
 import Paper from 'material-ui/Paper';
 import {withStyles} from 'material-ui/styles';
 import * as React from 'react';
@@ -10,7 +10,7 @@ const styles = () => ({
 });
 
 interface IProps {
-    style?: object,
+    style?: object;
 }
 
 const Container: React.SFC<IProps & WithStyles<'paper'>> = ({classes, children, style}) => {

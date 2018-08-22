@@ -1,12 +1,17 @@
 import Button from 'material-ui/Button';
-import Dialog, {DialogActions, DialogContent, DialogContentText, DialogTitle} from 'material-ui/Dialog';
+import Dialog, {
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+} from 'material-ui/Dialog';
 import React from 'react';
 
 interface IProps {
-    title: string
-    text: string
-    fClose: VoidFunction
-    fOnSubmit: VoidFunction
+    title: string;
+    text: string;
+    fClose: VoidFunction;
+    fOnSubmit: VoidFunction;
 }
 
 export default function ConfirmDialog({title, text, fClose, fOnSubmit}: IProps) {
@@ -22,7 +27,9 @@ export default function ConfirmDialog({title, text, fClose, fOnSubmit}: IProps) 
             </DialogContent>
             <DialogActions>
                 <Button onClick={fClose}>No</Button>
-                <Button onClick={submitAndClose} color="primary" variant="raised">Yes</Button>
+                <Button onClick={submitAndClose} color="primary" variant="raised">
+                    Yes
+                </Button>
             </DialogActions>
         </Dialog>
     );

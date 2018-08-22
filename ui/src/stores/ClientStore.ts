@@ -11,7 +11,7 @@ class ClientStore extends EventEmitter {
     public getById(id: number): IClient {
         const client = this.clients.find((c) => c.id === id);
         if (!client) {
-            throw new Error('client is required to exist')
+            throw new Error('client is required to exist');
         }
         return client;
     }
@@ -28,7 +28,6 @@ class ClientStore extends EventEmitter {
         }
     }
 }
-
 
 const store = new ClientStore();
 dispatcher.register(store.handle.bind(store));
