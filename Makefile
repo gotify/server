@@ -30,6 +30,7 @@ check-go:
 
 check-js:
 	(cd ui && npm run lint)
+	(cd ui && npm run testformat)
 
 download-tools:
 	go get github.com/golang/lint/golint
