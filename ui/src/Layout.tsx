@@ -38,14 +38,14 @@ const styles = (theme: Theme) => ({
 });
 
 interface IState {
-    darkTheme: boolean
-    redirect: boolean
-    showSettings: boolean
-    loggedIn: boolean
-    admin: boolean
-    name: string
-    authenticating: boolean
-    version: string
+    darkTheme: boolean;
+    redirect: boolean;
+    showSettings: boolean;
+    loggedIn: boolean;
+    admin: boolean;
+    name: string;
+    authenticating: boolean;
+    version: string;
 }
 
 class Layout extends React.Component<WithStyles<'content'>, IState> {
@@ -64,7 +64,7 @@ class Layout extends React.Component<WithStyles<'content'>, IState> {
 
     public componentDidMount() {
         if (this.state.version === Layout.defaultVersion) {
-            axios.get(config.get('url') + 'version').then((resp:AxiosResponse<IVersion>) => {
+            axios.get(config.get('url') + 'version').then((resp: AxiosResponse<IVersion>) => {
                 this.setState({...this.state, version: resp.data.version});
             });
         }
@@ -97,31 +97,41 @@ class Layout extends React.Component<WithStyles<'content'>, IState> {
         const {name, admin, version, loggedIn, showSettings, authenticating} = this.state;
         const {classes} = this.props;
         const theme = this.state.darkTheme ? darkTheme : lightTheme;
-        const loginRoute = () => (loggedIn ? (<Redirect to="/"/>) : (<Login/>));
+        const loginRoute = () => (loggedIn ? <Redirect to="/" /> : <Login />);
         return (
             <MuiThemeProvider theme={theme}>
                 <HashRouter>
                     <div style={{display: 'flex'}}>
-                        <CssBaseline/>
-                        <Header admin={admin} name={name} version={version} loggedIn={loggedIn}
-                                toggleTheme={this.toggleTheme} showSettings={this.showSettings}/>
-                        <Navigation loggedIn={loggedIn}/>
+                        <CssBaseline />
+                        <Header
+                            admin={admin}
+                            name={name}
+                            version={version}
+                            loggedIn={loggedIn}
+                            toggleTheme={this.toggleTheme}
+                            showSettings={this.showSettings}
+                        />
+                        <Navigation loggedIn={loggedIn} />
 
                         <main className={classes.content}>
                             <Switch>
-                                {authenticating ? <Route path="/"><LoadingSpinner/></Route> : null}
-                                <Route exact path="/login" render={loginRoute}/>
-                                {loggedIn ? null : <Redirect to="/login"/>}
-                                <Route exact path="/" component={Messages}/>
-                                <Route exact path="/messages/:id" component={Messages}/>
-                                <Route exact path="/applications" component={Applications}/>
-                                <Route exact path="/clients" component={Clients}/>
-                                <Route exact path="/users" component={Users}/>
+                                {authenticating ? (
+                                    <Route path="/">
+                                        <LoadingSpinner />
+                                    </Route>
+                                ) : null}
+                                <Route exact path="/login" render={loginRoute} />
+                                {loggedIn ? null : <Redirect to="/login" />}
+                                <Route exact path="/" component={Messages} />
+                                <Route exact path="/messages/:id" component={Messages} />
+                                <Route exact path="/applications" component={Applications} />
+                                <Route exact path="/clients" component={Clients} />
+                                <Route exact path="/users" component={Users} />
                             </Switch>
                         </main>
-                        {showSettings && <SettingsDialog fClose={this.hideSettings}/>}
-                        <ScrollUpButton/>
-                        <SnackBarHandler/>
+                        {showSettings && <SettingsDialog fClose={this.hideSettings} />}
+                        <ScrollUpButton />
+                        <SnackBarHandler />
                     </div>
                 </HashRouter>
             </MuiThemeProvider>

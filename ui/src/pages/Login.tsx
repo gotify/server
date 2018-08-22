@@ -7,8 +7,8 @@ import Container from '../component/Container';
 import DefaultPage from '../component/DefaultPage';
 
 interface IState {
-    username: string
-    password: string
+    username: string;
+    password: string;
 }
 
 class Login extends Component<{}, IState> {
@@ -21,12 +21,28 @@ class Login extends Component<{}, IState> {
                 <Grid item xs={12} style={{textAlign: 'center'}}>
                     <Container>
                         <form onSubmit={this.preventDefault}>
-                            <TextField id="name" label="Username" margin="dense" value={username}
-                                       onChange={this.handleChange.bind(this, 'username')}/>
-                            <TextField type="password" id="password" label="Password" margin="normal"
-                                       value={password} onChange={this.handleChange.bind(this, 'password')}/>
-                            <Button type="submit" variant="raised" size="large" color="primary"
-                                    style={{marginTop: 15, marginBottom: 5}} onClick={this.login}>
+                            <TextField
+                                id="name"
+                                label="Username"
+                                margin="dense"
+                                value={username}
+                                onChange={this.handleChange.bind(this, 'username')}
+                            />
+                            <TextField
+                                type="password"
+                                id="password"
+                                label="Password"
+                                margin="normal"
+                                value={password}
+                                onChange={this.handleChange.bind(this, 'password')}
+                            />
+                            <Button
+                                type="submit"
+                                variant="raised"
+                                size="large"
+                                color="primary"
+                                style={{marginTop: 15, marginBottom: 5}}
+                                onClick={this.login}>
                                 Login
                             </Button>
                         </form>

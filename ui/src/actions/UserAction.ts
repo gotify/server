@@ -16,20 +16,29 @@ export function login(username: string, password: string) {
     const browser = detect();
     const name = (browser && browser.name + ' ' + browser.version) || 'unknown browser';
     authenticating();
-    axios.create().request({
-        url: config.get('url') + 'client',
-        method: 'POST',
-        data: {name},
-        auth: {username, password},
-    }).then((resp) => {
-        snack(`A client named '${name}' was created for your session.`);
-        setAuthorizationToken(resp.data.token);
-        tryAuthenticate().then(GlobalAction.initialLoad)
-            .catch(() => console.log('create client succeeded, but authenticated with given token failed'));
-    }).catch(() => {
-        snack('Login failed');
-        noAuthentication();
-    });
+    axios
+        .create()
+        .request({
+            url: config.get('url') + 'client',
+            method: 'POST',
+            data: {name},
+            auth: {username, password},
+        })
+        .then((resp) => {
+            snack(`A client named '${name}' was created for your session.`);
+            setAuthorizationToken(resp.data.token);
+            tryAuthenticate()
+                .then(GlobalAction.initialLoad)
+                .catch(() =>
+                    console.log(
+                        'create client succeeded, but authenticated with given token failed'
+                    )
+                );
+        })
+        .catch(() => {
+            snack('Login failed');
+            noAuthentication();
+        });
 }
 
 /** Log the user out. */
@@ -44,17 +53,21 @@ export function logout() {
 }
 
 export function tryAuthenticate() {
-    return axios.create().get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': getToken()}}).then((resp) => {
-        dispatcher.dispatch({type: 'AUTHENTICATED', payload: resp.data});
-        return resp;
-    }).catch((resp) => {
-        if (getToken()) {
-            setAuthorizationToken(null);
-            snack('Authentication failed, try to re-login. (client or user was deleted)');
-        }
-        noAuthentication();
-        return Promise.reject(resp);
-    });
+    return axios
+        .create()
+        .get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': getToken()}})
+        .then((resp) => {
+            dispatcher.dispatch({type: 'AUTHENTICATED', payload: resp.data});
+            return resp;
+        })
+        .catch((resp) => {
+            if (getToken()) {
+                setAuthorizationToken(null);
+                snack('Authentication failed, try to re-login. (client or user was deleted)');
+            }
+            noAuthentication();
+            return Promise.reject(resp);
+        });
 }
 
 export function checkIfAlreadyLoggedIn() {
@@ -80,7 +93,9 @@ function authenticating() {
  * @param {string} pass
  */
 export function changeCurrentUser(pass: string) {
-    axios.post(config.get('url') + 'current/user/password', {pass}).then(() => snack('Password changed'));
+    axios
+        .post(config.get('url') + 'current/user/password', {pass})
+        .then(() => snack('Password changed'));
 }
 
 /** Fetches all users. */
@@ -95,7 +110,10 @@ export function fetchUsers() {
  * @param {int} id the user id
  */
 export function deleteUser(id: number) {
-    axios.delete(config.get('url') + 'user/' + id).then(fetchUsers).then(() => snack('User deleted'));
+    axios
+        .delete(config.get('url') + 'user/' + id)
+        .then(fetchUsers)
+        .then(() => snack('User deleted'));
 }
 
 /**
@@ -105,7 +123,10 @@ export function deleteUser(id: number) {
  * @param {bool} admin if true, the user is an administrator
  */
 export function createUser(name: string, pass: string, admin: boolean) {
-    axios.post(config.get('url') + 'user', {name, pass, admin}).then(fetchUsers).then(() => snack('User created'));
+    axios
+        .post(config.get('url') + 'user', {name, pass, admin})
+        .then(fetchUsers)
+        .then(() => snack('User created'));
 }
 
 /**

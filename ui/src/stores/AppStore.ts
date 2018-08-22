@@ -11,7 +11,7 @@ class AppStore extends EventEmitter {
     public getById(id: number): IApplication {
         const app = this.getByIdOrUndefined(id);
         if (!app) {
-            throw new Error('app is required to exist')
+            throw new Error('app is required to exist');
         }
         return app;
     }

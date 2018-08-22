@@ -2,7 +2,7 @@ import Grid from 'material-ui/Grid';
 import {CircularProgress} from 'material-ui/Progress';
 import Typography from 'material-ui/Typography';
 import React, {Component} from 'react';
-import {RouteComponentProps} from "react-router";
+import {RouteComponentProps} from 'react-router';
 import * as MessageAction from '../actions/MessageAction';
 import DefaultPage from '../component/DefaultPage';
 import ReactList from '../component/FixedReactList';
@@ -10,20 +10,18 @@ import Message from '../component/Message';
 import AppStore from '../stores/AppStore';
 import MessageStore from '../stores/MessageStore';
 
-
-interface IProps extends RouteComponentProps<any> {
-}
+interface IProps extends RouteComponentProps<any> {}
 
 interface IState {
-    appId: number
-    messages: IMessage[]
-    name: string
-    hasMore: boolean
-    nextSince?: number
-    id?: number
+    appId: number;
+    messages: IMessage[];
+    name: string;
+    hasMore: boolean;
+    nextSince?: number;
+    id?: number;
 }
 
-class Messages extends Component<IProps , IState> {
+class Messages extends Component<IProps, IState> {
     private static appId(props: IProps) {
         if (props === undefined) {
             return -1;
@@ -57,25 +55,33 @@ class Messages extends Component<IProps , IState> {
         const deleteMessages = () => MessageAction.deleteMessagesByApp(appId);
 
         return (
-            <DefaultPage title={name} buttonTitle="Delete All" fButton={deleteMessages} buttonDisabled={!hasMessages}>
-                {hasMessages
-                    ? (
-                        <div style={{width: '100%'}}>
-                            <ReactList key={appId}
-                                       ref={(el: ReactList) => this.list = el}
-                                       itemRenderer={this.renderMessage}
-                                       length={messages.length}
-                                       threshold={1000}
-                                       pageSize={30}
-                                       type='variable'
-                            />
-                            {hasMore
-                                ? <Grid item xs={12} style={{textAlign: 'center'}}><CircularProgress size={100}/></Grid>
-                                : this.label('You\'ve reached the end')}
-                        </div>
-                    )
-                    : this.label('No messages')
-                }
+            <DefaultPage
+                title={name}
+                buttonTitle="Delete All"
+                fButton={deleteMessages}
+                buttonDisabled={!hasMessages}>
+                {hasMessages ? (
+                    <div style={{width: '100%'}}>
+                        <ReactList
+                            key={appId}
+                            ref={(el: ReactList) => (this.list = el)}
+                            itemRenderer={this.renderMessage}
+                            length={messages.length}
+                            threshold={1000}
+                            pageSize={30}
+                            type="variable"
+                        />
+                        {hasMore ? (
+                            <Grid item xs={12} style={{textAlign: 'center'}}>
+                                <CircularProgress size={100} />
+                            </Grid>
+                        ) : (
+                            this.label("You've reached the end")
+                        )}
+                    </div>
+                ) : (
+                    this.label('No messages')
+                )}
             </DefaultPage>
         );
     }
@@ -102,12 +108,14 @@ class Messages extends Component<IProps , IState> {
         this.checkIfLoadMore();
         const message: IMessage = this.state.messages[index];
         return (
-            <Message key={key}
-                     fDelete={this.deleteMessage(message)}
-                     title={message.title}
-                     date={message.date}
-                     content={message.message}
-                     image={message.image}/>
+            <Message
+                key={key}
+                fDelete={this.deleteMessage(message)}
+                title={message.title}
+                date={message.date}
+                content={message.message}
+                image={message.image}
+            />
         );
     };
 
@@ -115,14 +123,18 @@ class Messages extends Component<IProps , IState> {
         const {hasMore, messages, appId} = this.state;
         if (hasMore) {
             const [, maxRenderedIndex] = (this.list && this.list.getVisibleRange()) || [0, 0];
-            if (maxRenderedIndex > (messages.length - 30)) {
+            if (maxRenderedIndex > messages.length - 30) {
                 MessageStore.loadNext(appId);
             }
         }
     }
 
     private label = (text: string) => (
-        <Grid item xs={12}><Typography variant="caption" gutterBottom align="center">{text}</Typography></Grid>
+        <Grid item xs={12}>
+            <Typography variant="caption" gutterBottom align="center">
+                {text}
+            </Typography>
+        </Grid>
     );
 }
 

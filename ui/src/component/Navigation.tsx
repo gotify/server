@@ -1,4 +1,4 @@
-import {Theme, WithStyles} from "material-ui";
+import {Theme, WithStyles} from 'material-ui';
 import Divider from 'material-ui/Divider';
 import Drawer from 'material-ui/Drawer';
 import {ListItem, ListItemText} from 'material-ui/List';
@@ -20,14 +20,14 @@ const styles = (theme: Theme) => ({
     },
 });
 
-type Styles = WithStyles<'drawerPaper' | 'toolbar' | 'link'>
+type Styles = WithStyles<'drawerPaper' | 'toolbar' | 'link'>;
 
 interface IProps {
-    loggedIn: boolean
+    loggedIn: boolean;
 }
 
 interface IState {
-    apps: IApplication[]
+    apps: IApplication[];
 }
 
 class Navigation extends Component<IProps & Styles, IState> {
@@ -45,36 +45,39 @@ class Navigation extends Component<IProps & Styles, IState> {
         const {classes, loggedIn} = this.props;
         const {apps} = this.state;
 
-        const userApps = apps.length === 0 ? null : apps.map((app) => {
-            return (
-                <Link className={classes.link} to={'/messages/' + app.id} key={app.id}>
-                    <ListItem button>
-                        <ListItemText primary={app.name}/>
-                    </ListItem>
-                </Link>
-            );
-        });
+        const userApps =
+            apps.length === 0
+                ? null
+                : apps.map((app) => {
+                      return (
+                          <Link className={classes.link} to={'/messages/' + app.id} key={app.id}>
+                              <ListItem button>
+                                  <ListItemText primary={app.name} />
+                              </ListItem>
+                          </Link>
+                      );
+                  });
 
         const placeholderItems = [
             <ListItem button disabled key={-1}>
-                <ListItemText primary="Some Server"/>
+                <ListItemText primary="Some Server" />
             </ListItem>,
             <ListItem button disabled key={-2}>
-                <ListItemText primary="A Raspberry PI"/>
+                <ListItemText primary="A Raspberry PI" />
             </ListItem>,
         ];
 
         return (
             <Drawer variant="permanent" classes={{paper: classes.drawerPaper}}>
-                <div className={classes.toolbar}/>
+                <div className={classes.toolbar} />
                 <Link className={classes.link} to="/">
                     <ListItem button disabled={!loggedIn}>
-                        <ListItemText primary="All Messages"/>
+                        <ListItemText primary="All Messages" />
                     </ListItem>
                 </Link>
-                <Divider/>
+                <Divider />
                 <div>{loggedIn ? userApps : placeholderItems}</div>
-                <Divider/>
+                <Divider />
             </Drawer>
         );
     }
@@ -82,4 +85,4 @@ class Navigation extends Component<IProps & Styles, IState> {
     private updateApps = () => this.setState({apps: AppStore.get()});
 }
 
-export default withStyles(styles,{withTheme: true})<IProps>(Navigation);
+export default withStyles(styles, {withTheme: true})<IProps>(Navigation);

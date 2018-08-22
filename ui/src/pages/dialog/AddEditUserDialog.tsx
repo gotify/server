@@ -7,17 +7,17 @@ import Tooltip from 'material-ui/Tooltip';
 import React, {ChangeEvent, Component} from 'react';
 
 interface IProps {
-    name?: string
-    admin?: boolean
-    fClose: VoidFunction
-    fOnSubmit: (name: string, pass: string, admin: boolean) => void
-    isEdit?: boolean
+    name?: string;
+    admin?: boolean;
+    fClose: VoidFunction;
+    fOnSubmit: (name: string, pass: string, admin: boolean) => void;
+    isEdit?: boolean;
 }
 
 interface IState {
-    name: string
-    pass: string
-    admin: boolean
+    name: string;
+    pass: string;
+    admin: boolean;
 }
 
 export default class AddEditDialog extends Component<IProps, IState> {
@@ -38,24 +38,57 @@ export default class AddEditDialog extends Component<IProps, IState> {
         };
         return (
             <Dialog open={true} onClose={fClose} aria-labelledby="form-dialog-title">
-                <DialogTitle id="form-dialog-title">{isEdit ? 'Edit ' + this.props.name : 'Add a user'}</DialogTitle>
+                <DialogTitle id="form-dialog-title">
+                    {isEdit ? 'Edit ' + this.props.name : 'Add a user'}
+                </DialogTitle>
                 <DialogContent>
-                    <TextField autoFocus margin="dense" id="name" label="Name *" type="email" value={name}
-                               onChange={this.handleChange.bind(this, 'name')} fullWidth/>
-                    <TextField margin="dense" id="description" type="password" value={pass} fullWidth
-                               label={isEdit ? 'Pass (empty if no change)' : 'Pass *'}
-                               onChange={this.handleChange.bind(this, 'pass')}/>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="name"
+                        label="Name *"
+                        type="email"
+                        value={name}
+                        onChange={this.handleChange.bind(this, 'name')}
+                        fullWidth
+                    />
+                    <TextField
+                        margin="dense"
+                        id="description"
+                        type="password"
+                        value={pass}
+                        fullWidth
+                        label={isEdit ? 'Pass (empty if no change)' : 'Pass *'}
+                        onChange={this.handleChange.bind(this, 'pass')}
+                    />
                     <FormControlLabel
-                        control={<Switch checked={admin} onChange={this.handleChecked.bind(this, 'admin')}
-                                         value="admin"/>} label="has administrator rights"/>
+                        control={
+                            <Switch
+                                checked={admin}
+                                onChange={this.handleChecked.bind(this, 'admin')}
+                                value="admin"
+                            />
+                        }
+                        label="has administrator rights"
+                    />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={fClose}>Cancel</Button>
-                    <Tooltip placement={'bottom-start'}
-                             title={namePresent ? (passPresent ? '' : 'password is required') : 'name is required'}>
+                    <Tooltip
+                        placement={'bottom-start'}
+                        title={
+                            namePresent
+                                ? passPresent
+                                    ? ''
+                                    : 'password is required'
+                                : 'name is required'
+                        }>
                         <div>
-                            <Button disabled={!passPresent || !namePresent} onClick={submitAndClose}
-                                    color="primary" variant="raised">
+                            <Button
+                                disabled={!passPresent || !namePresent}
+                                onClick={submitAndClose}
+                                color="primary"
+                                variant="raised">
                                 {isEdit ? 'Save' : 'Create'}
                             </Button>
                         </div>

@@ -4,12 +4,11 @@ import Snackbar from 'material-ui/Snackbar';
 import React, {Component} from 'react';
 import SnackBarStore from '../stores/SnackBarStore';
 
-
 interface IState {
-    current: string
-    hasNext: boolean
-    open: boolean
-    openWhen: number
+    current: string;
+    hasNext: boolean;
+    open: boolean;
+    openWhen: number;
 }
 
 class SnackBarHandler extends Component<{}, IState> {
@@ -40,12 +39,18 @@ class SnackBarHandler extends Component<{}, IState> {
         return (
             <Snackbar
                 anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
-                open={open} autoHideDuration={duration}
-                onClose={this.closeCurrentSnack} onExited={this.openNextSnack}
+                open={open}
+                autoHideDuration={duration}
+                onClose={this.closeCurrentSnack}
+                onExited={this.openNextSnack}
                 message={<span id="message-id">{current}</span>}
                 action={
-                    <IconButton key="close" aria-label="Close" color="inherit" onClick={this.closeCurrentSnack}>
-                        <Close/>
+                    <IconButton
+                        key="close"
+                        aria-label="Close"
+                        color="inherit"
+                        onClick={this.closeCurrentSnack}>
+                        <Close />
                     </IconButton>
                 }
             />
@@ -64,7 +69,10 @@ class SnackBarHandler extends Component<{}, IState> {
         if (snackOpenSince > SnackBarHandler.MIN_VISIBLE_SNACK_TIME_IN_MS) {
             this.closeCurrentSnack();
         } else {
-            setTimeout(this.closeCurrentSnack, SnackBarHandler.MIN_VISIBLE_SNACK_TIME_IN_MS - snackOpenSince);
+            setTimeout(
+                this.closeCurrentSnack,
+                SnackBarHandler.MIN_VISIBLE_SNACK_TIME_IN_MS - snackOpenSince
+            );
         }
     };
 

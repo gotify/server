@@ -6,11 +6,11 @@ import React, {ChangeEvent, Component} from 'react';
 import * as UserAction from '../actions/UserAction';
 
 interface IState {
-    pass: string
+    pass: string;
 }
 
 interface IProps {
-    fClose: VoidFunction
+    fClose: VoidFunction;
 }
 
 export default class SettingsDialog extends Component<IProps, IState> {
@@ -27,15 +27,25 @@ export default class SettingsDialog extends Component<IProps, IState> {
             <Dialog open={true} onClose={fClose} aria-labelledby="form-dialog-title">
                 <DialogTitle id="form-dialog-title">Change Password</DialogTitle>
                 <DialogContent>
-                    <TextField autoFocus margin="dense" type="password" label="New Pass *" value={pass}
-                               onChange={this.handleChange.bind(this, 'pass')} fullWidth/>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        type="password"
+                        label="New Pass *"
+                        value={pass}
+                        onChange={this.handleChange.bind(this, 'pass')}
+                        fullWidth
+                    />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={fClose}>Cancel</Button>
                     <Tooltip title={pass.length !== 0 ? '' : 'pass is required'}>
                         <div>
-                            <Button disabled={pass.length === 0} onClick={submitAndClose} color="primary"
-                                    variant="raised">
+                            <Button
+                                disabled={pass.length === 0}
+                                onClick={submitAndClose}
+                                color="primary"
+                                variant="raised">
                                 Change
                             </Button>
                         </div>

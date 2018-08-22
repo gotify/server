@@ -15,10 +15,13 @@ export function fetchApps() {
  * @param {int} id the application id
  */
 export function deleteApp(id: number) {
-    axios.delete(config.get('url') + 'application/' + id).then(() => {
-        fetchApps();
-        dispatcher.dispatch({type: 'DELETE_MESSAGES', payload: id});
-    }).then(() => snack('Application deleted'));
+    axios
+        .delete(config.get('url') + 'application/' + id)
+        .then(() => {
+            fetchApps();
+            dispatcher.dispatch({type: 'DELETE_MESSAGES', payload: id});
+        })
+        .then(() => snack('Application deleted'));
 }
 
 /**
@@ -27,7 +30,8 @@ export function deleteApp(id: number) {
  * @param {string} description the description of the application.
  */
 export function createApp(name: string, description: string) {
-    axios.post(config.get('url') + 'application', {name, description})
+    axios
+        .post(config.get('url') + 'application', {name, description})
         .then(fetchApps)
         .then(() => snack('Application created'));
 }
@@ -40,7 +44,10 @@ export function createApp(name: string, description: string) {
 export function uploadImage(id: number, file: Blob) {
     const formData = new FormData();
     formData.append('file', file);
-    axios.post(config.get('url') + 'application/' + id + '/image', formData,
-        {headers: {'content-type': 'multipart/form-data'}}).then(fetchApps)
+    axios
+        .post(config.get('url') + 'application/' + id + '/image', formData, {
+            headers: {'content-type': 'multipart/form-data'},
+        })
+        .then(fetchApps)
         .then(() => snack('Application image updated'));
 }

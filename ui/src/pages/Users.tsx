@@ -1,4 +1,4 @@
-import {WithStyles} from "material-ui";
+import {WithStyles} from 'material-ui';
 import Delete from 'material-ui-icons/Delete';
 import Edit from 'material-ui-icons/Edit';
 import Grid from 'material-ui/Grid';
@@ -11,7 +11,7 @@ import * as UserAction from '../actions/UserAction';
 import ConfirmDialog from '../component/ConfirmDialog';
 import DefaultPage from '../component/DefaultPage';
 import UserStore from '../stores/UserStore';
-import AddEditDialog from "./dialog/AddEditUserDialog";
+import AddEditDialog from './dialog/AddEditUserDialog';
 
 const styles = () => ({
     wrapper: {
@@ -21,10 +21,10 @@ const styles = () => ({
 });
 
 interface IRowProps {
-    name: string
-    admin: boolean
-    fDelete: VoidFunction
-    fEdit: VoidFunction
+    name: string;
+    admin: boolean;
+    fDelete: VoidFunction;
+    fEdit: VoidFunction;
 }
 
 const UserRow: SFC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
@@ -32,17 +32,21 @@ const UserRow: SFC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
         <TableCell>{name}</TableCell>
         <TableCell>{admin ? 'Yes' : 'No'}</TableCell>
         <TableCell numeric padding="none">
-            <IconButton onClick={fEdit}><Edit/></IconButton>
-            <IconButton onClick={fDelete}><Delete/></IconButton>
+            <IconButton onClick={fEdit}>
+                <Edit />
+            </IconButton>
+            <IconButton onClick={fDelete}>
+                <Delete />
+            </IconButton>
         </TableCell>
     </TableRow>
 );
 
 interface IState {
-    users: IUser[]
-    createDialog: boolean
-    deleteId: number
-    editId: number
+    users: IUser[];
+    createDialog: boolean;
+    deleteId: number;
+    editId: number;
 }
 
 class Users extends Component<WithStyles<'wrapper'>, IState> {
@@ -68,33 +72,48 @@ class Users extends Component<WithStyles<'wrapper'>, IState> {
                                 <TableRow style={{textAlign: 'center'}}>
                                     <TableCell>Name</TableCell>
                                     <TableCell>Admin</TableCell>
-                                    <TableCell/>
+                                    <TableCell />
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {users.map((user: IUser) => {
                                     return (
-                                        <UserRow key={user.id} name={user.name} admin={user.admin}
-                                                 fDelete={() => this.showDeleteDialog(user.id)}
-                                                 fEdit={() => this.showEditDialog(user.id)}/>
+                                        <UserRow
+                                            key={user.id}
+                                            name={user.name}
+                                            admin={user.admin}
+                                            fDelete={() => this.showDeleteDialog(user.id)}
+                                            fEdit={() => this.showEditDialog(user.id)}
+                                        />
                                     );
                                 })}
                             </TableBody>
                         </Table>
                     </Paper>
                 </Grid>
-                {this.state.createDialog && <AddEditDialog fClose={this.hideCreateDialog}
-                                                           fOnSubmit={UserAction.createUser}/>}
-                {editId !== -1 && <AddEditDialog fClose={this.hideEditDialog}
-                                                 fOnSubmit={UserAction.updateUser.bind(this, editId)}
-                                                 name={UserStore.getById(this.state.editId).name}
-                                                 admin={UserStore.getById(this.state.editId).admin}
-                                                 isEdit={true}/>}
-                {deleteId !== -1 && <ConfirmDialog title="Confirm Delete"
-                                                   text={'Delete ' + UserStore.getById(this.state.deleteId).name + '?'}
-                                                   fClose={this.hideDeleteDialog}
-                                                   fOnSubmit={() => UserAction.deleteUser(this.state.deleteId)}
-                />}
+                {this.state.createDialog && (
+                    <AddEditDialog
+                        fClose={this.hideCreateDialog}
+                        fOnSubmit={UserAction.createUser}
+                    />
+                )}
+                {editId !== -1 && (
+                    <AddEditDialog
+                        fClose={this.hideEditDialog}
+                        fOnSubmit={UserAction.updateUser.bind(this, editId)}
+                        name={UserStore.getById(this.state.editId).name}
+                        admin={UserStore.getById(this.state.editId).admin}
+                        isEdit={true}
+                    />
+                )}
+                {deleteId !== -1 && (
+                    <ConfirmDialog
+                        title="Confirm Delete"
+                        text={'Delete ' + UserStore.getById(this.state.deleteId).name + '?'}
+                        fClose={this.hideDeleteDialog}
+                        fOnSubmit={() => UserAction.deleteUser(this.state.deleteId)}
+                    />
+                )}
             </DefaultPage>
         );
     }

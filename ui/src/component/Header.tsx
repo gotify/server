@@ -1,4 +1,4 @@
-import {Theme, WithStyles} from "material-ui";
+import {Theme, WithStyles} from 'material-ui';
 import AccountCircle from 'material-ui-icons/AccountCircle';
 import Chat from 'material-ui-icons/Chat';
 import DevicesOther from 'material-ui-icons/DevicesOther';
@@ -33,15 +33,15 @@ const styles = (theme: Theme) => ({
     },
 });
 
-type Styles = WithStyles<'link' | 'titleName' | 'title' | 'appBar'>
+type Styles = WithStyles<'link' | 'titleName' | 'title' | 'appBar'>;
 
 interface IProps {
-    loggedIn: boolean
-    name: string
-    admin: boolean
-    version: string
-    toggleTheme: VoidFunction
-    showSettings: VoidFunction
+    loggedIn: boolean;
+    name: string;
+    admin: boolean;
+    version: string;
+    toggleTheme: VoidFunction;
+    showSettings: VoidFunction;
 }
 
 class Header extends Component<IProps & Styles> {
@@ -53,18 +53,25 @@ class Header extends Component<IProps & Styles> {
                 <Toolbar>
                     <div className={classes.title}>
                         <a href="https://github.com/gotify/server" className={classes.link}>
-                            <Typography variant="headline" className={classes.titleName} color="inherit">
+                            <Typography
+                                variant="headline"
+                                className={classes.titleName}
+                                color="inherit">
                                 Gotify
                             </Typography>
                         </a>
-                        <a href={'https://github.com/gotify/server/releases/tag/v' + version} className={classes.link}>
+                        <a
+                            href={'https://github.com/gotify/server/releases/tag/v' + version}
+                            className={classes.link}>
                             <Typography variant="button" color="inherit">
                                 @{version}
                             </Typography>
                         </a>
                     </div>
                     {loggedIn && this.renderButtons(name, admin)}
-                    <IconButton onClick={toggleTheme} color="inherit"><LightbulbOutline/></IconButton>
+                    <IconButton onClick={toggleTheme} color="inherit">
+                        <LightbulbOutline />
+                    </IconButton>
                 </Toolbar>
             </AppBar>
         );
@@ -74,18 +81,37 @@ class Header extends Component<IProps & Styles> {
         const {classes, showSettings} = this.props;
         return (
             <div>
-                {admin
-                    ? <Link className={classes.link} to="/users">
-                        <Button color="inherit"><SupervisorAccount/>&nbsp;users</Button></Link>
-                    : ''}
+                {admin ? (
+                    <Link className={classes.link} to="/users">
+                        <Button color="inherit">
+                            <SupervisorAccount />
+                            &nbsp;users
+                        </Button>
+                    </Link>
+                ) : (
+                    ''
+                )}
                 <Link className={classes.link} to="/applications">
-                    <Button color="inherit"><Chat/>&nbsp;apps</Button>
+                    <Button color="inherit">
+                        <Chat />
+                        &nbsp;apps
+                    </Button>
                 </Link>
-                <Link className={classes.link} to="/clients"><Button color="inherit">
-                    <DevicesOther/>&nbsp;clients</Button>
+                <Link className={classes.link} to="/clients">
+                    <Button color="inherit">
+                        <DevicesOther />
+                        &nbsp;clients
+                    </Button>
                 </Link>
-                <Button color="inherit" onClick={showSettings}><AccountCircle/>&nbsp;{name}</Button>
-                <Button color="inherit" onClick={UserAction.logout}><ExitToApp/>&nbsp;Logout</Button>
+                <Button color="inherit" onClick={showSettings}>
+                    <AccountCircle />
+                    &nbsp;
+                    {name}
+                </Button>
+                <Button color="inherit" onClick={UserAction.logout}>
+                    <ExitToApp />
+                    &nbsp;Logout
+                </Button>
             </div>
         );
     }

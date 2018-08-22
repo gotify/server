@@ -1,4 +1,4 @@
-import {WithStyles} from "material-ui";
+import {WithStyles} from 'material-ui';
 import Delete from 'material-ui-icons/Delete';
 import IconButton from 'material-ui/IconButton';
 import {withStyles} from 'material-ui/styles';
@@ -32,14 +32,22 @@ const styles = () => ({
     },
 });
 
-type Style = WithStyles<'header' | 'headerTitle' | 'trash' | 'wrapperPadding' | 'messageContentWrapper' | 'image' | 'imageWrapper'>;
+type Style = WithStyles<
+    | 'header'
+    | 'headerTitle'
+    | 'trash'
+    | 'wrapperPadding'
+    | 'messageContentWrapper'
+    | 'image'
+    | 'imageWrapper'
+>;
 
 interface IProps {
-    title: string
-    image?: string
-    date: string
-    content: string
-    fDelete: VoidFunction
+    title: string;
+    image?: string;
+    date: string;
+    content: string;
+    fDelete: VoidFunction;
 }
 
 function Message({fDelete, classes, title, date, content, image}: IProps & Style) {
@@ -47,7 +55,13 @@ function Message({fDelete, classes, title, date, content, image}: IProps & Style
         <div className={classes.wrapperPadding}>
             <Container style={{display: 'flex'}}>
                 <div className={classes.imageWrapper}>
-                    <img src={image} alt="app logo" width="70" height="70" className={classes.image}/>
+                    <img
+                        src={image}
+                        alt="app logo"
+                        width="70"
+                        height="70"
+                        className={classes.image}
+                    />
                 </div>
                 <div className={classes.messageContentWrapper}>
                     <div className={classes.header}>
@@ -55,9 +69,11 @@ function Message({fDelete, classes, title, date, content, image}: IProps & Style
                             {title}
                         </Typography>
                         <Typography variant="body1">
-                            <TimeAgo date={date}/>
+                            <TimeAgo date={date} />
                         </Typography>
-                        <IconButton onClick={fDelete} className={classes.trash}><Delete/></IconButton>
+                        <IconButton onClick={fDelete} className={classes.trash}>
+                            <Delete />
+                        </IconButton>
                     </div>
                     <Typography component="p">{content}</Typography>
                 </div>

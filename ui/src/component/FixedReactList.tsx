@@ -16,7 +16,6 @@ class FixedReactList extends ReactList {
         super.cacheSizes();
     }
 
-
     public clearCacheFromIndex(startIndex: number): void {
         this.ignoreNextCacheUpdate = true;
 
@@ -25,16 +24,19 @@ class FixedReactList extends ReactList {
             this.cache = {};
         } else {
             // @ts-ignore accessing private member
-            Object.keys(this.cache).filter((index) => index >= startIndex).forEach((index) => {
-                // @ts-ignore accessing private member
-                delete this.cache[index];
-            });
+            Object.keys(this.cache)
+                .filter((index) => +index >= startIndex)
+                .forEach((index) => {
+                    // @ts-ignore accessing private member
+                    delete this.cache[index];
+                });
         }
-    };
+    }
 
     public componentDidUpdate() {
-        // @ts-ignore accessing private member
-        const hasCacheForLastRenderedItem = Object.keys(this.cache).length && this.cache[this.getVisibleRange()[1]];
+        const hasCacheForLastRenderedItem =
+            // @ts-ignore accessing private member
+            Object.keys(this.cache).length && this.cache[this.getVisibleRange()[1]];
         // @ts-ignore accessing private member
         super.componentDidUpdate();
         if (!hasCacheForLastRenderedItem) {
