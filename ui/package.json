@@ -26,18 +26,21 @@
     "test": "react-scripts-ts test --env=jsdom",
     "eject": "react-scripts-ts eject",
     "lint": "tslint --project .",
-    "lintfix": "tslint --fix --project ."
+    "lintfix": "tslint --fix --project .",
+    "format": "prettier src/**/*.{ts,tsx} --write",
+    "testformat": "prettier src/**/*.{ts,tsx} --list-different"
   },
   "devDependencies": {
-    "@types/notifyjs": "^1.2.30",
     "@types/detect-browser": "^2.0.1",
     "@types/flux": "^3.1.7",
     "@types/jest": "^22.2.3",
     "@types/node": "^9.6.5",
+    "@types/notifyjs": "^1.2.30",
     "@types/react": "^16.3.11",
     "@types/react-dom": "^16.0.5",
     "@types/react-list": "^0.8.3",
     "@types/react-router-dom": "^4.2.6",
+    "prettier": "^1.14.2",
     "typescript": "^2.8.1"
   }
 }
