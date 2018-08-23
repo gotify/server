@@ -12,7 +12,7 @@
     "prop-types": "^15.6.1",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
-    "react-list": "^0.8.8",
+    "react-list": "^0.8.10",
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
     "react-scripts-ts": "2.15.1",
@@ -38,7 +38,7 @@
     "@types/notifyjs": "^1.2.30",
     "@types/react": "^16.4.11",
     "@types/react-dom": "^16.0.7",
-    "@types/react-list": "^0.8.3",
+    "@types/react-list": "^0.8.4",
     "@types/react-router-dom": "^4.3.0",
     "prettier": "^1.14.2",
     "typescript": "^2.8.1"
