@@ -1,5 +1,5 @@
-import Grid from 'material-ui/Grid';
-import {CircularProgress} from 'material-ui/Progress';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import DefaultPage from './DefaultPage';
 

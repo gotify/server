@@ -1,8 +1,9 @@
-import {Theme, WithStyles} from 'material-ui';
-import Divider from 'material-ui/Divider';
-import Drawer from 'material-ui/Drawer';
-import {ListItem, ListItemText} from 'material-ui/List';
-import {withStyles} from 'material-ui/styles';
+import Divider from '@material-ui/core/Divider';
+import Drawer from '@material-ui/core/Drawer';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import {Theme, WithStyles} from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import AppStore from '../stores/AppStore';
@@ -12,6 +13,7 @@ const styles = (theme: Theme) => ({
         position: 'relative' as 'relative',
         width: 250,
         minHeight: '100%',
+        height: '100vh',
     },
     toolbar: theme.mixins.toolbar as any,
     link: {

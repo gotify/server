@@ -1,7 +1,7 @@
-import Visibility from 'material-ui-icons/Visibility';
-import VisibilityOff from 'material-ui-icons/VisibilityOff';
-import IconButton from 'material-ui/IconButton';
-import Typography from 'material-ui/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import Visibility from '@material-ui/icons/Visibility';
+import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import React, {Component} from 'react';
 
 interface IProps {
