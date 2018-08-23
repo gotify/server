@@ -1,5 +1,5 @@
-import KeyboardArrowUp from 'material-ui-icons/KeyboardArrowUp';
-import Button from 'material-ui/Button';
+import Button from '@material-ui/core/Button';
+import KeyboardArrowUp from '@material-ui/icons/KeyboardArrowUp';
 import React, {Component} from 'react';
 
 class ScrollUpButton extends Component {

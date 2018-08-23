@@ -1,6 +1,6 @@
+import {createMuiTheme, MuiThemeProvider, Theme, WithStyles, withStyles} from '@material-ui/core';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import axios, {AxiosResponse} from 'axios';
-import CssBaseline from 'material-ui/CssBaseline';
-import {createMuiTheme, MuiThemeProvider, Theme, WithStyles, withStyles} from 'material-ui/styles';
 import * as React from 'react';
 import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
 import Header from './component/Header';

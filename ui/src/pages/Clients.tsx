@@ -1,8 +1,12 @@
-import Delete from 'material-ui-icons/Delete';
-import Grid from 'material-ui/Grid';
-import IconButton from 'material-ui/IconButton';
-import Paper from 'material-ui/Paper';
-import Table, {TableBody, TableCell, TableHead, TableRow} from 'material-ui/Table';
+import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
+import Paper from '@material-ui/core/Paper';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Delete from '@material-ui/icons/Delete';
 import React, {Component, SFC} from 'react';
 import * as ClientAction from '../actions/ClientAction';
 import ConfirmDialog from '../component/ConfirmDialog';

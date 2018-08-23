@@ -1,6 +1,6 @@
-import Button from 'material-ui/Button';
-import Grid from 'material-ui/Grid';
-import TextField from 'material-ui/TextField';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
 import React, {ChangeEvent, Component, FormEvent} from 'react';
 import * as UserAction from '../actions/UserAction';
 import Container from '../component/Container';

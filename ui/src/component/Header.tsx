@@ -1,16 +1,16 @@
-import {Theme, WithStyles} from 'material-ui';
-import AccountCircle from 'material-ui-icons/AccountCircle';
-import Chat from 'material-ui-icons/Chat';
-import DevicesOther from 'material-ui-icons/DevicesOther';
-import ExitToApp from 'material-ui-icons/ExitToApp';
-import LightbulbOutline from 'material-ui-icons/LightbulbOutline';
-import SupervisorAccount from 'material-ui-icons/SupervisorAccount';
-import AppBar from 'material-ui/AppBar';
-import Button from 'material-ui/Button';
-import IconButton from 'material-ui/IconButton';
-import {withStyles} from 'material-ui/styles';
-import Toolbar from 'material-ui/Toolbar';
-import Typography from 'material-ui/Typography';
+import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import {Theme, WithStyles} from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import AccountCircle from '@material-ui/icons/AccountCircle';
+import Chat from '@material-ui/icons/Chat';
+import DevicesOther from '@material-ui/icons/DevicesOther';
+import ExitToApp from '@material-ui/icons/ExitToApp';
+import Highlight from '@material-ui/icons/Highlight';
+import SupervisorAccount from '@material-ui/icons/SupervisorAccount';
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import * as UserAction from '../actions/UserAction';
@@ -70,7 +70,7 @@ class Header extends Component<IProps & Styles> {
                     </div>
                     {loggedIn && this.renderButtons(name, admin)}
                     <IconButton onClick={toggleTheme} color="inherit">
-                        <LightbulbOutline />
+                        <Highlight />
                     </IconButton>
                 </Toolbar>
             </AppBar>

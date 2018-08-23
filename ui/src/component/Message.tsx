@@ -1,8 +1,7 @@
-import {WithStyles} from 'material-ui';
-import Delete from 'material-ui-icons/Delete';
-import IconButton from 'material-ui/IconButton';
-import {withStyles} from 'material-ui/styles';
-import Typography from 'material-ui/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import {withStyles, WithStyles} from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import Delete from '@material-ui/icons/Delete';
 import React from 'react';
 import TimeAgo from 'react-timeago';
 import Container from './Container';

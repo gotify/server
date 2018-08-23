@@ -1,6 +1,6 @@
-import Close from 'material-ui-icons/Close';
-import IconButton from 'material-ui/IconButton';
-import Snackbar from 'material-ui/Snackbar';
+import IconButton from '@material-ui/core/IconButton';
+import Snackbar from '@material-ui/core/Snackbar';
+import Close from '@material-ui/icons/Close';
 import React, {Component} from 'react';
 import SnackBarStore from '../stores/SnackBarStore';
 
