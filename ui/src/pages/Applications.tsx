@@ -25,7 +25,7 @@ interface IState {
 
 class Applications extends Component<{}, IState> {
     public state = {apps: [], createDialog: false, deleteId: -1};
-    private uploadId: number = -1;
+    private uploadId = -1;
     private upload: HTMLInputElement | null = null;
 
     public componentWillMount() {

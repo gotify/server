@@ -5,7 +5,6 @@ import ClientStore from '../stores/ClientStore';
 import dispatcher from '../stores/dispatcher';
 import {getToken, setAuthorizationToken} from './defaultAxios';
 import * as GlobalAction from './GlobalAction';
-import {snack} from './GlobalAction';
 
 /**
  * Login the user.
@@ -25,7 +24,7 @@ export function login(username: string, password: string) {
             auth: {username, password},
         })
         .then((resp) => {
-            snack(`A client named '${name}' was created for your session.`);
+            GlobalAction.snack(`A client named '${name}' was created for your session.`);
             setAuthorizationToken(resp.data.token);
             tryAuthenticate()
                 .then(GlobalAction.initialLoad)
@@ -36,7 +35,7 @@ export function login(username: string, password: string) {
                 );
         })
         .catch(() => {
-            snack('Login failed');
+            GlobalAction.snack('Login failed');
             noAuthentication();
         });
 }
@@ -63,7 +62,9 @@ export function tryAuthenticate() {
         .catch((resp) => {
             if (getToken()) {
                 setAuthorizationToken(null);
-                snack('Authentication failed, try to re-login. (client or user was deleted)');
+                GlobalAction.snack(
+                    'Authentication failed, try to re-login. (client or user was deleted)'
+                );
             }
             noAuthentication();
             return Promise.reject(resp);
@@ -95,7 +96,7 @@ function authenticating() {
 export function changeCurrentUser(pass: string) {
     axios
         .post(config.get('url') + 'current/user/password', {pass})
-        .then(() => snack('Password changed'));
+        .then(() => GlobalAction.snack('Password changed'));
 }
 
 /** Fetches all users. */
@@ -113,7 +114,7 @@ export function deleteUser(id: number) {
     axios
         .delete(config.get('url') + 'user/' + id)
         .then(fetchUsers)
-        .then(() => snack('User deleted'));
+        .then(() => GlobalAction.snack('User deleted'));
 }
 
 /**
@@ -126,7 +127,7 @@ export function createUser(name: string, pass: string, admin: boolean) {
     axios
         .post(config.get('url') + 'user', {name, pass, admin})
         .then(fetchUsers)
-        .then(() => snack('User created'));
+        .then(() => GlobalAction.snack('User created'));
 }
 
 /**
@@ -140,6 +141,6 @@ export function updateUser(id: number, name: string, pass: string | null, admin:
     axios.post(config.get('url') + 'user/' + id, {name, pass, admin}).then(() => {
         fetchUsers();
         tryAuthenticate(); // try authenticate updates the current user
-        snack('User updated');
+        GlobalAction.snack('User updated');
     });
 }
