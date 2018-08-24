@@ -41,6 +41,7 @@
     "@types/react-list": "^0.8.4",
     "@types/react-router-dom": "^4.3.0",
     "prettier": "^1.14.2",
+    "tslint-sonarts": "^1.7.0",
     "typescript": "^3.0.1"
   }
 }
