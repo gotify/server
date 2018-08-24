@@ -1,3 +1,3 @@
-declare module 'notifyjs' {
-    export default Notify;
-}
+import Notify = require('notifyjs');
+export as namespace notifyjs;
+export = Notify;
