@@ -10,7 +10,7 @@ import Message from '../component/Message';
 import AppStore from '../stores/AppStore';
 import MessageStore from '../stores/MessageStore';
 
-interface IProps extends RouteComponentProps<any> {}
+interface IProps extends RouteComponentProps<{id: string}> {}
 
 interface IState {
     appId: number;
