@@ -22,6 +22,7 @@ class Login extends Component<{}, IState> {
                     <Container>
                         <form onSubmit={this.preventDefault}>
                             <TextField
+                                autoFocus
                                 id="name"
                                 label="Username"
                                 margin="dense"
