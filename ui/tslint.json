@@ -56,7 +56,7 @@
 
     "cognitive-complexity": true,
     "mccabe-complexity": true,
-    "no-duplicate-string": true,
+    "no-duplicate-string": false,
     "no-nested-incdec": false,
     "no-all-duplicated-branches": true,
     "consecutive-overloads": true,
