@@ -3,7 +3,7 @@ BUILD_DIR=./build/
 DOCKER_DIR=./docker/
 SHELL := /bin/bash
 
-test: test-coverage test-race
+test: test-coverage test-race test-js
 check: check-go check-swagger check-js
 
 require-version:
@@ -22,6 +22,9 @@ test-coverage:
 			rm profile.out ; \
 		fi \
 	done
+
+test-js:
+	(cd ui && CI=true npm test)
 
 check-go:
 	go vet ./...
