@@ -51,7 +51,10 @@ class Navigation extends Component<IProps & Styles, IState> {
                 ? null
                 : apps.map((app) => {
                       return (
-                          <Link className={classes.link} to={'/messages/' + app.id} key={app.id}>
+                          <Link
+                              className={`${classes.link} item`}
+                              to={'/messages/' + app.id}
+                              key={app.id}>
                               <ListItem button>
                                   <ListItemText primary={app.name} />
                               </ListItem>
@@ -69,10 +72,13 @@ class Navigation extends Component<IProps & Styles, IState> {
         ];
 
         return (
-            <Drawer variant="permanent" classes={{paper: classes.drawerPaper}}>
+            <Drawer
+                variant="permanent"
+                classes={{paper: classes.drawerPaper}}
+                id="message-navigation">
                 <div className={classes.toolbar} />
                 <Link className={classes.link} to="/">
-                    <ListItem button disabled={!loggedIn}>
+                    <ListItem button disabled={!loggedIn} className="all">
                         <ListItemText primary="All Messages" />
                     </ListItem>
                 </Link>

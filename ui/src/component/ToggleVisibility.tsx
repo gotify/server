@@ -21,7 +21,7 @@ class ToggleVisibility extends Component<IProps, IState> {
         const text = this.state.visible ? value : '•••••••••••••••';
         return (
             <div style={style}>
-                <IconButton onClick={this.toggleVisibility}>
+                <IconButton onClick={this.toggleVisibility} className="toggle-visibility">
                     {this.state.visible ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
                 <Typography style={{fontFamily: "'Roboto Mono', monospace"}}>{text}</Typography>

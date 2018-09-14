@@ -24,13 +24,17 @@ export default class AddDialog extends Component<IProps, {name: string}> {
             fClose();
         };
         return (
-            <Dialog open={true} onClose={fClose} aria-labelledby="form-dialog-title">
+            <Dialog
+                open={true}
+                onClose={fClose}
+                aria-labelledby="form-dialog-title"
+                id="client-dialog">
                 <DialogTitle id="form-dialog-title">Create a client</DialogTitle>
                 <DialogContent>
                     <TextField
                         autoFocus
                         margin="dense"
-                        id="name"
+                        className="name"
                         label="Name *"
                         type="email"
                         value={name}
@@ -45,6 +49,7 @@ export default class AddDialog extends Component<IProps, {name: string}> {
                         title={submitEnabled ? '' : 'name is required'}>
                         <div>
                             <Button
+                                className="create"
                                 disabled={!submitEnabled}
                                 onClick={submitAndClose}
                                 color="primary"

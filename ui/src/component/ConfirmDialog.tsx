@@ -19,14 +19,25 @@ export default function ConfirmDialog({title, text, fClose, fOnSubmit}: IProps) 
         fClose();
     };
     return (
-        <Dialog open={true} onClose={fClose} aria-labelledby="form-dialog-title">
+        <Dialog
+            open={true}
+            onClose={fClose}
+            aria-labelledby="form-dialog-title"
+            className="confirm-dialog">
             <DialogTitle id="form-dialog-title">{title}</DialogTitle>
             <DialogContent>
                 <DialogContentText>{text}</DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={fClose}>No</Button>
-                <Button onClick={submitAndClose} autoFocus color="primary" variant="raised">
+                <Button onClick={fClose} className="cancel">
+                    No
+                </Button>
+                <Button
+                    onClick={submitAndClose}
+                    autoFocus
+                    color="primary"
+                    variant="raised"
+                    className="confirm">
                     Yes
                 </Button>
             </DialogActions>

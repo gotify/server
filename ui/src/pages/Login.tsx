@@ -20,10 +20,10 @@ class Login extends Component<{}, IState> {
             <DefaultPage title="Login" maxWidth={250} hideButton={true}>
                 <Grid item xs={12} style={{textAlign: 'center'}}>
                     <Container>
-                        <form onSubmit={this.preventDefault}>
+                        <form onSubmit={this.preventDefault} id="login-form">
                             <TextField
                                 autoFocus
-                                id="name"
+                                className="name"
                                 label="Username"
                                 margin="dense"
                                 value={username}
@@ -31,7 +31,7 @@ class Login extends Component<{}, IState> {
                             />
                             <TextField
                                 type="password"
-                                id="password"
+                                className="password"
                                 label="Password"
                                 margin="normal"
                                 value={password}
@@ -41,6 +41,7 @@ class Login extends Component<{}, IState> {
                                 type="submit"
                                 variant="raised"
                                 size="large"
+                                className="login"
                                 color="primary"
                                 style={{marginTop: 15, marginBottom: 5}}
                                 onClick={this.login}>

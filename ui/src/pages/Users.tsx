@@ -35,10 +35,10 @@ const UserRow: SFC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
         <TableCell>{name}</TableCell>
         <TableCell>{admin ? 'Yes' : 'No'}</TableCell>
         <TableCell numeric padding="none">
-            <IconButton onClick={fEdit}>
+            <IconButton onClick={fEdit} className="edit">
                 <Edit />
             </IconButton>
-            <IconButton onClick={fDelete}>
+            <IconButton onClick={fDelete} className="delete">
                 <Delete />
             </IconButton>
         </TableCell>
@@ -67,10 +67,14 @@ class Users extends Component<WithStyles<'wrapper'>, IState> {
     public render() {
         const {users, deleteId, editId} = this.state;
         return (
-            <DefaultPage title="Users" buttonTitle="Create User" fButton={this.showCreateDialog}>
+            <DefaultPage
+                title="Users"
+                buttonTitle="Create User"
+                buttonId="create-user"
+                fButton={this.showCreateDialog}>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
-                        <Table>
+                        <Table id="user-table">
                             <TableHead>
                                 <TableRow style={{textAlign: 'center'}}>
                                     <TableCell>Name</TableCell>

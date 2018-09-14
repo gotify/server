@@ -10,11 +10,13 @@ interface IProps {
     buttonDisabled?: boolean;
     maxWidth?: number;
     hideButton?: boolean;
+    buttonId?: string;
 }
 
 const DefaultPage: SFC<IProps> = ({
     title,
     buttonTitle,
+    buttonId,
     fButton,
     buttonDisabled = false,
     maxWidth = 700,
@@ -29,6 +31,7 @@ const DefaultPage: SFC<IProps> = ({
                 </Typography>
                 {hideButton ? null : (
                     <Button
+                        id={buttonId}
                         variant="raised"
                         color="primary"
                         disabled={buttonDisabled}

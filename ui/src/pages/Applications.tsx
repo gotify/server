@@ -43,11 +43,12 @@ class Applications extends Component<{}, IState> {
             <DefaultPage
                 title="Applications"
                 buttonTitle="Create Application"
+                buttonId="create-app"
                 maxWidth={1000}
                 fButton={this.showCreateDialog}>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
-                        <Table>
+                        <Table id="app-table">
                             <TableHead>
                                 <TableRow>
                                     <TableCell padding="checkbox" style={{width: 80}} />
@@ -151,7 +152,7 @@ const Row: SFC<IRowProps> = ({name, value, description, fDelete, fUpload, image}
         </TableCell>
         <TableCell>{description}</TableCell>
         <TableCell numeric padding="none">
-            <IconButton onClick={fDelete}>
+            <IconButton onClick={fDelete} className="delete">
                 <Delete />
             </IconButton>
         </TableCell>
