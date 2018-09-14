@@ -23,7 +23,7 @@
   "scripts": {
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
-    "test": "react-scripts-ts test --env=jsdom",
+    "test": "react-scripts-ts test",
     "eject": "react-scripts-ts eject",
     "lint": "tslint --project .",
     "lintfix": "tslint --fix --project .",
