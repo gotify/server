@@ -58,10 +58,11 @@ class Messages extends Component<IProps, IState> {
             <DefaultPage
                 title={name}
                 buttonTitle="Delete All"
+                buttonId="delete-all"
                 fButton={deleteMessages}
                 buttonDisabled={!hasMessages}>
                 {hasMessages ? (
-                    <div style={{width: '100%'}}>
+                    <div style={{width: '100%'}} id="messages">
                         <ReactList
                             key={appId}
                             ref={(el: ReactList) => (this.list = el)}

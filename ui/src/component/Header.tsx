@@ -81,7 +81,7 @@ class Header extends Component<IProps & Styles> {
         return (
             <div>
                 {admin ? (
-                    <Link className={classes.link} to="/users">
+                    <Link className={classes.link} to="/users" id="navigate-users">
                         <Button color="inherit">
                             <SupervisorAccount />
                             &nbsp;users
@@ -90,24 +90,24 @@ class Header extends Component<IProps & Styles> {
                 ) : (
                     ''
                 )}
-                <Link className={classes.link} to="/applications">
+                <Link className={classes.link} to="/applications" id="navigate-apps">
                     <Button color="inherit">
                         <Chat />
                         &nbsp;apps
                     </Button>
                 </Link>
-                <Link className={classes.link} to="/clients">
+                <Link className={classes.link} to="/clients" id="navigate-clients">
                     <Button color="inherit">
                         <DevicesOther />
                         &nbsp;clients
                     </Button>
                 </Link>
-                <Button color="inherit" onClick={showSettings}>
+                <Button color="inherit" onClick={showSettings} id="changepw">
                     <AccountCircle />
                     &nbsp;
                     {name}
                 </Button>
-                <Button color="inherit" onClick={UserAction.logout}>
+                <Button color="inherit" onClick={UserAction.logout} id="logout">
                     <ExitToApp />
                     &nbsp;Logout
                 </Button>

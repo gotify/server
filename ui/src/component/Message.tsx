@@ -51,7 +51,7 @@ interface IProps {
 
 function Message({fDelete, classes, title, date, content, image}: IProps & Style) {
     return (
-        <div className={classes.wrapperPadding}>
+        <div className={`${classes.wrapperPadding} message`}>
             <Container style={{display: 'flex'}}>
                 <div className={classes.imageWrapper}>
                     <img
@@ -64,17 +64,19 @@ function Message({fDelete, classes, title, date, content, image}: IProps & Style
                 </div>
                 <div className={classes.messageContentWrapper}>
                     <div className={classes.header}>
-                        <Typography className={classes.headerTitle} variant="headline">
+                        <Typography className={`${classes.headerTitle} title`} variant="headline">
                             {title}
                         </Typography>
-                        <Typography variant="body1">
+                        <Typography variant="body1" className="date">
                             <TimeAgo date={date} />
                         </Typography>
                         <IconButton onClick={fDelete} className={classes.trash}>
-                            <Delete />
+                            <Delete className="delete" />
                         </IconButton>
                     </div>
-                    <Typography component="p">{content}</Typography>
+                    <Typography component="p" className="content">
+                        {content}
+                    </Typography>
                 </div>
             </Container>
         </div>

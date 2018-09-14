@@ -39,10 +39,11 @@ class Clients extends Component<{}, IState> {
             <DefaultPage
                 title="Clients"
                 buttonTitle="Create Client"
+                buttonId="create-client"
                 fButton={this.showCreateDialog}>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
-                        <Table>
+                        <Table id="client-table">
                             <TableHead>
                                 <TableRow style={{textAlign: 'center'}}>
                                     <TableCell>Name</TableCell>
@@ -110,7 +111,7 @@ const Row: SFC<IRowProps> = ({name, value, fDelete}) => (
             />
         </TableCell>
         <TableCell numeric padding="none">
-            <IconButton onClick={fDelete}>
+            <IconButton onClick={fDelete} className="delete">
                 <Delete />
             </IconButton>
         </TableCell>

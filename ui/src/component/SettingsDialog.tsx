@@ -27,10 +27,15 @@ export default class SettingsDialog extends Component<IProps, IState> {
             fClose();
         };
         return (
-            <Dialog open={true} onClose={fClose} aria-labelledby="form-dialog-title">
+            <Dialog
+                open={true}
+                onClose={fClose}
+                aria-labelledby="form-dialog-title"
+                id="changepw-dialog">
                 <DialogTitle id="form-dialog-title">Change Password</DialogTitle>
                 <DialogContent>
                     <TextField
+                        className="newpass"
                         autoFocus
                         margin="dense"
                         type="password"
@@ -45,6 +50,7 @@ export default class SettingsDialog extends Component<IProps, IState> {
                     <Tooltip title={pass.length !== 0 ? '' : 'pass is required'}>
                         <div>
                             <Button
+                                className="change"
                                 disabled={pass.length === 0}
                                 onClick={submitAndClose}
                                 color="primary"

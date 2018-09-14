@@ -30,7 +30,11 @@ export default class AddDialog extends Component<IProps, IState> {
             fClose();
         };
         return (
-            <Dialog open={true} onClose={fClose} aria-labelledby="form-dialog-title">
+            <Dialog
+                open={true}
+                onClose={fClose}
+                aria-labelledby="form-dialog-title"
+                id="app-dialog">
                 <DialogTitle id="form-dialog-title">Create an application</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -39,7 +43,7 @@ export default class AddDialog extends Component<IProps, IState> {
                     <TextField
                         autoFocus
                         margin="dense"
-                        id="name"
+                        className="name"
                         label="Name *"
                         type="email"
                         value={name}
@@ -48,7 +52,7 @@ export default class AddDialog extends Component<IProps, IState> {
                     />
                     <TextField
                         margin="dense"
-                        id="description"
+                        className="description"
                         label="Short Description"
                         value={description}
                         onChange={this.handleChange.bind(this, 'description')}
@@ -61,6 +65,7 @@ export default class AddDialog extends Component<IProps, IState> {
                     <Tooltip title={submitEnabled ? '' : 'name is required'}>
                         <div>
                             <Button
+                                className="create"
                                 disabled={!submitEnabled}
                                 onClick={submitAndClose}
                                 color="primary"

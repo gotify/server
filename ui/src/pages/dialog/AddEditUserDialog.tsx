@@ -40,7 +40,11 @@ export default class AddEditDialog extends Component<IProps, IState> {
             fClose();
         };
         return (
-            <Dialog open={true} onClose={fClose} aria-labelledby="form-dialog-title">
+            <Dialog
+                open={true}
+                onClose={fClose}
+                aria-labelledby="form-dialog-title"
+                id="add-edit-user-dialog">
                 <DialogTitle id="form-dialog-title">
                     {isEdit ? 'Edit ' + this.props.name : 'Add a user'}
                 </DialogTitle>
@@ -48,7 +52,7 @@ export default class AddEditDialog extends Component<IProps, IState> {
                     <TextField
                         autoFocus
                         margin="dense"
-                        id="name"
+                        className="name"
                         label="Name *"
                         type="email"
                         value={name}
@@ -57,7 +61,7 @@ export default class AddEditDialog extends Component<IProps, IState> {
                     />
                     <TextField
                         margin="dense"
-                        id="description"
+                        className="password"
                         type="password"
                         value={pass}
                         fullWidth
@@ -68,6 +72,7 @@ export default class AddEditDialog extends Component<IProps, IState> {
                         control={
                             <Switch
                                 checked={admin}
+                                className="admin-rights"
                                 onChange={this.handleChecked.bind(this, 'admin')}
                                 value="admin"
                             />
@@ -88,6 +93,7 @@ export default class AddEditDialog extends Component<IProps, IState> {
                         }>
                         <div>
                             <Button
+                                className="save-create"
                                 disabled={!passPresent || !namePresent}
                                 onClick={submitAndClose}
                                 color="primary"
