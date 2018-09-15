@@ -24,7 +24,9 @@ test-coverage:
 	done
 
 test-js:
-	(cd ui && CI=true npm test)
+	go build -o removeme/gotify app.go
+	(cd ui && CI=true GOTIFY_EXE=../removeme/gotify npm test)
+	rm -rf removeme
 
 check-go:
 	go vet ./...

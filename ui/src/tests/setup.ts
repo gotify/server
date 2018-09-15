@@ -3,6 +3,7 @@ import {spawn, exec, ChildProcess} from 'child_process';
 import rimraf from 'rimraf';
 import path from 'path';
 import puppeteer, {Browser, Page} from 'puppeteer';
+import fs from 'fs';
 // @ts-ignore
 import wait from 'wait-on';
 import kill from 'tree-kill';
@@ -16,9 +17,11 @@ export interface GotifyTest {
 
 const windowsPrefix = process.platform === 'win32' ? '.exe' : '';
 const appDotGo = path.join(__dirname, '..', '..', '..', 'app.go');
+const testBuildPath = path.join(__dirname, 'build');
 
 export const newTest = async (): Promise<GotifyTest> => {
     const port = await getPort();
+
     const gotifyFile = testFilePath();
 
     await buildGoExecutable(gotifyFile);
@@ -54,7 +57,7 @@ const testFilePath = (): string => {
         .toString(36)
         .substring(2, 15);
     const filename = 'gotifytest_' + random + windowsPrefix;
-    return path.join(__dirname, 'build', filename);
+    return path.join(testBuildPath, filename);
 };
 
 const waitForGotify = (url: string): Promise<void> => {
@@ -71,7 +74,20 @@ const waitForGotify = (url: string): Promise<void> => {
 };
 
 const buildGoExecutable = (filename: string): Promise<void> => {
-    return new Promise((resolve) => exec(`go build  -o ${filename} ${appDotGo}`, () => resolve()));
+    const envGotify = process.env.GOTIFY_EXE;
+    if (envGotify) {
+        if (!fs.existsSync(testBuildPath)) {
+            fs.mkdirSync(testBuildPath);
+        }
+        fs.copyFileSync(envGotify, filename);
+        process.stdout.write(`### Copying ${envGotify} to ${filename}\n`);
+        return Promise.resolve();
+    } else {
+        process.stdout.write(`### Building Gotify ${filename}\n`);
+        return new Promise((resolve) =>
+            exec(`go build  -o ${filename} ${appDotGo}`, () => resolve())
+        );
+    }
 };
 
 const startGotify = (filename: string, port: number): ChildProcess => {
