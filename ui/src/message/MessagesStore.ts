@@ -93,6 +93,12 @@ export class MessagesStore {
         this.snack('Message deleted');
     };
 
+    @action
+    public clearAll = () => {
+        this.state = {};
+        this.createEmptyStatesForApps(this.appStore.getItems());
+    };
+
     public exists = (id: number) => this.stateOf(id).loaded;
 
     private removeFromList(messages: IMessage[], messageToDelete: IMessage): false | number {
@@ -105,11 +111,6 @@ export class MessagesStore {
         }
         return false;
     }
-
-    private clearAll = () => {
-        this.state = {};
-        this.createEmptyStatesForApps(this.appStore.getItems());
-    };
 
     private clear = (appId: number) => (this.state[appId] = this.emptyState());
 

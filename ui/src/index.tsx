@@ -75,10 +75,14 @@ const initStores = (): StoreMapping => {
                     stores.messagesStore.publishSingleMessage(message);
                     Notifications.notifyNewMessage(message);
                 });
+                stores.appStore.refresh();
             } else {
+                stores.messagesStore.clearAll();
+                stores.appStore.clear();
+                stores.clientStore.clear();
+                stores.userStore.clear();
                 stores.wsStore.close();
             }
-            stores.appStore.refresh();
         }
     );
 
