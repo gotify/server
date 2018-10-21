@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {UserStore} from './stores/UserStore';
 import {SnackManager} from './snack/SnackManager';
-import {MessagesStore} from './stores/MessagesStore';
+import {MessagesStore} from './message/MessagesStore';
 import {CurrentUser} from './stores/CurrentUser';
 import {ClientStore} from './client/ClientStore';
 import {AppStore} from './application/AppStore';
 import {inject as mobxInject, Provider} from 'mobx-react';
-import {WebSocketStore} from './stores/WebSocketStore';
+import {WebSocketStore} from './message/WebSocketStore';
 
 export interface StoreMapping {
     userStore: UserStore;

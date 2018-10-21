@@ -4,7 +4,7 @@ import Typography from '@material-ui/core/Typography';
 import React, {Component} from 'react';
 import {RouteComponentProps} from 'react-router';
 import DefaultPage from '../component/DefaultPage';
-import Message from '../component/Message';
+import Message from './Message';
 import {observer} from 'mobx-react';
 // @ts-ignore
 import InfiniteAnyHeight from 'react-infinite-any-height';
