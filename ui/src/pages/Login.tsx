@@ -1,21 +1,22 @@
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
-import React, {ChangeEvent, Component, FormEvent} from 'react';
-import * as UserAction from '../actions/UserAction';
+import React, {Component, FormEvent} from 'react';
 import Container from '../component/Container';
 import DefaultPage from '../component/DefaultPage';
+import {currentUser} from '../stores/CurrentUser';
+import {observable} from 'mobx';
+import {observer} from 'mobx-react';
 
-interface IState {
-    username: string;
-    password: string;
-}
-
-class Login extends Component<{}, IState> {
-    public state = {username: '', password: ''};
+@observer
+class Login extends Component {
+    @observable
+    private username = '';
+    @observable
+    private password = '';
 
     public render() {
-        const {username, password} = this.state;
+        const {username, password} = this;
         return (
             <DefaultPage title="Login" maxWidth={250} hideButton={true}>
                 <Grid item xs={12} style={{textAlign: 'center'}}>
@@ -27,7 +28,7 @@ class Login extends Component<{}, IState> {
                                 label="Username"
                                 margin="dense"
                                 value={username}
-                                onChange={this.handleChange.bind(this, 'username')}
+                                onChange={(e) => (this.username = e.target.value)}
                             />
                             <TextField
                                 type="password"
@@ -35,7 +36,7 @@ class Login extends Component<{}, IState> {
                                 label="Password"
                                 margin="normal"
                                 value={password}
-                                onChange={this.handleChange.bind(this, 'password')}
+                                onChange={(e) => (this.password = e.target.value)}
                             />
                             <Button
                                 type="submit"
@@ -54,15 +55,9 @@ class Login extends Component<{}, IState> {
         );
     }
 
-    private handleChange(propertyName: string, event: ChangeEvent<HTMLInputElement>) {
-        const state = this.state;
-        state[propertyName] = event.target.value;
-        this.setState(state);
-    }
-
     private login = (e: React.MouseEvent<HTMLInputElement>) => {
         e.preventDefault();
-        UserAction.login(this.state.username, this.state.password);
+        currentUser.login(this.username, this.password);
     };
 
     private preventDefault = (e: FormEvent<HTMLFormElement>) => e.preventDefault();
