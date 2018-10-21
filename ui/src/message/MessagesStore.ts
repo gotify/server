@@ -17,8 +17,6 @@ interface MessagesState {
 export class MessagesStore {
     @observable
     private state: Record<number, MessagesState> = {};
-    @observable
-    public lastNewMessageAppId = 0;
 
     private loading = false;
 
