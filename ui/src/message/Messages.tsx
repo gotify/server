@@ -3,7 +3,7 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import React, {Component} from 'react';
 import {RouteComponentProps} from 'react-router';
-import DefaultPage from '../component/DefaultPage';
+import DefaultPage from '../common/DefaultPage';
 import Message from './Message';
 import {observer} from 'mobx-react';
 // @ts-ignore
