@@ -10,11 +10,11 @@ import * as Notifications from './stores/Notifications';
 import {CurrentUser} from './stores/CurrentUser';
 import {AppStore} from './application/AppStore';
 import {reaction} from 'mobx';
-import {WebSocketStore} from './stores/WebSocketStore';
+import {WebSocketStore} from './message/WebSocketStore';
 import {SnackManager} from './snack/SnackManager';
 import {InjectProvider, StoreMapping} from './inject';
 import {UserStore} from './stores/UserStore';
-import {MessagesStore} from './stores/MessagesStore';
+import {MessagesStore} from './message/MessagesStore';
 import {ClientStore} from './client/ClientStore';
 
 const defaultDevConfig = {
