@@ -6,6 +6,7 @@ import {StyleRules, Theme, WithStyles, withStyles} from '@material-ui/core/style
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import AppStore from '../stores/AppStore';
+import {observer} from 'mobx-react';
 
 const styles = (theme: Theme): StyleRules<'drawerPaper' | 'toolbar' | 'link'> => ({
     drawerPaper: {
@@ -27,24 +28,11 @@ interface IProps {
     loggedIn: boolean;
 }
 
-interface IState {
-    apps: IApplication[];
-}
-
-class Navigation extends Component<IProps & Styles, IState> {
-    public state: IState = {apps: []};
-
-    public componentWillMount() {
-        AppStore.on('change', this.updateApps);
-    }
-
-    public componentWillUnmount() {
-        AppStore.removeListener('change', this.updateApps);
-    }
-
+@observer
+class Navigation extends Component<IProps & Styles> {
     public render() {
         const {classes, loggedIn} = this.props;
-        const {apps} = this.state;
+        const apps = AppStore.getItems();
 
         const userApps =
             apps.length === 0
@@ -88,8 +76,6 @@ class Navigation extends Component<IProps & Styles, IState> {
             </Drawer>
         );
     }
-
-    private updateApps = () => this.setState({apps: AppStore.get()});
 }
 
 export default withStyles(styles, {withTheme: true})<IProps>(Navigation);
