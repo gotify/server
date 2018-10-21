@@ -8,39 +8,33 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Delete from '@material-ui/icons/Delete';
 import React, {Component, SFC} from 'react';
-import * as ClientAction from '../actions/ClientAction';
 import ConfirmDialog from '../component/ConfirmDialog';
 import DefaultPage from '../component/DefaultPage';
 import ToggleVisibility from '../component/ToggleVisibility';
-import ClientStore from '../stores/ClientStore';
 import AddClientDialog from './dialog/AddClientDialog';
+import ClientStore from '../stores/ClientStore';
+import {observer} from 'mobx-react';
+import {observable} from 'mobx';
 
-interface IState {
-    clients: IClient[];
-    showDialog: boolean;
-    deleteId: number;
-}
+@observer
+class Clients extends Component {
+    @observable
+    private showDialog = false;
+    @observable
+    private deleteId: false | number = false;
 
-class Clients extends Component<{}, IState> {
-    public state = {clients: [], showDialog: false, deleteId: -1};
-
-    public componentWillMount() {
-        ClientStore.on('change', this.updateClients);
-        this.updateClients();
-    }
-
-    public componentWillUnmount() {
-        ClientStore.removeListener('change', this.updateClients);
-    }
+    public componentDidMount = ClientStore.refresh;
 
     public render() {
-        const {clients, deleteId, showDialog} = this.state;
+        const {deleteId, showDialog} = this;
+        const clients = ClientStore.getItems();
+
         return (
             <DefaultPage
                 title="Clients"
                 buttonTitle="Create Client"
                 buttonId="create-client"
-                fButton={this.showCreateDialog}>
+                fButton={() => (this.showDialog = true)}>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="client-table">
@@ -58,7 +52,7 @@ class Clients extends Component<{}, IState> {
                                             key={client.id}
                                             name={client.name}
                                             value={client.token}
-                                            fDelete={() => this.showDeleteDialog(client.id)}
+                                            fDelete={() => (this.deleteId = client.id)}
                                         />
                                     );
                                 })}
@@ -68,31 +62,21 @@ class Clients extends Component<{}, IState> {
                 </Grid>
                 {showDialog && (
                     <AddClientDialog
-                        fClose={this.hideCreateDialog}
-                        fOnSubmit={ClientAction.createClient}
+                        fClose={() => (this.showDialog = false)}
+                        fOnSubmit={ClientStore.create}
                     />
                 )}
-                {deleteId !== -1 && (
+                {deleteId !== false && (
                     <ConfirmDialog
                         title="Confirm Delete"
-                        text={'Delete ' + ClientStore.getById(this.state.deleteId).name + '?'}
-                        fClose={this.hideDeleteDelete}
-                        fOnSubmit={this.deleteClient}
+                        text={'Delete ' + ClientStore.getByID(deleteId).name + '?'}
+                        fClose={() => (this.deleteId = false)}
+                        fOnSubmit={() => ClientStore.remove(deleteId)}
                     />
                 )}
             </DefaultPage>
         );
     }
-
-    private deleteClient = () => ClientAction.deleteClient(this.state.deleteId);
-
-    private updateClients = () => this.setState({...this.state, clients: ClientStore.get()});
-    private showCreateDialog = () => this.setState({...this.state, showDialog: true});
-
-    private hideCreateDialog = () => this.setState({...this.state, showDialog: false});
-    private showDeleteDialog = (deleteId: number) => this.setState({...this.state, deleteId});
-
-    private hideDeleteDelete = () => this.setState({...this.state, deleteId: -1});
 }
 
 interface IRowProps {
