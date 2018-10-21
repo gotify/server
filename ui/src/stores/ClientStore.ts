@@ -1,34 +1,36 @@
-import {EventEmitter} from 'events';
-import {default as dispatcher, IEvent} from './dispatcher';
+import {BaseStore} from './BaseStore';
+import axios from 'axios';
+import * as config from '../config';
+import {action} from 'mobx';
+import SnackManager, {SnackReporter} from './SnackManager';
 
-class ClientStore extends EventEmitter {
-    private clients: IClient[] = [];
-
-    public get(): IClient[] {
-        return this.clients;
+class ClientStore extends BaseStore<IClient> {
+    public constructor(private readonly snack: SnackReporter) {
+        super();
     }
 
-    public getById(id: number): IClient {
-        const client = this.clients.find((c) => c.id === id);
-        if (!client) {
-            throw new Error('client is required to exist');
-        }
-        return client;
+    protected requestItems = (): Promise<IClient[]> => {
+        return axios.get<IClient[]>(`${config.get('url')}client`).then((response) => response.data);
+    };
+
+    protected requestDelete(id: number): Promise<void> {
+        return axios
+            .delete(`${config.get('url')}client/${id}`)
+            .then(() => this.snack('Client deleted'));
     }
 
-    public getIdByToken(token: string): number {
-        const client = this.clients.find((c) => c.token === token);
-        return client !== undefined ? client.id : -1;
-    }
+    @action
+    public createNoNotifcation = async (name: string): Promise<IClient> => {
+        const client = await axios.post(`${config.get('url')}client`, {name});
+        await this.refresh();
+        return client.data;
+    };
 
-    public handle(data: IEvent): void {
-        if (data.type === 'UPDATE_CLIENTS') {
-            this.clients = data.payload;
-            this.emit('change');
-        }
-    }
+    @action
+    public create = async (name: string): Promise<void> => {
+        await this.createNoNotifcation(name);
+        this.snack('Client added');
+    };
 }
 
-const store = new ClientStore();
-dispatcher.register(store.handle.bind(store));
-export default store;
+export default new ClientStore(SnackManager.snack);
