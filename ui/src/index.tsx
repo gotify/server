@@ -11,7 +11,7 @@ import {CurrentUser} from './stores/CurrentUser';
 import {AppStore} from './stores/AppStore';
 import {reaction} from 'mobx';
 import {WebSocketStore} from './stores/WebSocketStore';
-import {SnackManager} from './stores/SnackManager';
+import {SnackManager} from './snack/SnackManager';
 import {InjectProvider, StoreMapping} from './inject';
 import {UserStore} from './stores/UserStore';
 import {MessagesStore} from './stores/MessagesStore';
