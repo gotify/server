@@ -2,44 +2,37 @@ import IconButton from '@material-ui/core/IconButton';
 import Snackbar from '@material-ui/core/Snackbar';
 import Close from '@material-ui/icons/Close';
 import React, {Component} from 'react';
-import SnackBarStore from '../stores/SnackBarStore';
+import {observable, reaction} from 'mobx';
+import {observer} from 'mobx-react';
+import SnackManager from '../stores/SnackManager';
 
-interface IState {
-    current: string;
-    hasNext: boolean;
-    open: boolean;
-    openWhen: number;
-}
-
-class SnackBarHandler extends Component<{}, IState> {
+@observer
+class SnackBarHandler extends Component {
     private static MAX_VISIBLE_SNACK_TIME_IN_MS = 6000;
     private static MIN_VISIBLE_SNACK_TIME_IN_MS = 1000;
 
-    public state = {
-        current: '',
-        hasNext: false,
-        open: false,
-        openWhen: 0,
-    };
+    @observable
+    private open = false;
+    @observable
+    private openWhen = 0;
 
-    public componentWillMount() {
-        SnackBarStore.on('change', this.onNewSnack);
-    }
+    private dispose: () => void = () => {};
 
-    public componentWillUnmount() {
-        SnackBarStore.removeListener('change', this.onNewSnack);
-    }
+    public componentDidMount = () =>
+        (this.dispose = reaction(() => SnackManager.counter, this.onNewSnack));
+
+    public componentWillUnmount = () => this.dispose();
 
     public render() {
-        const {open, current, hasNext} = this.state;
-        const duration = hasNext
+        const {message: current, hasNext} = SnackManager;
+        const duration = hasNext()
             ? SnackBarHandler.MIN_VISIBLE_SNACK_TIME_IN_MS
             : SnackBarHandler.MAX_VISIBLE_SNACK_TIME_IN_MS;
 
         return (
             <Snackbar
                 anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
-                open={open}
+                open={this.open}
                 autoHideDuration={duration}
                 onClose={this.closeCurrentSnack}
                 onExited={this.openNextSnack}
@@ -58,7 +51,7 @@ class SnackBarHandler extends Component<{}, IState> {
     }
 
     private onNewSnack = () => {
-        const {open, openWhen} = this.state;
+        const {open, openWhen} = this;
 
         if (!open) {
             this.openNextSnack();
@@ -77,18 +70,14 @@ class SnackBarHandler extends Component<{}, IState> {
     };
 
     private openNextSnack = () => {
-        if (SnackBarStore.hasNext()) {
-            this.setState({
-                ...this.state,
-                open: true,
-                openWhen: Date.now(),
-                current: SnackBarStore.next(),
-                hasNext: SnackBarStore.hasNext(),
-            });
+        if (SnackManager.hasNext()) {
+            this.open = true;
+            this.openWhen = Date.now();
+            SnackManager.next();
         }
     };
 
-    private closeCurrentSnack = () => this.setState({...this.state, open: false});
+    private closeCurrentSnack = () => (this.open = false);
 }
 
 export default SnackBarHandler;
