@@ -13,7 +13,7 @@ import {reaction} from 'mobx';
 import {WebSocketStore} from './message/WebSocketStore';
 import {SnackManager} from './snack/SnackManager';
 import {InjectProvider, StoreMapping} from './inject';
-import {UserStore} from './stores/UserStore';
+import {UserStore} from './user/UserStore';
 import {MessagesStore} from './message/MessagesStore';
 import {ClientStore} from './client/ClientStore';
 

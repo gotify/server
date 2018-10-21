@@ -14,7 +14,7 @@ import Applications from './application/Applications';
 import Clients from './client/Clients';
 import Login from './pages/Login';
 import Messages from './message/Messages';
-import Users from './pages/Users';
+import Users from './user/Users';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from './inject';
