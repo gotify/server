@@ -15,7 +15,9 @@ import Clients from './pages/Clients';
 import Login from './pages/Login';
 import Messages from './pages/Messages';
 import Users from './pages/Users';
-import GlobalStore from './stores/GlobalStore';
+import {currentUser} from './stores/CurrentUser';
+import {observer} from 'mobx-react';
+import {observable} from 'mobx';
 
 const lightTheme = createMuiTheme({
     palette: {
@@ -37,66 +39,35 @@ const styles = (theme: Theme) => ({
     },
 });
 
-interface IState {
-    darkTheme: boolean;
-    redirect: boolean;
-    showSettings: boolean;
-    loggedIn: boolean;
-    admin: boolean;
-    name: string;
-    authenticating: boolean;
-    version: string;
-}
-
-class Layout extends React.Component<WithStyles<'content'>, IState> {
+@observer
+class Layout extends React.Component<WithStyles<'content'>> {
     private static defaultVersion = '0.0.0';
 
-    public state = {
-        admin: GlobalStore.isAdmin(),
-        authenticating: GlobalStore.authenticating(),
-        darkTheme: true,
-        loggedIn: GlobalStore.isLoggedIn(),
-        name: GlobalStore.getName(),
-        redirect: false,
-        showSettings: false,
-        version: Layout.defaultVersion,
-    };
+    @observable
+    private darkThemeVisible = true;
+    @observable
+    private showSettings = false;
+    @observable
+    private version = Layout.defaultVersion;
 
     public componentDidMount() {
-        if (this.state.version === Layout.defaultVersion) {
+        if (this.version === Layout.defaultVersion) {
             axios.get(config.get('url') + 'version').then((resp: AxiosResponse<IVersion>) => {
                 this.setState({...this.state, version: resp.data.version});
             });
         }
     }
 
-    public componentWillMount() {
-        GlobalStore.on('change', this.updateUser);
-    }
-
-    public componentWillUnmount() {
-        GlobalStore.removeListener('change', this.updateUser);
-    }
-
-    public toggleTheme = () => this.setState({...this.state, darkTheme: !this.state.darkTheme});
-
-    public updateUser = () => {
-        this.setState({
-            ...this.state,
-            admin: GlobalStore.isAdmin(),
-            authenticating: GlobalStore.authenticating(),
-            loggedIn: GlobalStore.isLoggedIn(),
-            name: GlobalStore.getName(),
-        });
-    };
-
-    public hideSettings = () => this.setState({...this.state, showSettings: false});
-    public showSettings = () => this.setState({...this.state, showSettings: true});
-
     public render() {
-        const {name, admin, version, loggedIn, showSettings, authenticating} = this.state;
+        const {
+            loggedIn,
+            authenticating,
+            user: {name, admin},
+        } = currentUser;
+
+        const {version, showSettings, darkThemeVisible} = this;
         const {classes} = this.props;
-        const theme = this.state.darkTheme ? darkTheme : lightTheme;
+        const theme = darkThemeVisible ? darkTheme : lightTheme;
         const loginRoute = () => (loggedIn ? <Redirect to="/" /> : <Login />);
         return (
             <MuiThemeProvider theme={theme}>
@@ -108,8 +79,8 @@ class Layout extends React.Component<WithStyles<'content'>, IState> {
                             name={name}
                             version={version}
                             loggedIn={loggedIn}
-                            toggleTheme={this.toggleTheme}
-                            showSettings={this.showSettings}
+                            toggleTheme={() => (this.darkThemeVisible = !this.darkThemeVisible)}
+                            showSettings={() => (this.showSettings = true)}
                         />
                         <Navigation loggedIn={loggedIn} />
 
@@ -129,7 +100,9 @@ class Layout extends React.Component<WithStyles<'content'>, IState> {
                                 <Route exact path="/users" component={Users} />
                             </Switch>
                         </main>
-                        {showSettings && <SettingsDialog fClose={this.hideSettings} />}
+                        {showSettings && (
+                            <SettingsDialog fClose={() => (this.showSettings = false)} />
+                        )}
                         <ScrollUpButton />
                         <SnackBarHandler />
                     </div>
