@@ -1,4 +1,4 @@
-import {BaseStore} from '../stores/BaseStore';
+import {BaseStore} from '../common/BaseStore';
 import {action, IObservableArray, observable, reaction} from 'mobx';
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
