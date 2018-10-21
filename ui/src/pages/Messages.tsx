@@ -3,24 +3,21 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import React, {Component} from 'react';
 import {RouteComponentProps} from 'react-router';
-import * as MessageAction from '../actions/MessageAction';
 import DefaultPage from '../component/DefaultPage';
-import ReactList from '../component/FixedReactList';
 import Message from '../component/Message';
 import AppStore from '../stores/AppStore';
-import MessageStore from '../stores/MessageStore';
+import MessagesStore from '../stores/MessagesStore';
+import {observer} from 'mobx-react';
+// @ts-ignore
+import InfiniteAnyHeight from 'react-infinite-any-height';
 
 interface IProps extends RouteComponentProps<{id: string}> {}
 
 interface IState {
     appId: number;
-    messages: IMessage[];
-    name: string;
-    hasMore: boolean;
-    nextSince?: number;
-    id?: number;
 }
 
+@observer
 class Messages extends Component<IProps, IState> {
     private static appId(props: IProps) {
         if (props === undefined) {
@@ -30,47 +27,47 @@ class Messages extends Component<IProps, IState> {
         return match.params.id !== undefined ? parseInt(match.params.id, 10) : -1;
     }
 
-    public state = {appId: -1, messages: [], name: 'unknown', hasMore: true};
+    public state = {appId: -1};
 
-    private list: ReactList | null = null;
+    private isLoadingMore = false;
 
     public componentWillReceiveProps(nextProps: IProps) {
         this.updateAllWithProps(nextProps);
     }
 
     public componentWillMount() {
-        MessageStore.on('change', this.updateAll);
-        AppStore.on('change', this.updateAll);
+        window.onscroll = () => {
+            if (
+                window.innerHeight + window.pageYOffset >=
+                document.body.offsetHeight - window.innerHeight * 2
+            ) {
+                this.checkIfLoadMore();
+            }
+        };
         this.updateAll();
     }
 
-    public componentWillUnmount() {
-        MessageStore.removeListener('change', this.updateAll);
-        AppStore.removeListener('change', this.updateAll);
-    }
-
     public render() {
-        const {name, messages, hasMore, appId} = this.state;
+        const {appId} = this.state;
+        const messages = MessagesStore.get(appId);
+        const hasMore = MessagesStore.canLoadMore(appId);
+        const name = AppStore.getName(appId);
         const hasMessages = messages.length !== 0;
-        const deleteMessages = () => MessageAction.deleteMessagesByApp(appId);
 
         return (
             <DefaultPage
                 title={name}
                 buttonTitle="Delete All"
                 buttonId="delete-all"
-                fButton={deleteMessages}
+                fButton={() => MessagesStore.removeByApp(appId)}
                 buttonDisabled={!hasMessages}>
                 {hasMessages ? (
                     <div style={{width: '100%'}} id="messages">
-                        <ReactList
+                        <InfiniteAnyHeight
                             key={appId}
-                            ref={(el: ReactList) => (this.list = el)}
-                            itemRenderer={this.renderMessage}
-                            length={messages.length}
-                            threshold={1000}
-                            pageSize={30}
-                            type="variable"
+                            list={messages.map(this.renderMessage)}
+                            preloadAdditionalHeight={window.innerHeight * 2.5}
+                            useWindowAsScrollContainer
                         />
                         {hasMore ? (
                             <Grid item xs={12} style={{textAlign: 'center'}}>
@@ -90,27 +87,21 @@ class Messages extends Component<IProps, IState> {
     private updateAllWithProps = (props: IProps) => {
         const appId = Messages.appId(props);
 
-        const reset = MessageStore.shouldReset(appId);
-        if (reset !== false && this.list) {
-            this.list.clearCacheFromIndex(reset);
-        }
-
-        this.setState({...MessageStore.get(appId), appId, name: AppStore.getName(appId)});
-        if (!MessageStore.exists(appId)) {
-            MessageStore.loadNext(appId);
+        this.setState({appId});
+        if (!MessagesStore.exists(appId)) {
+            MessagesStore.loadMore(appId);
         }
     };
 
     private updateAll = () => this.updateAllWithProps(this.props);
 
-    private deleteMessage = (message: IMessage) => () => MessageAction.deleteMessage(message);
+    private deleteMessage = (message: IMessage) => () => MessagesStore.removeSingle(message);
 
-    private renderMessage = (index: number, key: string) => {
+    private renderMessage = (message: IMessage) => {
         this.checkIfLoadMore();
-        const message: IMessage = this.state.messages[index];
         return (
             <Message
-                key={key}
+                key={message.id}
                 fDelete={this.deleteMessage(message)}
                 title={message.title}
                 date={message.date}
@@ -121,12 +112,10 @@ class Messages extends Component<IProps, IState> {
     };
 
     private checkIfLoadMore() {
-        const {hasMore, messages, appId} = this.state;
-        if (hasMore) {
-            const [, maxRenderedIndex] = (this.list && this.list.getVisibleRange()) || [0, 0];
-            if (maxRenderedIndex > messages.length - 30) {
-                MessageStore.loadNext(appId);
-            }
+        const {appId} = this.state;
+        if (!this.isLoadingMore && MessagesStore.canLoadMore(appId)) {
+            this.isLoadingMore = true;
+            MessagesStore.loadMore(appId).then(() => (this.isLoadingMore = false));
         }
     }
 
