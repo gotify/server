@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {UserStore} from './stores/UserStore';
-import {SnackManager} from './stores/SnackManager';
+import {SnackManager} from './snack/SnackManager';
 import {MessagesStore} from './stores/MessagesStore';
 import {CurrentUser} from './stores/CurrentUser';
 import {ClientStore} from './stores/ClientStore';

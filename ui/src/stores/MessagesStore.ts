@@ -3,7 +3,7 @@ import {action, IObservableArray, observable, reaction} from 'mobx';
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
 import {createTransformer} from 'mobx-utils';
-import {SnackReporter} from './SnackManager';
+import {SnackReporter} from '../snack/SnackManager';
 
 const AllMessages = -1;
 

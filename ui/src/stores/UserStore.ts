@@ -2,7 +2,7 @@ import {BaseStore} from './BaseStore';
 import axios from 'axios';
 import * as config from '../config';
 import {action} from 'mobx';
-import {SnackReporter} from './SnackManager';
+import {SnackReporter} from '../snack/SnackManager';
 
 export class UserStore extends BaseStore<IUser> {
     constructor(private readonly snack: SnackReporter) {
