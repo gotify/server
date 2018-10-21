@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import 'typeface-roboto';
 import 'typeface-roboto-mono';
-import {initAxios} from './actions/axios';
+import {initAxios} from './apiAuth';
 import * as config from './config';
 import Layout from './layout/Layout';
 import registerServiceWorker from './registerServiceWorker';
