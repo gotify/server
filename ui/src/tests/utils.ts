@@ -33,6 +33,16 @@ export const waitToDisappear = async (page: Page, selector: string): Promise<voi
     );
 };
 
+export const waitForCount = async (page: Page, selector: string, amount: number): Promise<void> => {
+    return page.waitForFunction(
+        (_selector: string, _amount: number) =>
+            document.querySelectorAll(_selector).length === _amount,
+        {},
+        selector,
+        amount
+    );
+};
+
 export const waitForExists = async (page: Page, selector: string, text: string): Promise<void> => {
     text = text.toLowerCase();
     await page.waitForFunction(
