@@ -11,7 +11,7 @@ import React, {Component, SFC} from 'react';
 import ConfirmDialog from '../component/ConfirmDialog';
 import DefaultPage from '../component/DefaultPage';
 import ToggleVisibility from '../component/ToggleVisibility';
-import AddClientDialog from './dialog/AddClientDialog';
+import AddClientDialog from './AddClientDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
