@@ -6,7 +6,7 @@ import {initAxios} from './actions/axios';
 import * as config from './config';
 import Layout from './layout/Layout';
 import registerServiceWorker from './registerServiceWorker';
-import * as Notifications from './stores/Notifications';
+import * as Notifications from './snack/browserNotification';
 import {CurrentUser} from './CurrentUser';
 import {AppStore} from './application/AppStore';
 import {reaction} from 'mobx';
@@ -44,7 +44,7 @@ const initStores = (): StoreMapping => {
     const messagesStore = new MessagesStore(appStore, snackManager.snack);
     const currentUser = new CurrentUser(snackManager.snack);
     const clientStore = new ClientStore(snackManager.snack);
-    const wsStore = new WebSocketStore(snackManager.snack, currentUser, messagesStore);
+    const wsStore = new WebSocketStore(snackManager.snack, currentUser);
 
     return {
         appStore,
@@ -71,7 +71,10 @@ const initStores = (): StoreMapping => {
         () => stores.currentUser.loggedIn,
         (loggedIn) => {
             if (loggedIn) {
-                stores.wsStore.listen();
+                stores.wsStore.listen((message) => {
+                    stores.messagesStore.publishSingleMessage(message);
+                    Notifications.notifyNewMessage(message);
+                });
             } else {
                 stores.wsStore.close();
             }
