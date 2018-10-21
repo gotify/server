@@ -4,7 +4,7 @@ import Typography from '@material-ui/core/Typography';
 import Delete from '@material-ui/icons/Delete';
 import React from 'react';
 import TimeAgo from 'react-timeago';
-import Container from '../component/Container';
+import Container from '../common/Container';
 
 const styles = () => ({
     header: {
