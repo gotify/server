@@ -200,7 +200,7 @@ describe('Messages', () => {
     });
     it('deletes a windows message', async () => {
         await navigate('Windows');
-        await page.click('#messages .message:nth-child(2) .delete');
+        await page.click('#messages span:nth-of-type(2) .message .delete');
         await expectMessages({
             all: [linux2, windows3, backup1, linux1, windows1],
             windows: [windows3, windows1],
@@ -256,6 +256,13 @@ describe('Messages', () => {
             linux: [],
             backup: [backup3],
         });
+    });
+    it('deletes all backup messages and navigates to all messages', async () => {
+        await navigate('Backup');
+        await page.click('#delete-all');
+        await navigate('All Messages');
+        await createMessage(backup3, backupServerToken);
+        expect(await extractMessages()).toEqual([backup3]);
     });
     it('does logout', async () => await auth.logout(page));
 });
