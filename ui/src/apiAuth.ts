@@ -1,6 +1,6 @@
 import axios from 'axios';
-import {CurrentUser} from '../CurrentUser';
-import {SnackReporter} from '../snack/SnackManager';
+import {CurrentUser} from './CurrentUser';
+import {SnackReporter} from './snack/SnackManager';
 
 export const initAxios = (currentUser: CurrentUser, snack: SnackReporter) => {
     axios.interceptors.request.use((config) => {
