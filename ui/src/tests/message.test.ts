@@ -1,7 +1,7 @@
 // todo before all tests jest start puppeteer
 import {Page} from 'puppeteer';
 import {newTest, GotifyTest} from './setup';
-import {clickByText, count, innerText, waitForExists} from './utils';
+import {clickByText, count, innerText, waitForCount, waitForExists} from './utils';
 import * as auth from './authentication';
 import * as selector from './selector';
 import axios from 'axios';
@@ -91,7 +91,8 @@ describe('Messages', () => {
         await navigate('All Messages');
     });
 
-    const extractMessages = async () => {
+    const extractMessages = async (expectCount: number) => {
+        await waitForCount(page, '#messages .message', expectCount);
         const messages = await page.$$(`#messages .message`);
         const result: Msg[] = [];
         for (const item of messages) {
@@ -128,27 +129,27 @@ describe('Messages', () => {
         backup: Msg[];
     }) => {
         await navigate('All Messages');
-        expect(await extractMessages()).toEqual(toCheck.all);
+        expect(await extractMessages(toCheck.all.length)).toEqual(toCheck.all);
         await navigate('Windows');
-        expect(await extractMessages()).toEqual(toCheck.windows);
+        expect(await extractMessages(toCheck.windows.length)).toEqual(toCheck.windows);
         await navigate('Linux');
-        expect(await extractMessages()).toEqual(toCheck.linux);
+        expect(await extractMessages(toCheck.linux.length)).toEqual(toCheck.linux);
         await navigate('Backup');
-        expect(await extractMessages()).toEqual(toCheck.backup);
+        expect(await extractMessages(toCheck.backup.length)).toEqual(toCheck.backup);
         await navigate('All Messages');
     };
 
     it('create a message', async () => {
         await createMessage(windows1, windowsServerToken);
-        expect(await extractMessages()).toEqual([windows1]);
+        expect(await extractMessages(1)).toEqual([windows1]);
     });
     it('has one message in windows app', async () => {
         await navigate('Windows');
-        expect(await extractMessages()).toEqual([windows1]);
+        expect(await extractMessages(1)).toEqual([windows1]);
     });
     it('has no message in linux app', async () => {
         await navigate('Linux');
-        expect(await extractMessages()).toEqual([]);
+        expect(await extractMessages(0)).toEqual([]);
         await navigate('All Messages');
     });
     describe('add some messages', () => {
@@ -262,7 +263,8 @@ describe('Messages', () => {
         await page.click('#delete-all');
         await navigate('All Messages');
         await createMessage(backup3, backupServerToken);
-        expect(await extractMessages()).toEqual([backup3]);
+        await waitForExists(page, '.message .title', backup3.title);
+        expect(await extractMessages(1)).toEqual([backup3]);
     });
     it('does logout', async () => await auth.logout(page));
 });
