@@ -5,25 +5,25 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
-import React, {ChangeEvent, Component} from 'react';
-import * as UserAction from '../actions/UserAction';
-
-interface IState {
-    pass: string;
-}
+import React, {Component} from 'react';
+import {currentUser} from '../stores/CurrentUser';
+import {observable} from 'mobx';
+import {observer} from 'mobx-react';
 
 interface IProps {
     fClose: VoidFunction;
 }
 
-export default class SettingsDialog extends Component<IProps, IState> {
-    public state = {pass: ''};
+@observer
+export default class SettingsDialog extends Component<IProps> {
+    @observable
+    private pass = '';
 
     public render() {
-        const {pass} = this.state;
+        const {pass} = this;
         const {fClose} = this.props;
         const submitAndClose = () => {
-            UserAction.changeCurrentUser(pass);
+            currentUser.changePassword(pass);
             fClose();
         };
         return (
@@ -41,7 +41,7 @@ export default class SettingsDialog extends Component<IProps, IState> {
                         type="password"
                         label="New Pass *"
                         value={pass}
-                        onChange={this.handleChange.bind(this, 'pass')}
+                        onChange={(e) => (this.pass = e.target.value)}
                         fullWidth
                     />
                 </DialogContent>
@@ -62,11 +62,5 @@ export default class SettingsDialog extends Component<IProps, IState> {
                 </DialogActions>
             </Dialog>
         );
-    }
-
-    private handleChange(propertyName: string, event: ChangeEvent<HTMLInputElement>) {
-        const state = this.state;
-        state[propertyName] = event.target.value;
-        this.setState(state);
     }
 }
