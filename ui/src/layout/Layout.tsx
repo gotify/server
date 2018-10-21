@@ -53,7 +53,7 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
     public componentDidMount() {
         if (this.version === Layout.defaultVersion) {
             axios.get(config.get('url') + 'version').then((resp: AxiosResponse<IVersion>) => {
-                this.setState({...this.state, version: resp.data.version});
+                this.version = resp.data.version;
             });
         }
     }
