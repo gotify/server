@@ -1,7 +1,6 @@
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
 import {detect} from 'detect-browser';
-import * as GlobalAction from '../actions/GlobalAction';
 import SnackManager, {SnackReporter} from './SnackManager';
 import {observable} from 'mobx';
 
@@ -38,6 +37,7 @@ class CurrentUser {
     };
 
     public login = async (username: string, password: string) => {
+        this.loggedIn = false;
         this.authenticating = true;
         const browser = detect();
         const name = (browser && browser.name + ' ' + browser.version) || 'unknown browser';
@@ -53,10 +53,9 @@ class CurrentUser {
                 this.snack(`A client named '${name}' was created for your session.`);
                 this.setToken(resp.data.token);
                 this.tryAuthenticate()
-                    .then((user) => {
+                    .then(() => {
                         this.authenticating = false;
                         this.loggedIn = true;
-                        GlobalAction.initialLoad(user);
                     })
                     .catch(() => {
                         this.authenticating = false;
