@@ -12,7 +12,7 @@ import Edit from '@material-ui/icons/Edit';
 import React, {Component, SFC} from 'react';
 import ConfirmDialog from '../component/ConfirmDialog';
 import DefaultPage from '../component/DefaultPage';
-import AddEditDialog from './dialog/AddEditUserDialog';
+import AddEditDialog from './AddEditUserDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
