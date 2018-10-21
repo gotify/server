@@ -1,5 +1,4 @@
 import Notify from 'notifyjs';
-import dispatcher, {IEvent} from './dispatcher';
 
 export function requestPermission() {
     if (Notify.needsPermission && Notify.isSupported()) {
@@ -8,6 +7,16 @@ export function requestPermission() {
             () => console.log('notification permission denied')
         );
     }
+}
+
+export function notifyNewMessage(msg: IMessage) {
+    const notify = new Notify(msg.title, {
+        body: msg.message,
+        icon: msg.image,
+        notifyClick: closeAndFocus,
+        notifyShow: closeAfterTimeout,
+    });
+    notify.show();
 }
 
 function closeAndFocus(event: Event) {
@@ -26,19 +35,3 @@ function closeAfterTimeout(event: Event) {
         target.close();
     }, 5000);
 }
-
-dispatcher.register(
-    (data: IEvent): void => {
-        if (data.type === 'ONE_MESSAGE') {
-            const msg = data.payload;
-
-            const notify = new Notify(msg.title, {
-                body: msg.message,
-                icon: msg.image,
-                notifyClick: closeAndFocus,
-                notifyShow: closeAfterTimeout,
-            });
-            notify.show();
-        }
-    }
-);
