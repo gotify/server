@@ -8,7 +8,7 @@ import LoadingSpinner from './component/LoadingSpinner';
 import Navigation from './component/Navigation';
 import ScrollUpButton from './component/ScrollUpButton';
 import SettingsDialog from './component/SettingsDialog';
-import SnackBarHandler from './component/SnackBarHandler';
+import SnackBarHandler from './snack/SnackBarHandler';
 import * as config from './config';
 import Applications from './pages/Applications';
 import Clients from './pages/Clients';
