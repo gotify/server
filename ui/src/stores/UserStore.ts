@@ -1,29 +1,35 @@
-import {EventEmitter} from 'events';
-import dispatcher, {IEvent} from './dispatcher';
+import {BaseStore} from './BaseStore';
+import axios from 'axios';
+import * as config from '../config';
+import {action} from 'mobx';
+import SnackManager, {SnackReporter} from './SnackManager';
 
-class UserStore extends EventEmitter {
-    private users: IUser[] = [];
-
-    public get(): IUser[] {
-        return this.users;
+class UserStore extends BaseStore<IUser> {
+    constructor(private readonly snack: SnackReporter) {
+        super();
     }
 
-    public getById(id: number): IUser {
-        const user = this.users.find((u) => u.id === id);
-        if (!user) {
-            throw new Error('user must exist');
-        }
-        return user;
+    protected requestItems = (): Promise<IUser[]> => {
+        return axios.get<IUser[]>(`${config.get('url')}user`).then((response) => response.data);
+    };
+
+    protected requestDelete(id: number): Promise<void> {
+        return axios.delete(`${config.get('url')}user/${id}`).then(() => this.snack("User deleted"));
     }
 
-    public handle(data: IEvent): void {
-        if (data.type === 'UPDATE_USERS') {
-            this.users = data.payload;
-            this.emit('change');
-        }
-    }
+    @action
+    public create = async (name: string, pass: string, admin: boolean) => {
+        await axios.post(`${config.get('url')}user`, {name, pass, admin});
+        await this.refresh();
+        this.snack('User created');
+    };
+
+    @action
+    public update = async (id: number, name: string, pass: string | null, admin: boolean) => {
+        await axios.post(config.get('url') + 'user/' + id, {name, pass, admin});
+        await this.refresh();
+        this.snack('User updated');
+    };
 }
 
-const store = new UserStore();
-dispatcher.register(store.handle.bind(store));
-export default store;
+export default new UserStore(SnackManager.snack);
