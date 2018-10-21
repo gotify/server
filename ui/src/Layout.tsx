@@ -11,7 +11,7 @@ import SettingsDialog from './component/SettingsDialog';
 import SnackBarHandler from './snack/SnackBarHandler';
 import * as config from './config';
 import Applications from './application/Applications';
-import Clients from './pages/Clients';
+import Clients from './client/Clients';
 import Login from './pages/Login';
 import Messages from './pages/Messages';
 import Users from './pages/Users';
