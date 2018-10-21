@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {CurrentUser} from '../stores/CurrentUser';
+import {CurrentUser} from '../CurrentUser';
 import {SnackReporter} from '../snack/SnackManager';
 
 export const initAxios = (currentUser: CurrentUser, snack: SnackReporter) => {

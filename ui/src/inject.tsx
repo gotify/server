@@ -2,7 +2,7 @@ import * as React from 'react';
 import {UserStore} from './user/UserStore';
 import {SnackManager} from './snack/SnackManager';
 import {MessagesStore} from './message/MessagesStore';
-import {CurrentUser} from './stores/CurrentUser';
+import {CurrentUser} from './CurrentUser';
 import {ClientStore} from './client/ClientStore';
 import {AppStore} from './application/AppStore';
 import {inject as mobxInject, Provider} from 'mobx-react';

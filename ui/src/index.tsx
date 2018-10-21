@@ -7,7 +7,7 @@ import * as config from './config';
 import Layout from './layout/Layout';
 import registerServiceWorker from './registerServiceWorker';
 import * as Notifications from './stores/Notifications';
-import {CurrentUser} from './stores/CurrentUser';
+import {CurrentUser} from './CurrentUser';
 import {AppStore} from './application/AppStore';
 import {reaction} from 'mobx';
 import {WebSocketStore} from './message/WebSocketStore';

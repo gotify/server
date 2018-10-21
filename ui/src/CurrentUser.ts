@@ -1,7 +1,7 @@
 import axios, {AxiosResponse} from 'axios';
-import * as config from '../config';
+import * as config from './config';
 import {detect} from 'detect-browser';
-import {SnackReporter} from '../snack/SnackManager';
+import {SnackReporter} from './snack/SnackManager';
 import {observable} from 'mobx';
 
 const tokenKey = 'gotify-login-key';
