@@ -1,12 +1,12 @@
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
 import {detect} from 'detect-browser';
-import SnackManager, {SnackReporter} from './SnackManager';
+import {SnackReporter} from './SnackManager';
 import {observable} from 'mobx';
 
 const tokenKey = 'gotify-login-key';
 
-class CurrentUser {
+export class CurrentUser {
     private tokenCache: string | null = null;
     @observable
     public loggedIn = false;
@@ -101,5 +101,3 @@ class CurrentUser {
             .then(() => this.snack('Password changed'));
     };
 }
-
-export const currentUser = new CurrentUser(SnackManager.snack);

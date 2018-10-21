@@ -2,9 +2,9 @@ import {BaseStore} from './BaseStore';
 import axios from 'axios';
 import * as config from '../config';
 import {action} from 'mobx';
-import SnackManager, {SnackReporter} from './SnackManager';
+import {SnackReporter} from './SnackManager';
 
-class NewAppStore extends BaseStore<IApplication> {
+export class AppStore extends BaseStore<IApplication> {
     public constructor(private readonly snack: SnackReporter) {
         super();
     }
@@ -44,5 +44,3 @@ class NewAppStore extends BaseStore<IApplication> {
         return id === -1 ? 'All Messages' : app !== undefined ? app.name : 'unknown';
     };
 }
-
-export default new NewAppStore(SnackManager.snack);
