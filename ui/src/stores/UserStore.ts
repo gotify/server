@@ -14,7 +14,9 @@ class UserStore extends BaseStore<IUser> {
     };
 
     protected requestDelete(id: number): Promise<void> {
-        return axios.delete(`${config.get('url')}user/${id}`).then(() => this.snack("User deleted"));
+        return axios
+            .delete(`${config.get('url')}user/${id}`)
+            .then(() => this.snack('User deleted'));
     }
 
     @action
