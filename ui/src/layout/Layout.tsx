@@ -12,7 +12,7 @@ import SnackBarHandler from '../snack/SnackBarHandler';
 import * as config from '../config';
 import Applications from '../application/Applications';
 import Clients from '../client/Clients';
-import Login from '../pages/Login';
+import Login from '../user/Login';
 import Messages from '../message/Messages';
 import Users from '../user/Users';
 import {observer} from 'mobx-react';
