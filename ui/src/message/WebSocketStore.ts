@@ -1,5 +1,5 @@
 import {SnackReporter} from '../snack/SnackManager';
-import {CurrentUser} from './CurrentUser';
+import {CurrentUser} from '../stores/CurrentUser';
 import * as config from '../config';
 import {MessagesStore} from './MessagesStore';
 
