@@ -10,42 +10,36 @@ import TableRow from '@material-ui/core/TableRow';
 import Delete from '@material-ui/icons/Delete';
 import Edit from '@material-ui/icons/Edit';
 import React, {ChangeEvent, Component, SFC} from 'react';
-import * as AppAction from '../actions/AppAction';
 import ConfirmDialog from '../component/ConfirmDialog';
 import DefaultPage from '../component/DefaultPage';
 import ToggleVisibility from '../component/ToggleVisibility';
-import AppStore from '../stores/AppStore';
 import AddApplicationDialog from './dialog/AddApplicationDialog';
+import AppStore from '../stores/AppStore';
+import {observer} from 'mobx-react';
+import {observable} from 'mobx';
 
-interface IState {
-    apps: IApplication[];
-    createDialog: boolean;
-    deleteId: number;
-}
+@observer
+class Applications extends Component {
+    @observable
+    private deleteId: number | false = false;
+    @observable
+    private createDialog = false;
 
-class Applications extends Component<{}, IState> {
-    public state = {apps: [], createDialog: false, deleteId: -1};
     private uploadId = -1;
     private upload: HTMLInputElement | null = null;
 
-    public componentWillMount() {
-        AppStore.on('change', this.updateApps);
-        this.updateApps();
-    }
-
-    public componentWillUnmount() {
-        AppStore.removeListener('change', this.updateApps);
-    }
+    public componentDidMount = AppStore.refresh;
 
     public render() {
-        const {apps, createDialog, deleteId} = this.state;
+        const {createDialog, deleteId} = this;
+        const apps = AppStore.getItems();
         return (
             <DefaultPage
                 title="Applications"
                 buttonTitle="Create Application"
                 buttonId="create-app"
                 maxWidth={1000}
-                fButton={this.showCreateDialog}>
+                fButton={() => (this.createDialog = true)}>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="app-table">
@@ -68,7 +62,7 @@ class Applications extends Component<{}, IState> {
                                             name={app.name}
                                             value={app.token}
                                             fUpload={() => this.uploadImage(app.id)}
-                                            fDelete={() => this.showCloseDialog(app.id)}
+                                            fDelete={() => (this.deleteId = app.id)}
                                         />
                                     );
                                 })}
@@ -84,23 +78,22 @@ class Applications extends Component<{}, IState> {
                 </Grid>
                 {createDialog && (
                     <AddApplicationDialog
-                        fClose={this.hideCreateDialog}
-                        fOnSubmit={AppAction.createApp}
+                        fClose={() => (this.createDialog = false)}
+                        fOnSubmit={AppStore.create}
                     />
                 )}
-                {deleteId !== -1 && (
+                {deleteId !== false && (
                     <ConfirmDialog
                         title="Confirm Delete"
-                        text={'Delete ' + AppStore.getById(deleteId).name + '?'}
-                        fClose={this.hideCloseDialog}
-                        fOnSubmit={() => AppAction.deleteApp(deleteId)}
+                        text={'Delete ' + AppStore.getByID(deleteId).name + '?'}
+                        fClose={() => (this.deleteId = false)}
+                        fOnSubmit={() => AppStore.remove(deleteId)}
                     />
                 )}
             </DefaultPage>
         );
     }
 
-    private updateApps = () => this.setState({...this.state, apps: AppStore.get()});
     private uploadImage = (id: number) => {
         this.uploadId = id;
         if (this.upload) {
@@ -114,17 +107,11 @@ class Applications extends Component<{}, IState> {
             return;
         }
         if (['image/png', 'image/jpeg', 'image/gif'].indexOf(file.type) !== -1) {
-            AppAction.uploadImage(this.uploadId, file);
+            AppStore.uploadImage(this.uploadId, file);
         } else {
             alert('Uploaded file must be of type png, jpeg or gif.');
         }
     };
-    private showCreateDialog = () => this.setState({...this.state, createDialog: true});
-
-    private hideCreateDialog = () => this.setState({...this.state, createDialog: false});
-    private showCloseDialog = (deleteId: number) => this.setState({...this.state, deleteId});
-
-    private hideCloseDialog = () => this.setState({...this.state, deleteId: -1});
 }
 
 interface IRowProps {
@@ -136,7 +123,7 @@ interface IRowProps {
     fDelete: VoidFunction;
 }
 
-const Row: SFC<IRowProps> = ({name, value, description, fDelete, fUpload, image}) => (
+const Row: SFC<IRowProps> = observer(({name, value, description, fDelete, fUpload, image}) => (
     <TableRow>
         <TableCell padding="checkbox">
             <div style={{display: 'flex'}}>
@@ -157,6 +144,6 @@ const Row: SFC<IRowProps> = ({name, value, description, fDelete, fUpload, image}
             </IconButton>
         </TableCell>
     </TableRow>
-);
+));
 
 export default Applications;
