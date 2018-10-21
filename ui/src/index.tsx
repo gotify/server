@@ -15,7 +15,7 @@ import {SnackManager} from './snack/SnackManager';
 import {InjectProvider, StoreMapping} from './inject';
 import {UserStore} from './stores/UserStore';
 import {MessagesStore} from './stores/MessagesStore';
-import {ClientStore} from './stores/ClientStore';
+import {ClientStore} from './client/ClientStore';
 
 const defaultDevConfig = {
     url: 'http://localhost:80/',

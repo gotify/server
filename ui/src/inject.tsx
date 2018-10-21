@@ -3,7 +3,7 @@ import {UserStore} from './stores/UserStore';
 import {SnackManager} from './snack/SnackManager';
 import {MessagesStore} from './stores/MessagesStore';
 import {CurrentUser} from './stores/CurrentUser';
-import {ClientStore} from './stores/ClientStore';
+import {ClientStore} from './client/ClientStore';
 import {AppStore} from './application/AppStore';
 import {inject as mobxInject, Provider} from 'mobx-react';
 import {WebSocketStore} from './stores/WebSocketStore';
