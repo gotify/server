@@ -2,9 +2,9 @@ import {BaseStore} from './BaseStore';
 import axios from 'axios';
 import * as config from '../config';
 import {action} from 'mobx';
-import SnackManager, {SnackReporter} from './SnackManager';
+import {SnackReporter} from './SnackManager';
 
-class UserStore extends BaseStore<IUser> {
+export class UserStore extends BaseStore<IUser> {
     constructor(private readonly snack: SnackReporter) {
         super();
     }
@@ -33,5 +33,3 @@ class UserStore extends BaseStore<IUser> {
         this.snack('User updated');
     };
 }
-
-export default new UserStore(SnackManager.snack);

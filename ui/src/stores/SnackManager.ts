@@ -4,7 +4,7 @@ export interface SnackReporter {
     (message: string): void;
 }
 
-class SnackManager {
+export class SnackManager {
     @observable
     private messages: string[] = [];
     @observable
@@ -28,5 +28,3 @@ class SnackManager {
         this.counter++;
     };
 }
-
-export default new SnackManager();

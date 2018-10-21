@@ -2,9 +2,9 @@ import {BaseStore} from './BaseStore';
 import axios from 'axios';
 import * as config from '../config';
 import {action} from 'mobx';
-import SnackManager, {SnackReporter} from './SnackManager';
+import {SnackReporter} from './SnackManager';
 
-class ClientStore extends BaseStore<IClient> {
+export class ClientStore extends BaseStore<IClient> {
     public constructor(private readonly snack: SnackReporter) {
         super();
     }
@@ -32,5 +32,3 @@ class ClientStore extends BaseStore<IClient> {
         this.snack('Client added');
     };
 }
-
-export default new ClientStore(SnackManager.snack);

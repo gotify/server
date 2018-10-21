@@ -1,10 +1,9 @@
 import {BaseStore} from './BaseStore';
-import NewAppStore from './AppStore';
 import {action, IObservableArray, observable, reaction} from 'mobx';
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
 import {createTransformer} from 'mobx-utils';
-import SnackManager, {SnackReporter} from './SnackManager';
+import {SnackReporter} from './SnackManager';
 
 const AllMessages = -1;
 
@@ -15,7 +14,7 @@ interface MessagesState {
     loaded: boolean;
 }
 
-class MessagesStore {
+export class MessagesStore {
     @observable
     private state: Record<number, MessagesState> = {};
     @observable
@@ -158,5 +157,3 @@ class MessagesStore {
         loaded: false,
     });
 }
-
-export default new MessagesStore(NewAppStore, SnackManager.snack);
