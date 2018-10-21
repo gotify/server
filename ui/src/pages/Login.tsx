@@ -4,12 +4,12 @@ import TextField from '@material-ui/core/TextField';
 import React, {Component, FormEvent} from 'react';
 import Container from '../component/Container';
 import DefaultPage from '../component/DefaultPage';
-import {currentUser} from '../stores/CurrentUser';
 import {observable} from 'mobx';
 import {observer} from 'mobx-react';
+import {inject, Stores} from '../inject';
 
 @observer
-class Login extends Component {
+class Login extends Component<Stores<'currentUser'>> {
     @observable
     private username = '';
     @observable
@@ -57,10 +57,10 @@ class Login extends Component {
 
     private login = (e: React.MouseEvent<HTMLInputElement>) => {
         e.preventDefault();
-        currentUser.login(this.username, this.password);
+        this.props.currentUser.login(this.username, this.password);
     };
 
     private preventDefault = (e: FormEvent<HTMLFormElement>) => e.preventDefault();
 }
 
-export default Login;
+export default inject('currentUser')(Login);

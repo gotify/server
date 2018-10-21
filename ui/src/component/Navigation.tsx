@@ -5,8 +5,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import {StyleRules, Theme, WithStyles, withStyles} from '@material-ui/core/styles';
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
-import AppStore from '../stores/AppStore';
 import {observer} from 'mobx-react';
+import {inject, Stores} from '../inject';
 
 const styles = (theme: Theme): StyleRules<'drawerPaper' | 'toolbar' | 'link'> => ({
     drawerPaper: {
@@ -29,10 +29,10 @@ interface IProps {
 }
 
 @observer
-class Navigation extends Component<IProps & Styles> {
+class Navigation extends Component<IProps & Styles & Stores<'appStore'>> {
     public render() {
-        const {classes, loggedIn} = this.props;
-        const apps = AppStore.getItems();
+        const {classes, loggedIn, appStore} = this.props;
+        const apps = appStore.getItems();
 
         const userApps =
             apps.length === 0
@@ -78,4 +78,4 @@ class Navigation extends Component<IProps & Styles> {
     }
 }
 
-export default withStyles(styles, {withTheme: true})<IProps>(Navigation);
+export default withStyles(styles, {withTheme: true})<IProps>(inject('appStore')(Navigation));

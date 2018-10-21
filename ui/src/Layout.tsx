@@ -15,9 +15,9 @@ import Clients from './pages/Clients';
 import Login from './pages/Login';
 import Messages from './pages/Messages';
 import Users from './pages/Users';
-import {currentUser} from './stores/CurrentUser';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
+import {inject, Stores} from './inject';
 
 const lightTheme = createMuiTheme({
     palette: {
@@ -40,7 +40,7 @@ const styles = (theme: Theme) => ({
 });
 
 @observer
-class Layout extends React.Component<WithStyles<'content'>> {
+class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser'>> {
     private static defaultVersion = '0.0.0';
 
     @observable
@@ -59,14 +59,16 @@ class Layout extends React.Component<WithStyles<'content'>> {
     }
 
     public render() {
-        const {
-            loggedIn,
-            authenticating,
-            user: {name, admin},
-        } = currentUser;
-
         const {version, showSettings, darkThemeVisible} = this;
-        const {classes} = this.props;
+        const {
+            classes,
+            currentUser: {
+                loggedIn,
+                authenticating,
+                user: {name, admin},
+                logout,
+            },
+        } = this.props;
         const theme = darkThemeVisible ? darkTheme : lightTheme;
         const loginRoute = () => (loggedIn ? <Redirect to="/" /> : <Login />);
         return (
@@ -81,6 +83,7 @@ class Layout extends React.Component<WithStyles<'content'>> {
                             loggedIn={loggedIn}
                             toggleTheme={() => (this.darkThemeVisible = !this.darkThemeVisible)}
                             showSettings={() => (this.showSettings = true)}
+                            logout={logout}
                         />
                         <Navigation loggedIn={loggedIn} />
 
@@ -112,4 +115,4 @@ class Layout extends React.Component<WithStyles<'content'>> {
     }
 }
 
-export default withStyles(styles, {withTheme: true})<{}>(Layout);
+export default withStyles(styles, {withTheme: true})<{}>(inject('currentUser')(Layout));

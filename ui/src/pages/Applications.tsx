@@ -14,12 +14,12 @@ import ConfirmDialog from '../component/ConfirmDialog';
 import DefaultPage from '../component/DefaultPage';
 import ToggleVisibility from '../component/ToggleVisibility';
 import AddApplicationDialog from './dialog/AddApplicationDialog';
-import AppStore from '../stores/AppStore';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
+import {inject, Stores} from '../inject';
 
 @observer
-class Applications extends Component {
+class Applications extends Component<Stores<'appStore'>> {
     @observable
     private deleteId: number | false = false;
     @observable
@@ -28,11 +28,15 @@ class Applications extends Component {
     private uploadId = -1;
     private upload: HTMLInputElement | null = null;
 
-    public componentDidMount = AppStore.refresh;
+    public componentDidMount = () => this.props.appStore.refresh();
 
     public render() {
-        const {createDialog, deleteId} = this;
-        const apps = AppStore.getItems();
+        const {
+            createDialog,
+            deleteId,
+            props: {appStore},
+        } = this;
+        const apps = appStore.getItems();
         return (
             <DefaultPage
                 title="Applications"
@@ -79,15 +83,15 @@ class Applications extends Component {
                 {createDialog && (
                     <AddApplicationDialog
                         fClose={() => (this.createDialog = false)}
-                        fOnSubmit={AppStore.create}
+                        fOnSubmit={appStore.create}
                     />
                 )}
                 {deleteId !== false && (
                     <ConfirmDialog
                         title="Confirm Delete"
-                        text={'Delete ' + AppStore.getByID(deleteId).name + '?'}
+                        text={'Delete ' + appStore.getByID(deleteId).name + '?'}
                         fClose={() => (this.deleteId = false)}
-                        fOnSubmit={() => AppStore.remove(deleteId)}
+                        fOnSubmit={() => appStore.remove(deleteId)}
                     />
                 )}
             </DefaultPage>
@@ -107,7 +111,7 @@ class Applications extends Component {
             return;
         }
         if (['image/png', 'image/jpeg', 'image/gif'].indexOf(file.type) !== -1) {
-            AppStore.uploadImage(this.uploadId, file);
+            this.props.appStore.uploadImage(this.uploadId, file);
         } else {
             alert('Uploaded file must be of type png, jpeg or gif.');
         }
@@ -146,4 +150,4 @@ const Row: SFC<IRowProps> = observer(({name, value, description, fDelete, fUploa
     </TableRow>
 ));
 
-export default Applications;
+export default inject('appStore')(Applications);
