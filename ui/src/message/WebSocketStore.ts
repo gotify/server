@@ -1,7 +1,6 @@
 import {SnackReporter} from '../snack/SnackManager';
 import {CurrentUser} from '../CurrentUser';
 import * as config from '../config';
-import {MessagesStore} from './MessagesStore';
 
 export class WebSocketStore {
     private wsActive = false;
@@ -9,11 +8,10 @@ export class WebSocketStore {
 
     public constructor(
         private readonly snack: SnackReporter,
-        private readonly currentUser: CurrentUser,
-        private readonly messagesStore: MessagesStore
+        private readonly currentUser: CurrentUser
     ) {}
 
-    public listen = () => {
+    public listen = (callback: (msg: IMessage) => void) => {
         if (!this.currentUser.token() || this.wsActive) {
             return;
         }
@@ -30,7 +28,7 @@ export class WebSocketStore {
             console.log('WebSocket connection errored', e);
         };
 
-        ws.onmessage = (data) => this.messagesStore.publishSingleMessage(JSON.parse(data.data));
+        ws.onmessage = (data) => callback(JSON.parse(data.data));
 
         ws.onclose = () => {
             this.wsActive = false;
