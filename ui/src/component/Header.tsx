@@ -12,7 +12,6 @@ import Highlight from '@material-ui/icons/Highlight';
 import SupervisorAccount from '@material-ui/icons/SupervisorAccount';
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
-import {currentUser} from '../stores/CurrentUser';
 import {observer} from 'mobx-react';
 
 const styles = (theme: Theme) => ({
@@ -42,12 +41,13 @@ interface IProps {
     version: string;
     toggleTheme: VoidFunction;
     showSettings: VoidFunction;
+    logout: VoidFunction;
 }
 
 @observer
 class Header extends Component<IProps & Styles> {
     public render() {
-        const {classes, version, name, loggedIn, admin, toggleTheme} = this.props;
+        const {classes, version, name, loggedIn, admin, toggleTheme, logout} = this.props;
 
         return (
             <AppBar position="absolute" className={classes.appBar}>
@@ -69,7 +69,7 @@ class Header extends Component<IProps & Styles> {
                             </Typography>
                         </a>
                     </div>
-                    {loggedIn && this.renderButtons(name, admin)}
+                    {loggedIn && this.renderButtons(name, admin, logout)}
                     <IconButton onClick={toggleTheme} color="inherit">
                         <Highlight />
                     </IconButton>
@@ -78,7 +78,7 @@ class Header extends Component<IProps & Styles> {
         );
     }
 
-    private renderButtons(name: string, admin: boolean) {
+    private renderButtons(name: string, admin: boolean, logout: VoidFunction) {
         const {classes, showSettings} = this.props;
         return (
             <div>
@@ -109,7 +109,7 @@ class Header extends Component<IProps & Styles> {
                     &nbsp;
                     {name}
                 </Button>
-                <Button color="inherit" onClick={currentUser.logout} id="logout">
+                <Button color="inherit" onClick={logout} id="logout">
                     <ExitToApp />
                     &nbsp;Logout
                 </Button>

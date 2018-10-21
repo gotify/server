@@ -2,16 +2,20 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import 'typeface-roboto';
 import 'typeface-roboto-mono';
-import './actions/defaultAxios';
+import {initAxios} from './actions/axios';
 import * as config from './config';
 import Layout from './Layout';
 import registerServiceWorker from './registerServiceWorker';
 import * as Notifications from './stores/Notifications';
-import {currentUser} from './stores/CurrentUser';
-import AppStore from './stores/AppStore';
+import {CurrentUser} from './stores/CurrentUser';
+import {AppStore} from './stores/AppStore';
 import {reaction} from 'mobx';
 import {WebSocketStore} from './stores/WebSocketStore';
-import SnackManager from './stores/SnackManager';
+import {SnackManager} from './stores/SnackManager';
+import {InjectProvider, StoreMapping} from './inject';
+import {UserStore} from './stores/UserStore';
+import {MessagesStore} from './stores/MessagesStore';
+import {ClientStore} from './stores/ClientStore';
 
 const defaultDevConfig = {
     url: 'http://localhost:80/',
@@ -33,6 +37,26 @@ declare global {
     }
 }
 
+const initStores = (): StoreMapping => {
+    const snackManager = new SnackManager();
+    const appStore = new AppStore(snackManager.snack);
+    const userStore = new UserStore(snackManager.snack);
+    const messagesStore = new MessagesStore(appStore, snackManager.snack);
+    const currentUser = new CurrentUser(snackManager.snack);
+    const clientStore = new ClientStore(snackManager.snack);
+    const wsStore = new WebSocketStore(snackManager.snack, currentUser, messagesStore);
+
+    return {
+        appStore,
+        snackManager,
+        userStore,
+        messagesStore,
+        currentUser,
+        clientStore,
+        wsStore,
+    };
+};
+
 (function clientJS() {
     Notifications.requestPermission();
     if (process.env.NODE_ENV === 'production') {
@@ -40,20 +64,28 @@ declare global {
     } else {
         config.set(window.config || defaultDevConfig);
     }
-    const ws = new WebSocketStore(SnackManager.snack);
+    const stores = initStores();
+    initAxios(stores.currentUser, stores.snackManager.snack);
+
     reaction(
-        () => currentUser.loggedIn,
+        () => stores.currentUser.loggedIn,
         (loggedIn) => {
             if (loggedIn) {
-                ws.listen();
+                stores.wsStore.listen();
             } else {
-                ws.close();
+                stores.wsStore.close();
             }
-            AppStore.refresh();
+            stores.appStore.refresh();
         }
     );
 
-    currentUser.tryAuthenticate();
-    ReactDOM.render(<Layout />, document.getElementById('root'));
+    stores.currentUser.tryAuthenticate();
+
+    ReactDOM.render(
+        <InjectProvider stores={stores}>
+            <Layout />
+        </InjectProvider>,
+        document.getElementById('root')
+    );
     registerServiceWorker();
 })();
