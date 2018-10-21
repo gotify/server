@@ -3,21 +3,21 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import axios, {AxiosResponse} from 'axios';
 import * as React from 'react';
 import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
-import Header from './component/Header';
-import LoadingSpinner from './component/LoadingSpinner';
-import Navigation from './component/Navigation';
-import ScrollUpButton from './component/ScrollUpButton';
-import SettingsDialog from './component/SettingsDialog';
-import SnackBarHandler from './snack/SnackBarHandler';
-import * as config from './config';
-import Applications from './application/Applications';
-import Clients from './client/Clients';
-import Login from './pages/Login';
-import Messages from './message/Messages';
-import Users from './user/Users';
+import Header from './Header';
+import LoadingSpinner from '../component/LoadingSpinner';
+import Navigation from './Navigation';
+import ScrollUpButton from '../component/ScrollUpButton';
+import SettingsDialog from '../component/SettingsDialog';
+import SnackBarHandler from '../snack/SnackBarHandler';
+import * as config from '../config';
+import Applications from '../application/Applications';
+import Clients from '../client/Clients';
+import Login from '../pages/Login';
+import Messages from '../message/Messages';
+import Users from '../user/Users';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
-import {inject, Stores} from './inject';
+import {inject, Stores} from '../inject';
 
 const lightTheme = createMuiTheme({
     palette: {

@@ -4,7 +4,7 @@ import 'typeface-roboto';
 import 'typeface-roboto-mono';
 import {initAxios} from './actions/axios';
 import * as config from './config';
-import Layout from './Layout';
+import Layout from './layout/Layout';
 import registerServiceWorker from './registerServiceWorker';
 import * as Notifications from './stores/Notifications';
 import {CurrentUser} from './stores/CurrentUser';
