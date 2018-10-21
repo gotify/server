@@ -10,11 +10,12 @@ import TableRow from '@material-ui/core/TableRow';
 import Delete from '@material-ui/icons/Delete';
 import Edit from '@material-ui/icons/Edit';
 import React, {Component, SFC} from 'react';
-import * as UserAction from '../actions/UserAction';
 import ConfirmDialog from '../component/ConfirmDialog';
 import DefaultPage from '../component/DefaultPage';
-import UserStore from '../stores/UserStore';
 import AddEditDialog from './dialog/AddEditUserDialog';
+import UserStore from '../stores/UserStore';
+import {observer} from 'mobx-react';
+import {observable} from 'mobx';
 
 const styles = () => ({
     wrapper: {
@@ -45,33 +46,26 @@ const UserRow: SFC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
     </TableRow>
 );
 
-interface IState {
-    users: IUser[];
-    createDialog: boolean;
-    deleteId: number;
-    editId: number;
-}
+@observer
+class Users extends Component<WithStyles<'wrapper'>> {
+    @observable
+    private createDialog = false;
+    @observable
+    private deleteId: number | false = false;
+    @observable
+    private editId: number | false = false;
 
-class Users extends Component<WithStyles<'wrapper'>, IState> {
-    public state = {users: [], createDialog: false, deleteId: -1, editId: -1};
-
-    public componentWillMount() {
-        UserStore.on('change', this.updateUsers);
-        this.updateUsers();
-    }
-
-    public componentWillUnmount() {
-        UserStore.removeListener('change', this.updateUsers);
-    }
+    public componentDidMount = UserStore.refresh;
 
     public render() {
-        const {users, deleteId, editId} = this.state;
+        const users = UserStore.getItems();
+        const {deleteId, editId, createDialog} = this;
         return (
             <DefaultPage
                 title="Users"
                 buttonTitle="Create User"
                 buttonId="create-user"
-                fButton={this.showCreateDialog}>
+                fButton={() => (this.createDialog = true)}>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="user-table">
@@ -89,8 +83,8 @@ class Users extends Component<WithStyles<'wrapper'>, IState> {
                                             key={user.id}
                                             name={user.name}
                                             admin={user.admin}
-                                            fDelete={() => this.showDeleteDialog(user.id)}
-                                            fEdit={() => this.showEditDialog(user.id)}
+                                            fDelete={() => (this.deleteId = user.id)}
+                                            fEdit={() => (this.editId = user.id)}
                                         />
                                     );
                                 })}
@@ -98,43 +92,32 @@ class Users extends Component<WithStyles<'wrapper'>, IState> {
                         </Table>
                     </Paper>
                 </Grid>
-                {this.state.createDialog && (
+                {createDialog && (
                     <AddEditDialog
-                        fClose={this.hideCreateDialog}
-                        fOnSubmit={UserAction.createUser}
+                        fClose={() => (this.createDialog = false)}
+                        fOnSubmit={UserStore.create}
                     />
                 )}
-                {editId !== -1 && (
+                {editId !== false && (
                     <AddEditDialog
-                        fClose={this.hideEditDialog}
-                        fOnSubmit={UserAction.updateUser.bind(this, editId)}
-                        name={UserStore.getById(this.state.editId).name}
-                        admin={UserStore.getById(this.state.editId).admin}
+                        fClose={() => (this.editId = false)}
+                        fOnSubmit={UserStore.update.bind(this, editId)}
+                        name={UserStore.getByID(editId).name}
+                        admin={UserStore.getByID(editId).admin}
                         isEdit={true}
                     />
                 )}
-                {deleteId !== -1 && (
+                {deleteId !== false && (
                     <ConfirmDialog
                         title="Confirm Delete"
-                        text={'Delete ' + UserStore.getById(this.state.deleteId).name + '?'}
-                        fClose={this.hideDeleteDialog}
-                        fOnSubmit={() => UserAction.deleteUser(this.state.deleteId)}
+                        text={'Delete ' + UserStore.getByID(deleteId).name + '?'}
+                        fClose={() => (this.deleteId = false)}
+                        fOnSubmit={() => UserStore.remove(deleteId)}
                     />
                 )}
             </DefaultPage>
         );
     }
-
-    private updateUsers = () => this.setState({...this.state, users: UserStore.get()});
-    private showCreateDialog = () => this.setState({...this.state, createDialog: true});
-
-    private hideCreateDialog = () => this.setState({...this.state, createDialog: false});
-    private showEditDialog = (editId: number) => this.setState({...this.state, editId});
-
-    private hideEditDialog = () => this.setState({...this.state, editId: -1});
-    private showDeleteDialog = (deleteId: number) => this.setState({...this.state, deleteId});
-
-    private hideDeleteDialog = () => this.setState({...this.state, deleteId: -1});
 }
 
 export default withStyles(styles)(Users);
