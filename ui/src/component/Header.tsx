@@ -12,7 +12,8 @@ import Highlight from '@material-ui/icons/Highlight';
 import SupervisorAccount from '@material-ui/icons/SupervisorAccount';
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
-import * as UserAction from '../actions/UserAction';
+import {currentUser} from '../stores/CurrentUser';
+import {observer} from 'mobx-react';
 
 const styles = (theme: Theme) => ({
     appBar: {
@@ -43,6 +44,7 @@ interface IProps {
     showSettings: VoidFunction;
 }
 
+@observer
 class Header extends Component<IProps & Styles> {
     public render() {
         const {classes, version, name, loggedIn, admin, toggleTheme} = this.props;
@@ -107,7 +109,7 @@ class Header extends Component<IProps & Styles> {
                     &nbsp;
                     {name}
                 </Button>
-                <Button color="inherit" onClick={UserAction.logout} id="logout">
+                <Button color="inherit" onClick={currentUser.logout} id="logout">
                     <ExitToApp />
                     &nbsp;Logout
                 </Button>
