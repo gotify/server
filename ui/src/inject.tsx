@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {UserStore} from './stores/UserStore';
+import {UserStore} from './user/UserStore';
 import {SnackManager} from './snack/SnackManager';
 import {MessagesStore} from './message/MessagesStore';
 import {CurrentUser} from './stores/CurrentUser';
