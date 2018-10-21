@@ -38,7 +38,7 @@ check-js:
 	(cd ui && npm run testformat)
 
 download-tools:
-	go get github.com/golang/lint/golint
+	go get golang.org/x/lint/golint
 	go get github.com/fzipp/gocyclo
 	go get -u github.com/gobuffalo/packr/...
 	go get -u github.com/go-swagger/go-swagger/cmd/swagger
