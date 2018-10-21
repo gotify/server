@@ -5,11 +5,10 @@ import React, {Component} from 'react';
 import {RouteComponentProps} from 'react-router';
 import DefaultPage from '../component/DefaultPage';
 import Message from '../component/Message';
-import AppStore from '../stores/AppStore';
-import MessagesStore from '../stores/MessagesStore';
 import {observer} from 'mobx-react';
 // @ts-ignore
 import InfiniteAnyHeight from 'react-infinite-any-height';
+import {inject, Stores} from '../inject';
 
 interface IProps extends RouteComponentProps<{id: string}> {}
 
@@ -18,7 +17,7 @@ interface IState {
 }
 
 @observer
-class Messages extends Component<IProps, IState> {
+class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, IState> {
     private static appId(props: IProps) {
         if (props === undefined) {
             return -1;
@@ -31,7 +30,7 @@ class Messages extends Component<IProps, IState> {
 
     private isLoadingMore = false;
 
-    public componentWillReceiveProps(nextProps: IProps) {
+    public componentWillReceiveProps(nextProps: IProps & Stores<'messagesStore' | 'appStore'>) {
         this.updateAllWithProps(nextProps);
     }
 
@@ -49,9 +48,10 @@ class Messages extends Component<IProps, IState> {
 
     public render() {
         const {appId} = this.state;
-        const messages = MessagesStore.get(appId);
-        const hasMore = MessagesStore.canLoadMore(appId);
-        const name = AppStore.getName(appId);
+        const {messagesStore, appStore} = this.props;
+        const messages = messagesStore.get(appId);
+        const hasMore = messagesStore.canLoadMore(appId);
+        const name = appStore.getName(appId);
         const hasMessages = messages.length !== 0;
 
         return (
@@ -59,7 +59,7 @@ class Messages extends Component<IProps, IState> {
                 title={name}
                 buttonTitle="Delete All"
                 buttonId="delete-all"
-                fButton={() => MessagesStore.removeByApp(appId)}
+                fButton={() => messagesStore.removeByApp(appId)}
                 buttonDisabled={!hasMessages}>
                 {hasMessages ? (
                     <div style={{width: '100%'}} id="messages">
@@ -84,18 +84,19 @@ class Messages extends Component<IProps, IState> {
         );
     }
 
-    private updateAllWithProps = (props: IProps) => {
+    private updateAllWithProps = (props: IProps & Stores<'messagesStore'>) => {
         const appId = Messages.appId(props);
-
+        console.log('props', props);
         this.setState({appId});
-        if (!MessagesStore.exists(appId)) {
-            MessagesStore.loadMore(appId);
+        if (!props.messagesStore.exists(appId)) {
+            props.messagesStore.loadMore(appId);
         }
     };
 
     private updateAll = () => this.updateAllWithProps(this.props);
 
-    private deleteMessage = (message: IMessage) => () => MessagesStore.removeSingle(message);
+    private deleteMessage = (message: IMessage) => () =>
+        this.props.messagesStore.removeSingle(message);
 
     private renderMessage = (message: IMessage) => {
         this.checkIfLoadMore();
@@ -113,9 +114,9 @@ class Messages extends Component<IProps, IState> {
 
     private checkIfLoadMore() {
         const {appId} = this.state;
-        if (!this.isLoadingMore && MessagesStore.canLoadMore(appId)) {
+        if (!this.isLoadingMore && this.props.messagesStore.canLoadMore(appId)) {
             this.isLoadingMore = true;
-            MessagesStore.loadMore(appId).then(() => (this.isLoadingMore = false));
+            this.props.messagesStore.loadMore(appId).then(() => (this.isLoadingMore = false));
         }
     }
 
@@ -128,4 +129,4 @@ class Messages extends Component<IProps, IState> {
     );
 }
 
-export default Messages;
+export default inject('messagesStore', 'appStore')(Messages);

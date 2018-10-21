@@ -6,22 +6,22 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import React, {Component} from 'react';
-import {currentUser} from '../stores/CurrentUser';
 import {observable} from 'mobx';
 import {observer} from 'mobx-react';
+import {inject, Stores} from '../inject';
 
 interface IProps {
     fClose: VoidFunction;
 }
 
 @observer
-export default class SettingsDialog extends Component<IProps> {
+class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
     @observable
     private pass = '';
 
     public render() {
         const {pass} = this;
-        const {fClose} = this.props;
+        const {fClose, currentUser} = this.props;
         const submitAndClose = () => {
             currentUser.changePassword(pass);
             fClose();
@@ -64,3 +64,5 @@ export default class SettingsDialog extends Component<IProps> {
         );
     }
 }
+
+export default inject('currentUser')(SettingsDialog);

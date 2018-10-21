@@ -13,9 +13,9 @@ import React, {Component, SFC} from 'react';
 import ConfirmDialog from '../component/ConfirmDialog';
 import DefaultPage from '../component/DefaultPage';
 import AddEditDialog from './dialog/AddEditUserDialog';
-import UserStore from '../stores/UserStore';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
+import {inject, Stores} from '../inject';
 
 const styles = () => ({
     wrapper: {
@@ -47,7 +47,7 @@ const UserRow: SFC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
 );
 
 @observer
-class Users extends Component<WithStyles<'wrapper'>> {
+class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
     @observable
     private createDialog = false;
     @observable
@@ -55,11 +55,16 @@ class Users extends Component<WithStyles<'wrapper'>> {
     @observable
     private editId: number | false = false;
 
-    public componentDidMount = UserStore.refresh;
+    public componentDidMount = () => this.props.userStore.refresh();
 
     public render() {
-        const users = UserStore.getItems();
-        const {deleteId, editId, createDialog} = this;
+        const {
+            deleteId,
+            editId,
+            createDialog,
+            props: {userStore},
+        } = this;
+        const users = userStore.getItems();
         return (
             <DefaultPage
                 title="Users"
@@ -95,24 +100,24 @@ class Users extends Component<WithStyles<'wrapper'>> {
                 {createDialog && (
                     <AddEditDialog
                         fClose={() => (this.createDialog = false)}
-                        fOnSubmit={UserStore.create}
+                        fOnSubmit={userStore.create}
                     />
                 )}
                 {editId !== false && (
                     <AddEditDialog
                         fClose={() => (this.editId = false)}
-                        fOnSubmit={UserStore.update.bind(this, editId)}
-                        name={UserStore.getByID(editId).name}
-                        admin={UserStore.getByID(editId).admin}
+                        fOnSubmit={userStore.update.bind(this, editId)}
+                        name={userStore.getByID(editId).name}
+                        admin={userStore.getByID(editId).admin}
                         isEdit={true}
                     />
                 )}
                 {deleteId !== false && (
                     <ConfirmDialog
                         title="Confirm Delete"
-                        text={'Delete ' + UserStore.getByID(deleteId).name + '?'}
+                        text={'Delete ' + userStore.getByID(deleteId).name + '?'}
                         fClose={() => (this.deleteId = false)}
-                        fOnSubmit={() => UserStore.remove(deleteId)}
+                        fOnSubmit={() => userStore.remove(deleteId)}
                     />
                 )}
             </DefaultPage>
@@ -120,4 +125,4 @@ class Users extends Component<WithStyles<'wrapper'>> {
     }
 }
 
-export default withStyles(styles)(Users);
+export default withStyles(styles)(inject('userStore')(Users));

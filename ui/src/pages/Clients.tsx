@@ -12,22 +12,26 @@ import ConfirmDialog from '../component/ConfirmDialog';
 import DefaultPage from '../component/DefaultPage';
 import ToggleVisibility from '../component/ToggleVisibility';
 import AddClientDialog from './dialog/AddClientDialog';
-import ClientStore from '../stores/ClientStore';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
+import {inject, Stores} from '../inject';
 
 @observer
-class Clients extends Component {
+class Clients extends Component<Stores<'clientStore'>> {
     @observable
     private showDialog = false;
     @observable
     private deleteId: false | number = false;
 
-    public componentDidMount = ClientStore.refresh;
+    public componentDidMount = () => this.props.clientStore.refresh();
 
     public render() {
-        const {deleteId, showDialog} = this;
-        const clients = ClientStore.getItems();
+        const {
+            deleteId,
+            showDialog,
+            props: {clientStore},
+        } = this;
+        const clients = clientStore.getItems();
 
         return (
             <DefaultPage
@@ -63,15 +67,15 @@ class Clients extends Component {
                 {showDialog && (
                     <AddClientDialog
                         fClose={() => (this.showDialog = false)}
-                        fOnSubmit={ClientStore.create}
+                        fOnSubmit={clientStore.create}
                     />
                 )}
                 {deleteId !== false && (
                     <ConfirmDialog
                         title="Confirm Delete"
-                        text={'Delete ' + ClientStore.getByID(deleteId).name + '?'}
+                        text={'Delete ' + clientStore.getByID(deleteId).name + '?'}
                         fClose={() => (this.deleteId = false)}
-                        fOnSubmit={() => ClientStore.remove(deleteId)}
+                        fOnSubmit={() => clientStore.remove(deleteId)}
                     />
                 )}
             </DefaultPage>
@@ -102,4 +106,4 @@ const Row: SFC<IRowProps> = ({name, value, fDelete}) => (
     </TableRow>
 );
 
-export default Clients;
+export default inject('clientStore')(Clients);

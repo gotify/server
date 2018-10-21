@@ -4,10 +4,10 @@ import Close from '@material-ui/icons/Close';
 import React, {Component} from 'react';
 import {observable, reaction} from 'mobx';
 import {observer} from 'mobx-react';
-import SnackManager from '../stores/SnackManager';
+import {inject, Stores} from '../inject';
 
 @observer
-class SnackBarHandler extends Component {
+class SnackBarHandler extends Component<Stores<'snackManager'>> {
     private static MAX_VISIBLE_SNACK_TIME_IN_MS = 6000;
     private static MIN_VISIBLE_SNACK_TIME_IN_MS = 1000;
 
@@ -19,12 +19,12 @@ class SnackBarHandler extends Component {
     private dispose: () => void = () => {};
 
     public componentDidMount = () =>
-        (this.dispose = reaction(() => SnackManager.counter, this.onNewSnack));
+        (this.dispose = reaction(() => this.props.snackManager.counter, this.onNewSnack));
 
     public componentWillUnmount = () => this.dispose();
 
     public render() {
-        const {message: current, hasNext} = SnackManager;
+        const {message: current, hasNext} = this.props.snackManager;
         const duration = hasNext()
             ? SnackBarHandler.MIN_VISIBLE_SNACK_TIME_IN_MS
             : SnackBarHandler.MAX_VISIBLE_SNACK_TIME_IN_MS;
@@ -70,14 +70,14 @@ class SnackBarHandler extends Component {
     };
 
     private openNextSnack = () => {
-        if (SnackManager.hasNext()) {
+        if (this.props.snackManager.hasNext()) {
             this.open = true;
             this.openWhen = Date.now();
-            SnackManager.next();
+            this.props.snackManager.next();
         }
     };
 
     private closeCurrentSnack = () => (this.open = false);
 }
 
-export default SnackBarHandler;
+export default inject('snackManager')(SnackBarHandler);
