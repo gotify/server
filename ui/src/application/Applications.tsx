@@ -13,7 +13,7 @@ import React, {ChangeEvent, Component, SFC} from 'react';
 import ConfirmDialog from '../component/ConfirmDialog';
 import DefaultPage from '../component/DefaultPage';
 import ToggleVisibility from '../component/ToggleVisibility';
-import AddApplicationDialog from './dialog/AddApplicationDialog';
+import AddApplicationDialog from './AddApplicationDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
