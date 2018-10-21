@@ -8,7 +8,7 @@ import Layout from './Layout';
 import registerServiceWorker from './registerServiceWorker';
 import * as Notifications from './stores/Notifications';
 import {CurrentUser} from './stores/CurrentUser';
-import {AppStore} from './stores/AppStore';
+import {AppStore} from './application/AppStore';
 import {reaction} from 'mobx';
 import {WebSocketStore} from './stores/WebSocketStore';
 import {SnackManager} from './snack/SnackManager';
