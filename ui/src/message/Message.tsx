@@ -80,8 +80,8 @@ class Message extends React.PureComponent<IProps & Style> {
                             <Typography variant="body1" className="date">
                                 <TimeAgo date={date} />
                             </Typography>
-                            <IconButton onClick={fDelete} className={classes.trash}>
-                                <Delete className="delete" />
+                            <IconButton onClick={fDelete} className={`${classes.trash} delete`}>
+                                <Delete />
                             </IconButton>
                         </div>
                         <Typography component="p" className="content">
