@@ -6,9 +6,9 @@ import {RouteComponentProps} from 'react-router';
 import DefaultPage from '../common/DefaultPage';
 import Message from './Message';
 import {observer} from 'mobx-react';
-// @ts-ignore
-import InfiniteAnyHeight from 'react-infinite-any-height';
 import {inject, Stores} from '../inject';
+import {observable} from 'mobx';
+import ReactInfinite from 'react-infinite';
 
 interface IProps extends RouteComponentProps<{id: string}> {}
 
@@ -18,6 +18,9 @@ interface IState {
 
 @observer
 class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, IState> {
+    @observable
+    private heights: Record<number, number> = {};
+
     private static appId(props: IProps) {
         if (props === undefined) {
             return -1;
@@ -63,12 +66,14 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                 buttonDisabled={!hasMessages}>
                 {hasMessages ? (
                     <div style={{width: '100%'}} id="messages">
-                        <InfiniteAnyHeight
+                        <ReactInfinite
                             key={appId}
-                            list={messages.map(this.renderMessage)}
-                            preloadAdditionalHeight={window.innerHeight * 2.5}
                             useWindowAsScrollContainer
-                        />
+                            preloadBatchSize={window.innerHeight * 3}
+                            elementHeight={messages.map((m) => this.heights[m.id] || 1)}>
+                            {messages.map(this.renderMessage)}
+                        </ReactInfinite>
+
                         {hasMore ? (
                             <Grid item xs={12} style={{textAlign: 'center'}}>
                                 <CircularProgress size={100} />
@@ -99,10 +104,14 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
         this.props.messagesStore.removeSingle(message);
 
     private renderMessage = (message: IMessage) => {
-        this.checkIfLoadMore();
         return (
             <Message
                 key={message.id}
+                height={(height) => {
+                    if (!this.heights[message.id]) {
+                        this.heights[message.id] = height;
+                    }
+                }}
                 fDelete={this.deleteMessage(message)}
                 title={message.title}
                 date={message.date}
