@@ -91,7 +91,6 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
 
     private updateAllWithProps = (props: IProps & Stores<'messagesStore'>) => {
         const appId = Messages.appId(props);
-        console.log('props', props);
         this.setState({appId});
         if (!props.messagesStore.exists(appId)) {
             props.messagesStore.loadMore(appId);
