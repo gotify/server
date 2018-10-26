@@ -201,7 +201,11 @@ describe('Messages', () => {
     });
     it('deletes a windows message', async () => {
         await navigate('Windows');
-        await page.click('#messages span:nth-of-type(2) .message .delete');
+        await page.evaluate(() =>
+            (document.querySelectorAll(
+                '#messages .message .delete'
+            )[1] as HTMLButtonElement).click()
+        );
         await expectMessages({
             all: [linux2, windows3, backup1, linux1, windows1],
             windows: [windows3, windows1],
