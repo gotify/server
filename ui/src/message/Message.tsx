@@ -47,40 +47,51 @@ interface IProps {
     date: string;
     content: string;
     fDelete: VoidFunction;
+    height: (height: number) => void;
 }
 
-function Message({fDelete, classes, title, date, content, image}: IProps & Style) {
-    return (
-        <div className={`${classes.wrapperPadding} message`}>
-            <Container style={{display: 'flex'}}>
-                <div className={classes.imageWrapper}>
-                    <img
-                        src={image}
-                        alt="app logo"
-                        width="70"
-                        height="70"
-                        className={classes.image}
-                    />
-                </div>
-                <div className={classes.messageContentWrapper}>
-                    <div className={classes.header}>
-                        <Typography className={`${classes.headerTitle} title`} variant="headline">
-                            {title}
-                        </Typography>
-                        <Typography variant="body1" className="date">
-                            <TimeAgo date={date} />
-                        </Typography>
-                        <IconButton onClick={fDelete} className={classes.trash}>
-                            <Delete className="delete" />
-                        </IconButton>
+class Message extends React.PureComponent<IProps & Style> {
+    private node: HTMLDivElement | null;
+
+    public componentDidMount = () =>
+        this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
+
+    public render(): React.ReactNode {
+        const {fDelete, classes, title, date, content, image} = this.props;
+        return (
+            <div className={`${classes.wrapperPadding} message`} ref={(ref) => (this.node = ref)}>
+                <Container style={{display: 'flex'}}>
+                    <div className={classes.imageWrapper}>
+                        <img
+                            src={image}
+                            alt="app logo"
+                            width="70"
+                            height="70"
+                            className={classes.image}
+                        />
                     </div>
-                    <Typography component="p" className="content">
-                        {content}
-                    </Typography>
-                </div>
-            </Container>
-        </div>
-    );
+                    <div className={classes.messageContentWrapper}>
+                        <div className={classes.header}>
+                            <Typography
+                                className={`${classes.headerTitle} title`}
+                                variant="headline">
+                                {title}
+                            </Typography>
+                            <Typography variant="body1" className="date">
+                                <TimeAgo date={date} />
+                            </Typography>
+                            <IconButton onClick={fDelete} className={classes.trash}>
+                                <Delete className="delete" />
+                            </IconButton>
+                        </div>
+                        <Typography component="p" className="content">
+                            {content}
+                        </Typography>
+                    </div>
+                </Container>
+            </div>
+        );
+    }
 }
 
 export default withStyles(styles)<IProps>(Message);
