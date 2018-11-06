@@ -28,7 +28,8 @@ We wanted a simple server for sending and receiving messages (in real time per w
 
 * Android-App -> [gotify/android](https://github.com/gotify/android)
 
-[<img src="https://play.google.com/intl/en_gb/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" width="150" />][playstore]
+[<img src="https://play.google.com/intl/en_gb/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" width="150" />][playstore] 
+[<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" width="150"/>][fdroid]
 
 Google Play and the Google Play logo are trademarks of Google LLC.
 
@@ -175,3 +176,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
  [docker-normal]: https://hub.docker.com/r/gotify/server/
  [docker-arm7]: https://hub.docker.com/r/gotify/server-arm7/
  [playstore]: https://play.google.com/store/apps/details?id=com.github.gotify
+ [fdroid]: https://f-droid.org/de/packages/com.github.gotify/
