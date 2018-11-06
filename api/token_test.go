@@ -10,14 +10,11 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/url"
 	"os"
-	"reflect"
 
-	"io/ioutil"
-
-	"github.com/bouk/monkey"
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
@@ -455,15 +452,11 @@ func (s *TokenSuite) Test_UploadAppImage_WithSaveError_expectServerError() {
 
 	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
 	assert.Nil(s.T(), err)
-	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant", &buffer)
+	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant/", &buffer)
+	s.a.ImageDir = "asdasd/asdasda/asdasd"
 	s.ctx.Request.Header.Set("Content-Type", cType)
 	test.WithUser(s.ctx, 5)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-	// try emulate a save error.
-	patch := monkey.PatchInstanceMethod(reflect.TypeOf(s.ctx), "SaveUploadedFile", func(ctx *gin.Context, file *multipart.FileHeader, dst string) error {
-		return errors.New("could not do something")
-	})
-	defer patch.Unpatch()
 
 	s.a.UploadApplicationImage(s.ctx)
 

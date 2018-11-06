@@ -12,6 +12,8 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"   // enable the sqlite3 dialect
 )
 
+var mkdirAll = os.MkdirAll
+
 // New creates a new wrapper for the gorm database framework.
 func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUser bool) (*GormDatabase, error) {
 	createDirectoryIfSqlite(dialect, connection)
@@ -47,7 +49,7 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 func createDirectoryIfSqlite(dialect string, connection string) {
 	if dialect == "sqlite3" {
 		if _, err := os.Stat(filepath.Dir(connection)); os.IsNotExist(err) {
-			if err := os.MkdirAll(filepath.Dir(connection), 0777); err != nil {
+			if err := mkdirAll(filepath.Dir(connection), 0777); err != nil {
 				panic(err)
 			}
 		}

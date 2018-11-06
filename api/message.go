@@ -26,6 +26,8 @@ type MessageDatabase interface {
 	GetApplicationByToken(token string) *model.Application
 }
 
+var timeNow = time.Now
+
 // Notifier notifies when a new message was created.
 type Notifier interface {
 	Notify(userID uint, message *model.Message)
@@ -128,7 +130,7 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	message := model.Message{}
 	if err := ctx.Bind(&message); err == nil {
 		message.ApplicationID = a.DB.GetApplicationByToken(auth.GetTokenID(ctx)).ID
-		message.Date = time.Now()
+		message.Date = timeNow()
 		a.DB.CreateMessage(&message)
 		a.Notifier.Notify(auth.GetUserID(ctx), &message)
 		ctx.JSON(200, message)

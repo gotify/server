@@ -12,6 +12,14 @@ const (
 	writeWait = 2 * time.Second
 )
 
+var ping = func(conn *websocket.Conn) error {
+	return conn.WriteMessage(websocket.PingMessage, nil)
+}
+
+var writeJSON = func(conn *websocket.Conn, v interface{}) error {
+	return conn.WriteJSON(v)
+}
+
 type client struct {
 	conn    *websocket.Conn
 	onClose func(*client)
@@ -84,12 +92,12 @@ func (c *client) startWriteHandler(pingPeriod time.Duration) {
 			}
 
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := c.conn.WriteJSON(message); err != nil {
+			if err := writeJSON(c.conn, message); err != nil {
 				return
 			}
 		case <-pingTicker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			if err := ping(c.conn); err != nil {
 				return
 			}
 		}

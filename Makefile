@@ -56,7 +56,7 @@ check-swagger: update-swagger
 
 extract-licenses:
 	mkdir ${LICENSE_DIR} || true
-	for LICENSE in $(shell find vendor/* -name LICENSE | grep -v monkey); do \
+	for LICENSE in $(shell find vendor/* -name LICENSE); do \
 		DIR=`echo $$LICENSE | tr "/" _ | sed -e 's/vendor_//; s/_LICENSE//'` ; \
         cp $$LICENSE ${LICENSE_DIR}$$DIR ; \
     done

@@ -1,12 +1,10 @@
 package database
 
 import (
+	"errors"
 	"os"
 	"testing"
 
-	"errors"
-
-	"github.com/bouk/monkey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -62,12 +60,11 @@ func TestWithAlreadyExistingSqliteFolder(t *testing.T) {
 }
 
 func TestPanicsOnMkdirError(t *testing.T) {
-	patch := monkey.Patch(os.MkdirAll, func(string, os.FileMode) error { return errors.New("whoops") })
-	defer patch.Unpatch()
-	// ensure path not exists
 	os.RemoveAll("somepath")
-
+	mkdirAll = func(path string, perm os.FileMode) error {
+		return errors.New("ERROR")
+	}
 	assert.Panics(t, func() {
-		New("sqlite3", "somepath/testdb.db", "defaultUser", "defaultPass", 5, true)
+		New("sqlite3", "somepath/test.db", "defaultUser", "defaultPass", 5, true)
 	})
 }

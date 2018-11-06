@@ -10,11 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"reflect"
-
 	"errors"
 
-	"github.com/bouk/monkey"
 	"github.com/fortytw2/leaktest"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -41,7 +38,14 @@ func TestFailureOnNormalHttpRequest(t *testing.T) {
 
 func TestWriteMessageFails(t *testing.T) {
 	mode.Set(mode.TestDev)
-
+	oldWrite := writeJSON
+	// try emulate an write error, mostly this should kill the ReadMessage goroutine first but you'll never know.
+	writeJSON = func(conn *websocket.Conn, v interface{}) error {
+		return errors.New("asd")
+	}
+	defer func() {
+		writeJSON = oldWrite
+	}()
 	defer leaktest.Check(t)()
 
 	server, api := bootTestServer(func(context *gin.Context) {
@@ -58,18 +62,20 @@ func TestWriteMessageFails(t *testing.T) {
 	clients := clients(api, 1)
 	assert.NotEmpty(t, clients)
 
-	// try emulate an write error, mostly this should kill the ReadMessage goroutine first but you'll never know.
-	patch := monkey.PatchInstanceMethod(reflect.TypeOf(clients[0].conn), "WriteJSON", func(*websocket.Conn, interface{}) error {
-		return errors.New("could not do something")
-	})
-	defer patch.Unpatch()
-
 	api.Notify(1, &model.Message{Message: "HI"})
 	user.expectNoMessage()
 }
 
 func TestWritePingFails(t *testing.T) {
 	mode.Set(mode.TestDev)
+	oldPing := ping
+	// try emulate an write error, mostly this should kill the ReadMessage gorouting first but you'll never know.
+	ping = func(conn *websocket.Conn) error {
+		return errors.New("asd")
+	}
+	defer func() {
+		ping = oldPing
+	}()
 
 	defer leaktest.CheckTimeout(t, 10*time.Second)()
 
@@ -86,11 +92,6 @@ func TestWritePingFails(t *testing.T) {
 	clients := clients(api, 1)
 
 	assert.NotEmpty(t, clients)
-	// try emulate an write error, mostly this should kill the ReadMessage gorouting first but you'll never know.
-	patch := monkey.PatchInstanceMethod(reflect.TypeOf(clients[0].conn), "WriteMessage", func(*websocket.Conn, int, []byte) error {
-		return errors.New("could not do something")
-	})
-	defer patch.Unpatch()
 
 	time.Sleep(5 * time.Second) // waiting for ping
 
