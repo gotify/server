@@ -40,4 +40,10 @@ type Message struct {
 	// required: true
 	// example: 2018-02-27T19:36:10.5045044+01:00
 	Date time.Time `json:"date"`
+	// If the message was already read.
+	//
+	// read only: true
+	// required: true
+	// example: true
+	Read bool `json:"read"`
 }

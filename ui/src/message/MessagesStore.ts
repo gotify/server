@@ -1,8 +1,8 @@
 import {BaseStore} from '../common/BaseStore';
-import {action, IObservableArray, observable, reaction} from 'mobx';
+import {action, IObservableArray, observable, reaction, transaction} from 'mobx';
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
-import {createTransformer} from 'mobx-utils';
+import {chunkProcessor, createTransformer} from 'mobx-utils';
 import {SnackReporter} from '../snack/SnackManager';
 
 const AllMessages = -1;
@@ -18,6 +18,12 @@ export class MessagesStore {
     @observable
     private state: Record<number, MessagesState> = {};
 
+    @observable
+    private readMessageQueue: number[] = [];
+
+    @observable
+    private newMessageQueue: IMessage[] = [];
+
     private loading = false;
 
     public constructor(
@@ -25,7 +31,13 @@ export class MessagesStore {
         private readonly snack: SnackReporter
     ) {
         reaction(() => appStore.getItems(), this.createEmptyStatesForApps);
+        chunkProcessor(this.readMessageQueue, this.markMessagesAsReadRemote, 1000);
+        chunkProcessor(this.newMessageQueue, (messages) => messages.map(this.showNewMessage), 200);
     }
+
+    private markMessagesAsReadRemote = (ids: number[]) => {
+        axios.post(config.get('url') + 'message/read?' + ids.map((id) => `id=${id}`).join('&'));
+    };
 
     private stateOf = (appId: number, create = true) => {
         if (this.state[appId] || !create) {
@@ -47,17 +59,47 @@ export class MessagesStore {
         const pagedResult = await this.fetchMessages(appId, state.nextSince).then(
             (resp) => resp.data
         );
-
-        state.messages.replace([...state.messages, ...pagedResult.messages]);
-        state.nextSince = pagedResult.paging.since || 0;
-        state.hasMore = 'next' in pagedResult.paging;
-        state.loaded = true;
-        this.loading = false;
+        transaction(() => {
+            state.loaded = true;
+            state.nextSince = pagedResult.paging.since || 0;
+            state.hasMore = 'next' in pagedResult.paging;
+            state.messages.replace([...state.messages, ...pagedResult.messages]);
+            this.loading = false;
+        });
         return Promise.resolve();
     };
 
     @action
+    public markAsRead = (message: IMessage) => {
+        console.log('MARK AS READ', this.stateOf(-1).loaded);
+
+        if (this.exists(AllMessages)) {
+            console.log('ALl messages');
+
+            this.markAsReadWithMessages(this.state[AllMessages].messages, message);
+        }
+        if (this.exists(message.appid)) {
+            this.markAsReadWithMessages(this.state[message.appid].messages, message);
+        }
+        this.readMessageQueue.push(message.id);
+    };
+
+    private markAsReadWithMessages = (messages: IMessage[], toUpdate: IMessage) => {
+        const foundMessage = messages.find((message) => toUpdate.id === message.id);
+        console.log('UPDATE MESSAGE', foundMessage);
+
+        if (foundMessage) {
+            foundMessage.read = true;
+        }
+    };
+
+    @action
     public publishSingleMessage = (message: IMessage) => {
+        this.newMessageQueue.push(message);
+    };
+
+    @action
+    public showNewMessage = (message: IMessage) => {
         if (this.exists(AllMessages)) {
             this.stateOf(AllMessages).messages.unshift(message);
         }
@@ -101,15 +143,13 @@ export class MessagesStore {
 
     public exists = (id: number) => this.stateOf(id).loaded;
 
-    private removeFromList(messages: IMessage[], messageToDelete: IMessage): false | number {
+    private removeFromList(messages: IMessage[], messageToDelete: IMessage) {
         if (messages) {
             const index = messages.findIndex((message) => message.id === messageToDelete.id);
             if (index !== -1) {
                 messages.splice(index, 1);
-                return index;
             }
         }
-        return false;
     }
 
     private clear = (appId: number) => (this.state[appId] = this.emptyState());

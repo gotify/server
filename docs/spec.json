@@ -753,6 +753,119 @@
         }
       }
     },
+    "/message/read": {
+      "post": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "message"
+        ],
+        "summary": "Marks messages as read.",
+        "operationId": "markMessagesAsRead",
+        "parameters": [
+          {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "the message ids",
+            "name": "id",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/message/unread": {
+      "get": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "message"
+        ],
+        "summary": "Return all unread messages.",
+        "operationId": "getUnreadMessages",
+        "parameters": [
+          {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "default": 100,
+            "description": "the maximal amount of messages to return",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "minimum": 0,
+            "type": "integer",
+            "description": "return all messages with an ID less than this value",
+            "name": "since",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/PagedMessages"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/message/{id}": {
       "delete": {
         "security": [
@@ -1256,7 +1369,8 @@
         "appid",
         "message",
         "title",
-        "date"
+        "date",
+        "read"
       ],
       "properties": {
         "appid": {
@@ -1295,6 +1409,13 @@
           "format": "int64",
           "x-go-name": "Priority",
           "example": 2
+        },
+        "read": {
+          "description": "If the message was already read.",
+          "type": "boolean",
+          "x-go-name": "Read",
+          "readOnly": true,
+          "example": true
         },
         "title": {
           "description": "The title of the message.",

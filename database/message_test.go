@@ -6,6 +6,7 @@ import (
 
 	"github.com/gotify/server/model"
 	"github.com/stretchr/testify/assert"
+	"fmt"
 )
 
 func (s *DatabaseSuite) TestMessage() {
@@ -34,6 +35,16 @@ func (s *DatabaseSuite) TestMessage() {
 	assert.Len(s.T(), msgs, 1)
 	assertEquals(s.T(), msgs[0], backupdone)
 
+	msgs = s.db.GetUnreadMessagesByUserSince(user.ID, 100, 0)
+	assert.Len(s.T(), msgs, 1)
+	assertEquals(s.T(), msgs[0], backupdone)
+
+	s.db.SetMessagesRead([]uint{backupdone.ID})
+	backupdone.Read = true
+
+	msgs = s.db.GetUnreadMessagesByUserSince(user.ID, 100, 0)
+	assert.Len(s.T(), msgs, 0)
+
 	msgs = s.db.GetMessagesByApplication(backupServer.ID)
 	assert.Len(s.T(), msgs, 1)
 	assertEquals(s.T(), msgs[0], backupdone)
@@ -50,6 +61,10 @@ func (s *DatabaseSuite) TestMessage() {
 	assert.Len(s.T(), msgs, 2)
 	assertEquals(s.T(), msgs[0], logindone)
 	assertEquals(s.T(), msgs[1], backupdone)
+
+	msgs = s.db.GetUnreadMessagesByUserSince(user.ID, 100, 0)
+	assert.Len(s.T(), msgs, 1)
+	assertEquals(s.T(), msgs[0], logindone)
 
 	msgs = s.db.GetMessagesByApplication(backupServer.ID)
 	assert.Len(s.T(), msgs, 1)
@@ -74,6 +89,11 @@ func (s *DatabaseSuite) TestMessage() {
 	assertEquals(s.T(), msgs[1], logindone)
 	assertEquals(s.T(), msgs[2], backupdone)
 
+	msgs = s.db.GetUnreadMessagesByUserSince(user.ID, 100, 0)
+	assert.Len(s.T(), msgs, 2)
+	assertEquals(s.T(), msgs[0], loginfailed)
+	assertEquals(s.T(), msgs[1], logindone)
+
 	backupfailed := &model.Message{ApplicationID: backupServer.ID, Message: "backup failed", Title: "backup", Priority: 1, Date: time.Now()}
 	s.db.CreateMessage(backupfailed)
 	assert.NotEqual(s.T(), 0, backupfailed.ID)
@@ -84,6 +104,15 @@ func (s *DatabaseSuite) TestMessage() {
 	assertEquals(s.T(), msgs[1], loginfailed)
 	assertEquals(s.T(), msgs[2], logindone)
 	assertEquals(s.T(), msgs[3], backupdone)
+
+	s.db.SetMessagesRead([]uint{loginfailed.ID, logindone.ID})
+	loginfailed.Read = true
+	logindone.Read = true
+
+	msgs = s.db.GetUnreadMessagesByUserSince(user.ID, 100, 0)
+	fmt.Print(msgs)
+	assert.Len(s.T(), msgs, 1)
+	assertEquals(s.T(), msgs[0], backupfailed)
 
 	msgs = s.db.GetMessagesByApplication(loginServer.ID)
 	assert.Len(s.T(), msgs, 2)
@@ -137,6 +166,10 @@ func (s *DatabaseSuite) TestGetMessagesSince() {
 	}
 
 	actual := s.db.GetMessagesByUserSince(user.ID, 50, 0)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 1000, 951, 1)
+
+	actual = s.db.GetUnreadMessagesByUserSince(user.ID, 50, 0)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 1000, 951, 1)
 

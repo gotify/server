@@ -20,6 +20,7 @@ interface IMessage {
     priority: number;
     date: string;
     image?: string;
+    read: boolean;
 }
 
 interface IPagedMessages {

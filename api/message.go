@@ -11,6 +11,7 @@ import (
 	"github.com/gotify/location"
 	"github.com/gotify/server/auth"
 	"github.com/gotify/server/model"
+	"fmt"
 )
 
 // The MessageDatabase interface for encapsulating database access.
@@ -18,12 +19,15 @@ type MessageDatabase interface {
 	GetMessagesByApplicationSince(appID uint, limit int, since uint) []*model.Message
 	GetApplicationByID(id uint) *model.Application
 	GetMessagesByUserSince(userID uint, limit int, since uint) []*model.Message
+	GetUnreadMessagesByUserSince(userID uint, limit int, since uint) []*model.Message
 	DeleteMessageByID(id uint) error
 	GetMessageByID(id uint) *model.Message
 	DeleteMessagesByUser(userID uint) error
 	DeleteMessagesByApplication(applicationID uint) error
 	CreateMessage(message *model.Message) error
 	GetApplicationByToken(token string) *model.Application
+	GetApplicationsByUser(userID uint) []*model.Application
+	SetMessagesRead(ids []uint) error
 }
 
 // Notifier notifies when a new message was created.
@@ -42,6 +46,10 @@ type pagingParams struct {
 	Since uint `form:"since" binding:"min=0"`
 }
 
+type markAsReadParams struct {
+	Ids []uint  `form:"id"`
+}
+
 // GetMessages returns all messages from a user.
 func (a *MessageAPI) GetMessages(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
@@ -50,6 +58,47 @@ func (a *MessageAPI) GetMessages(ctx *gin.Context) {
 		messages := a.DB.GetMessagesByUserSince(userID, params.Limit+1, params.Since)
 		ctx.JSON(200, buildWithPaging(ctx, params, messages))
 	})
+}
+
+// GetUnreadMessages returns all unread messages from a user.
+func (a *MessageAPI) GetUnreadMessages(ctx *gin.Context) {
+	userID := auth.GetUserID(ctx)
+	withPaging(ctx, func(params *pagingParams) {
+		// the +1 is used to check if there are more messages and will be removed on buildWithPaging
+		messages := a.DB.GetUnreadMessagesByUserSince(userID, params.Limit+1, params.Since)
+		ctx.JSON(200, buildWithPaging(ctx, params, messages))
+	})
+}
+
+// MarkMessagesAsRead marks messages as read.
+func (a *MessageAPI) MarkMessagesAsRead(ctx *gin.Context) {
+	params := &markAsReadParams{}
+	if err := ctx.MustBindWith(params, binding.Query); err == nil {
+		ids := params.Ids
+		appIds := a.userAppIDs(auth.GetUserID(ctx))
+		for _, e := range ids {
+
+			message := a.DB.GetMessageByID(e)
+			if message == nil {
+				ctx.AbortWithError(404, errors.New(fmt.Sprintf("message with id %d does not exist", e)))
+				return
+			} else if _, ok := appIds[message.ApplicationID]; !ok {
+				ctx.AbortWithError(403, errors.New(fmt.Sprintf("you have no permission to change message with id %d", e)))
+				return
+			}
+		}
+
+		a.DB.SetMessagesRead(ids)
+	}
+}
+
+func (a *MessageAPI) userAppIDs(userID uint) map[uint]struct{} {
+	apps := a.DB.GetApplicationsByUser(userID)
+	appIds := make(map[uint]struct{})
+	for _, app := range apps {
+		appIds[app.ID] = struct{}{}
+	}
+	return appIds
 }
 
 func buildWithPaging(ctx *gin.Context, paging *pagingParams, messages []*model.Message) *model.PagedMessages {

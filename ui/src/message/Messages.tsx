@@ -6,6 +6,7 @@ import {RouteComponentProps} from 'react-router';
 import DefaultPage from '../common/DefaultPage';
 import Message from './Message';
 import {observer} from 'mobx-react';
+import VisibilitySensor from 'react-visibility-sensor';
 import {inject, Stores} from '../inject';
 import {observable} from 'mobx';
 import ReactInfinite from 'react-infinite';
@@ -103,20 +104,28 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
         this.props.messagesStore.removeSingle(message);
 
     private renderMessage = (message: IMessage) => {
+        const onVisibilityChange = (visible: boolean) => {
+            if (visible && !message.read) {
+                this.props.messagesStore.markAsRead(message);
+            }
+        };
         return (
-            <Message
-                key={message.id}
-                height={(height) => {
-                    if (!this.heights[message.id]) {
-                        this.heights[message.id] = height;
-                    }
-                }}
-                fDelete={this.deleteMessage(message)}
-                title={message.title}
-                date={message.date}
-                content={message.message}
-                image={message.image}
-            />
+            // @ts-ignore
+            <VisibilitySensor key={message.id} onChange={onVisibilityChange}>
+                <Message
+                    height={(height) => {
+                        if (!this.heights[message.id]) {
+                            this.heights[message.id] = height;
+                        }
+                    }}
+                    fDelete={this.deleteMessage(message)}
+                    title={message.title}
+                    date={message.date}
+                    content={message.message}
+                    read={message.read}
+                    image={message.image}
+                />
+            </VisibilitySensor>
         );
     };
 

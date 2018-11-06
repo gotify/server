@@ -462,6 +462,83 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//         $ref: "#/definitions/Error"
 			message.GET("", messageHandler.GetMessages)
 
+			// swagger:operation GET /message/unread message getUnreadMessages
+			//
+			// Return all unread messages.
+			//
+			// ---
+			// produces:
+			// - application/json
+			// security:
+			// - clientTokenHeader: []
+			// - clientTokenQuery: []
+			// - basicAuth: []
+			// parameters:
+			// - name: limit
+			//   in: query
+			//   description: the maximal amount of messages to return
+			//   required: false
+			//   maximum: 200
+			//   minimum: 1
+			//   default: 100
+			//   type: integer
+			// - name: since
+			//   in: query
+			//   description: return all messages with an ID less than this value
+			//   minimum: 0
+			//   required: false
+			//   type: integer
+			// responses:
+			//   200:
+			//     description: Ok
+			//     schema:
+			//         $ref: "#/definitions/PagedMessages"
+			//   401:
+			//     description: Unauthorized
+			//     schema:
+			//         $ref: "#/definitions/Error"
+			//   403:
+			//     description: Forbidden
+			//     schema:
+			//         $ref: "#/definitions/Error"
+			message.GET("/unread", messageHandler.GetUnreadMessages)
+
+			// swagger:operation POST /message/read message markMessagesAsRead
+			//
+			// Marks messages as read.
+			//
+			// ---
+			// produces:
+			// - application/json
+			// security:
+			// - clientTokenHeader: []
+			// - clientTokenQuery: []
+			// - basicAuth: []
+			// parameters:
+			// - name: id
+			//   in: query
+			//   description: the message ids
+			//   required: true
+			//   type: array
+			//   items:
+			//     type: integer
+			// responses:
+			//   200:
+			//     description: Ok
+			//   401:
+			//     description: Unauthorized
+			//     schema:
+			//         $ref: "#/definitions/Error"
+			//   403:
+			//     description: Forbidden
+			//     schema:
+			//         $ref: "#/definitions/Error"
+			//   404:
+			//     description: Not Found
+			//     schema:
+			//         $ref: "#/definitions/Error"
+			message.POST("/read", messageHandler.MarkMessagesAsRead)
+
 			// swagger:operation DELETE /message message deleteMessages
 			//
 			// Delete all messages.

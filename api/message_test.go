@@ -59,7 +59,7 @@ func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
 		Messages: []*model.Message{{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: 4}},
 	}
 	test.JSONEquals(s.T(), actual, `{"paging": {"limit":5, "since": 122, "size": 5, "next": "http://example.com/message?limit=5&since=122"},
-                                              "messages": [{"id":55,"appid":2,"message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z"}]}`)
+                                              "messages": [{"id":55,"appid":2,"message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z", "read": false}]}`)
 }
 
 func (s *MessageSuite) Test_GetMessages() {
@@ -73,6 +73,23 @@ func (s *MessageSuite) Test_GetMessages() {
 	expected := &model.PagedMessages{
 		Paging:   model.Paging{Limit: 100, Size: 2, Next: ""},
 		Messages: []*model.Message{&second, &first},
+	}
+
+	test.BodyEquals(s.T(), expected, s.recorder)
+}
+
+func (s *MessageSuite) Test_GetUnreadMessages() {
+	user := s.db.User(5)
+	first := user.App(1).NewMessage(1)
+	second := user.App(2).NewMessage(2)
+	user.App(3).NewMessage(3);
+	s.db.SetMessagesRead([]uint{3});
+	test.WithUser(s.ctx, 5)
+	s.a.GetUnreadMessages(s.ctx)
+
+	expected := &model.PagedMessages{
+		Paging:   model.Paging{Limit: 100, Size: 2, Next: ""},
+		Messages: []*model.Message{&second, &first,},
 	}
 
 	test.BodyEquals(s.T(), expected, s.recorder)
@@ -134,11 +151,29 @@ func (s *MessageSuite) Test_GetMessages_BadRequestOnInvalidLimit() {
 	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
+func (s *MessageSuite) Test_GetUnreadMessages_BadRequestOnInvalidLimit() {
+	s.db.User(5)
+	test.WithUser(s.ctx, 5)
+	s.withURL("http", "example.com", "/messages", "limit=555")
+	s.a.GetUnreadMessages(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
 func (s *MessageSuite) Test_GetMessages_BadRequestOnInvalidLimit_Negative() {
 	s.db.User(5)
 	test.WithUser(s.ctx, 5)
 	s.withURL("http", "example.com", "/messages", "limit=-5")
 	s.a.GetMessages(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
+func (s *MessageSuite) Test_GetUnreadMessages_BadRequestOnInvalidLimit_Negative() {
+	s.db.User(5)
+	test.WithUser(s.ctx, 5)
+	s.withURL("http", "example.com", "/messages", "limit=-5")
+	s.a.GetUnreadMessages(s.ctx)
 
 	assert.Equal(s.T(), 400, s.recorder.Code)
 }
@@ -435,6 +470,102 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	assert.Contains(s.T(), msgs, expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.True(s.T(), s.notified)
+}
+
+func (s *MessageSuite) Test_MarkAsRead() {
+	user := s.db.User(2)
+	user.App(1).Message(1).Message(2)
+	user.App(2).Message(3).Message(4)
+
+	test.WithUser(s.ctx, 2)
+	s.withURL("http", "example.com", "/message/read", "id=3")
+
+	s.a.MarkMessagesAsRead(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.False(s.T(), s.db.GetMessageByID(1).Read)
+	assert.False(s.T(), s.db.GetMessageByID(2).Read)
+	assert.True(s.T(), s.db.GetMessageByID(3).Read)
+	assert.False(s.T(), s.db.GetMessageByID(4).Read)
+}
+
+func (s *MessageSuite) Test_MarkAsRead_multiple() {
+	user := s.db.User(2)
+	user.App(1).Message(1).Message(2)
+	user.App(2).Message(3).Message(4)
+
+	test.WithUser(s.ctx, 2)
+	s.withURL("http", "example.com", "/message/read", "id=3&id=2")
+
+	s.a.MarkMessagesAsRead(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.False(s.T(), s.db.GetMessageByID(1).Read)
+	assert.True(s.T(), s.db.GetMessageByID(2).Read)
+	assert.True(s.T(), s.db.GetMessageByID(3).Read)
+	assert.False(s.T(), s.db.GetMessageByID(4).Read)
+}
+
+func (s *MessageSuite) Test_MarkAsRead_wrongUser() {
+	one := s.db.User(2)
+	one.App(1).Message(1).Message(2)
+	one.App(2).Message(3).Message(4)
+
+	two := s.db.User(3)
+	two.App(3).Message(5)
+
+	test.WithUser(s.ctx, 2)
+	s.withURL("http", "example.com", "/message/read", "id=5")
+
+	s.a.MarkMessagesAsRead(s.ctx)
+
+	assert.Equal(s.T(), 403, s.recorder.Code)
+	assert.False(s.T(), s.db.GetMessageByID(5).Read)
+}
+
+func (s *MessageSuite) Test_MarkAsRead_wrongUser_onlyOneIdUnauthorized() {
+	one := s.db.User(2)
+	one.App(1).Message(1).Message(2)
+	one.App(2).Message(3).Message(4)
+
+	two := s.db.User(3)
+	two.App(3).Message(5)
+
+	test.WithUser(s.ctx, 2)
+	s.withURL("http", "example.com", "/message/read", "id=5&id=4")
+
+	s.a.MarkMessagesAsRead(s.ctx)
+
+	assert.Equal(s.T(), 403, s.recorder.Code)
+	assert.False(s.T(), s.db.GetMessageByID(5).Read)
+	assert.False(s.T(), s.db.GetMessageByID(4).Read)
+}
+
+func (s *MessageSuite) Test_MarkAsRead_unknownId() {
+	one := s.db.User(2)
+	one.App(1).Message(1).Message(2)
+	one.App(2).Message(3).Message(4)
+
+	test.WithUser(s.ctx, 2)
+	s.withURL("http", "example.com", "/message/read", "id=5")
+
+	s.a.MarkMessagesAsRead(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+}
+
+func (s *MessageSuite) Test_MarkAsRead_unknownId_oneExistingId() {
+	one := s.db.User(2)
+	one.App(1).Message(1).Message(2)
+	one.App(2).Message(3).Message(4)
+
+	test.WithUser(s.ctx, 2)
+	s.withURL("http", "example.com", "/message/read", "id=5&id=4")
+
+	s.a.MarkMessagesAsRead(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+	assert.False(s.T(), s.db.GetMessageByID(4).Read)
 }
 
 func (s *MessageSuite) withURL(scheme, host, path, query string) {

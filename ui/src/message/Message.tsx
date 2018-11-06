@@ -1,12 +1,12 @@
 import IconButton from '@material-ui/core/IconButton';
-import {withStyles, WithStyles} from '@material-ui/core/styles';
+import {StyleRules, withStyles, WithStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Delete from '@material-ui/icons/Delete';
 import React from 'react';
 import TimeAgo from 'react-timeago';
 import Container from '../common/Container';
 
-const styles = () => ({
+const styles = (): StyleRules => ({
     header: {
         display: 'flex',
     },
@@ -31,19 +31,12 @@ const styles = () => ({
     },
 });
 
-type Style = WithStyles<
-    | 'header'
-    | 'headerTitle'
-    | 'trash'
-    | 'wrapperPadding'
-    | 'messageContentWrapper'
-    | 'image'
-    | 'imageWrapper'
->;
+type Style = WithStyles<typeof styles>;
 
 interface IProps {
     title: string;
     image?: string;
+    read: boolean;
     date: string;
     content: string;
     fDelete: VoidFunction;
@@ -57,10 +50,20 @@ class Message extends React.PureComponent<IProps & Style> {
         this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
 
     public render(): React.ReactNode {
-        const {fDelete, classes, title, date, content, image} = this.props;
+        const {fDelete, classes, title, date, content, image, read} = this.props;
+        const containerStyle: React.CSSProperties = {display: 'flex', transition: 'all 3s linear'};
+
+        if (read) {
+            containerStyle.borderTop = '0px solid black';
+            containerStyle.padding = '16px';
+        } else {
+            containerStyle.borderTop = '5px solid orange';
+            containerStyle.padding = '11px 16px 16px 16px';
+        }
+
         return (
             <div className={`${classes.wrapperPadding} message`} ref={(ref) => (this.node = ref)}>
-                <Container style={{display: 'flex'}}>
+                <Container style={containerStyle}>
                     <div className={classes.imageWrapper}>
                         <img
                             src={image}

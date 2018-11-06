@@ -40,6 +40,24 @@ func (d *GormDatabase) GetMessagesByUserSince(userID uint, limit int, since uint
 	return messages
 }
 
+// GetUnreadMessagesByUserSince returns limited messages from a user.
+// If since is 0 it will be ignored.
+func (d *GormDatabase) GetUnreadMessagesByUserSince(userID uint, limit int, since uint) []*model.Message {
+	var messages []*model.Message
+	db := d.DB.Joins("JOIN applications ON applications.user_id = ?", userID).
+		Where("messages.application_id = applications.id").Where("messages.read = ?", false).Order("id desc").Limit(limit)
+	if since != 0 {
+		db = db.Where("messages.id < ?", since)
+	}
+	db.Find(&messages)
+	return messages
+}
+
+// SetMessagesRead sets the read flag on messages to true
+func (d *GormDatabase) SetMessagesRead(ids []uint) error {
+	return d.DB.Model(&model.Message{}).Where("id in (?)", ids).Update("read", true).Error
+}
+
 // GetMessagesByApplication returns all messages from an application.
 func (d *GormDatabase) GetMessagesByApplication(tokenID uint) []*model.Message {
 	var messages []*model.Message

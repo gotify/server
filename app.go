@@ -18,7 +18,7 @@ import (
 
 var (
 	// Version the version of Gotify.
-	Version = "unknown"
+	Version = "1.1.7"
 	// Commit the git commit hash of this version.
 	Commit = "unknown"
 	// BuildDate the date on which this binary was build.
