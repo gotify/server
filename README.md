@@ -8,6 +8,7 @@
    * [Installation](#installation)
    * [Configuration](#configuration)
    * [Setup Dev Environment](#setup-dev-environment)
+   * [Add Message Examples](#add-message-examples)
    * [Building](#building)
    * [Tests](#tests)
    * [Versioning](#versioning)
@@ -22,13 +23,13 @@ We wanted a simple server for sending and receiving messages (in real time per w
   * receiving messages per websocket
   * user management
   * client/device & application management
-* [REST-API Documentation][api-docs] (also available at `/docs`) 
+* [REST-API Documentation][api-docs] (also available at `/docs`)
 * Web-UI
 <img alt="Gotify UI screenshot" src="ui.png" />
 
 * Android-App -> [gotify/android](https://github.com/gotify/android)
 
-[<img src="https://play.google.com/intl/en_gb/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" width="150" />][playstore] 
+[<img src="https://play.google.com/intl/en_gb/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" width="150" />][playstore]
 [<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" width="150"/>][fdroid]
 
 Google Play and the Google Play logo are trademarks of Google LLC.
@@ -97,6 +98,44 @@ GOTIFY_DEFAULTUSER_PASS=admin
 GOTIFY_PASSSTRENGTH=10
 GOTIFY_UPLOADEDIMAGESDIR=images
 ```
+
+### Add Message Examples
+
+You can obtain an application-token from the apps tab inside the UI or using the REST-API (`GET /application`)
+
+NOTE: Assuming Gotify is running on `http://localhost:8008`.
+
+**curl**
+```bash
+  curl -X POST "http://localhost:8008/message?token=<token-from-application>" -F "title=My Title" -F "message=This is my message"
+```
+
+**python**
+
+```python
+import requests #pip install requests
+resp = requests.post('http://localhost:8008/message?token=<token-from-application>', json={
+    "message": "Well hello there.",
+    "priority": 2,
+    "title": "This is my title"
+})
+```
+
+**golang**
+
+```go
+package main
+
+import (
+        "net/http"
+        "net/url"
+)
+
+func main() {
+    http.PostForm("http://localhost:8008/message?<token-from-application>", url.Values{"message": {"My Message"}, "title": {"My Title"}})
+}
+```
+
 
 ### Database
 | Dialect   | Connection                                                           |
