@@ -28,10 +28,10 @@ export class MessagesStore {
     }
 
     private stateOf = (appId: number, create = true) => {
-        if (this.state[appId] || !create) {
-            return this.state[appId] || this.emptyState();
+        if (!this.state[appId] && create) {
+            this.state[appId] = this.emptyState();
         }
-        return (this.state[appId] = this.emptyState());
+        return this.state[appId] || this.emptyState();
     };
 
     public canLoadMore = (appId: number) => this.stateOf(appId, /*create*/ false).hasMore;
