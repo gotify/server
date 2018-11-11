@@ -45,6 +45,7 @@ const initStores = (): StoreMapping => {
     const currentUser = new CurrentUser(snackManager.snack);
     const clientStore = new ClientStore(snackManager.snack);
     const wsStore = new WebSocketStore(snackManager.snack, currentUser);
+    appStore.onDelete = () => messagesStore.clearAll();
 
     return {
         appStore,

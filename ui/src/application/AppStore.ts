@@ -5,6 +5,8 @@ import {action} from 'mobx';
 import {SnackReporter} from '../snack/SnackManager';
 
 export class AppStore extends BaseStore<IApplication> {
+    public onDelete: () => void = () => {};
+
     public constructor(private readonly snack: SnackReporter) {
         super();
     }
@@ -16,9 +18,10 @@ export class AppStore extends BaseStore<IApplication> {
     };
 
     protected requestDelete = (id: number): Promise<void> => {
-        return axios
-            .delete(`${config.get('url')}application/${id}`)
-            .then(() => this.snack('Application deleted'));
+        return axios.delete(`${config.get('url')}application/${id}`).then(() => {
+            this.onDelete();
+            return this.snack('Application deleted');
+        });
     };
 
     @action
