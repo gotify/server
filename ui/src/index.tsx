@@ -87,7 +87,7 @@ const initStores = (): StoreMapping => {
         }
     );
 
-    stores.currentUser.tryAuthenticate();
+    stores.currentUser.tryAuthenticate().catch(() => {});
 
     ReactDOM.render(
         <InjectProvider stores={stores}>
