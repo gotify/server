@@ -130,6 +130,10 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	message := model.Message{}
 	if err := ctx.Bind(&message); err == nil {
 		message.ApplicationID = a.DB.GetApplicationByToken(auth.GetTokenID(ctx)).ID
+		// If no title was specified always use the application name
+		if len(message.Title) == 0 {
+			message.Title = a.DB.GetApplicationByToken(auth.GetTokenID(ctx)).Name
+		}
 		message.Date = timeNow()
 		a.DB.CreateMessage(&message)
 		a.Notifier.Notify(auth.GetUserID(ctx), &message)

@@ -29,7 +29,7 @@ type Message struct {
 	//
 	// required: true
 	// example: Backup
-	Title string `form:"title" query:"title" json:"title" binding:"required"`
+	Title string `form:"title" query:"title" json:"title"`
 	// The priority of the message.
 	//
 	// example: 2

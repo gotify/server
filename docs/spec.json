@@ -1255,7 +1255,6 @@
         "id",
         "appid",
         "message",
-        "title",
         "date"
       ],
       "properties": {
