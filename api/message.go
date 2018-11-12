@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"strconv"
@@ -129,7 +130,11 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	message := model.Message{}
 	if err := ctx.Bind(&message); err == nil {
-		message.ApplicationID = a.DB.GetApplicationByToken(auth.GetTokenID(ctx)).ID
+		application := a.DB.GetApplicationByToken(auth.GetTokenID(ctx))
+		message.ApplicationID = application.ID
+		if strings.TrimSpace(message.Title) == "" {
+			message.Title = application.Name
+		}
 		message.Date = timeNow()
 		a.DB.CreateMessage(&message)
 		a.Notifier.Notify(auth.GetUserID(ctx), &message)

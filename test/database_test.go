@@ -100,12 +100,20 @@ func (s *DatabaseSuite) Test_Apps() {
 	userTwoExpected := []*model.Application{{ID: 5, Token: "app5", UserID: 2}}
 	assert.Equal(s.T(), userTwoExpected, s.db.GetApplicationsByUser(2))
 
+	newAppWithName := userBuilder.NewAppWithTokenAndName(7, "test-token", "app name")
+	newAppWithNameExpected := &model.Application{ID: 7, Token: "test-token", UserID: 1, Name: "app name"}
+	assert.Equal(s.T(), newAppWithNameExpected, newAppWithName)
+
+	userBuilder.AppWithTokenAndName(8, "test-token-2", "app name")
+
 	s.db.AssertAppExist(1)
 	s.db.AssertAppExist(2)
 	s.db.AssertAppNotExist(3)
 	s.db.AssertAppNotExist(4)
 	s.db.AssertAppExist(5)
 	s.db.AssertAppNotExist(6)
+	s.db.AssertAppExist(7)
+	s.db.AssertAppExist(8)
 
 	s.db.DeleteApplicationByID(2)
 

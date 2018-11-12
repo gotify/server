@@ -27,9 +27,8 @@ type Message struct {
 	Message string `form:"message" query:"message" json:"message" binding:"required"`
 	// The title of the message.
 	//
-	// required: true
 	// example: Backup
-	Title string `form:"title" query:"title" json:"title" binding:"required"`
+	Title string `form:"title" query:"title" json:"title"`
 	// The priority of the message.
 	//
 	// example: 2

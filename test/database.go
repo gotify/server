@@ -80,6 +80,19 @@ func (ab *AppClientBuilder) NewAppWithToken(id uint, token string) *model.Applic
 	return application
 }
 
+// AppWithTokenAndName creates an application with a token and name and returns a message builder.
+func (ab *AppClientBuilder) AppWithTokenAndName(id uint, token, name string) *MessageBuilder {
+	ab.NewAppWithTokenAndName(id, token, name)
+	return &MessageBuilder{db: ab.db, appID: id}
+}
+
+// NewAppWithTokenAndName creates an application with a token and name and returns the app.
+func (ab *AppClientBuilder) NewAppWithTokenAndName(id uint, token, name string) *model.Application {
+	application := &model.Application{ID: id, UserID: ab.userID, Token: token, Name: name}
+	ab.db.CreateApplication(application)
+	return application
+}
+
 // Client creates a client and returns itself.
 func (ab *AppClientBuilder) Client(id uint) *AppClientBuilder {
 	return ab.ClientWithToken(id, "client"+fmt.Sprint(id))

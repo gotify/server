@@ -332,7 +332,7 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 	assert.True(s.T(), s.notified)
 }
 
-func (s *MessageSuite) Test_CreateMessage_onlyRequired() {
+func (s *MessageSuite) Test_CreateMessage_WithTitle() {
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	timeNow = func() time.Time { return t }
 	defer func() { timeNow = time.Now }()
@@ -366,18 +366,36 @@ func (s *MessageSuite) Test_CreateMessage_failWhenNoMessage() {
 	assert.False(s.T(), s.notified)
 }
 
-func (s *MessageSuite) Test_CreateMessage_failWhenNoTitle() {
+func (s *MessageSuite) Test_CreateMessage_WithoutTitle() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithToken(8, "app-token")
+	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
 
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"message": "mymessage"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
 
-	assert.Empty(s.T(), s.db.GetMessagesByApplication(8))
-	assert.Equal(s.T(), 400, s.recorder.Code)
-	assert.False(s.T(), s.notified)
+	msgs := s.db.GetMessagesByApplication(8)
+	assert.Len(s.T(), msgs, 1)
+	assert.Equal(s.T(), "Application name", msgs[0].Title)
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.True(s.T(), s.notified)
+}
+
+func (s *MessageSuite) Test_CreateMessage_WithBlankTitle() {
+	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
+	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
+
+	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"message": "mymessage", "title": "  "}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateMessage(s.ctx)
+
+	msgs := s.db.GetMessagesByApplication(8)
+	assert.Len(s.T(), msgs, 1)
+	assert.Equal(s.T(), "Application name", msgs[0].Title)
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.True(s.T(), s.notified)
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenPriorityNotNumber() {
