@@ -5,8 +5,9 @@ import Delete from '@material-ui/icons/Delete';
 import React from 'react';
 import TimeAgo from 'react-timeago';
 import Container from '../common/Container';
+import {StyleRulesCallback} from '@material-ui/core/styles/withStyles';
 
-const styles = () => ({
+const styles: StyleRulesCallback = () => ({
     header: {
         display: 'flex',
     },
@@ -29,17 +30,10 @@ const styles = () => ({
     imageWrapper: {
         display: 'flex',
     },
+    content: {
+        whiteSpace: 'pre-wrap',
+    },
 });
-
-type Style = WithStyles<
-    | 'header'
-    | 'headerTitle'
-    | 'trash'
-    | 'wrapperPadding'
-    | 'messageContentWrapper'
-    | 'image'
-    | 'imageWrapper'
->;
 
 interface IProps {
     title: string;
@@ -50,7 +44,7 @@ interface IProps {
     height: (height: number) => void;
 }
 
-class Message extends React.PureComponent<IProps & Style> {
+class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
     private node: HTMLDivElement | null;
 
     public componentDidMount = () =>
@@ -84,7 +78,7 @@ class Message extends React.PureComponent<IProps & Style> {
                                 <Delete />
                             </IconButton>
                         </div>
-                        <Typography component="p" className="content">
+                        <Typography component="p" className={`${classes.content} content`}>
                             {content}
                         </Typography>
                     </div>
