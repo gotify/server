@@ -43,6 +43,6 @@ func (d *GormDatabase) GetApplicationsByUser(userID uint) []*model.Application {
 }
 
 // UpdateApplication updates an application.
-func (d *GormDatabase) UpdateApplication(app *model.Application) {
-	d.DB.Save(app)
+func (d *GormDatabase) UpdateApplication(app *model.Application) error {
+	return d.DB.Save(app).Error
 }

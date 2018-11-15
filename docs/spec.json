@@ -17,7 +17,7 @@
       "name": "MIT",
       "url": "https://github.com/gotify/server/blob/master/LICENSE"
     },
-    "version": "1.0.5"
+    "version": "1.0.6"
   },
   "host": "localhost",
   "paths": {
@@ -41,7 +41,7 @@
           "application/json"
         ],
         "tags": [
-          "token"
+          "application"
         ],
         "summary": "Return all applications.",
         "operationId": "getApps",
@@ -88,7 +88,7 @@
           "application/json"
         ],
         "tags": [
-          "token"
+          "application"
         ],
         "summary": "Create an application.",
         "operationId": "createApp",
@@ -126,6 +126,74 @@
       }
     },
     "/application/{id}": {
+      "put": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "description": "Update info for an application",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "application"
+        ],
+        "operationId": "updateApplication",
+        "parameters": [
+          {
+            "description": "the application to update",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Application"
+            }
+          },
+          {
+            "type": "integer",
+            "description": "the application id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/Application"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
       "delete": {
         "security": [
           {
@@ -145,7 +213,7 @@
           "application/json"
         ],
         "tags": [
-          "token"
+          "application"
         ],
         "summary": "Delete an application.",
         "operationId": "deleteApp",
@@ -198,7 +266,7 @@
           "application/json"
         ],
         "tags": [
-          "token"
+          "application"
         ],
         "operationId": "uploadAppImage",
         "parameters": [
@@ -374,7 +442,7 @@
           "application/json"
         ],
         "tags": [
-          "token"
+          "client"
         ],
         "summary": "Return all clients.",
         "operationId": "getClients",
@@ -421,7 +489,7 @@
           "application/json"
         ],
         "tags": [
-          "token"
+          "client"
         ],
         "summary": "Create a client.",
         "operationId": "createClient",
@@ -478,7 +546,7 @@
           "application/json"
         ],
         "tags": [
-          "token"
+          "client"
         ],
         "summary": "Delete a client.",
         "operationId": "deleteClient",
