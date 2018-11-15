@@ -12,7 +12,6 @@ import (
 	"io"
 	"io/ioutil"
 	"mime/multipart"
-	"net/url"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -26,57 +25,63 @@ import (
 var (
 	firstApplicationToken  = "APorrUa5b1IIK3y"
 	secondApplicationToken = "AKo_Pp6ww_9vZal"
-	firstClientToken       = "CPorrUa5b1IIK3y"
-	secondClientToken      = "CKo_Pp6ww_9vZal"
 )
 
-func TestTokenSuite(t *testing.T) {
-	suite.Run(t, new(TokenSuite))
+func TestApplicationSuite(t *testing.T) {
+	suite.Run(t, new(ApplicationSuite))
 }
 
-type TokenSuite struct {
+type ApplicationSuite struct {
 	suite.Suite
 	db       *test.Database
-	a        *TokenAPI
+	a        *ApplicationAPI
 	ctx      *gin.Context
 	recorder *httptest.ResponseRecorder
-	notified bool
 }
 
-func (s *TokenSuite) BeforeTest(suiteName, testName string) {
+func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
 	rand.Seed(50)
 	s.recorder = httptest.NewRecorder()
 	s.db = test.NewDB(s.T())
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	withURL(s.ctx, "http", "example.com")
-	s.notified = false
-	s.a = &TokenAPI{DB: s.db, NotifyDeleted: s.notify}
+	s.a = &ApplicationAPI{DB: s.db}
 }
 
-func (s *TokenSuite) notify(uint, string) {
-	s.notified = true
-}
-
-func (s *TokenSuite) AfterTest(suiteName, testName string) {
+func (s *ApplicationSuite) AfterTest(suiteName, testName string) {
 	s.db.Close()
 }
 
-// test application api
-
-func (s *TokenSuite) Test_CreateApplication_mapAllParameters() {
+func (s *ApplicationSuite) Test_CreateApplication_mapAllParameters() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
 	s.withFormData("name=custom_name&description=description_text")
 	s.a.CreateApplication(s.ctx)
 
-	expected := &model.Application{ID: 1, Token: firstApplicationToken, UserID: 5, Name: "custom_name", Description: "description_text"}
+	expected := &model.Application{
+		ID:          1,
+		Token:       firstApplicationToken,
+		UserID:      5,
+		Name:        "custom_name",
+		Description: "description_text",
+	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.Equal(s.T(), expected, s.db.GetApplicationByID(1))
 }
-
-func (s *TokenSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {
+func (s *ApplicationSuite) Test_ensureApplicationHasCorrectJsonRepresentation() {
+	actual := &model.Application{
+		ID:          1,
+		UserID:      2,
+		Token:       "Aasdasfgeeg",
+		Name:        "myapp",
+		Description: "mydesc",
+		Image:       "asd",
+	}
+	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd"}`)
+}
+func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
@@ -87,7 +92,7 @@ func (s *TokenSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {
 	assert.Empty(s.T(), s.db.GetApplicationsByUser(5))
 }
 
-func (s *TokenSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwner() {
+func (s *ApplicationSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwner() {
 	s.db.User(2)
 	s.db.User(5).App(5)
 
@@ -101,7 +106,7 @@ func (s *TokenSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwne
 	s.db.AssertAppExist(5)
 }
 
-func (s *TokenSuite) Test_CreateApplication_onlyRequiredParameters() {
+func (s *ApplicationSuite) Test_CreateApplication_onlyRequiredParameters() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
@@ -112,12 +117,8 @@ func (s *TokenSuite) Test_CreateApplication_onlyRequiredParameters() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.Contains(s.T(), s.db.GetApplicationsByUser(5), expected)
 }
-func (s *TokenSuite) Test_ensureApplicationHasCorrectJsonRepresentation() {
-	actual := &model.Application{ID: 1, UserID: 2, Token: "Aasdasfgeeg", Name: "myapp", Description: "mydesc", Image: "asd"}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd"}`)
-}
 
-func (s *TokenSuite) Test_CreateApplication_returnsApplicationWithID() {
+func (s *ApplicationSuite) Test_CreateApplication_returnsApplicationWithID() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
@@ -125,12 +126,18 @@ func (s *TokenSuite) Test_CreateApplication_returnsApplicationWithID() {
 
 	s.a.CreateApplication(s.ctx)
 
-	expected := &model.Application{ID: 1, Token: firstApplicationToken, Name: "custom_name", Image: "http://example.com/static/defaultapp.png", UserID: 5}
+	expected := &model.Application{
+		ID:     1,
+		Token:  firstApplicationToken,
+		Name:   "custom_name",
+		Image:  "http://example.com/static/defaultapp.png",
+		UserID: 5,
+	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	test.BodyEquals(s.T(), expected, s.recorder)
 }
 
-func (s *TokenSuite) Test_CreateApplication_withExistingToken() {
+func (s *ApplicationSuite) Test_CreateApplication_withExistingToken() {
 	s.db.User(5)
 	s.db.User(6).AppWithToken(1, firstApplicationToken)
 
@@ -144,7 +151,7 @@ func (s *TokenSuite) Test_CreateApplication_withExistingToken() {
 	assert.Contains(s.T(), s.db.GetApplicationsByUser(5), expected)
 }
 
-func (s *TokenSuite) Test_GetApplications() {
+func (s *ApplicationSuite) Test_GetApplications() {
 	userBuilder := s.db.User(5)
 	first := userBuilder.NewAppWithToken(1, "perfper")
 	second := userBuilder.NewAppWithToken(2, "asdasd")
@@ -160,7 +167,7 @@ func (s *TokenSuite) Test_GetApplications() {
 	test.BodyEquals(s.T(), []*model.Application{first, second}, s.recorder)
 }
 
-func (s *TokenSuite) Test_GetApplications_WithImage() {
+func (s *ApplicationSuite) Test_GetApplications_WithImage() {
 	userBuilder := s.db.User(5)
 	first := userBuilder.NewAppWithToken(1, "perfper")
 	second := userBuilder.NewAppWithToken(2, "asdasd")
@@ -178,7 +185,7 @@ func (s *TokenSuite) Test_GetApplications_WithImage() {
 	test.BodyEquals(s.T(), []*model.Application{first, second}, s.recorder)
 }
 
-func (s *TokenSuite) Test_DeleteApplication_expectNotFound() {
+func (s *ApplicationSuite) Test_DeleteApplication_expectNotFound() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
@@ -190,7 +197,7 @@ func (s *TokenSuite) Test_DeleteApplication_expectNotFound() {
 	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
-func (s *TokenSuite) Test_DeleteApplication() {
+func (s *ApplicationSuite) Test_DeleteApplication() {
 	s.db.User(5).App(1)
 
 	test.WithUser(s.ctx, 5)
@@ -203,122 +210,7 @@ func (s *TokenSuite) Test_DeleteApplication() {
 	s.db.AssertAppNotExist(1)
 }
 
-// test client api
-
-func (s *TokenSuite) Test_ensureClientHasCorrectJsonRepresentation() {
-	actual := &model.Client{ID: 1, UserID: 2, Token: "Casdasfgeeg", Name: "myclient"}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Casdasfgeeg","name":"myclient"}`)
-}
-
-func (s *TokenSuite) Test_CreateClient_mapAllParameters() {
-	s.db.User(5)
-
-	test.WithUser(s.ctx, 5)
-	s.withFormData("name=custom_name&description=description_text")
-
-	s.a.CreateClient(s.ctx)
-
-	expected := &model.Client{ID: 1, Token: firstClientToken, UserID: 5, Name: "custom_name"}
-	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Contains(s.T(), s.db.GetClientsByUser(5), expected)
-}
-
-func (s *TokenSuite) Test_CreateClient_expectBadRequestOnEmptyName() {
-	s.db.User(5)
-
-	test.WithUser(s.ctx, 5)
-	s.withFormData("name=&description=description_text")
-
-	s.a.CreateClient(s.ctx)
-
-	assert.Equal(s.T(), 400, s.recorder.Code)
-	assert.Empty(s.T(), s.db.GetClientsByUser(5))
-}
-
-func (s *TokenSuite) Test_DeleteClient_expectNotFoundOnCurrentUserIsNotOwner() {
-	s.db.User(5).Client(7)
-	s.db.User(2)
-
-	test.WithUser(s.ctx, 2)
-	s.ctx.Request = httptest.NewRequest("DELETE", "/token/7", nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: "7"}}
-
-	s.a.DeleteClient(s.ctx)
-
-	assert.Equal(s.T(), 404, s.recorder.Code)
-	s.db.AssertClientExist(7)
-}
-
-func (s *TokenSuite) Test_CreateClient_returnsClientWithID() {
-	s.db.User(5)
-
-	test.WithUser(s.ctx, 5)
-	s.withFormData("name=custom_name")
-
-	s.a.CreateClient(s.ctx)
-
-	expected := &model.Client{ID: 1, Token: firstClientToken, Name: "custom_name", UserID: 5}
-	assert.Equal(s.T(), 200, s.recorder.Code)
-	test.BodyEquals(s.T(), expected, s.recorder)
-}
-
-func (s *TokenSuite) Test_CreateClient_withExistingToken() {
-	s.db.User(5).ClientWithToken(1, firstClientToken)
-
-	test.WithUser(s.ctx, 5)
-	s.withFormData("name=custom_name")
-
-	s.a.CreateClient(s.ctx)
-
-	expected := &model.Client{ID: 2, Token: secondClientToken, Name: "custom_name", UserID: 5}
-	assert.Equal(s.T(), 200, s.recorder.Code)
-	test.BodyEquals(s.T(), expected, s.recorder)
-}
-
-func (s *TokenSuite) Test_GetClients() {
-	userBuilder := s.db.User(5)
-	first := userBuilder.NewClientWithToken(1, "perfper")
-	second := userBuilder.NewClientWithToken(2, "asdasd")
-
-	test.WithUser(s.ctx, 5)
-	s.ctx.Request = httptest.NewRequest("GET", "/tokens", nil)
-
-	s.a.GetClients(s.ctx)
-
-	assert.Equal(s.T(), 200, s.recorder.Code)
-	test.BodyEquals(s.T(), []*model.Client{first, second}, s.recorder)
-}
-
-func (s *TokenSuite) Test_DeleteClient_expectNotFound() {
-	s.db.User(5)
-
-	test.WithUser(s.ctx, 5)
-	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: "8"}}
-
-	s.a.DeleteClient(s.ctx)
-
-	assert.Equal(s.T(), 404, s.recorder.Code)
-}
-
-//
-func (s *TokenSuite) Test_DeleteClient() {
-	s.db.User(5).Client(8)
-
-	test.WithUser(s.ctx, 5)
-	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: "8"}}
-
-	assert.False(s.T(), s.notified)
-
-	s.a.DeleteClient(s.ctx)
-
-	assert.Equal(s.T(), 200, s.recorder.Code)
-	s.db.AssertClientNotExist(8)
-	assert.True(s.T(), s.notified)
-}
-
-func (s *TokenSuite) Test_UploadAppImage_NoImageProvided_expectBadRequest() {
+func (s *ApplicationSuite) Test_UploadAppImage_NoImageProvided_expectBadRequest() {
 	s.db.User(5).App(1)
 	var b bytes.Buffer
 	writer := multipart.NewWriter(&b)
@@ -335,7 +227,7 @@ func (s *TokenSuite) Test_UploadAppImage_NoImageProvided_expectBadRequest() {
 	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("file with key 'file' must be present"))
 }
 
-func (s *TokenSuite) Test_UploadAppImage_OtherErrors_expectServerError() {
+func (s *ApplicationSuite) Test_UploadAppImage_OtherErrors_expectServerError() {
 	s.db.User(5).App(1)
 	var b bytes.Buffer
 	writer := multipart.NewWriter(&b)
@@ -352,7 +244,7 @@ func (s *TokenSuite) Test_UploadAppImage_OtherErrors_expectServerError() {
 	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("multipart: NextPart: EOF"))
 }
 
-func (s *TokenSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
+func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
 	s.db.User(5).App(1)
 
 	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
@@ -374,7 +266,7 @@ func (s *TokenSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
 	assert.True(s.T(), os.IsNotExist(err))
 }
 
-func (s *TokenSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageAndGenerateNewName() {
+func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageAndGenerateNewName() {
 	s.db.User(5)
 	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: "PorrUa5b1IIK3yKo_Pp6ww_9v.png"})
 
@@ -397,7 +289,7 @@ func (s *TokenSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageAndGene
 	assert.Nil(s.T(), os.Remove("Zal6-ySIuL-T3EMLCcFtityHn.png"))
 }
 
-func (s *TokenSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage() {
+func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage() {
 	s.db.User(5)
 	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: "existing.png"})
 
@@ -419,7 +311,7 @@ func (s *TokenSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage() {
 	os.Remove("PorrUa5b1IIK3yKo_Pp6ww_9v.png")
 }
 
-func (s *TokenSuite) Test_UploadAppImage_WithTextFile_expectBadRequest() {
+func (s *ApplicationSuite) Test_UploadAppImage_WithTextFile_expectBadRequest() {
 	s.db.User(5).App(1)
 
 	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/text.txt")})
@@ -435,7 +327,7 @@ func (s *TokenSuite) Test_UploadAppImage_WithTextFile_expectBadRequest() {
 	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("file must be an image"))
 }
 
-func (s *TokenSuite) Test_UploadAppImage_expectNotFound() {
+func (s *ApplicationSuite) Test_UploadAppImage_expectNotFound() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
@@ -447,7 +339,7 @@ func (s *TokenSuite) Test_UploadAppImage_expectNotFound() {
 	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
-func (s *TokenSuite) Test_UploadAppImage_WithSaveError_expectServerError() {
+func (s *ApplicationSuite) Test_UploadAppImage_WithSaveError_expectServerError() {
 	s.db.User(5).App(1)
 
 	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
@@ -463,13 +355,105 @@ func (s *TokenSuite) Test_UploadAppImage_WithSaveError_expectServerError() {
 	assert.Equal(s.T(), 500, s.recorder.Code)
 }
 
-func (s *TokenSuite) withFormData(formData string) {
-	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(formData))
-	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+func (s *ApplicationSuite) Test_UpdateApplicationNameAndDescription_expectSuccess() {
+	s.db.User(5).NewAppWithToken(2, "app-2")
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=new_name&description=new_description_text")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+	s.a.UpdateApplication(s.ctx)
+
+	expected := &model.Application{
+		ID:          2,
+		Token:       "app-2",
+		UserID:      5,
+		Name:        "new_name",
+		Description: "new_description_text",
+	}
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), expected, s.db.GetApplicationByID(2))
 }
 
-func withURL(ctx *gin.Context, scheme, host string) {
-	ctx.Set("location", &url.URL{Scheme: scheme, Host: host})
+func (s *ApplicationSuite) Test_UpdateApplicationName_expectSuccess() {
+	s.db.User(5).NewAppWithToken(2, "app-2")
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=new_name")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+	s.a.UpdateApplication(s.ctx)
+
+	expected := &model.Application{
+		ID:          2,
+		Token:       "app-2",
+		UserID:      5,
+		Name:        "new_name",
+		Description: "",
+	}
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), expected, s.db.GetApplicationByID(2))
+}
+
+func (s *ApplicationSuite) Test_UpdateApplication_preservesImage() {
+	app := s.db.User(5).NewAppWithToken(2, "app-2")
+	app.Image = "existing.png"
+	assert.Nil(s.T(), s.db.UpdateApplication(app))
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=new_name")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+
+	s.a.UpdateApplication(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), "existing.png", s.db.GetApplicationByID(2).Image)
+}
+
+func (s *ApplicationSuite) Test_UpdateApplication_setEmptyDescription() {
+	app := s.db.User(5).NewAppWithToken(2, "app-2")
+	app.Description = "my desc"
+	assert.Nil(s.T(), s.db.UpdateApplication(app))
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=new_name&desc=")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+
+	s.a.UpdateApplication(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), "", s.db.GetApplicationByID(2).Description)
+}
+
+func (s *ApplicationSuite) Test_UpdateApplication_expectNotFound() {
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+	s.a.UpdateApplication(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+}
+
+func (s *ApplicationSuite) Test_UpdateApplication_WithMissingAttributes_expectBadRequest() {
+	test.WithUser(s.ctx, 5)
+	s.a.UpdateApplication(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
+func (s *ApplicationSuite) Test_UpdateApplication_WithoutPermission_expectNotFound() {
+	s.db.User(5).NewAppWithToken(2, "app-2")
+
+	test.WithUser(s.ctx, 4)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+
+	s.a.UpdateApplication(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+}
+
+func (s *ApplicationSuite) withFormData(formData string) {
+	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(formData))
+	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 }
 
 // A modified version of https://stackoverflow.com/a/20397167/4244993 from Attila O.

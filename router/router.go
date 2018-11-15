@@ -26,8 +26,17 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	streamHandler := stream.New(200*time.Second, 15*time.Second)
 	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
-	tokenHandler := api.TokenAPI{DB: db, ImageDir: conf.UploadedImagesDir, NotifyDeleted: streamHandler.NotifyDeletedClient}
+	clientHandler := api.ClientAPI{
+		DB:            db,
+		ImageDir:      conf.UploadedImagesDir,
+		NotifyDeleted: streamHandler.NotifyDeletedClient,
+	}
+	applicationHandler := api.ApplicationAPI{
+		DB:       db,
+		ImageDir: conf.UploadedImagesDir,
+	}
 	userHandler := api.UserAPI{DB: db, PasswordStrength: conf.PassStrength, NotifyDeleted: streamHandler.NotifyDeletedUser}
+
 	g := gin.New()
 
 	g.Use(gin.Logger(), gin.Recovery(), error.Handler(), location.Default())
@@ -103,7 +112,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		clientAuth.Use(authentication.RequireClient())
 		app := clientAuth.Group("/application")
 		{
-			// swagger:operation GET /application token getApps
+			// swagger:operation GET /application application getApps
 			//
 			// Return all applications.
 			//
@@ -131,9 +140,9 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//     description: Forbidden
 			//     schema:
 			//         $ref: "#/definitions/Error"
-			app.GET("", tokenHandler.GetApplications)
+			app.GET("", applicationHandler.GetApplications)
 
-			// swagger:operation POST /application token createApp
+			// swagger:operation POST /application application createApp
 			//
 			// Create an application.
 			//
@@ -166,9 +175,9 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//     description: Forbidden
 			//     schema:
 			//         $ref: "#/definitions/Error"
-			app.POST("", tokenHandler.CreateApplication)
+			app.POST("", applicationHandler.CreateApplication)
 
-			// swagger:operation POST /application/{id}/image token uploadAppImage
+			// swagger:operation POST /application/{id}/image application uploadAppImage
 			//
 			// Upload an image for an application
 			//
@@ -205,9 +214,53 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//     description: Forbidden
 			//     schema:
 			//         $ref: "#/definitions/Error"
-			app.POST("/:id/image", tokenHandler.UploadApplicationImage)
+			app.POST("/:id/image", applicationHandler.UploadApplicationImage)
 
-			// swagger:operation DELETE /application/{id} token deleteApp
+			// swagger:operation PUT /application/{id} application updateApplication
+			//
+			// Update info for an application
+			//
+			// ---
+			// consumes:
+			// - application/json
+			// produces:
+			// - application/json
+			// security:
+			// - clientTokenHeader: []
+			// - clientTokenQuery: []
+			// - basicAuth: []
+			// parameters:
+			// - name: body
+			//   in: body
+			//   description: the application to update
+			//   required: true
+			//   schema:
+			//     $ref: "#/definitions/Application"
+			// - name: id
+			//   in: path
+			//   description: the application id
+			//   required: true
+			//   type: integer
+			// responses:
+			//   200:
+			//     description: Ok
+			//     schema:
+			//         $ref: "#/definitions/Application"
+			//   400:
+			//     description: Bad Request
+			//     schema:
+			//         $ref: "#/definitions/Error"
+			//   401:
+			//     description: Unauthorized
+			//     schema:
+			//         $ref: "#/definitions/Error"
+			//   403:
+			//     description: Forbidden
+			//     schema:
+			//         $ref: "#/definitions/Error"
+			app.PUT("/:id", applicationHandler.UpdateApplication)
+
+			// swagger:operation DELETE /application/{id} application deleteApp
 			//
 			// Delete an application.
 			//
@@ -237,7 +290,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//     description: Forbidden
 			//     schema:
 			//         $ref: "#/definitions/Error"
-			app.DELETE("/:id", tokenHandler.DeleteApplication)
+			app.DELETE("/:id", applicationHandler.DeleteApplication)
 
 			tokenMessage := app.Group("/:id/message")
 			{
@@ -321,7 +374,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 		client := clientAuth.Group("/client")
 		{
-			// swagger:operation GET /client token getClients
+			// swagger:operation GET /client client getClients
 			//
 			// Return all clients.
 			//
@@ -349,9 +402,9 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//     description: Forbidden
 			//     schema:
 			//         $ref: "#/definitions/Error"
-			client.GET("", tokenHandler.GetClients)
+			client.GET("", clientHandler.GetClients)
 
-			// swagger:operation POST /client token createClient
+			// swagger:operation POST /client client createClient
 			//
 			// Create a client.
 			//
@@ -384,9 +437,9 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//     description: Forbidden
 			//     schema:
 			//         $ref: "#/definitions/Error"
-			client.POST("", tokenHandler.CreateClient)
+			client.POST("", clientHandler.CreateClient)
 
-			// swagger:operation DELETE /client/{id} token deleteClient
+			// swagger:operation DELETE /client/{id} client deleteClient
 			//
 			// Delete a client.
 			//
@@ -416,7 +469,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			//     description: Forbidden
 			//     schema:
 			//         $ref: "#/definitions/Error"
-			client.DELETE("/:id", tokenHandler.DeleteClient)
+			client.DELETE("/:id", clientHandler.DeleteClient)
 		}
 
 		message := clientAuth.Group("/message")
