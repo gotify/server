@@ -1,7 +1,6 @@
 package stream
 
 import (
-	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -26,7 +25,7 @@ type client struct {
 	write   chan *model.Message
 	userID  uint
 	token   string
-	once    sync.Once
+	once    once
 }
 
 func newClient(conn *websocket.Conn, userID uint, token string, onClose func(*client)) *client {
