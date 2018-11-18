@@ -108,7 +108,7 @@ func TestPing(t *testing.T) {
 
 	wsURL := wsURL(server.URL)
 
-	user := testClient(t, wsURL)
+	user := createClient(t, wsURL)
 	defer user.conn.Close()
 
 	ping := make(chan bool)
@@ -118,6 +118,8 @@ func TestPing(t *testing.T) {
 		ping <- true
 		return err
 	})
+
+	startReading(user)
 
 	expectNoMessage(user)
 
@@ -437,15 +439,16 @@ func clients(api *API, user uint) []*client {
 	return api.clients[user]
 }
 
-func testClient(t *testing.T, url string) *testingClient {
-	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
-	assert.Nil(t, err)
+func testClient(t *testing.T, url string) *testingClient  {
+	client := createClient(t, url)
+	startReading(client)
+	return client
+}
 
-	readMessages := make(chan model.Message)
-
+func startReading(client *testingClient) {
 	go func() {
 		for {
-			_, payload, err := ws.ReadMessage()
+			_, payload, err := client.conn.ReadMessage()
 
 			if err != nil {
 				return
@@ -453,16 +456,23 @@ func testClient(t *testing.T, url string) *testingClient {
 
 			actual := &model.Message{}
 			json.NewDecoder(bytes.NewBuffer(payload)).Decode(actual)
-			readMessages <- *actual
+			client.readMessage <- *actual
 		}
 	}()
+}
+
+func createClient(t *testing.T, url string) *testingClient {
+	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
+	assert.Nil(t, err)
+
+	readMessages := make(chan model.Message)
 
 	return &testingClient{conn: ws, readMessage: readMessages, t: t}
 }
 
 type testingClient struct {
 	conn        *websocket.Conn
-	readMessage <-chan model.Message
+	readMessage chan model.Message
 	t           *testing.T
 }
 
