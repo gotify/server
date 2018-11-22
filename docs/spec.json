@@ -110,6 +110,12 @@
               "$ref": "#/definitions/Application"
             }
           },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -222,6 +228,12 @@
             "description": "Ok",
             "schema": {
               "$ref": "#/definitions/Application"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           },
           "401": {
@@ -443,6 +455,12 @@
               "$ref": "#/definitions/Client"
             }
           },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -592,6 +610,12 @@
           "200": {
             "description": "Ok"
           },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -704,6 +728,12 @@
             "description": "Ok",
             "schema": {
               "$ref": "#/definitions/Message"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           },
           "401": {
@@ -931,6 +961,12 @@
               "$ref": "#/definitions/User"
             }
           },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -1046,6 +1082,12 @@
             "description": "Ok",
             "schema": {
               "$ref": "#/definitions/User"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           },
           "401": {
