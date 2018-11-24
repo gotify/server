@@ -52,10 +52,7 @@ type pagingParams struct {
 //
 // ---
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: limit
 //   in: query
@@ -132,10 +129,7 @@ func withPaging(ctx *gin.Context, f func(pagingParams *pagingParams)) {
 //
 // ---
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: id
 //   in: path
@@ -198,10 +192,7 @@ func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 //
 // ---
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -225,10 +216,7 @@ func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 //
 // ---
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: id
 //   in: path
@@ -271,10 +259,7 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 //
 // ---
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: id
 //   in: path

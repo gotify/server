@@ -38,10 +38,7 @@ type ApplicationAPI struct {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: body
 //   in: body
@@ -84,10 +81,7 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -126,10 +120,7 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 //   description: the application id
 //   required: true
 //   type: integer
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -170,10 +161,7 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: body
 //   in: body
@@ -234,10 +222,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 // consumes:
 // - multipart/form-data
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: file
 //   in: formData
