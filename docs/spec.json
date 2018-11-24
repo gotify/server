@@ -144,7 +144,6 @@
             "basicAuth": []
           }
         ],
-        "description": "Update info for an application",
         "consumes": [
           "application/json"
         ],
@@ -154,6 +153,7 @@
         "tags": [
           "application"
         ],
+        "summary": "Update an application.",
         "operationId": "updateApplication",
         "parameters": [
           {
@@ -282,7 +282,6 @@
             "basicAuth": []
           }
         ],
-        "description": "Upload an image for an application",
         "consumes": [
           "multipart/form-data"
         ],
@@ -292,6 +291,7 @@
         "tags": [
           "application"
         ],
+        "summary": "Upload an image for an application.",
         "operationId": "uploadAppImage",
         "parameters": [
           {
