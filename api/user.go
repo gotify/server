@@ -116,6 +116,10 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 //     description: Ok
 //     schema:
 //         $ref: "#/definitions/User"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
@@ -160,12 +164,20 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 //     description: Ok
 //     schema:
 //         $ref: "#/definitions/User"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
 //         $ref: "#/definitions/Error"
 //   403:
 //     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) GetUserByID(ctx *gin.Context) {
@@ -198,12 +210,20 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 // responses:
 //   200:
 //     description: Ok
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
 //         $ref: "#/definitions/Error"
 //   403:
 //     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
@@ -239,6 +259,10 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 // responses:
 //   200:
 //     description: Ok
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
@@ -285,12 +309,20 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 //     description: Ok
 //     schema:
 //         $ref: "#/definitions/User"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
 //         $ref: "#/definitions/Error"
 //   403:
 //     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {

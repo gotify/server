@@ -133,12 +133,20 @@ func (a *API) register(client *client) {
 //     description: Ok
 //     schema:
 //         $ref: "#/definitions/Message"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
 //         $ref: "#/definitions/Error"
 //   403:
 //     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   500:
+//     description: Server Error
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *API) Handle(ctx *gin.Context) {

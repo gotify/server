@@ -48,6 +48,10 @@ type ClientAPI struct {
 //     description: Ok
 //     schema:
 //         $ref: "#/definitions/Client"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
@@ -120,12 +124,20 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 // responses:
 //   200:
 //     description: Ok
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
 //         $ref: "#/definitions/Error"
 //   403:
 //     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *ClientAPI) DeleteClient(ctx *gin.Context) {
