@@ -156,7 +156,7 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 // UpdateApplication updates an application info by its id.
 // swagger:operation PUT /application/{id} application updateApplication
 //
-// Update info for an application
+// Update an application.
 //
 // ---
 // consumes: [application/json]
@@ -216,7 +216,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 // UploadApplicationImage uploads an image for an application.
 // swagger:operation POST /application/{id}/image application uploadAppImage
 //
-// Upload an image for an application
+// Upload an image for an application.
 //
 // ---
 // consumes:
