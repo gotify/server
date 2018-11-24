@@ -110,6 +110,12 @@
               "$ref": "#/definitions/Application"
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -191,6 +197,12 @@
             "schema": {
               "$ref": "#/definitions/Error"
             }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
           }
         }
       },
@@ -230,6 +242,12 @@
           "200": {
             "description": "Ok"
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -238,6 +256,12 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -292,6 +316,12 @@
               "$ref": "#/definitions/Application"
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -300,6 +330,18 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server Error",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -360,6 +402,12 @@
               "$ref": "#/definitions/PagedMessages"
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -368,6 +416,12 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -407,6 +461,12 @@
           "200": {
             "description": "Ok"
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -415,6 +475,12 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -511,6 +577,12 @@
               "$ref": "#/definitions/Client"
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -563,6 +635,12 @@
           "200": {
             "description": "Ok"
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -571,6 +649,12 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -660,6 +744,12 @@
           "200": {
             "description": "Ok"
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -721,6 +811,12 @@
               "$ref": "#/definitions/PagedMessages"
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -774,8 +870,20 @@
               "$ref": "#/definitions/Message"
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -855,6 +963,12 @@
           "200": {
             "description": "Ok"
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -863,6 +977,12 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -898,6 +1018,12 @@
               "$ref": "#/definitions/Message"
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -906,6 +1032,12 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server Error",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -999,6 +1131,12 @@
               "$ref": "#/definitions/User"
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -1054,6 +1192,12 @@
               "$ref": "#/definitions/User"
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -1062,6 +1206,12 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -1116,6 +1266,12 @@
               "$ref": "#/definitions/User"
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -1124,6 +1280,12 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -1163,6 +1325,12 @@
           "200": {
             "description": "Ok"
           },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "schema": {
@@ -1171,6 +1339,12 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "$ref": "#/definitions/Error"
             }

@@ -76,6 +76,10 @@ type pagingParams struct {
 //     description: Ok
 //     schema:
 //         $ref: "#/definitions/PagedMessages"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
@@ -157,12 +161,20 @@ func withPaging(ctx *gin.Context, f func(pagingParams *pagingParams)) {
 //     description: Ok
 //     schema:
 //         $ref: "#/definitions/PagedMessages"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
 //         $ref: "#/definitions/Error"
 //   403:
 //     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
@@ -226,12 +238,20 @@ func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 // responses:
 //   200:
 //     description: Ok
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
 //         $ref: "#/definitions/Error"
 //   403:
 //     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
@@ -264,12 +284,20 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 // responses:
 //   200:
 //     description: Ok
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
 //         $ref: "#/definitions/Error"
 //   403:
 //     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
@@ -304,8 +332,16 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 //     description: Ok
 //     schema:
 //       $ref: "#/definitions/Message"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {

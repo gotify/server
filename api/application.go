@@ -54,6 +54,10 @@ type ApplicationAPI struct {
 //     description: Ok
 //     schema:
 //         $ref: "#/definitions/Application"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
@@ -129,12 +133,20 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 // responses:
 //   200:
 //     description: Ok
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
 //         $ref: "#/definitions/Error"
 //   403:
 //     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
@@ -191,6 +203,10 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 //     description: Forbidden
 //     schema:
 //         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
@@ -238,12 +254,24 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 //     description: Ok
 //     schema:
 //         $ref: "#/definitions/Application"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
 //   401:
 //     description: Unauthorized
 //     schema:
 //         $ref: "#/definitions/Error"
 //   403:
 //     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
+//     schema:
+//         $ref: "#/definitions/Error"
+//   500:
+//     description: Server Error
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
