@@ -32,10 +32,7 @@ type ClientAPI struct {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: body
 //   in: body
@@ -78,10 +75,7 @@ func (a *ClientAPI) CreateClient(ctx *gin.Context) {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -117,10 +111,7 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 //   description: the client id
 //   required: true
 //   type: integer
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok

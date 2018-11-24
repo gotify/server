@@ -33,10 +33,7 @@ type UserAPI struct {
 //
 // ---
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -70,10 +67,7 @@ func (a *UserAPI) GetUsers(ctx *gin.Context) {
 //
 // ---
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -100,10 +94,7 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: body
 //   in: body
@@ -149,10 +140,7 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: id
 //   in: path
@@ -197,10 +185,7 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 //
 // ---
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: id
 //   in: path
@@ -245,10 +230,7 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: body
 //   in: body
@@ -288,10 +270,7 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security:
-// - clientTokenHeader: []
-// - clientTokenQuery: []
-// - basicAuth: []
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: id
 //   in: path
