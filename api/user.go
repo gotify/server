@@ -32,8 +32,7 @@ type UserAPI struct {
 // Return all users.
 //
 // ---
-// produces:
-// - application/json
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -70,8 +69,7 @@ func (a *UserAPI) GetUsers(ctx *gin.Context) {
 // Return the current user.
 //
 // ---
-// produces:
-// - application/json
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -100,10 +98,8 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 // Create a user.
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -147,10 +143,8 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 // Get a user.
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -190,8 +184,7 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 // Deletes a user.
 //
 // ---
-// produces:
-// - application/json
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -230,10 +223,8 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 // Update the password of the current user.
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -271,10 +262,8 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 // Update a user.
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []

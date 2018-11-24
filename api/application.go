@@ -36,10 +36,8 @@ type ApplicationAPI struct {
 // Create an application.
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -80,10 +78,8 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 // Return all applications.
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -118,10 +114,8 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 // Delete an application.
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // parameters:
 // - name: id
 //   in: path
@@ -162,10 +156,8 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 // Update info for an application
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -225,8 +217,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 // ---
 // consumes:
 // - multipart/form-data
-// produces:
-// - application/json
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
