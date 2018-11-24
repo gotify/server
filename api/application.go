@@ -31,6 +31,39 @@ type ApplicationAPI struct {
 }
 
 // CreateApplication creates an application and returns the access token.
+// swagger:operation POST /application application createApp
+//
+// Create an application.
+//
+// ---
+// consumes:
+// - application/json
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// parameters:
+// - name: body
+//   in: body
+//   description: the application to add
+//   required: true
+//   schema:
+//     $ref: "#/definitions/Application"
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//         $ref: "#/definitions/Application"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 	app := model.Application{}
 	if err := ctx.Bind(&app); err == nil {
@@ -42,6 +75,34 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 }
 
 // GetApplications returns all applications a user has.
+// swagger:operation GET /application application getApps
+//
+// Return all applications.
+//
+// ---
+// consumes:
+// - application/json
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//       type: array
+//       items:
+//         $ref: "#/definitions/Application"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	apps := a.DB.GetApplicationsByUser(userID)
@@ -52,6 +113,36 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 }
 
 // DeleteApplication deletes an application by its id.
+// swagger:operation DELETE /application/{id} application deleteApp
+//
+// Delete an application.
+//
+// ---
+// consumes:
+// - application/json
+// produces:
+// - application/json
+// parameters:
+// - name: id
+//   in: path
+//   description: the application id
+//   required: true
+//   type: integer
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// responses:
+//   200:
+//     description: Ok
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
@@ -66,6 +157,48 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 }
 
 // UpdateApplication updates an application info by its id.
+// swagger:operation PUT /application/{id} application updateApplication
+//
+// Update info for an application
+//
+// ---
+// consumes:
+// - application/json
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// parameters:
+// - name: body
+//   in: body
+//   description: the application to update
+//   required: true
+//   schema:
+//     $ref: "#/definitions/Application"
+// - name: id
+//   in: path
+//   description: the application id
+//   required: true
+//   type: integer
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//         $ref: "#/definitions/Application"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
@@ -85,6 +218,43 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 }
 
 // UploadApplicationImage uploads an image for an application.
+// swagger:operation POST /application/{id}/image application uploadAppImage
+//
+// Upload an image for an application
+//
+// ---
+// consumes:
+// - multipart/form-data
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// parameters:
+// - name: file
+//   in: formData
+//   description: the application image
+//   required: true
+//   type: file
+// - name: id
+//   in: path
+//   description: the application id
+//   required: true
+//   type: integer
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//         $ref: "#/definitions/Application"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
