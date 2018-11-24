@@ -117,6 +117,31 @@ func (a *API) register(client *client) {
 
 // Handle handles incoming requests. First it upgrades the protocol to the WebSocket protocol and then starts listening
 // for read and writes.
+// swagger:operation GET /stream message streamMessages
+//
+// Websocket, return newly created messages.
+//
+// ---
+// schema: ws, wss
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//         $ref: "#/definitions/Message"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *API) Handle(ctx *gin.Context) {
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {

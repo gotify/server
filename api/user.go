@@ -27,6 +27,32 @@ type UserAPI struct {
 }
 
 // GetUsers returns all the users
+// swagger:operation GET /user user getUsers
+//
+// Return all users.
+//
+// ---
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//       type: array
+//       items:
+//         $ref: "#/definitions/User"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *UserAPI) GetUsers(ctx *gin.Context) {
 	users := a.DB.GetUsers()
 
@@ -39,12 +65,69 @@ func (a *UserAPI) GetUsers(ctx *gin.Context) {
 }
 
 // GetCurrentUser returns the current user
+// swagger:operation GET /current/user user currentUser
+//
+// Return the current user.
+//
+// ---
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//         $ref: "#/definitions/User"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 	user := a.DB.GetUserByID(auth.GetUserID(ctx))
 	ctx.JSON(200, toExternal(user))
 }
 
 // CreateUser creates a user
+// swagger:operation POST /user user createUser
+//
+// Create a user.
+//
+// ---
+// consumes:
+// - application/json
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// parameters:
+// - name: body
+//   in: body
+//   description: the user to add
+//   required: true
+//   schema:
+//     $ref: "#/definitions/UserWithPass"
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//         $ref: "#/definitions/User"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *UserAPI) CreateUser(ctx *gin.Context) {
 	user := model.UserExternalWithPass{}
 	if err := ctx.Bind(&user); err == nil {
@@ -59,6 +142,38 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 }
 
 // GetUserByID returns the user by id
+// swagger:operation GET /user/{id} user getUser
+//
+// Get a user.
+//
+// ---
+// consumes:
+// - application/json
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// parameters:
+// - name: id
+//   in: path
+//   description: the user id
+//   required: true
+//   type: integer
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//         $ref: "#/definitions/User"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if user := a.DB.GetUserByID(uint(id)); user != nil {
@@ -70,6 +185,34 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 }
 
 // DeleteUserByID deletes the user by id
+// swagger:operation DELETE /user/{id} user deleteUser
+//
+// Deletes a user.
+//
+// ---
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// parameters:
+// - name: id
+//   in: path
+//   description: the user id
+//   required: true
+//   type: integer
+// responses:
+//   200:
+//     description: Ok
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if user := a.DB.GetUserByID(id); user != nil {
@@ -82,6 +225,37 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 }
 
 // ChangePassword changes the password from the current user
+// swagger:operation POST /current/user/password user updateCurrentUser
+//
+// Update the password of the current user.
+//
+// ---
+// consumes:
+// - application/json
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// parameters:
+// - name: body
+//   in: body
+//   description: the user
+//   required: true
+//   schema:
+//     $ref: "#/definitions/UserPass"
+// responses:
+//   200:
+//     description: Ok
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 	pw := model.UserExternalPass{}
 	if err := ctx.Bind(&pw); err == nil {
@@ -92,6 +266,44 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 }
 
 // UpdateUserByID updates and user by id
+// swagger:operation POST /user/{id} user updateUser
+//
+// Update a user.
+//
+// ---
+// consumes:
+// - application/json
+// produces:
+// - application/json
+// security:
+// - clientTokenHeader: []
+// - clientTokenQuery: []
+// - basicAuth: []
+// parameters:
+// - name: id
+//   in: path
+//   description: the user id
+//   required: true
+//   type: integer
+// - name: body
+//   in: body
+//   description: the updated user
+//   required: true
+//   schema:
+//     $ref: "#/definitions/UserWithPass"
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//         $ref: "#/definitions/User"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
 func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		var user *model.UserExternalWithPass
