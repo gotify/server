@@ -123,8 +123,7 @@ func (a *API) register(client *client) {
 //
 // ---
 // schema: ws, wss
-// produces:
-// - application/json
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []

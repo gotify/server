@@ -64,8 +64,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	// Get version information.
 	//
 	// ---
-	// produces:
-	// - application/json
+	// produces: [application/json]
 	// responses:
 	//   200:
 	//     description: Ok

@@ -30,10 +30,8 @@ type ClientAPI struct {
 // Create a client.
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -74,10 +72,8 @@ func (a *ClientAPI) CreateClient(ctx *gin.Context) {
 // Return all clients.
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -109,10 +105,8 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 // Delete a client.
 //
 // ---
-// consumes:
-// - application/json
-// produces:
-// - application/json
+// consumes: [application/json]
+// produces: [application/json]
 // parameters:
 // - name: id
 //   in: path

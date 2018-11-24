@@ -51,8 +51,7 @@ type pagingParams struct {
 // Return all messages.
 //
 // ---
-// produces:
-// - application/json
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -128,8 +127,7 @@ func withPaging(ctx *gin.Context, f func(pagingParams *pagingParams)) {
 // Return all messages from a specific application.
 //
 // ---
-// produces:
-// - application/json
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -187,8 +185,7 @@ func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 // Delete all messages.
 //
 // ---
-// produces:
-// - application/json
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -215,8 +212,7 @@ func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 // Delete all messages from a specific application.
 //
 // ---
-// produces:
-// - application/json
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
@@ -254,8 +250,7 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 // Deletes a message with an id.
 //
 // ---
-// produces:
-// - application/json
+// produces: [application/json]
 // security:
 // - clientTokenHeader: []
 // - clientTokenQuery: []
