@@ -68,6 +68,9 @@ server:
       hosts: # the hosts for which letsencrypt should request certificates
       - mydomain.tld
       - myotherdomain.tld
+  responseheaders: # response headers are added to every response (default: none)
+    Access-Control-Allow-Origin: "*"
+    Access-Control-Allow-Methods: "GET,POST"
 database: # for database see (configure database section)
   dialect: sqlite3
   connection: data/gotify.db
@@ -91,6 +94,7 @@ GOTIFY_SERVER_SSL_LETSENCRYPT_ACCEPTTOS=false
 GOTIFY_SERVER_SSL_LETSENCRYPT_CACHE=certs
 # lists are a little weird but do-able (:
 GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS=- mydomain.tld\n- myotherdomain.tld
+GOTIFY_SERVER_RESPONSEHEADERS="Access-Control-Allow-Origin: \"*\"\nAccess-Control-Allow-Methods: \"GET,POST\""
 GOTIFY_DATABASE_DIALECT=sqlite3
 GOTIFY_DATABASE_CONNECTION=gotify.db
 GOTIFY_DEFAULTUSER_NAME=admin

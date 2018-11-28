@@ -24,6 +24,7 @@ type Configuration struct {
 				Hosts     []string
 			}
 		}
+		ResponseHeaders map[string]string
 	}
 	Database struct {
 		Dialect    string `default:"sqlite3"`

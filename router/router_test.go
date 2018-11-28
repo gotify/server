@@ -38,7 +38,10 @@ func (s *IntegrationSuite) BeforeTest(string, string) {
 	var err error
 	s.db = test.NewDBWithDefaultUser(s.T())
 	assert.Nil(s.T(), err)
-	g, closable := Create(s.db.GormDatabase, &model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"}, &config.Configuration{PassStrength: 5})
+	g, closable := Create(s.db.GormDatabase,
+		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
+		&config.Configuration{PassStrength: 5},
+	)
 	s.closable = closable
 	s.server = httptest.NewServer(g)
 }
@@ -71,6 +74,38 @@ func (s *IntegrationSuite) TestHeaderInProd() {
 	res, err := client.Do(req)
 	assert.Nil(s.T(), err)
 	assert.Empty(s.T(), res.Header.Get("Access-Control-Allow-Origin"))
+}
+
+func TestHeadersFromConfiguration(t *testing.T) {
+	mode.Set(mode.Prod)
+	db := test.NewDBWithDefaultUser(t)
+	defer db.Close()
+
+	config := config.Configuration{PassStrength: 5}
+	config.Server.ResponseHeaders = map[string]string{
+		"New-Cool-Header":             "Nice",
+		"Access-Control-Allow-Origin": "---",
+	}
+
+	g, closable := Create(db.GormDatabase,
+		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
+		&config,
+	)
+	server := httptest.NewServer(g)
+
+	defer func() {
+		closable()
+		server.Close()
+	}()
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s", server.URL, "version"), nil)
+	req.Header.Add("Content-Type", "application/json")
+	assert.Nil(t, err)
+
+	res, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, "---", res.Header.Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "Nice", res.Header.Get("New-Cool-Header"))
 }
 
 func (s *IntegrationSuite) TestOptionsRequest() {

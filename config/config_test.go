@@ -12,12 +12,18 @@ import (
 func TestConfigEnv(t *testing.T) {
 	os.Setenv("GOTIFY_DEFAULTUSER_NAME", "jmattheis")
 	os.Setenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS", "- push.example.tld\n- push.other.tld")
+	os.Setenv("GOTIFY_SERVER_RESPONSEHEADERS",
+		"Access-Control-Allow-Origin: \"*\"\nAccess-Control-Allow-Methods: \"GET,POST\"",
+	)
 	conf := Get()
 	assert.Equal(t, 80, conf.Server.Port, "should use defaults")
 	assert.Equal(t, "jmattheis", conf.DefaultUser.Name, "should not use default but env var")
 	assert.Equal(t, []string{"push.example.tld", "push.other.tld"}, conf.Server.SSL.LetsEncrypt.Hosts)
+	assert.Equal(t, "*", conf.Server.ResponseHeaders["Access-Control-Allow-Origin"])
+	assert.Equal(t, "GET,POST", conf.Server.ResponseHeaders["Access-Control-Allow-Methods"])
 	os.Unsetenv("GOTIFY_DEFAULTUSER_NAME")
 	os.Unsetenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS")
+	os.Unsetenv("GOTIFY_SERVER_RESPONSEHEADERS")
 }
 
 func TestAddSlash(t *testing.T) {
@@ -48,6 +54,9 @@ server:
     letsencrypt:
       hosts:
         - push.example.tld
+  responseheaders:
+    Access-Control-Allow-Origin: "*"
+    Access-Control-Allow-Methods: "GET,POST"
 database:
   dialect: mysql
   connection: user name
@@ -65,6 +74,8 @@ defaultuser:
 	assert.Equal(t, "12345", conf.DefaultUser.Pass)
 	assert.Equal(t, "mysql", conf.Database.Dialect)
 	assert.Equal(t, "user name", conf.Database.Connection)
+	assert.Equal(t, "*", conf.Server.ResponseHeaders["Access-Control-Allow-Origin"])
+	assert.Equal(t, "GET,POST", conf.Server.ResponseHeaders["Access-Control-Allow-Methods"])
 
 	assert.Nil(t, os.Remove("config.yml"))
 }
