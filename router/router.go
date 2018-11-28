@@ -50,10 +50,15 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	g.Use(func(ctx *gin.Context) {
 		ctx.Header("Content-Type", "application/json")
+
 		if mode.IsDev() {
 			ctx.Header("Access-Control-Allow-Origin", "*")
 			ctx.Header("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS,PUT")
 			ctx.Header("Access-Control-Allow-Headers", "X-Gotify-Key,Authorization,Content-Type,Upgrade,Origin,Connection,Accept-Encoding,Accept-Language,Host")
+		}
+
+		for header, value := range conf.Server.ResponseHeaders {
+			ctx.Header(header, value)
 		}
 	})
 
@@ -87,7 +92,6 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			app.POST("", applicationHandler.CreateApplication)
 
 			app.POST("/:id/image", applicationHandler.UploadApplicationImage)
-
 
 			app.PUT("/:id", applicationHandler.UpdateApplication)
 
