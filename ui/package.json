@@ -17,7 +17,6 @@
     "react-infinite": "^0.13.0",
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
-    "react-scripts-ts": "2.17.0",
     "react-timeago": "^4.1.9",
     "typeface-roboto": "0.0.54",
     "typeface-roboto-mono": "0.0.54"
@@ -48,6 +47,7 @@
     "prettier": "^1.14.2",
     "puppeteer": "^1.8.0",
     "rimraf": "^2.6.2",
+    "react-scripts-ts": "2.17.0",
     "tree-kill": "^1.2.0",
     "tslint-sonarts": "^1.7.0",
     "typescript": "^3.0.1",
