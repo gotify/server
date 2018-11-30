@@ -1,5 +1,6 @@
 # Gotify Server
 [![Build Status][badge-travis]][travis] [![codecov][badge-codecov]][codecov] [![Go Report Card][badge-go-report]][go-report] [![Swagger Valid][badge-swagger]][swagger] [![Api Docs][badge-api-docs]][api-docs] [![latest release version][badge-release]][release]
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fgotify%2Fserver.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fgotify%2Fserver?ref=badge_shield)
 
 <img align="right" src="logo.png" />
 
@@ -13,6 +14,9 @@
    * [Tests](#tests)
    * [Versioning](#versioning)
    * [License](#license)
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fgotify%2Fserver.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fgotify%2Fserver?ref=badge_large)
 
 ## Motivation
 We wanted a simple server for sending and receiving messages (in real time per web socket). For this, not many open source projects existed and most of the existing ones were abandoned. Also, a requirement was that it can be self-hosted. We know there are many free and commercial push services out there.
