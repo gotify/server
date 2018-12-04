@@ -1,5 +1,10 @@
 # Gotify Server
-[![Build Status][badge-travis]][travis] [![codecov][badge-codecov]][codecov] [![Go Report Card][badge-go-report]][go-report] [![Swagger Valid][badge-swagger]][swagger] [![Api Docs][badge-api-docs]][api-docs] [![latest release version][badge-release]][release]
+[![Build Status][badge-travis]][travis] 
+[![codecov][badge-codecov]][codecov] 
+[![Go Report Card][badge-go-report]][go-report] 
+[![Swagger Valid][badge-swagger]][swagger] 
+[![Api Docs][badge-api-docs]][api-docs] 
+[![latest release version][badge-release]][release]
 
 <img align="right" src="logo.png" />
 
@@ -7,8 +12,8 @@
    * [Features](#features)
    * [Installation](#installation)
    * [Configuration](#configuration)
+   * [Push Message Examples](#push-message-examples)
    * [Setup Dev Environment](#setup-dev-environment)
-   * [Add Message Examples](#add-message-examples)
    * [Building](#building)
    * [Tests](#tests)
    * [Versioning](#versioning)
@@ -18,15 +23,15 @@
 We wanted a simple server for sending and receiving messages (in real time per web socket). For this, not many open source projects existed and most of the existing ones were abandoned. Also, a requirement was that it can be self-hosted. We know there are many free and commercial push services out there.
 
 ## Features
-* REST-API for
-  * sending messages
-  * receiving messages per websocket
-  * user management
-  * client/device & application management
-* [REST-API Documentation][api-docs] (also available at `/docs`)
-* Web-UI
-<img alt="Gotify UI screenshot" src="ui.png" />
 
+<img alt="Gotify UI screenshot" src="ui.png" align="right" width="500px"/>
+
+* send messages via REST-API
+* receive messages via web socket
+* manage users, clients and applications
+* [API Docs][api-docs] (also available at `/docs`)
+* Web-UI -> [./ui](ui)
+* CLI for sending messages -> [gotify/cli](https://github.com/gotify/cli)
 * Android-App -> [gotify/android](https://github.com/gotify/android)
 
 [<img src="https://play.google.com/intl/en_gb/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" width="150" />][playstore]
@@ -40,18 +45,23 @@ Google Play and the Google Play logo are trademarks of Google LLC.
 The docker image is available on docker hub at [gotify/server][docker-normal].
 
 ``` bash
-$ docker run -p 80:80 gotify/server
+$ docker run -p 80:80 -v /etc/gotify/data:/app/data gotify/server 
 ```
 Also there is a specific docker image for arm-7 processors (raspberry pi), named [gotify/server-arm7][docker-arm7].
 ``` bash
-$ docker run -p 80:80 gotify/server-arm7
+$ docker run -p 80:80 -v /etc/gotify/data:/app/data gotify/server-arm7
 ```
+`/app/data` contains the database file (if sqlite is used), images for applications and cert-files (if lets encrypt is enabled).
 
 ### Binary
 Visit the [releases page](https://github.com/gotify/server/releases) and download the zip for your OS.
 
 ## Configuration
 ### File
+
+When strings contain reserved characters then they need to be escaped. 
+[List of reserved characters and how to escape them](https://stackoverflow.com/a/22235064/4244993).
+
 ``` yml
 server:
   port: 80 # the port for the http server
@@ -82,6 +92,11 @@ uploadedimagesdir: data/images # the directory for storing uploaded images
 ```
 
 ### Environment
+
+Escaped characters in list or map environment settings (`GOTIFY_SERVER_RESPONSEHEADERS` and 
+`GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS`) need to be escaped as well. 
+[List of reserved characters and how to escape them](https://stackoverflow.com/a/22235064/4244993).
+
 ``` bash
 GOTIFY_SERVER_PORT=80
 GOTIFY_SERVER_SSL_ENABLED=false
@@ -103,25 +118,35 @@ GOTIFY_PASSSTRENGTH=10
 GOTIFY_UPLOADEDIMAGESDIR=images
 ```
 
-### Add Message Examples
-
-You can obtain an application-token from the apps tab inside the UI or using the REST-API (`GET /application`).
-
-NOTE: Assuming Gotify is running on `http://localhost:8008`.
-
-**curl**
-```bash
-curl -X POST "http://localhost:8008/message?token=<token-from-application>" -F "title=My Title" -F "message=This is my message"
-```
-
-[More examples can be found here](ADD_MESSAGE_EXAMPLES.md)
-
 ### Database
 | Dialect   | Connection                                                           |
 | :-------: | :------------------------------------------------------------------: |
 | sqlite3   | `path/to/database.db`                                                |
 | mysql     | `gotify:secret@/gotifydb?charset=utf8&parseTime=True&loc=Local `     |
 | postgres  | `host=localhost port=3306 user=gotify dbname=gotify password=secret` |
+
+When using postgres without SSL then `sslmode=disable` must be added to the connection string. 
+See [#90](https://github.com/gotify/server/issues/90).
+
+## Push Message Examples
+
+You can simply use [curl](https://curl.haxx.se/), [HTTPie](https://httpie.org/) or any other http-client to push messages.
+
+An application-token can be obtained from the apps tab inside the UI or using the REST-API (`/application`).
+
+```bash
+$ curl -X POST "https://push.example.de/message?token=<apptoken>" -F "title=my title" -F "message=my message"
+$ http -f POST "https://push.example.de/message?token=<apptoken>" title="my title" message="my message"
+```
+[More examples can be found here](ADD_MESSAGE_EXAMPLES.md)
+
+Also you can use [gotify/cli](https://github.com/gotify/cli) to push messages. 
+The CLI stores url and token in a config file.
+
+```bash
+$ gotify push -t "my title" -p 10 "my message"
+$ echo my message | gotify push
+```
 
 ## Setup Dev Environment
 
@@ -174,7 +199,8 @@ $ go test ./...
 ```
 
 ## Versioning
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/gotify/server/tags).
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the 
+[tags on this repository](https://github.com/gotify/server/tags).
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
