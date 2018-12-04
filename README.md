@@ -2,7 +2,8 @@
 [![Build Status][badge-travis]][travis] 
 [![codecov][badge-codecov]][codecov] 
 [![Go Report Card][badge-go-report]][go-report] 
-[![Swagger Valid][badge-swagger]][swagger] 
+[![Swagger Valid][badge-swagger]][swagger]
+[![FOSSA Status][fossa-badge]][fossa]
 [![Api Docs][badge-api-docs]][api-docs] 
 [![latest release version][badge-release]][release]
 
@@ -221,3 +222,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
  [docker-arm7]: https://hub.docker.com/r/gotify/server-arm7/
  [playstore]: https://play.google.com/store/apps/details?id=com.github.gotify
  [fdroid]: https://f-droid.org/de/packages/com.github.gotify/
+ [fossa]: https://app.fossa.io/projects/git%2Bgithub.com%2Fgotify%2Fserver
+ [fossa-badge]: https://app.fossa.io/api/projects/git%2Bgithub.com%2Fgotify%2Fserver.svg?type=shield
