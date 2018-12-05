@@ -23,7 +23,7 @@ import (
 
 // Create creates the gin engine with all routes.
 func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Configuration) (*gin.Engine, func()) {
-	streamHandler := stream.New(200*time.Second, 15*time.Second)
+	streamHandler := stream.New(200*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
 	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
 	clientHandler := api.ClientAPI{
