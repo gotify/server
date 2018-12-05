@@ -1,10 +1,10 @@
 # Gotify Server
-[![Build Status][badge-travis]][travis] 
-[![codecov][badge-codecov]][codecov] 
-[![Go Report Card][badge-go-report]][go-report] 
+[![Build Status][badge-travis]][travis]
+[![codecov][badge-codecov]][codecov]
+[![Go Report Card][badge-go-report]][go-report]
 [![Swagger Valid][badge-swagger]][swagger]
 [![FOSSA Status][fossa-badge]][fossa]
-[![Api Docs][badge-api-docs]][api-docs] 
+[![Api Docs][badge-api-docs]][api-docs]
 [![latest release version][badge-release]][release]
 
 <img align="right" src="logo.png" />
@@ -46,7 +46,7 @@ Google Play and the Google Play logo are trademarks of Google LLC.
 The docker image is available on docker hub at [gotify/server][docker-normal].
 
 ``` bash
-$ docker run -p 80:80 -v /etc/gotify/data:/app/data gotify/server 
+$ docker run -p 80:80 -v /etc/gotify/data:/app/data gotify/server
 ```
 Also there is a specific docker image for arm-7 processors (raspberry pi), named [gotify/server-arm7][docker-arm7].
 ``` bash
@@ -60,7 +60,7 @@ Visit the [releases page](https://github.com/gotify/server/releases) and downloa
 ## Configuration
 ### File
 
-When strings contain reserved characters then they need to be escaped. 
+When strings contain reserved characters then they need to be escaped.
 [List of reserved characters and how to escape them](https://stackoverflow.com/a/22235064/4244993).
 
 ``` yml
@@ -82,6 +82,10 @@ server:
   responseheaders: # response headers are added to every response (default: none)
     Access-Control-Allow-Origin: "*"
     Access-Control-Allow-Methods: "GET,POST"
+  stream:
+    allowedorigins: # allowed origins for websocket connections (same origin is always allowed)
+      - ".+.example.com"
+      - "otherdomain.com"
 database: # for database see (configure database section)
   dialect: sqlite3
   connection: data/gotify.db
@@ -94,8 +98,8 @@ uploadedimagesdir: data/images # the directory for storing uploaded images
 
 ### Environment
 
-Escaped characters in list or map environment settings (`GOTIFY_SERVER_RESPONSEHEADERS` and 
-`GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS`) need to be escaped as well. 
+Escaped characters in list or map environment settings (`GOTIFY_SERVER_RESPONSEHEADERS` and
+`GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS`) need to be escaped as well.
 [List of reserved characters and how to escape them](https://stackoverflow.com/a/22235064/4244993).
 
 ``` bash
@@ -111,6 +115,7 @@ GOTIFY_SERVER_SSL_LETSENCRYPT_CACHE=certs
 # lists are a little weird but do-able (:
 GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS=- mydomain.tld\n- myotherdomain.tld
 GOTIFY_SERVER_RESPONSEHEADERS="Access-Control-Allow-Origin: \"*\"\nAccess-Control-Allow-Methods: \"GET,POST\""
+GOTIFY_SERVER_STREAM_ALLOWEDORIGINS="- \".+.example.com\"\n- \"otherdomain.com\""
 GOTIFY_DATABASE_DIALECT=sqlite3
 GOTIFY_DATABASE_CONNECTION=gotify.db
 GOTIFY_DEFAULTUSER_NAME=admin
@@ -126,7 +131,7 @@ GOTIFY_UPLOADEDIMAGESDIR=images
 | mysql     | `gotify:secret@/gotifydb?charset=utf8&parseTime=True&loc=Local `     |
 | postgres  | `host=localhost port=3306 user=gotify dbname=gotify password=secret` |
 
-When using postgres without SSL then `sslmode=disable` must be added to the connection string. 
+When using postgres without SSL then `sslmode=disable` must be added to the connection string.
 See [#90](https://github.com/gotify/server/issues/90).
 
 ## Push Message Examples
@@ -141,7 +146,7 @@ $ http -f POST "https://push.example.de/message?token=<apptoken>" title="my titl
 ```
 [More examples can be found here](ADD_MESSAGE_EXAMPLES.md)
 
-Also you can use [gotify/cli](https://github.com/gotify/cli) to push messages. 
+Also you can use [gotify/cli](https://github.com/gotify/cli) to push messages.
 The CLI stores url and token in a config file.
 
 ```bash
@@ -200,7 +205,7 @@ $ go test ./...
 ```
 
 ## Versioning
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the
 [tags on this repository](https://github.com/gotify/server/tags).
 
 ## License

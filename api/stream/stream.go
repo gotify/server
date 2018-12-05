@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"regexp"
 	"sync"
 	"time"
 
@@ -14,46 +15,25 @@ import (
 	"github.com/gotify/server/model"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		if mode.IsDev() {
-			return true
-		}
-		return checkSameOrigin(r)
-	},
-}
-
-func checkSameOrigin(r *http.Request) bool {
-	origin := r.Header["Origin"]
-	if len(origin) == 0 {
-		return true
-	}
-	u, err := url.Parse(origin[0])
-	if err != nil {
-		return false
-	}
-	return u.Host == r.Host
-}
-
 // The API provides a handler for a WebSocket stream API.
 type API struct {
 	clients     map[uint][]*client
 	lock        sync.RWMutex
 	pingPeriod  time.Duration
 	pongTimeout time.Duration
+	upgrader    *websocket.Upgrader
 }
 
 // New creates a new instance of API.
 // pingPeriod: is the interval, in which is server sends the a ping to the client.
 // pongTimeout: is the duration after the connection will be terminated, when the client does not respond with the
 // pong command.
-func New(pingPeriod, pongTimeout time.Duration) *API {
+func New(pingPeriod, pongTimeout time.Duration, allowedWebSocketOrigins []string) *API {
 	return &API{
 		clients:     make(map[uint][]*client),
 		pingPeriod:  pingPeriod,
 		pongTimeout: pingPeriod + pongTimeout,
+		upgrader:    newUpgrader(allowedWebSocketOrigins),
 	}
 }
 
@@ -147,7 +127,7 @@ func (a *API) register(client *client) {
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *API) Handle(ctx *gin.Context) {
-	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	conn, err := a.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		return
 	}
@@ -171,4 +151,51 @@ func (a *API) Close() {
 	for k := range a.clients {
 		delete(a.clients, k)
 	}
+}
+
+func isAllowedOrigin(r *http.Request, allowedOrigins []*regexp.Regexp) bool {
+	origin := r.Header["Origin"]
+	if len(origin) == 0 {
+		return true
+	}
+
+	u, err := url.Parse(origin[0])
+	if err != nil {
+		return false
+	}
+
+	if u.Hostname() == r.Host {
+		return true
+	}
+
+	for _, allowedOrigin := range allowedOrigins {
+		if allowedOrigin.Match([]byte(u.Hostname())) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func newUpgrader(allowedWebSocketOrigins []string) *websocket.Upgrader {
+	compiledAllowedOrigins := compileAllowedWebSocketOrigins(allowedWebSocketOrigins)
+	return &websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			if mode.IsDev() {
+				return true
+			}
+			return isAllowedOrigin(r, compiledAllowedOrigins)
+		},
+	}
+}
+
+func compileAllowedWebSocketOrigins(allowedOrigins []string) []*regexp.Regexp {
+	var compiledAllowedOrigins []*regexp.Regexp
+	for _, origin := range allowedOrigins {
+		compiledAllowedOrigins = append(compiledAllowedOrigins, regexp.MustCompile(origin))
+	}
+
+	return compiledAllowedOrigins
 }

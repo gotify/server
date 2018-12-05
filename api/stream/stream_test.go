@@ -405,14 +405,37 @@ func Test_sameOrigin_returnsTrue(t *testing.T) {
 	mode.Set(mode.Prod)
 	req := httptest.NewRequest("GET", "http://example.com/stream", nil)
 	req.Header.Set("Origin", "http://example.com")
-	actual := checkSameOrigin(req)
+	actual := isAllowedOrigin(req, nil)
 	assert.True(t, actual)
+}
+
+func Test_isAllowedOrigin_withoutAllowedOrigins_failsWhenNotSameOrigin(t *testing.T) {
+	mode.Set(mode.Prod)
+	req := httptest.NewRequest("GET", "http://example.com/stream", nil)
+	req.Header.Set("Origin", "http://gorify.example.com")
+	actual := isAllowedOrigin(req, nil)
+	assert.False(t, actual)
+}
+
+func Test_isAllowedOriginMatching(t *testing.T) {
+	mode.Set(mode.Prod)
+	compiledAllowedOrigins := compileAllowedWebSocketOrigins([]string{"go.{4}\\.example\\.com", "go\\.example\\.com"})
+
+	req := httptest.NewRequest("GET", "http://example.me/stream", nil)
+	req.Header.Set("Origin", "http://gorify.example.com")
+	assert.True(t, isAllowedOrigin(req, compiledAllowedOrigins))
+
+	req.Header.Set("Origin", "http://go.example.com")
+	assert.True(t, isAllowedOrigin(req, compiledAllowedOrigins))
+
+	req.Header.Set("Origin", "http://hello.example.com")
+	assert.False(t, isAllowedOrigin(req, compiledAllowedOrigins))
 }
 
 func Test_emptyOrigin_returnsTrue(t *testing.T) {
 	mode.Set(mode.Prod)
 	req := httptest.NewRequest("GET", "http://example.com/stream", nil)
-	actual := checkSameOrigin(req)
+	actual := isAllowedOrigin(req, nil)
 	assert.True(t, actual)
 }
 
@@ -420,7 +443,7 @@ func Test_otherOrigin_returnsFalse(t *testing.T) {
 	mode.Set(mode.Prod)
 	req := httptest.NewRequest("GET", "http://example.com/stream", nil)
 	req.Header.Set("Origin", "http://otherexample.de")
-	actual := checkSameOrigin(req)
+	actual := isAllowedOrigin(req, nil)
 	assert.False(t, actual)
 }
 
@@ -428,8 +451,13 @@ func Test_invalidOrigin_returnsFalse(t *testing.T) {
 	mode.Set(mode.Prod)
 	req := httptest.NewRequest("GET", "http://example.com/stream", nil)
 	req.Header.Set("Origin", "http\\://otherexample.de")
-	actual := checkSameOrigin(req)
+	actual := isAllowedOrigin(req, nil)
 	assert.False(t, actual)
+}
+
+func Test_compileAllowedWebSocketOrigins(t *testing.T) {
+	assert.Equal(t, 0, len(compileAllowedWebSocketOrigins([]string{})))
+	assert.Equal(t, 3, len(compileAllowedWebSocketOrigins([]string{"^.*$", "", "abc"})))
 }
 
 func clients(api *API, user uint) []*client {
@@ -439,7 +467,7 @@ func clients(api *API, user uint) []*client {
 	return api.clients[user]
 }
 
-func testClient(t *testing.T, url string) *testingClient  {
+func testClient(t *testing.T, url string) *testingClient {
 	client := createClient(t, url)
 	startReading(client)
 	return client
@@ -507,11 +535,11 @@ func (c *testingClient) expectNoMessage() {
 }
 
 func bootTestServer(handlerFunc gin.HandlerFunc) (*httptest.Server, *API) {
-
 	r := gin.New()
 	r.Use(handlerFunc)
 	// all 4 seconds a ping, and the client has 1 second to respond
-	api := New(4*time.Second, 1*time.Second)
+	api := New(4*time.Second, 1*time.Second, []string{})
+
 	r.GET("/", api.Handle)
 	server := httptest.NewServer(r)
 	return server, api

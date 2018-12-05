@@ -25,6 +25,9 @@ type Configuration struct {
 			}
 		}
 		ResponseHeaders map[string]string
+		Stream          struct {
+			AllowedOrigins []string
+		}
 	}
 	Database struct {
 		Dialect    string `default:"sqlite3"`
