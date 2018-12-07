@@ -43,6 +43,12 @@
   version = "v1.3"
 
 [[projects]]
+  name = "github.com/go-yaml/yaml"
+  packages = ["."]
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
+
+[[projects]]
   name = "github.com/gobuffalo/packr"
   packages = ["."]
   revision = "6434a292ac52e6964adebfdce3f9ce6d9f16be01"
@@ -61,6 +67,11 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "github.com/gotify/configor"
+  packages = ["."]
+  revision = "v1.0.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/gotify/location"
   packages = ["."]
@@ -71,12 +82,6 @@
   packages = ["."]
   revision = "cc14fdc9ca0e4c2bafad7458f6ff79fd3947cfbb"
   version = "v1.0.5"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/jinzhu/configor"
-  packages = ["."]
-  revision = "6ecfe629230f24c2e92c7894c6ab21b83b757a39"
 
 [[projects]]
   name = "github.com/jinzhu/gorm"
@@ -197,6 +202,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "dd487dcd1de5f16454e33fbf7d886d98272b1b9d78052a17ad785efba4f9c17b"
+  inputs-digest = "32bb5c1ff95d3c1f3c4de97d40df3b8b3dca41f970e2bb486e73a8d325a0e0c3"
   solver-name = "gps-cdcl"
   solver-version = 1
