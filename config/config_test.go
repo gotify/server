@@ -40,6 +40,24 @@ func TestNotAddSlash(t *testing.T) {
 	os.Unsetenv("GOTIFY_UPLOADEDIMAGESDIR")
 }
 
+func TestFileWithSyntaxErrors(t *testing.T) {
+	file, err := os.Create("config.yml")
+	defer func() {
+		file.Close()
+	}()
+	assert.Nil(t, err)
+	_, err = file.WriteString(`
+sdgsgsdfgsdfg
+`)
+	file.Close()
+	assert.Nil(t, err)
+	assert.Panics(t, func() {
+		Get()
+	})
+
+	assert.Nil(t, os.Remove("config.yml"))
+}
+
 func TestConfigFile(t *testing.T) {
 	file, err := os.Create("config.yml")
 	defer func() {
