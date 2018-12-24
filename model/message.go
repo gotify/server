@@ -33,6 +33,10 @@ type Message struct {
 	//
 	// example: 2
 	Priority int `form:"priority" query:"priority" json:"priority"`
+	// The path for redirect after click on notification.
+	//
+	// example: /hello/page
+	PathOnClick string `form:"pathonclick" query:"pathonclick" json:"pathonclick"`
 	// The date the message was created.
 	//
 	// read only: true

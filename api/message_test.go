@@ -55,7 +55,7 @@ func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
 		Messages: []*model.Message{{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: 4}},
 	}
 	test.JSONEquals(s.T(), actual, `{"paging": {"limit":5, "since": 122, "size": 5, "next": "http://example.com/message?limit=5&since=122"},
-                                              "messages": [{"id":55,"appid":2,"message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z"}]}`)
+                                   "messages": [{"id":55,"appid":2,"pathonclick":"","message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z"}]}`)
 }
 
 func (s *MessageSuite) Test_GetMessages() {
@@ -316,13 +316,23 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithToken(7, "app-token")
-	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": 1}`))
+	s.ctx.Request = httptest.NewRequest("POST", "/token",
+		strings.NewReader(`{"title": "mytitle", "message": "mymessage", "pathonclick": "/hi", "priority": 1}`),
+	)
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
 
 	msgs := s.db.GetMessagesByApplication(7)
-	expected := &model.Message{ID: 1, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	expected := &model.Message{
+		ID:            1,
+		ApplicationID: 7,
+		Title:         "mytitle",
+		PathOnClick:   "/hi",
+		Message:       "mymessage",
+		Priority:      1,
+		Date:          t,
+	}
 	assert.Len(s.T(), msgs, 1)
 	assert.Contains(s.T(), msgs, expected)
 	assert.Equal(s.T(), 200, s.recorder.Code)

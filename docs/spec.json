@@ -1530,6 +1530,12 @@
           "x-go-name": "Message",
           "example": "Backup was successfully finished."
         },
+        "pathonclick": {
+          "description": "The path for redirect after click on notification.",
+          "type": "string",
+          "x-go-name": "PathOnClick",
+          "example": "/hello/page"
+        },
         "priority": {
           "description": "The priority of the message.",
           "type": "integer",

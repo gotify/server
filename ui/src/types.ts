@@ -17,6 +17,7 @@ interface IMessage {
     appid: number;
     message: string;
     title: string;
+    pathonclick: string;
     priority: number;
     date: string;
     image?: string;

@@ -13,18 +13,22 @@ export function notifyNewMessage(msg: IMessage) {
     const notify = new Notify(msg.title, {
         body: msg.message,
         icon: msg.image,
-        notifyClick: closeAndFocus,
+        notifyClick: (event: Event) => closeAndFocus(event, msg.pathonclick),
         notifyShow: closeAfterTimeout,
     });
     notify.show();
 }
 
-function closeAndFocus(event: Event) {
+function closeAndFocus(event: Event, pathonclick: string) {
     if (window.parent) {
         window.parent.focus();
     }
     window.focus();
-    window.location.href = '/';
+    if (pathonclick !== '') {
+        window.location.href = pathonclick;
+    } else {
+        window.location.href = '/';
+    }
     const target = event.target as Notification;
     target.close();
 }
