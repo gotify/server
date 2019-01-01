@@ -5,8 +5,8 @@
 package stream
 
 import (
-	"sync/atomic"
 	"sync"
+	"sync/atomic"
 )
 
 // Modified version of sync.Once (https://github.com/golang/go/blob/master/src/sync/once.go)
@@ -25,7 +25,7 @@ func (o *once) Do(f func()) {
 	}
 }
 
-func (o *once) mayExecute() bool  {
+func (o *once) mayExecute() bool {
 	o.m.Lock()
 	defer o.m.Unlock()
 	if o.done == 0 {

@@ -1,18 +1,16 @@
 package api
 
 import (
-	"math/rand"
-	"net/http/httptest"
-	"testing"
-
-	"strings"
-
 	"bytes"
 	"errors"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"mime/multipart"
+	"net/http/httptest"
 	"os"
+	"strings"
+	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/mode"

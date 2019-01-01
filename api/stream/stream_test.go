@@ -3,14 +3,13 @@ package stream
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
-
-	"errors"
 
 	"github.com/fortytw2/leaktest"
 	"github.com/gin-gonic/gin"

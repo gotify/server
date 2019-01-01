@@ -2,10 +2,9 @@ package api
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 	"time"
-
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"

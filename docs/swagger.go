@@ -1,9 +1,10 @@
 package docs
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gobuffalo/packr"
-	"strings"
 )
 
 // Serve serves the documentation.

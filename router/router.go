@@ -1,24 +1,22 @@
 package router
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/api"
-	"github.com/gotify/server/auth"
-	"github.com/gotify/server/database"
-	"github.com/gotify/server/error"
-	"github.com/gotify/server/ui"
-	"github.com/jmattheis/go-packr-swagger-ui"
-
-	"net/http"
-
 	"github.com/gotify/location"
+	"github.com/gotify/server/api"
 	"github.com/gotify/server/api/stream"
+	"github.com/gotify/server/auth"
 	"github.com/gotify/server/config"
+	"github.com/gotify/server/database"
 	"github.com/gotify/server/docs"
+	"github.com/gotify/server/error"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
+	"github.com/gotify/server/ui"
+	"github.com/jmattheis/go-packr-swagger-ui"
 )
 
 // Create creates the gin engine with all routes.
