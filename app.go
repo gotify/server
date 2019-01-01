@@ -1,12 +1,10 @@
 package main
 
 import (
-	"math/rand"
-	"time"
-
 	"fmt"
-
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/database"

@@ -2,13 +2,11 @@ package error
 
 import (
 	"fmt"
-
-	"github.com/gin-gonic/gin"
-
 	"net/http"
 	"strings"
 	"unicode"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/model"
 	"gopkg.in/go-playground/validator.v8"
 )

@@ -2,9 +2,8 @@ package config
 
 import (
 	"os"
-	"testing"
-
 	"path/filepath"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )

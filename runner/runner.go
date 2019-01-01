@@ -3,10 +3,9 @@ package runner
 import (
 	"crypto/tls"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
-
-	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/config"

@@ -1,12 +1,11 @@
 package stream
 
 import (
+	"net/http"
+	"net/url"
 	"regexp"
 	"sync"
 	"time"
-
-	"net/http"
-	"net/url"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

@@ -3,11 +3,9 @@ package api
 import (
 	"math/rand"
 	"net/http/httptest"
-	"testing"
-
-	"strings"
-
 	"net/url"
+	"strings"
+	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/mode"

@@ -2,21 +2,18 @@ package api
 
 import (
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/auth"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-
-	"strings"
-
-	"net/url"
-
-	"github.com/gotify/server/auth"
 )
 
 func TestMessageSuite(t *testing.T) {
