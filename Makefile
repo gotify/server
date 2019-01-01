@@ -23,6 +23,9 @@ test-coverage:
 		fi \
 	done
 
+format:
+	goimports -w $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+
 test-js:
 	go build -o removeme/gotify app.go
 	(cd ui && CI=true GOTIFY_EXE=../removeme/gotify npm test)
@@ -32,16 +35,18 @@ check-go:
 	go vet ./...
 	gocyclo -over 10 $(shell find . -iname '*.go' -type f | grep -v /vendor/)
 	golint -set_exit_status $(shell go list ./... | grep -v mock)
+	goimports -l $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
 check-js:
 	(cd ui && npm run lint)
 	(cd ui && npm run testformat)
 
 download-tools:
-	go get golang.org/x/lint/golint
-	go get github.com/fzipp/gocyclo
+	go get -u golang.org/x/lint/golint
+	go get -u github.com/fzipp/gocyclo
 	go get -u github.com/gobuffalo/packr/...
 	go get -u github.com/go-swagger/go-swagger/cmd/swagger
+	go get -u golang.org/x/tools/cmd/goimports
 
 update-swagger:
 	swagger generate spec --scan-models -o docs/spec.json
