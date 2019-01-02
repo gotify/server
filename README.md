@@ -96,6 +96,8 @@ passstrength: 10 # the bcrypt password strength (higher = better but also slower
 uploadedimagesdir: data/images # the directory for storing uploaded images
 ```
 
+You can also copy the example file `config.example.yml` to `config.yml` and edit it.
+
 ### Environment
 
 Escaped characters in list or map environment settings (`GOTIFY_SERVER_RESPONSEHEADERS` and
