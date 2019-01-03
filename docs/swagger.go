@@ -5,11 +5,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gobuffalo/packr"
+	"github.com/gotify/location"
 )
 
 // Serve serves the documentation.
 func Serve(ctx *gin.Context) {
-	ctx.Writer.WriteString(get(ctx.Request.URL.Host))
+	url := location.Get(ctx)
+	ctx.Writer.WriteString(get(url.Host))
 }
 
 func get(host string) string {
