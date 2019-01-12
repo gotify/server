@@ -49,7 +49,8 @@ download-tools:
 	go get -u golang.org/x/tools/cmd/goimports
 
 update-swagger:
-	swagger generate spec --scan-models -o docs/spec.json
+	go mod vendor
+	GO111MODULE=off swagger generate spec --scan-models -o docs/spec.json
 
 check-swagger: update-swagger
 ## add the docs to git, this changes line endings in git, otherwise this does not work on windows
