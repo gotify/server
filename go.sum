@@ -224,8 +224,8 @@ github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a h1:eeaG9XMUvRBYX
 github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
 github.com/jinzhu/now v0.0.0-20181116074157-8ec929ed50c3 h1:xvj06l8iSwiWpYgm8MbPp+naBg+pwfqmdXabzqPCn/8=
 github.com/jinzhu/now v0.0.0-20181116074157-8ec929ed50c3/go.mod h1:oHTiXerJ20+SfYcrdlBO7rzZRJWGwSTQ0iUY2jI6Gfc=
-github.com/jmattheis/go-packr-swagger-ui v3.18.2+incompatible h1:+Y83kEJIOpqyzejJoCukEREXu9t4drXjA9UKPRiMc7w=
-github.com/jmattheis/go-packr-swagger-ui v3.18.2+incompatible/go.mod h1:hDVllOsf5pUHlQ31WNgC4Zqm34JjPAFRogNa8+pFGLU=
+github.com/jmattheis/go-packr-swagger-ui v3.20.5+incompatible h1:LgKnUch72aFvs27+ZRkmRZ6446gyAdcFMu4KwCsx9/4=
+github.com/jmattheis/go-packr-swagger-ui v3.20.5+incompatible/go.mod h1:hDVllOsf5pUHlQ31WNgC4Zqm34JjPAFRogNa8+pFGLU=
 github.com/jmoiron/sqlx v0.0.0-20180614180643-0dae4fefe7c0/go.mod h1:IiEW3SEiiErVyFdH8NTuWjSifiEQKUoyK3LNqr2kCHU=
 github.com/joho/godotenv v1.2.0/go.mod h1:7hK45KPybAkOC6peb+G5yklZfMxEjkZhHbwpqxOKXbg=
 github.com/joho/godotenv v1.3.0 h1:Zjp+RcGpHhGlrMbJzXTrZZPrWj+1vfm90La1wgB6Bhc=
