@@ -27,7 +27,7 @@ format:
 	goimports -w $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
 test-js:
-	go build -o removeme/gotify app.go
+	go build -ldflags="-s -w" -o removeme/gotify app.go
 	(cd ui && CI=true GOTIFY_EXE=../removeme/gotify npm test)
 	rm -rf removeme
 
