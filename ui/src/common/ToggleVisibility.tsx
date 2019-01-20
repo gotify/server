@@ -24,7 +24,7 @@ class ToggleVisibility extends Component<IProps, IState> {
                 <IconButton onClick={this.toggleVisibility} className="toggle-visibility">
                     {this.state.visible ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
-                <Typography style={{fontFamily: "'Roboto Mono', monospace"}}>{text}</Typography>
+                <Typography style={{fontFamily: 'monospace', fontSize: 16}}>{text}</Typography>
             </div>
         );
     }
