@@ -1,7 +1,6 @@
 package router
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +15,6 @@ import (
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/ui"
-	"github.com/jmattheis/go-packr-swagger-ui"
 )
 
 // Create creates the gin engine with all routes.
@@ -44,7 +42,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	g.GET("/swagger", docs.Serve)
 	g.Static("/image", conf.UploadedImagesDir)
-	g.GET("/docs/*any", gin.WrapH(http.StripPrefix("/docs/", http.FileServer(swaggerui.GetBox()))))
+	g.GET("/docs", docs.UI)
 
 	g.Use(func(ctx *gin.Context) {
 		ctx.Header("Content-Type", "application/json")
