@@ -24,6 +24,7 @@
   "scripts": {
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
+    "postbuild": "rimraf build/**/*.map",
     "test": "react-scripts-ts test",
     "eject": "react-scripts-ts eject",
     "lint": "tslint --project .",
