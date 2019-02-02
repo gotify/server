@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
@@ -30,7 +31,7 @@ var timeNow = time.Now
 
 // Notifier notifies when a new message was created.
 type Notifier interface {
-	Notify(userID uint, message *model.Message)
+	Notify(userID uint, message *model.MessageExternal)
 }
 
 // The MessageAPI provides handlers for managing messages.
@@ -110,7 +111,7 @@ func buildWithPaging(ctx *gin.Context, paging *pagingParams, messages []*model.M
 	}
 	return &model.PagedMessages{
 		Paging:   model.Paging{Size: len(useMessages), Limit: paging.Limit, Next: next, Since: since},
-		Messages: useMessages,
+		Messages: toExternalMessages(useMessages),
 	}
 }
 
@@ -329,7 +330,7 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
-	message := model.Message{}
+	message := model.MessageExternal{}
 	if err := ctx.Bind(&message); err == nil {
 		application := a.DB.GetApplicationByToken(auth.GetTokenID(ctx))
 		message.ApplicationID = application.ID
@@ -337,8 +338,48 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 			message.Title = application.Name
 		}
 		message.Date = timeNow()
-		a.DB.CreateMessage(&message)
-		a.Notifier.Notify(auth.GetUserID(ctx), &message)
-		ctx.JSON(200, message)
+		msgInternal := toInternalMessage(&message)
+		a.DB.CreateMessage(msgInternal)
+		a.Notifier.Notify(auth.GetUserID(ctx), toExternalMessage(msgInternal))
+		ctx.JSON(200, toExternalMessage(msgInternal))
 	}
+}
+
+func toInternalMessage(msg *model.MessageExternal) *model.Message {
+	res := &model.Message{
+		ID:            msg.ID,
+		ApplicationID: msg.ApplicationID,
+		Message:       msg.Message,
+		Title:         msg.Title,
+		Priority:      msg.Priority,
+		Date:          msg.Date,
+	}
+	if msg.Extras != nil {
+		res.Extras, _ = json.Marshal(msg.Extras)
+	}
+	return res
+}
+
+func toExternalMessage(msg *model.Message) *model.MessageExternal {
+	res := &model.MessageExternal{
+		ID:            msg.ID,
+		ApplicationID: msg.ApplicationID,
+		Message:       msg.Message,
+		Title:         msg.Title,
+		Priority:      msg.Priority,
+		Date:          msg.Date,
+	}
+	if len(msg.Extras) != 0 {
+		res.Extras = make(map[string]interface{})
+		json.Unmarshal(msg.Extras, &res.Extras)
+	}
+	return res
+}
+
+func toExternalMessages(msg []*model.Message) []*model.MessageExternal {
+	res := make([]*model.MessageExternal, len(msg))
+	for i := range msg {
+		res[i] = toExternalMessage(msg[i])
+	}
+	return res
 }

@@ -1490,9 +1490,9 @@
       "x-go-package": "github.com/gotify/server/model"
     },
     "Message": {
-      "description": "The Message holds information about a message which was sent by an Application.",
+      "description": "The MessageExternal holds information about a message which was sent by an Application.",
       "type": "object",
-      "title": "Message Model",
+      "title": "MessageExternal Model",
       "required": [
         "id",
         "appid",
@@ -1515,6 +1515,22 @@
           "x-go-name": "Date",
           "readOnly": true,
           "example": "2018-02-27T19:36:10.5045044+01:00"
+        },
+        "extras": {
+          "description": "The extra data sent along the message.\n\nThe extra fields are stored in a key-value scheme. Only accepted in CreateMessage requests with application/json content-type.\n\nThe keys should be in the following format: \u0026lt;top-namespace\u0026gt;::[\u0026lt;sub-namespace\u0026gt;::]\u0026lt;action\u0026gt;\n\nThese namespaces are reserved and might be used in the official clients: gotify android ios web server client. Do not use them for other purposes.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          },
+          "x-go-name": "Extras",
+          "example": {
+            "home::appliances::lighting::on": {
+              "brightness": 15
+            },
+            "home::appliances::thermostat::change_temperature": {
+              "temperature": 23
+            }
+          }
         },
         "id": {
           "description": "The message id.",
@@ -1544,6 +1560,7 @@
           "example": "Backup"
         }
       },
+      "x-go-name": "MessageExternal",
       "x-go-package": "github.com/gotify/server/model"
     },
     "PagedMessages": {

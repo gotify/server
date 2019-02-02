@@ -65,7 +65,7 @@ func (a *API) NotifyDeletedClient(userID uint, token string) {
 }
 
 // Notify notifies the clients with the given userID that a new messages was created.
-func (a *API) Notify(userID uint, msg *model.Message) {
+func (a *API) Notify(userID uint, msg *model.MessageExternal) {
 	a.lock.RLock()
 	defer a.lock.RUnlock()
 	if clients, ok := a.clients[userID]; ok {

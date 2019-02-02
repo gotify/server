@@ -34,6 +34,6 @@ type Application struct {
 	// read only: true
 	// required: true
 	// example: https://example.com/image.jpeg
-	Image    string    `json:"image"`
-	Messages []Message `json:"-"`
+	Image    string            `json:"image"`
+	Messages []MessageExternal `json:"-"`
 }

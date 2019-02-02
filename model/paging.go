@@ -50,5 +50,5 @@ type PagedMessages struct {
 	//
 	// read only: true
 	// required: true
-	Messages []*Message `json:"messages"`
+	Messages []*MessageExternal `json:"messages"`
 }

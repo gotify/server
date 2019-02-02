@@ -22,11 +22,11 @@ func TestMessageSuite(t *testing.T) {
 
 type MessageSuite struct {
 	suite.Suite
-	db       *test.Database
-	a        *MessageAPI
-	ctx      *gin.Context
-	recorder *httptest.ResponseRecorder
-	notified bool
+	db              *test.Database
+	a               *MessageAPI
+	ctx             *gin.Context
+	recorder        *httptest.ResponseRecorder
+	notifiedMessage *model.MessageExternal
 }
 
 func (s *MessageSuite) BeforeTest(suiteName, testName string) {
@@ -35,7 +35,7 @@ func (s *MessageSuite) BeforeTest(suiteName, testName string) {
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	s.ctx.Request = httptest.NewRequest("GET", "/irrelevant", nil)
 	s.db = test.NewDB(s.T())
-	s.notified = false
+	s.notifiedMessage = nil
 	s.a = &MessageAPI{DB: s.db, Notifier: s}
 }
 
@@ -43,32 +43,39 @@ func (s *MessageSuite) AfterTest(string, string) {
 	s.db.Close()
 }
 
-func (s *MessageSuite) Notify(userID uint, msg *model.Message) {
-	s.notified = true
+func (s *MessageSuite) Notify(userID uint, msg *model.MessageExternal) {
+	s.notifiedMessage = msg
 }
 
 func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 
 	actual := &model.PagedMessages{
-		Paging:   model.Paging{Limit: 5, Since: 122, Size: 5, Next: "http://example.com/message?limit=5&since=122"},
-		Messages: []*model.Message{{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: 4}},
+		Paging: model.Paging{Limit: 5, Since: 122, Size: 5, Next: "http://example.com/message?limit=5&since=122"},
+		Messages: []*model.MessageExternal{{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: 4, Extras: map[string]interface{}{
+			"test::string": "string",
+			"test::array":  []interface{}{1, 2, 3},
+			"test::int":    1,
+			"test::float":  0.5,
+		}}},
 	}
 	test.JSONEquals(s.T(), actual, `{"paging": {"limit":5, "since": 122, "size": 5, "next": "http://example.com/message?limit=5&since=122"},
-                                              "messages": [{"id":55,"appid":2,"message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z"}]}`)
+                                              "messages": [{"id":55,"appid":2,"message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z","extras":{"test::string":"string","test::array":[1,2,3],"test::int":1,"test::float":0.5}}]}`)
 }
 
 func (s *MessageSuite) Test_GetMessages() {
 	user := s.db.User(5)
 	first := user.App(1).NewMessage(1)
 	second := user.App(2).NewMessage(2)
+	firstExternal := toExternalMessage(&first)
+	secondExternal := toExternalMessage(&second)
 
 	test.WithUser(s.ctx, 5)
 	s.a.GetMessages(s.ctx)
 
 	expected := &model.PagedMessages{
 		Paging:   model.Paging{Limit: 100, Size: 2, Next: ""},
-		Messages: []*model.Message{&second, &first},
+		Messages: []*model.MessageExternal{secondExternal, firstExternal},
 	}
 
 	test.BodyEquals(s.T(), expected, s.recorder)
@@ -92,7 +99,7 @@ func (s *MessageSuite) Test_GetMessages_WithLimit_ReturnsNext() {
 	// Since: entries with ids from 100 - 96 will be returned (5 entries)
 	expected := &model.PagedMessages{
 		Paging:   model.Paging{Limit: 5, Size: 5, Since: 96, Next: "http://example.com/messages?limit=5&since=96"},
-		Messages: messages[:5],
+		Messages: toExternalMessages(messages[:5]),
 	}
 
 	test.BodyEquals(s.T(), expected, s.recorder)
@@ -116,7 +123,7 @@ func (s *MessageSuite) Test_GetMessages_WithLimit_WithSince_ReturnsNext() {
 	// Since: entries with ids from 54 - 42 will be returned (13 entries)
 	expected := &model.PagedMessages{
 		Paging:   model.Paging{Limit: 13, Size: 13, Since: 42, Next: "http://example.com/messages?limit=13&since=42"},
-		Messages: messages[46 : 46+13],
+		Messages: toExternalMessages(messages[46 : 46+13]),
 	}
 	test.BodyEquals(s.T(), expected, s.recorder)
 }
@@ -159,7 +166,7 @@ func (s *MessageSuite) Test_GetMessagesWithToken() {
 
 	expected := &model.PagedMessages{
 		Paging:   model.Paging{Limit: 100, Size: 1, Next: ""},
-		Messages: []*model.Message{&msg},
+		Messages: toExternalMessages([]*model.Message{&msg}),
 	}
 
 	test.BodyEquals(s.T(), expected, s.recorder)
@@ -182,7 +189,7 @@ func (s *MessageSuite) Test_GetMessagesWithToken_WithLimit_ReturnsNext() {
 	// Since: entries with ids from 100 - 92 will be returned (9 entries)
 	expected := &model.PagedMessages{
 		Paging:   model.Paging{Limit: 9, Size: 9, Since: 92, Next: "http://example.com/app/2/message?limit=9&since=92"},
-		Messages: messages[:9],
+		Messages: toExternalMessages(messages[:9]),
 	}
 
 	test.BodyEquals(s.T(), expected, s.recorder)
@@ -205,7 +212,7 @@ func (s *MessageSuite) Test_GetMessagesWithToken_WithLimit_WithSince_ReturnsNext
 	// Since: entries with ids from 54 - 42 will be returned (13 entries)
 	expected := &model.PagedMessages{
 		Paging:   model.Paging{Limit: 13, Size: 13, Since: 42, Next: "http://example.com/app/2/message?limit=13&since=42"},
-		Messages: messages[46 : 46+13],
+		Messages: toExternalMessages(messages[46 : 46+13]),
 	}
 	test.BodyEquals(s.T(), expected, s.recorder)
 }
@@ -316,17 +323,17 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithToken(7, "app-token")
-	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": 1}`))
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": 1}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
 
 	msgs := s.db.GetMessagesByApplication(7)
-	expected := &model.Message{ID: 1, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 	assert.Len(s.T(), msgs, 1)
-	assert.Contains(s.T(), msgs, expected)
+	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.True(s.T(), s.notified)
+	assert.Equal(s.T(), expected, s.notifiedMessage)
 }
 
 func (s *MessageSuite) Test_CreateMessage_WithTitle() {
@@ -336,38 +343,38 @@ func (s *MessageSuite) Test_CreateMessage_WithTitle() {
 
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithToken(5, "app-token")
-	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage"}`))
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle", "message": "mymessage"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
 
 	msgs := s.db.GetMessagesByApplication(5)
-	expected := &model.Message{ID: 1, ApplicationID: 5, Title: "mytitle", Message: "mymessage", Date: t}
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 5, Title: "mytitle", Message: "mymessage", Date: t}
 	assert.Len(s.T(), msgs, 1)
-	assert.Contains(s.T(), msgs, expected)
+	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.True(s.T(), s.notified)
+	assert.Equal(s.T(), expected, s.notifiedMessage)
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenNoMessage() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithToken(1, "app-token")
 
-	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle"}`))
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
 
 	assert.Empty(s.T(), s.db.GetMessagesByApplication(1))
 	assert.Equal(s.T(), 400, s.recorder.Code)
-	assert.False(s.T(), s.notified)
+	assert.Nil(s.T(), s.notifiedMessage)
 }
 
 func (s *MessageSuite) Test_CreateMessage_WithoutTitle() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
 
-	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"message": "mymessage"}`))
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"message": "mymessage"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
@@ -376,14 +383,14 @@ func (s *MessageSuite) Test_CreateMessage_WithoutTitle() {
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), "Application name", msgs[0].Title)
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.True(s.T(), s.notified)
+	assert.Equal(s.T(), "mymessage", s.notifiedMessage.Message)
 }
 
 func (s *MessageSuite) Test_CreateMessage_WithBlankTitle() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
 
-	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"message": "mymessage", "title": "  "}`))
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"message": "mymessage", "title": "  "}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
@@ -392,20 +399,56 @@ func (s *MessageSuite) Test_CreateMessage_WithBlankTitle() {
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), "Application name", msgs[0].Title)
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.True(s.T(), s.notified)
+	assert.Equal(s.T(), "mymessage", msgs[0].Message)
+}
+func (s *MessageSuite) Test_CreateMessage_WithExtras() {
+	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
+	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
+
+	t, _ := time.Parse("2006/01/02", "2017/01/02")
+	timeNow = func() time.Time { return t }
+	defer func() { timeNow = time.Now }()
+
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"message": "mymessage", "title": "msg with extras", "extras": {"gotify::test":{"int":1,"float":0.5,"string":"test","array":[1,2,3]}}}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateMessage(s.ctx)
+
+	msgs := s.db.GetMessagesByApplication(8)
+	expected := &model.MessageExternal{
+		ID:            1,
+		ApplicationID: 8,
+		Message:       "mymessage",
+		Title:         "msg with extras",
+		Date:          t,
+		Extras: map[string]interface{}{
+			"gotify::test": map[string]interface{}{
+				"string": "test",
+				"array":  []interface{}{float64(1), float64(2), float64(3)},
+				"int":    float64(1),
+				"float":  float64(0.5),
+			},
+		},
+	}
+	assert.Len(s.T(), msgs, 1)
+
+	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), uint(1), s.notifiedMessage.ID)
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenPriorityNotNumber() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithToken(8, "app-token")
 
-	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": "asd"}`))
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": "asd"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateMessage(s.ctx)
 
 	assert.Equal(s.T(), 400, s.recorder.Code)
-	assert.False(s.T(), s.notified)
+	assert.Nil(s.T(), s.notifiedMessage)
 	assert.Empty(s.T(), s.db.GetMessagesByApplication(1))
 }
 
@@ -417,20 +460,19 @@ func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 	timeNow = func() time.Time { return t }
 	defer func() { timeNow = time.Now }()
 
-	s.ctx.Request = httptest.NewRequest("POST", "/token?title=mytitle&message=mymessage&priority=1", nil)
+	s.ctx.Request = httptest.NewRequest("POST", "/message?title=mytitle&message=mymessage&priority=1", nil)
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	s.a.CreateMessage(s.ctx)
 
-	expected := &model.Message{ID: 1, ApplicationID: 2, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 2, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
 	msgs := s.db.GetMessagesByApplication(2)
 	assert.Len(s.T(), msgs, 1)
-	assert.Contains(s.T(), msgs, expected)
+	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.True(s.T(), s.notified)
+	assert.Equal(s.T(), uint(1), s.notifiedMessage.ID)
 }
-
 func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithToken(99, "app-token")
@@ -439,17 +481,17 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	timeNow = func() time.Time { return t }
 	defer func() { timeNow = time.Now }()
 
-	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader("title=mytitle&message=mymessage&priority=1"))
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`title=mytitle&message=mymessage&priority=1`))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	s.a.CreateMessage(s.ctx)
 
-	expected := &model.Message{ID: 1, ApplicationID: 99, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 99, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 	msgs := s.db.GetMessagesByApplication(99)
 	assert.Len(s.T(), msgs, 1)
-	assert.Contains(s.T(), msgs, expected)
+	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.True(s.T(), s.notified)
+	assert.Equal(s.T(), uint(1), s.notifiedMessage.ID)
 }
 
 func (s *MessageSuite) withURL(scheme, host, path, query string) {
