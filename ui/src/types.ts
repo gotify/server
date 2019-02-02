@@ -20,6 +20,11 @@ interface IMessage {
     priority: number;
     date: string;
     image?: string;
+    extras?: IMessageExtras;
+}
+
+interface IMessageExtras {
+    [key: string]: any; // tslint:disable-line no-any
 }
 
 interface IPagedMessages {

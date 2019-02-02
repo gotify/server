@@ -54,7 +54,7 @@ func (a *UserAPI) GetUsers(ctx *gin.Context) {
 
 	var resp []*model.UserExternal
 	for _, user := range users {
-		resp = append(resp, toExternal(user))
+		resp = append(resp, toExternalUser(user))
 	}
 
 	ctx.JSON(200, resp)
@@ -83,7 +83,7 @@ func (a *UserAPI) GetUsers(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 	user := a.DB.GetUserByID(auth.GetUserID(ctx))
-	ctx.JSON(200, toExternal(user))
+	ctx.JSON(200, toExternalUser(user))
 }
 
 // CreateUser creates a user
@@ -122,10 +122,10 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 func (a *UserAPI) CreateUser(ctx *gin.Context) {
 	user := model.UserExternalWithPass{}
 	if err := ctx.Bind(&user); err == nil {
-		internal := a.toInternal(&user, []byte{})
+		internal := a.toInternalUser(&user, []byte{})
 		if a.DB.GetUserByName(internal.Name) == nil {
 			a.DB.CreateUser(internal)
-			ctx.JSON(200, toExternal(internal))
+			ctx.JSON(200, toExternalUser(internal))
 		} else {
 			ctx.AbortWithError(400, errors.New("username already exists"))
 		}
@@ -171,7 +171,7 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if user := a.DB.GetUserByID(uint(id)); user != nil {
-			ctx.JSON(200, toExternal(user))
+			ctx.JSON(200, toExternalUser(user))
 		} else {
 			ctx.AbortWithError(404, errors.New("user does not exist"))
 		}
@@ -309,10 +309,10 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 		var user *model.UserExternalWithPass
 		if err := ctx.Bind(&user); err == nil {
 			if oldUser := a.DB.GetUserByID(id); oldUser != nil {
-				internal := a.toInternal(user, oldUser.Pass)
+				internal := a.toInternalUser(user, oldUser.Pass)
 				internal.ID = id
 				a.DB.UpdateUser(internal)
-				ctx.JSON(200, toExternal(internal))
+				ctx.JSON(200, toExternalUser(internal))
 			} else {
 				ctx.AbortWithError(404, errors.New("user does not exist"))
 			}
@@ -320,7 +320,7 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 	})
 }
 
-func (a *UserAPI) toInternal(response *model.UserExternalWithPass, pw []byte) *model.User {
+func (a *UserAPI) toInternalUser(response *model.UserExternalWithPass, pw []byte) *model.User {
 	user := &model.User{
 		Name:  response.Name,
 		Admin: response.Admin,
@@ -333,7 +333,7 @@ func (a *UserAPI) toInternal(response *model.UserExternalWithPass, pw []byte) *m
 	return user
 }
 
-func toExternal(internal *model.User) *model.UserExternal {
+func toExternalUser(internal *model.User) *model.UserExternal {
 	return &model.UserExternal{
 		Name:  internal.Name,
 		Admin: internal.Admin,

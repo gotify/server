@@ -102,7 +102,11 @@ describe('Messages', () => {
         }
         return result;
     };
-    const m = (title: string, message: string) => ({title, message});
+    const m = (title: string, message: string, extras?: IMessageExtras) => ({
+        title,
+        message,
+        extras,
+    });
 
     const windows1 = m('Login', 'User jmattheis logged in.');
     const windows2 = m('Shutdown', 'Windows will be shut down.');

@@ -61,7 +61,7 @@ func TestWriteMessageFails(t *testing.T) {
 	clients := clients(api, 1)
 	assert.NotEmpty(t, clients)
 
-	api.Notify(1, &model.Message{Message: "HI"})
+	api.Notify(1, &model.MessageExternal{Message: "HI"})
 	user.expectNoMessage()
 }
 
@@ -94,7 +94,7 @@ func TestWritePingFails(t *testing.T) {
 
 	time.Sleep(5 * time.Second) // waiting for ping
 
-	api.Notify(1, &model.Message{Message: "HI"})
+	api.Notify(1, &model.MessageExternal{Message: "HI"})
 	user.expectNoMessage()
 }
 
@@ -130,8 +130,8 @@ func TestPing(t *testing.T) {
 	}
 
 	expectNoMessage(user)
-	api.Notify(1, &model.Message{Message: "HI"})
-	user.expectMessage(&model.Message{Message: "HI"})
+	api.Notify(1, &model.MessageExternal{Message: "HI"})
+	user.expectMessage(&model.MessageExternal{Message: "HI"})
 }
 
 func TestCloseClientOnNotReading(t *testing.T) {
@@ -169,8 +169,8 @@ func TestMessageDirectlyAfterConnect(t *testing.T) {
 	defer user.conn.Close()
 	// the server may take some time to register the client
 	time.Sleep(100 * time.Millisecond)
-	api.Notify(1, &model.Message{Message: "msg"})
-	user.expectMessage(&model.Message{Message: "msg"})
+	api.Notify(1, &model.MessageExternal{Message: "msg"})
+	user.expectMessage(&model.MessageExternal{Message: "msg"})
 }
 
 func TestDeleteClientShouldCloseConnection(t *testing.T) {
@@ -186,12 +186,12 @@ func TestDeleteClientShouldCloseConnection(t *testing.T) {
 	defer user.conn.Close()
 	// the server may take some time to register the client
 	time.Sleep(100 * time.Millisecond)
-	api.Notify(1, &model.Message{Message: "msg"})
-	user.expectMessage(&model.Message{Message: "msg"})
+	api.Notify(1, &model.MessageExternal{Message: "msg"})
+	user.expectMessage(&model.MessageExternal{Message: "msg"})
 
 	api.NotifyDeletedClient(1, "customtoken")
 
-	api.Notify(1, &model.Message{Message: "msg"})
+	api.Notify(1, &model.MessageExternal{Message: "msg"})
 	user.expectNoMessage()
 }
 
@@ -233,28 +233,28 @@ func TestDeleteMultipleClients(t *testing.T) {
 	// the server may take some time to register the client
 	time.Sleep(100 * time.Millisecond)
 
-	api.Notify(1, &model.Message{ID: 4, Message: "there"})
-	expectMessage(&model.Message{ID: 4, Message: "there"}, userOne...)
+	api.Notify(1, &model.MessageExternal{ID: 4, Message: "there"})
+	expectMessage(&model.MessageExternal{ID: 4, Message: "there"}, userOne...)
 	expectNoMessage(userTwo...)
 	expectNoMessage(userThree...)
 
 	api.NotifyDeletedClient(1, "1-2")
 
-	api.Notify(1, &model.Message{ID: 2, Message: "there"})
-	expectMessage(&model.Message{ID: 2, Message: "there"}, userOneIPhone, userOneOther)
+	api.Notify(1, &model.MessageExternal{ID: 2, Message: "there"})
+	expectMessage(&model.MessageExternal{ID: 2, Message: "there"}, userOneIPhone, userOneOther)
 	expectNoMessage(userOneBrowser, userOneAndroid)
 	expectNoMessage(userThree...)
 	expectNoMessage(userTwo...)
 
-	api.Notify(2, &model.Message{ID: 2, Message: "there"})
+	api.Notify(2, &model.MessageExternal{ID: 2, Message: "there"})
 	expectNoMessage(userOne...)
-	expectMessage(&model.Message{ID: 2, Message: "there"}, userTwo...)
+	expectMessage(&model.MessageExternal{ID: 2, Message: "there"}, userTwo...)
 	expectNoMessage(userThree...)
 
-	api.Notify(3, &model.Message{ID: 5, Message: "there"})
+	api.Notify(3, &model.MessageExternal{ID: 5, Message: "there"})
 	expectNoMessage(userOne...)
 	expectNoMessage(userTwo...)
-	expectMessage(&model.Message{ID: 5, Message: "there"}, userThree...)
+	expectMessage(&model.MessageExternal{ID: 5, Message: "there"}, userThree...)
 
 	api.Close()
 }
@@ -297,27 +297,27 @@ func TestDeleteUser(t *testing.T) {
 	// the server may take some time to register the client
 	time.Sleep(100 * time.Millisecond)
 
-	api.Notify(1, &model.Message{ID: 4, Message: "there"})
-	expectMessage(&model.Message{ID: 4, Message: "there"}, userOne...)
+	api.Notify(1, &model.MessageExternal{ID: 4, Message: "there"})
+	expectMessage(&model.MessageExternal{ID: 4, Message: "there"}, userOne...)
 	expectNoMessage(userTwo...)
 	expectNoMessage(userThree...)
 
 	api.NotifyDeletedUser(1)
 
-	api.Notify(1, &model.Message{ID: 2, Message: "there"})
+	api.Notify(1, &model.MessageExternal{ID: 2, Message: "there"})
 	expectNoMessage(userOne...)
 	expectNoMessage(userThree...)
 	expectNoMessage(userTwo...)
 
-	api.Notify(2, &model.Message{ID: 2, Message: "there"})
+	api.Notify(2, &model.MessageExternal{ID: 2, Message: "there"})
 	expectNoMessage(userOne...)
-	expectMessage(&model.Message{ID: 2, Message: "there"}, userTwo...)
+	expectMessage(&model.MessageExternal{ID: 2, Message: "there"}, userTwo...)
 	expectNoMessage(userThree...)
 
-	api.Notify(3, &model.Message{ID: 5, Message: "there"})
+	api.Notify(3, &model.MessageExternal{ID: 5, Message: "there"})
 	expectNoMessage(userOne...)
 	expectNoMessage(userTwo...)
-	expectMessage(&model.Message{ID: 5, Message: "there"}, userThree...)
+	expectMessage(&model.MessageExternal{ID: 5, Message: "there"}, userThree...)
 
 	api.Close()
 }
@@ -362,15 +362,15 @@ func TestMultipleClients(t *testing.T) {
 	expectNoMessage(userTwo...)
 	expectNoMessage(userThree...)
 
-	api.Notify(1, &model.Message{ID: 1, Message: "hello"})
+	api.Notify(1, &model.MessageExternal{ID: 1, Message: "hello"})
 	time.Sleep(1 * time.Second)
-	expectMessage(&model.Message{ID: 1, Message: "hello"}, userOne...)
+	expectMessage(&model.MessageExternal{ID: 1, Message: "hello"}, userOne...)
 	expectNoMessage(userTwo...)
 	expectNoMessage(userThree...)
 
-	api.Notify(2, &model.Message{ID: 2, Message: "there"})
+	api.Notify(2, &model.MessageExternal{ID: 2, Message: "there"})
 	expectNoMessage(userOne...)
-	expectMessage(&model.Message{ID: 2, Message: "there"}, userTwo...)
+	expectMessage(&model.MessageExternal{ID: 2, Message: "there"}, userTwo...)
 	expectNoMessage(userThree...)
 
 	userOneIPhone.conn.Close()
@@ -379,21 +379,21 @@ func TestMultipleClients(t *testing.T) {
 	expectNoMessage(userTwo...)
 	expectNoMessage(userThree...)
 
-	api.Notify(1, &model.Message{ID: 3, Message: "how"})
-	expectMessage(&model.Message{ID: 3, Message: "how"}, userOneAndroid, userOneBrowser)
+	api.Notify(1, &model.MessageExternal{ID: 3, Message: "how"})
+	expectMessage(&model.MessageExternal{ID: 3, Message: "how"}, userOneAndroid, userOneBrowser)
 	expectNoMessage(userOneIPhone)
 	expectNoMessage(userTwo...)
 	expectNoMessage(userThree...)
 
-	api.Notify(2, &model.Message{ID: 4, Message: "are"})
+	api.Notify(2, &model.MessageExternal{ID: 4, Message: "are"})
 
 	expectNoMessage(userOne...)
-	expectMessage(&model.Message{ID: 4, Message: "are"}, userTwo...)
+	expectMessage(&model.MessageExternal{ID: 4, Message: "are"}, userTwo...)
 	expectNoMessage(userThree...)
 
 	api.Close()
 
-	api.Notify(2, &model.Message{ID: 5, Message: "you"})
+	api.Notify(2, &model.MessageExternal{ID: 5, Message: "you"})
 
 	expectNoMessage(userOne...)
 	expectNoMessage(userTwo...)
@@ -481,7 +481,7 @@ func startReading(client *testingClient) {
 				return
 			}
 
-			actual := &model.Message{}
+			actual := &model.MessageExternal{}
 			json.NewDecoder(bytes.NewBuffer(payload)).Decode(actual)
 			client.readMessage <- *actual
 		}
@@ -492,18 +492,18 @@ func createClient(t *testing.T, url string) *testingClient {
 	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
 	assert.Nil(t, err)
 
-	readMessages := make(chan model.Message)
+	readMessages := make(chan model.MessageExternal)
 
 	return &testingClient{conn: ws, readMessage: readMessages, t: t}
 }
 
 type testingClient struct {
 	conn        *websocket.Conn
-	readMessage chan model.Message
+	readMessage chan model.MessageExternal
 	t           *testing.T
 }
 
-func (c *testingClient) expectMessage(expected *model.Message) {
+func (c *testingClient) expectMessage(expected *model.MessageExternal) {
 	select {
 	case <-time.After(50 * time.Millisecond):
 		assert.Fail(c.t, "Expected message but none was send :(")
@@ -512,7 +512,7 @@ func (c *testingClient) expectMessage(expected *model.Message) {
 	}
 }
 
-func expectMessage(expected *model.Message, clients ...*testingClient) {
+func expectMessage(expected *model.MessageExternal, clients ...*testingClient) {
 	for _, client := range clients {
 		client.expectMessage(expected)
 	}
