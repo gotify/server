@@ -19,14 +19,22 @@ const windowsPrefix = process.platform === 'win32' ? '.exe' : '';
 const appDotGo = path.join(__dirname, '..', '..', '..', 'app.go');
 const testBuildPath = path.join(__dirname, 'build');
 
-export const newTest = async (): Promise<GotifyTest> => {
+export const newPluginDir = async (plugins: string[]): Promise<string> => {
+    const {dir, generator} = testPluginDir();
+    for (const pluginName of plugins) {
+        await buildGoPlugin(generator(), pluginName);
+    }
+    return dir;
+};
+
+export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
     const port = await getPort();
 
     const gotifyFile = testFilePath();
 
     await buildGoExecutable(gotifyFile);
 
-    const gotifyInstance = startGotify(gotifyFile, port);
+    const gotifyInstance = startGotify(gotifyFile, port, pluginsDir);
 
     const gotifyURL = 'http://localhost:' + port;
     await waitForGotify('http-get://localhost:' + port);
@@ -52,6 +60,26 @@ export const newTest = async (): Promise<GotifyTest> => {
     };
 };
 
+const testPluginDir = (): {dir: string; generator: (() => string)} => {
+    const random = Math.random()
+        .toString(36)
+        .substring(2, 15);
+    const dirName = 'gotifyplugin_' + random;
+    const dir = path.join(testBuildPath, dirName);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, 0o755);
+    }
+    return {
+        dir,
+        generator: () => {
+            const randomFn = Math.random()
+                .toString(36)
+                .substring(2, 15);
+            return path.join(dir, randomFn + '.so');
+        },
+    };
+};
+
 const testFilePath = (): string => {
     const random = Math.random()
         .toString(36)
@@ -73,6 +101,13 @@ const waitForGotify = (url: string): Promise<void> => {
     });
 };
 
+const buildGoPlugin = (filename: string, pluginPath: string): Promise<void> => {
+    process.stdout.write(`### Building Plugin ${pluginPath}\n`);
+    return new Promise((resolve) =>
+        exec(`go build -o ${filename} -buildmode=plugin ${pluginPath}`, () => resolve())
+    );
+};
+
 const buildGoExecutable = (filename: string): Promise<void> => {
     const envGotify = process.env.GOTIFY_EXE;
     if (envGotify) {
@@ -90,11 +125,12 @@ const buildGoExecutable = (filename: string): Promise<void> => {
     }
 };
 
-const startGotify = (filename: string, port: number): ChildProcess => {
+const startGotify = (filename: string, port: number, pluginDir: string): ChildProcess => {
     const gotify = spawn(filename, [], {
         env: {
             GOTIFY_SERVER_PORT: '' + port,
             GOTIFY_DATABASE_CONNECTION: 'file::memory:?mode=memory&cache=shared',
+            GOTIFY_PLUGINSDIR: pluginDir,
         },
     });
     gotify.stdout.pipe(process.stdout);

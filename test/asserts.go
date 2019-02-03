@@ -2,6 +2,8 @@ package test
 
 import (
 	"encoding/json"
+	"errors"
+	"io"
 	"io/ioutil"
 	"net/http/httptest"
 
@@ -24,4 +26,15 @@ func JSONEquals(t assert.TestingT, obj interface{}, expected string) {
 	objJSON := string(bytes)
 
 	assert.JSONEq(t, expected, objJSON)
+}
+
+type unreadableReader struct{}
+
+func (c unreadableReader) Read([]byte) (int, error) {
+	return 0, errors.New("this reader cannot be read")
+}
+
+// UnreadableReader returns an unreadadbe reader, used to mock IO issues.
+func UnreadableReader() io.Reader {
+	return unreadableReader{}
 }

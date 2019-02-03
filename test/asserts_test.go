@@ -1,6 +1,7 @@
 package test_test
 
 import (
+	"io/ioutil"
 	"net/http/httptest"
 	"testing"
 
@@ -39,4 +40,9 @@ func Test_BodyEquals_failing(t *testing.T) {
 
 	test.BodyEquals(fakeTesting, &obj{ID: 2, Test: "asd"}, recorder)
 	assert.True(t, fakeTesting.hasErrors)
+}
+
+func Test_UnreaableReader(t *testing.T) {
+	_, err := ioutil.ReadAll(test.UnreadableReader())
+	assert.Error(t, err)
 }

@@ -89,6 +89,7 @@ database:
 defaultuser:
   name: nicories
   pass: 12345
+pluginsdir: data/plugins
 `)
 	file.Close()
 	assert.Nil(t, err)
@@ -103,6 +104,7 @@ defaultuser:
 	assert.Equal(t, "*", conf.Server.ResponseHeaders["Access-Control-Allow-Origin"])
 	assert.Equal(t, "GET,POST", conf.Server.ResponseHeaders["Access-Control-Allow-Methods"])
 	assert.Equal(t, []string{".+.example.com", "otherdomain.com"}, conf.Server.Stream.AllowedOrigins)
+	assert.Equal(t, "data/plugins", conf.PluginsDir)
 
 	assert.Nil(t, os.Remove("config.yml"))
 }

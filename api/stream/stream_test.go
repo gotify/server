@@ -92,7 +92,7 @@ func TestWritePingFails(t *testing.T) {
 
 	assert.NotEmpty(t, clients)
 
-	time.Sleep(5 * time.Second) // waiting for ping
+	time.Sleep(api.pingPeriod) // waiting for ping
 
 	api.Notify(1, &model.MessageExternal{Message: "HI"})
 	user.expectNoMessage()
@@ -123,7 +123,7 @@ func TestPing(t *testing.T) {
 	expectNoMessage(user)
 
 	select {
-	case <-time.After(5 * time.Second):
+	case <-time.After(2 * time.Second):
 		assert.Fail(t, "Expected ping but there was one :(")
 	case <-ping:
 		// expected
@@ -151,7 +151,7 @@ func TestCloseClientOnNotReading(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	assert.NotEmpty(t, clients(api, 1))
 
-	time.Sleep(7 * time.Second)
+	time.Sleep(api.pingPeriod + api.pongTimeout)
 
 	assert.Empty(t, clients(api, 1))
 }
@@ -363,7 +363,7 @@ func TestMultipleClients(t *testing.T) {
 	expectNoMessage(userThree...)
 
 	api.Notify(1, &model.MessageExternal{ID: 1, Message: "hello"})
-	time.Sleep(1 * time.Second)
+	time.Sleep(500 * time.Millisecond)
 	expectMessage(&model.MessageExternal{ID: 1, Message: "hello"}, userOne...)
 	expectNoMessage(userTwo...)
 	expectNoMessage(userThree...)
@@ -536,8 +536,8 @@ func (c *testingClient) expectNoMessage() {
 func bootTestServer(handlerFunc gin.HandlerFunc) (*httptest.Server, *API) {
 	r := gin.New()
 	r.Use(handlerFunc)
-	// all 4 seconds a ping, and the client has 1 second to respond
-	api := New(4*time.Second, 1*time.Second, []string{})
+	// ping every 500 ms, and the client has 500 ms to respond
+	api := New(500*time.Millisecond, 500*time.Millisecond, []string{})
 
 	r.GET("/", api.Handle)
 	server := httptest.NewServer(r)

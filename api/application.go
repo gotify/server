@@ -66,8 +66,9 @@ type ApplicationAPI struct {
 func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 	app := model.Application{}
 	if err := ctx.Bind(&app); err == nil {
-		app.Token = generateNotExistingToken(auth.GenerateApplicationToken, a.applicationExists)
+		app.Token = auth.GenerateNotExistingToken(auth.GenerateApplicationToken, a.applicationExists)
 		app.UserID = auth.GetUserID(ctx)
+		app.Internal = false
 		a.DB.CreateApplication(&app)
 		ctx.JSON(200, withAbsoluteURL(ctx, &app))
 	}
@@ -143,6 +144,10 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
+			if app.Internal {
+				ctx.AbortWithError(400, errors.New("cannot delete internal application"))
+				return
+			}
 			a.DB.DeleteApplicationByID(id)
 			if app.Image != "" {
 				os.Remove(a.ImageDir + app.Image)

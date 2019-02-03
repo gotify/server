@@ -29,6 +29,12 @@ type Application struct {
 	// required: true
 	// example: Backup server for the interwebs
 	Description string `form:"description" query:"description" json:"description"`
+	// Whether the application is an internal application. Internal applications should not be deleted.
+	//
+	// read only: true
+	// required: true
+	// example: false
+	Internal bool `form:"internal" query:"internal" json:"internal"`
 	// The image of the application.
 	//
 	// read only: true

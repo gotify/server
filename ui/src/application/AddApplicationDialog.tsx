@@ -45,7 +45,7 @@ export default class AddDialog extends Component<IProps, IState> {
                         margin="dense"
                         className="name"
                         label="Name *"
-                        type="email"
+                        type="text"
                         value={name}
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth

@@ -15,7 +15,7 @@ import (
 var mkdirAll = os.MkdirAll
 
 // New creates a new wrapper for the gorm database framework.
-func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUser bool) (*GormDatabase, error) {
+func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUserIfNotExist bool) (*GormDatabase, error) {
 	createDirectoryIfSqlite(dialect, connection)
 
 	db, err := gorm.Open(dialect, connection)
@@ -35,12 +35,11 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 		db.DB().SetMaxOpenConns(1)
 	}
 
-	if !db.HasTable(new(model.User)) && !db.HasTable(new(model.Message)) &&
-		!db.HasTable(new(model.Client)) && !db.HasTable(new(model.Application)) {
-		db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client))
-		if createDefaultUser {
-			db.Create(&model.User{Name: defaultUser, Pass: password.CreatePassword(defaultPass, strength), Admin: true})
-		}
+	db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client), new(model.PluginConf))
+	userCount := 0
+	db.Find(new(model.User)).Count(&userCount)
+	if createDefaultUserIfNotExist && userCount == 0 {
+		db.Create(&model.User{Name: defaultUser, Pass: password.CreatePassword(defaultPass, strength), Admin: true})
 	}
 
 	return &GormDatabase{DB: db}, nil

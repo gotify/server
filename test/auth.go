@@ -8,4 +8,5 @@ import (
 // WithUser fake an authentication for testing.
 func WithUser(ctx *gin.Context, userID uint) {
 	ctx.Set("user", &model.User{ID: userID})
+	ctx.Set("userid", userID)
 }

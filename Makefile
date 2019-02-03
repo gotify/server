@@ -14,14 +14,7 @@ test-race:
 	go test -v -race ./...
 
 test-coverage:
-	echo "" > coverage.txt
-	for d in $(shell go list ./... | grep -v vendor); do \
-		go test -v -coverprofile=profile.out -covermode=atomic $$d ; \
-		if [ -f profile.out ]; then  \
-			cat profile.out >> coverage.txt ; \
-			rm profile.out ; \
-		fi \
-	done
+	go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
 format:
 	goimports -w $(shell find . -type f -name '*.go' -not -path "./vendor/*")

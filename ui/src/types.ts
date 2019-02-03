@@ -4,12 +4,25 @@ interface IApplication {
     name: string;
     description: string;
     image: string;
+    internal: boolean;
 }
 
 interface IClient {
     id: number;
     token: string;
     name: string;
+}
+
+interface IPlugin {
+    id: number;
+    token: string;
+    name: string;
+    modulePath: string;
+    enabled: boolean;
+    author?: string;
+    website?: string;
+    license?: string;
+    capabilities: Array<'webhooker' | 'displayer' | 'configurer' | 'messenger' | 'storager'>;
 }
 
 interface IMessage {

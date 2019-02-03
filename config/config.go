@@ -39,6 +39,7 @@ type Configuration struct {
 	}
 	PassStrength      int    `default:"10"`
 	UploadedImagesDir string `default:"data/images"`
+	PluginsDir        string `default:"data/plugins"`
 }
 
 // Get returns the configuration extracted from env variables or config file.

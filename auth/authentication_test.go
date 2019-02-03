@@ -11,7 +11,7 @@ import (
 	"github.com/gotify/server/auth/password"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
-	"github.com/gotify/server/test"
+	"github.com/gotify/server/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -23,12 +23,12 @@ func TestSuite(t *testing.T) {
 type AuthenticationSuite struct {
 	suite.Suite
 	auth *Auth
-	DB   *test.Database
+	DB   *testdb.Database
 }
 
 func (s *AuthenticationSuite) SetupSuite() {
 	mode.Set(mode.TestDev)
-	s.DB = test.NewDB(s.T())
+	s.DB = testdb.NewDB(s.T())
 	s.auth = &Auth{s.DB}
 
 	s.DB.CreateUser(&model.User{

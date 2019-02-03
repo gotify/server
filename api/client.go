@@ -60,7 +60,7 @@ type ClientAPI struct {
 func (a *ClientAPI) CreateClient(ctx *gin.Context) {
 	client := model.Client{}
 	if err := ctx.Bind(&client); err == nil {
-		client.Token = generateNotExistingToken(auth.GenerateClientToken, a.clientExists)
+		client.Token = auth.GenerateNotExistingToken(auth.GenerateClientToken, a.clientExists)
 		client.UserID = auth.GetUserID(ctx)
 		a.DB.CreateClient(&client)
 		ctx.JSON(200, client)
@@ -144,13 +144,4 @@ func (a *ClientAPI) DeleteClient(ctx *gin.Context) {
 
 func (a *ClientAPI) clientExists(token string) bool {
 	return a.DB.GetClientByToken(token) != nil
-}
-
-func generateNotExistingToken(generateToken func() string, tokenExists func(token string) bool) string {
-	for {
-		token := generateToken()
-		if !tokenExists(token) {
-			return token
-		}
-	}
 }

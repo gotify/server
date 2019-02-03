@@ -2,17 +2,17 @@ package router
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/gin-gonic/gin/json"
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
-	"github.com/gotify/server/test"
+	"github.com/gotify/server/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -28,7 +28,7 @@ func TestIntegrationSuite(t *testing.T) {
 
 type IntegrationSuite struct {
 	suite.Suite
-	db       *test.Database
+	db       *testdb.Database
 	server   *httptest.Server
 	closable func()
 }
@@ -36,7 +36,7 @@ type IntegrationSuite struct {
 func (s *IntegrationSuite) BeforeTest(string, string) {
 	mode.Set(mode.TestDev)
 	var err error
-	s.db = test.NewDBWithDefaultUser(s.T())
+	s.db = testdb.NewDBWithDefaultUser(s.T())
 	assert.Nil(s.T(), err)
 	g, closable := Create(s.db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
@@ -78,7 +78,7 @@ func (s *IntegrationSuite) TestHeaderInProd() {
 
 func TestHeadersFromConfiguration(t *testing.T) {
 	mode.Set(mode.Prod)
-	db := test.NewDBWithDefaultUser(t)
+	db := testdb.NewDBWithDefaultUser(t)
 	defer db.Close()
 
 	config := config.Configuration{PassStrength: 5}
@@ -146,6 +146,17 @@ func (s *IntegrationSuite) TestSendMessage() {
 	assert.Equal(s.T(), "backup done", msg.Title)
 	assert.Equal(s.T(), uint(1), msg.ID)
 	assert.Equal(s.T(), token.ID, msg.ApplicationID)
+}
+
+func (s *IntegrationSuite) TestPluginLoadFail_expectPanic() {
+	db := testdb.NewDBWithDefaultUser(s.T())
+	defer db.Close()
+
+	assert.Panics(s.T(), func() {
+		Create(db.GormDatabase, new(model.VersionInfo), &config.Configuration{
+			PluginsDir: "<THIS_PATH_IS_MALFORMED>",
+		})
+	})
 }
 
 func (s *IntegrationSuite) TestAuthentication() {

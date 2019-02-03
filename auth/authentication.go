@@ -16,6 +16,7 @@ const (
 type Database interface {
 	GetApplicationByToken(token string) *model.Application
 	GetClientByToken(token string) *model.Client
+	GetPluginConfByToken(token string) *model.PluginConf
 	GetUserByName(name string) *model.User
 	GetUserByID(id uint) *model.User
 }

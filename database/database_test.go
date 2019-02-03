@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gotify/server/test"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -15,56 +17,56 @@ func TestDatabaseSuite(t *testing.T) {
 
 type DatabaseSuite struct {
 	suite.Suite
-	db *GormDatabase
+	db     *GormDatabase
+	tmpDir test.TmpDir
 }
 
 func (s *DatabaseSuite) BeforeTest(suiteName, testName string) {
-	db, err := New("sqlite3", "testdb.db", "defaultUser", "defaultPass", 5, true)
+	s.tmpDir = test.NewTmpDir("gotify_databasesuite")
+	db, err := New("sqlite3", s.tmpDir.Path("testdb.db"), "defaultUser", "defaultPass", 5, true)
 	assert.Nil(s.T(), err)
 	s.db = db
 }
 
 func (s *DatabaseSuite) AfterTest(suiteName, testName string) {
 	s.db.Close()
-	assert.Nil(s.T(), os.Remove("testdb.db"))
+	assert.Nil(s.T(), s.tmpDir.Clean())
 }
 
 func TestInvalidDialect(t *testing.T) {
-	_, err := New("asdf", "testdb.db", "defaultUser", "defaultPass", 5, true)
-	assert.NotNil(t, err)
+	tmpDir := test.NewTmpDir("gotify_testinvaliddialect")
+	defer tmpDir.Clean()
+	_, err := New("asdf", tmpDir.Path("testdb.db"), "defaultUser", "defaultPass", 5, true)
+	assert.Error(t, err)
 }
 
 func TestCreateSqliteFolder(t *testing.T) {
-	// ensure path not exists
-	os.RemoveAll("somepath")
+	tmpDir := test.NewTmpDir("gotify_testcreatesqlitefolder")
+	defer tmpDir.Clean()
 
-	db, err := New("sqlite3", "somepath/testdb.db", "defaultUser", "defaultPass", 5, true)
+	db, err := New("sqlite3", tmpDir.Path("somepath/testdb.db"), "defaultUser", "defaultPass", 5, true)
 	assert.Nil(t, err)
-	assert.DirExists(t, "somepath")
+	assert.DirExists(t, tmpDir.Path("somepath"))
 	db.Close()
-
-	assert.Nil(t, os.RemoveAll("somepath"))
 }
 
 func TestWithAlreadyExistingSqliteFolder(t *testing.T) {
-	// ensure path not exists
-	os.RemoveAll("somepath")
-	os.MkdirAll("somepath", 0777)
+	tmpDir := test.NewTmpDir("gotify_testwithexistingfolder")
+	defer tmpDir.Clean()
 
-	db, err := New("sqlite3", "somepath/testdb.db", "defaultUser", "defaultPass", 5, true)
+	db, err := New("sqlite3", tmpDir.Path("somepath/testdb.db"), "defaultUser", "defaultPass", 5, true)
 	assert.Nil(t, err)
-	assert.DirExists(t, "somepath")
+	assert.DirExists(t, tmpDir.Path("somepath"))
 	db.Close()
-
-	assert.Nil(t, os.RemoveAll("somepath"))
 }
 
 func TestPanicsOnMkdirError(t *testing.T) {
-	os.RemoveAll("somepath")
+	tmpDir := test.NewTmpDir("gotify_testpanicsonmkdirerror")
+	defer tmpDir.Clean()
 	mkdirAll = func(path string, perm os.FileMode) error {
 		return errors.New("ERROR")
 	}
 	assert.Panics(t, func() {
-		New("sqlite3", "somepath/test.db", "defaultUser", "defaultPass", 5, true)
+		New("sqlite3", tmpDir.Path("somepath/test.db"), "defaultUser", "defaultPass", 5, true)
 	})
 }
