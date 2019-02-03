@@ -39,6 +39,9 @@ func (d *GormDatabase) DeleteUserByID(id uint) error {
 	for _, client := range d.GetClientsByUser(id) {
 		d.DeleteClientByID(client.ID)
 	}
+	for _, conf := range d.GetPluginConfByUser(id) {
+		d.DeletePluginConfByID(conf.ID)
+	}
 	return d.DB.Where("id = ?", id).Delete(&model.User{}).Error
 }
 

@@ -1,6 +1,6 @@
 import {Page} from 'puppeteer';
 import {newTest, GotifyTest} from './setup';
-import {count, innerText, waitForExists, waitToDisappear} from './utils';
+import {count, innerText, waitForExists, waitToDisappear, clearField} from './utils';
 import * as auth from './authentication';
 import * as selector from './selector';
 
@@ -17,13 +17,44 @@ enum Col {
     Name = 2,
     Token = 3,
     Description = 4,
-    EditDelete = 5,
+    EditUpdate = 5,
+    EditDelete = 6,
 }
 
 const hiddenToken = '•••••••••••••••';
 
 const $table = selector.table('#app-table');
 const $dialog = selector.form('#app-dialog');
+
+const hasApp = (name: string, description: string, row: number): (() => Promise<void>) => {
+    return async () => {
+        expect(await innerText(page, $table.cell(row, Col.Name))).toBe(name);
+        expect(await innerText(page, $table.cell(row, Col.Token))).toBe(hiddenToken);
+        expect(await innerText(page, $table.cell(row, Col.Description))).toBe(description);
+    };
+};
+
+export const updateApp = (
+    id: number,
+    data: {name?: string; description?: string}
+): (() => Promise<void>) => {
+    return async () => {
+        await page.click($table.cell(id, Col.EditUpdate, '.edit'));
+        await page.waitForSelector($dialog.selector());
+        if (data.name) {
+            const nameSelector = $dialog.input('.name');
+            await clearField(page, nameSelector);
+            await page.type(nameSelector, data.name);
+        }
+        if (data.description) {
+            const descSelector = $dialog.textarea('.description');
+            await clearField(page, descSelector);
+            await page.type(descSelector, data.description);
+        }
+        await page.click($dialog.button('.update'));
+        await waitToDisappear(page, $dialog.selector());
+    };
+};
 
 export const createApp = (name: string, description: string): (() => Promise<void>) => {
     return async () => {
@@ -53,14 +84,6 @@ describe('Application', () => {
         it('raspberry', createApp('raspberry', '#3'));
     });
     describe('has created apps', () => {
-        const hasApp = (name: string, description: string, row: number): (() => Promise<void>) => {
-            return async () => {
-                expect(await innerText(page, $table.cell(row, Col.Name))).toBe(name);
-                expect(await innerText(page, $table.cell(row, Col.Token))).toBe(hiddenToken);
-                expect(await innerText(page, $table.cell(row, Col.Description))).toBe(description);
-            };
-        };
-
         it('has three apps', async () => {
             await page.waitForSelector($table.row(3));
             expect(await count(page, $table.rows())).toBe(3);
@@ -72,7 +95,18 @@ describe('Application', () => {
             await page.click($table.cell(3, Col.Token, '.toggle-visibility'));
             const token = await innerText(page, $table.cell(3, Col.Token));
             expect(token.startsWith('A')).toBeTruthy();
+            await page.click($table.cell(3, Col.Token, '.toggle-visibility'));
         });
+    });
+    it('updates application', async () => {
+        await updateApp(1, {name: 'server_linux'})();
+        await updateApp(2, {description: 'kitchen_computer'})();
+        await updateApp(3, {name: 'raspberry_pi', description: 'home_pi'})();
+    });
+    it('has updated application', async () => {
+        await hasApp('server_linux', '#1', 1)();
+        await hasApp('desktop', 'kitchen_computer', 2)();
+        await hasApp('raspberry_pi', 'home_pi', 3)();
     });
     it('deletes application', async () => {
         await page.click($table.cell(2, Col.EditDelete, '.delete'));

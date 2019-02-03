@@ -14,11 +14,17 @@ import (
 	"github.com/gotify/server/error"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
+	"github.com/gotify/server/plugin"
 	"github.com/gotify/server/ui"
 )
 
 // Create creates the gin engine with all routes.
 func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Configuration) (*gin.Engine, func()) {
+	g := gin.New()
+
+	g.Use(gin.Logger(), gin.Recovery(), error.Handler(), location.Default())
+	g.NoRoute(error.NotFound())
+
 	streamHandler := stream.New(200*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
 	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
@@ -31,12 +37,22 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		DB:       db,
 		ImageDir: conf.UploadedImagesDir,
 	}
-	userHandler := api.UserAPI{DB: db, PasswordStrength: conf.PassStrength, NotifyDeleted: streamHandler.NotifyDeletedUser}
+	userChangeNotifier := new(api.UserChangeNotifier)
+	userHandler := api.UserAPI{DB: db, PasswordStrength: conf.PassStrength, UserChangeNotifier: userChangeNotifier}
 
-	g := gin.New()
+	pluginManager, err := plugin.NewManager(db, conf.PluginsDir, g.Group("/plugin/:id/custom/"), streamHandler)
+	if err != nil {
+		panic(err)
+	}
+	pluginHandler := api.PluginAPI{
+		Manager:  pluginManager,
+		Notifier: streamHandler,
+		DB:       db,
+	}
 
-	g.Use(gin.Logger(), gin.Recovery(), error.Handler(), location.Default())
-	g.NoRoute(error.NotFound())
+	userChangeNotifier.OnUserDeleted(streamHandler.NotifyDeletedUser)
+	userChangeNotifier.OnUserDeleted(pluginManager.RemoveUser)
+	userChangeNotifier.OnUserAdded(pluginManager.InitializeForUserID)
 
 	ui.Register(g)
 
@@ -57,6 +73,18 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			ctx.Header(header, value)
 		}
 	})
+
+	{
+		g.GET("/plugin", authentication.RequireClient(), pluginHandler.GetPlugins)
+		pluginRoute := g.Group("/plugin/", authentication.RequireClient())
+		{
+			pluginRoute.GET("/:id/config", pluginHandler.GetConfig)
+			pluginRoute.POST("/:id/config", pluginHandler.UpdateConfig)
+			pluginRoute.GET("/:id/display", pluginHandler.GetDisplay)
+			pluginRoute.POST("/:id/enable", pluginHandler.EnablePlugin)
+			pluginRoute.POST("/:id/disable", pluginHandler.DisablePlugin)
+		}
+	}
 
 	g.OPTIONS("/*any")
 

@@ -11,6 +11,7 @@ import (
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/test"
+	"github.com/gotify/server/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -26,7 +27,7 @@ func TestClientSuite(t *testing.T) {
 
 type ClientSuite struct {
 	suite.Suite
-	db       *test.Database
+	db       *testdb.Database
 	a        *ClientAPI
 	ctx      *gin.Context
 	recorder *httptest.ResponseRecorder
@@ -37,7 +38,7 @@ func (s *ClientSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
 	rand.Seed(50)
 	s.recorder = httptest.NewRecorder()
-	s.db = test.NewDB(s.T())
+	s.db = testdb.NewDB(s.T())
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	withURL(s.ctx, "http", "example.com")
 	s.notified = false

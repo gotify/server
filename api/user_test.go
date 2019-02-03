@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/test"
+	"github.com/gotify/server/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -20,26 +22,31 @@ func TestUserSuite(t *testing.T) {
 
 type UserSuite struct {
 	suite.Suite
-	db       *test.Database
-	a        *UserAPI
-	ctx      *gin.Context
-	recorder *httptest.ResponseRecorder
-	notified bool
+	db             *testdb.Database
+	a              *UserAPI
+	ctx            *gin.Context
+	recorder       *httptest.ResponseRecorder
+	notifiedAdd    bool
+	notifiedDelete bool
+	notifier       *UserChangeNotifier
 }
 
 func (s *UserSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
-	s.db = test.NewDB(s.T())
-	s.notified = false
-	s.a = &UserAPI{DB: s.db, NotifyDeleted: s.notify}
+	s.db = testdb.NewDB(s.T())
+	s.notifier = new(UserChangeNotifier)
+	s.notifier.OnUserDeleted(func(uint) error {
+		s.notifiedDelete = true
+		return nil
+	})
+	s.notifier.OnUserAdded(func(uint) error {
+		s.notifiedAdd = true
+		return nil
+	})
+	s.a = &UserAPI{DB: s.db, UserChangeNotifier: s.notifier}
 }
-
-func (s *UserSuite) notify(uint) {
-	s.notified = true
-}
-
 func (s *UserSuite) AfterTest(suiteName, testName string) {
 	s.db.Close()
 }
@@ -113,7 +120,7 @@ func (s *UserSuite) Test_DeleteUserByID_UnknownUser() {
 }
 
 func (s *UserSuite) Test_DeleteUserByID() {
-	assert.False(s.T(), s.notified)
+	assert.False(s.T(), s.notifiedDelete)
 
 	s.db.User(2)
 
@@ -123,10 +130,27 @@ func (s *UserSuite) Test_DeleteUserByID() {
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	s.db.AssertUserNotExist(2)
-	assert.True(s.T(), s.notified)
+	assert.True(s.T(), s.notifiedDelete)
+}
+
+func (s *UserSuite) Test_DeleteUserByID_NotifyFail() {
+	s.db.User(5)
+	s.notifier.OnUserDeleted(func(id uint) error {
+		if id == 5 {
+			return errors.New("some error")
+		}
+		return nil
+	})
+
+	s.ctx.Params = gin.Params{{Key: "id", Value: "5"}}
+
+	s.a.DeleteUserByID(s.ctx)
+
+	assert.Equal(s.T(), 500, s.recorder.Code)
 }
 
 func (s *UserSuite) Test_CreateUser() {
+	assert.False(s.T(), s.notifiedAdd)
 	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "mylittlepony", "admin": true}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
@@ -139,6 +163,22 @@ func (s *UserSuite) Test_CreateUser() {
 	created := s.db.GetUserByName("tom")
 	assert.NotNil(s.T(), created)
 	assert.True(s.T(), password.ComparePassword(created.Pass, []byte("mylittlepony")))
+	assert.True(s.T(), s.notifiedAdd)
+}
+
+func (s *UserSuite) Test_CreateUser_NotifyFail() {
+	s.notifier.OnUserAdded(func(id uint) error {
+		if s.db.GetUserByID(id).Name == "eva" {
+			return errors.New("some error")
+		}
+		return nil
+	})
+	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "eva", "pass": "mylittlepony", "admin": true}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateUser(s.ctx)
+
+	assert.Equal(s.T(), 500, s.recorder.Code)
 }
 
 func (s *UserSuite) Test_CreateUser_NoPassword() {

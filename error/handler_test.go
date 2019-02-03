@@ -59,7 +59,7 @@ func TestValidationError(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(rec)
 	ctx.Request = httptest.NewRequest("GET", "/uri", nil)
 
-	assert.NotNil(t, ctx.Bind(&testValidate{Age: 150, Limit: 20}))
+	assert.Error(t, ctx.Bind(&testValidate{Age: 150, Limit: 20}))
 	Handler()(ctx)
 
 	err := new(model.Error)

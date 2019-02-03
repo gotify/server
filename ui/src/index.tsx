@@ -15,6 +15,7 @@ import {InjectProvider, StoreMapping} from './inject';
 import {UserStore} from './user/UserStore';
 import {MessagesStore} from './message/MessagesStore';
 import {ClientStore} from './client/ClientStore';
+import {PluginStore} from './plugin/PluginStore';
 
 const defaultDevConfig = {
     url: 'http://localhost:80/',
@@ -22,7 +23,7 @@ const defaultDevConfig = {
 
 const {port, hostname, protocol} = window.location;
 const slashes = protocol.concat('//');
-const url = slashes.concat(hostname.concat(':', port));
+const url = slashes.concat(port ? hostname.concat(':', port) : hostname);
 const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
 
 const defaultProdConfig = {
@@ -44,6 +45,7 @@ const initStores = (): StoreMapping => {
     const currentUser = new CurrentUser(snackManager.snack);
     const clientStore = new ClientStore(snackManager.snack);
     const wsStore = new WebSocketStore(snackManager.snack, currentUser);
+    const pluginStore = new PluginStore(snackManager.snack);
     appStore.onDelete = () => messagesStore.clearAll();
 
     return {
@@ -54,6 +56,7 @@ const initStores = (): StoreMapping => {
         currentUser,
         clientStore,
         wsStore,
+        pluginStore,
     };
 };
 

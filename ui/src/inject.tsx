@@ -7,6 +7,7 @@ import {ClientStore} from './client/ClientStore';
 import {AppStore} from './application/AppStore';
 import {inject as mobxInject, Provider} from 'mobx-react';
 import {WebSocketStore} from './message/WebSocketStore';
+import {PluginStore} from './plugin/PluginStore';
 
 export interface StoreMapping {
     userStore: UserStore;
@@ -15,6 +16,7 @@ export interface StoreMapping {
     currentUser: CurrentUser;
     clientStore: ClientStore;
     appStore: AppStore;
+    pluginStore: PluginStore;
     wsStore: WebSocketStore;
 }
 

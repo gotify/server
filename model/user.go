@@ -8,6 +8,7 @@ type User struct {
 	Admin        bool
 	Applications []Application
 	Clients      []Client
+	Plugins      []PluginConf
 }
 
 // UserExternal Model

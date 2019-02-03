@@ -1,17 +1,17 @@
-package test_test
+package testdb_test
 
 import (
 	"testing"
 
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
-	"github.com/gotify/server/test"
+	"github.com/gotify/server/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 func Test_WithDefault(t *testing.T) {
-	db := test.NewDBWithDefaultUser(t)
+	db := testdb.NewDBWithDefaultUser(t)
 	assert.NotNil(t, db.GetUserByName("admin"))
 	db.Close()
 }
@@ -22,12 +22,12 @@ func TestDatabaseSuite(t *testing.T) {
 
 type DatabaseSuite struct {
 	suite.Suite
-	db *test.Database
+	db *testdb.Database
 }
 
 func (s *DatabaseSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
-	s.db = test.NewDB(s.T())
+	s.db = testdb.NewDB(s.T())
 }
 
 func (s *DatabaseSuite) AfterTest(suiteName, testName string) {
@@ -88,32 +88,46 @@ func (s *DatabaseSuite) Test_Apps() {
 	userBuilder := s.db.User(1)
 	userBuilder.App(1)
 	newAppActual := userBuilder.NewAppWithToken(2, "asdf")
+	newInternalAppActual := userBuilder.NewInternalAppWithToken(3, "qwer")
 
-	s.db.User(2).App(5)
+	s.db.User(2).InternalApp(5)
 
 	newAppExpected := &model.Application{ID: 2, Token: "asdf", UserID: 1}
+	newInternalAppExpected := &model.Application{ID: 3, Token: "qwer", UserID: 1, Internal: true}
 
 	assert.Equal(s.T(), newAppExpected, newAppActual)
+	assert.Equal(s.T(), newInternalAppExpected, newInternalAppActual)
 
-	userOneExpected := []*model.Application{{ID: 1, Token: "app1", UserID: 1}, {ID: 2, Token: "asdf", UserID: 1}}
+	userOneExpected := []*model.Application{{ID: 1, Token: "app1", UserID: 1}, {ID: 2, Token: "asdf", UserID: 1}, {ID: 3, Token: "qwer", UserID: 1, Internal: true}}
 	assert.Equal(s.T(), userOneExpected, s.db.GetApplicationsByUser(1))
-	userTwoExpected := []*model.Application{{ID: 5, Token: "app5", UserID: 2}}
+	userTwoExpected := []*model.Application{{ID: 5, Token: "app5", UserID: 2, Internal: true}}
 	assert.Equal(s.T(), userTwoExpected, s.db.GetApplicationsByUser(2))
 
 	newAppWithName := userBuilder.NewAppWithTokenAndName(7, "test-token", "app name")
 	newAppWithNameExpected := &model.Application{ID: 7, Token: "test-token", UserID: 1, Name: "app name"}
 	assert.Equal(s.T(), newAppWithNameExpected, newAppWithName)
 
-	userBuilder.AppWithTokenAndName(8, "test-token-2", "app name")
+	newInternalAppWithName := userBuilder.NewInternalAppWithTokenAndName(8, "test-tokeni", "app name")
+	newInternalAppWithNameExpected := &model.Application{ID: 8, Token: "test-tokeni", UserID: 1, Name: "app name", Internal: true}
+	assert.Equal(s.T(), newInternalAppWithNameExpected, newInternalAppWithName)
+
+	userBuilder.AppWithTokenAndName(9, "test-token-2", "app name")
+	userBuilder.InternalAppWithTokenAndName(10, "test-tokeni-2", "app name")
+	userBuilder.AppWithToken(11, "test-token-3")
+	userBuilder.InternalAppWithToken(12, "test-tokeni-3")
 
 	s.db.AssertAppExist(1)
 	s.db.AssertAppExist(2)
-	s.db.AssertAppNotExist(3)
+	s.db.AssertAppExist(3)
 	s.db.AssertAppNotExist(4)
 	s.db.AssertAppExist(5)
 	s.db.AssertAppNotExist(6)
 	s.db.AssertAppExist(7)
 	s.db.AssertAppExist(8)
+	s.db.AssertAppExist(9)
+	s.db.AssertAppExist(10)
+	s.db.AssertAppExist(11)
+	s.db.AssertAppExist(12)
 
 	s.db.DeleteApplicationByID(2)
 

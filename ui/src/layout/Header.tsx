@@ -9,6 +9,7 @@ import Chat from '@material-ui/icons/Chat';
 import DevicesOther from '@material-ui/icons/DevicesOther';
 import ExitToApp from '@material-ui/icons/ExitToApp';
 import Highlight from '@material-ui/icons/Highlight';
+import Apps from '@material-ui/icons/Apps';
 import SupervisorAccount from '@material-ui/icons/SupervisorAccount';
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
@@ -102,6 +103,12 @@ class Header extends Component<IProps & Styles> {
                     <Button color="inherit">
                         <DevicesOther />
                         &nbsp;clients
+                    </Button>
+                </Link>
+                <Link className={classes.link} to="/plugins" id="navigate-plugins">
+                    <Button color="inherit">
+                        <Apps />
+                        &nbsp;plugins
                     </Button>
                 </Link>
                 <Button color="inherit" onClick={showSettings} id="changepw">

@@ -9,6 +9,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Delete from '@material-ui/icons/Delete';
 import Edit from '@material-ui/icons/Edit';
+import CloudUpload from '@material-ui/icons/CloudUpload';
 import React, {ChangeEvent, Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
@@ -17,11 +18,14 @@ import AddApplicationDialog from './AddApplicationDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
+import UpdateDialog from './UpdateApplicationDialog';
 
 @observer
 class Applications extends Component<Stores<'appStore'>> {
     @observable
     private deleteId: number | false = false;
+    @observable
+    private updateId: number | false = false;
     @observable
     private createDialog = false;
 
@@ -34,6 +38,7 @@ class Applications extends Component<Stores<'appStore'>> {
         const {
             createDialog,
             deleteId,
+            updateId,
             props: {appStore},
         } = this;
         const apps = appStore.getItems();
@@ -54,6 +59,7 @@ class Applications extends Component<Stores<'appStore'>> {
                                     <TableCell>Token</TableCell>
                                     <TableCell>Description</TableCell>
                                     <TableCell />
+                                    <TableCell />
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -67,6 +73,8 @@ class Applications extends Component<Stores<'appStore'>> {
                                             value={app.token}
                                             fUpload={() => this.uploadImage(app.id)}
                                             fDelete={() => (this.deleteId = app.id)}
+                                            fEdit={() => (this.updateId = app.id)}
+                                            noDelete={app.internal}
                                         />
                                     );
                                 })}
@@ -84,6 +92,16 @@ class Applications extends Component<Stores<'appStore'>> {
                     <AddApplicationDialog
                         fClose={() => (this.createDialog = false)}
                         fOnSubmit={appStore.create}
+                    />
+                )}
+                {updateId !== false && (
+                    <UpdateDialog
+                        fClose={() => (this.updateId = false)}
+                        fOnSubmit={(name, description) =>
+                            appStore.update(updateId, name, description)
+                        }
+                        initialDescription={appStore.getByID(updateId).description}
+                        initialName={appStore.getByID(updateId).name}
                     />
                 )}
                 {deleteId !== false && (
@@ -121,33 +139,42 @@ class Applications extends Component<Stores<'appStore'>> {
 interface IRowProps {
     name: string;
     value: string;
+    noDelete: boolean;
     description: string;
     fUpload: VoidFunction;
     image: string;
     fDelete: VoidFunction;
+    fEdit: VoidFunction;
 }
 
-const Row: SFC<IRowProps> = observer(({name, value, description, fDelete, fUpload, image}) => (
-    <TableRow>
-        <TableCell padding="checkbox">
-            <div style={{display: 'flex'}}>
-                <Avatar src={image} />
-                <IconButton onClick={fUpload} style={{height: 40}}>
+const Row: SFC<IRowProps> = observer(
+    ({name, value, noDelete, description, fDelete, fUpload, image, fEdit}) => (
+        <TableRow>
+            <TableCell padding="checkbox">
+                <div style={{display: 'flex'}}>
+                    <Avatar src={image} />
+                    <IconButton onClick={fUpload} style={{height: 40}}>
+                        <CloudUpload />
+                    </IconButton>
+                </div>
+            </TableCell>
+            <TableCell>{name}</TableCell>
+            <TableCell>
+                <ToggleVisibility value={value} style={{display: 'flex', alignItems: 'center'}} />
+            </TableCell>
+            <TableCell>{description}</TableCell>
+            <TableCell numeric padding="none">
+                <IconButton onClick={fEdit} className="edit">
                     <Edit />
                 </IconButton>
-            </div>
-        </TableCell>
-        <TableCell>{name}</TableCell>
-        <TableCell>
-            <ToggleVisibility value={value} style={{display: 'flex', alignItems: 'center'}} />
-        </TableCell>
-        <TableCell>{description}</TableCell>
-        <TableCell numeric padding="none">
-            <IconButton onClick={fDelete} className="delete">
-                <Delete />
-            </IconButton>
-        </TableCell>
-    </TableRow>
-));
+            </TableCell>
+            <TableCell numeric padding="none">
+                <IconButton onClick={fDelete} className="delete" disabled={noDelete}>
+                    <Delete />
+                </IconButton>
+            </TableCell>
+        </TableRow>
+    )
+);
 
 export default inject('appStore')(Applications);

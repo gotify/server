@@ -19,11 +19,45 @@ type UserDatabase interface {
 	CreateUser(user *model.User) error
 }
 
+// UserChangeNotifier notifies listeners for user changes.
+type UserChangeNotifier struct {
+	userDeletedCallbacks []func(uid uint) error
+	userAddedCallbacks   []func(uid uint) error
+}
+
+// OnUserDeleted is called on user deletion.
+func (c *UserChangeNotifier) OnUserDeleted(cb func(uid uint) error) {
+	c.userDeletedCallbacks = append(c.userDeletedCallbacks, cb)
+}
+
+// OnUserAdded is called on user creation.
+func (c *UserChangeNotifier) OnUserAdded(cb func(uid uint) error) {
+	c.userAddedCallbacks = append(c.userAddedCallbacks, cb)
+}
+
+func (c *UserChangeNotifier) fireUserDeleted(uid uint) error {
+	for _, cb := range c.userDeletedCallbacks {
+		if err := cb(uid); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *UserChangeNotifier) fireUserAdded(uid uint) error {
+	for _, cb := range c.userAddedCallbacks {
+		if err := cb(uid); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // The UserAPI provides handlers for managing users.
 type UserAPI struct {
-	DB               UserDatabase
-	PasswordStrength int
-	NotifyDeleted    func(uint)
+	DB                 UserDatabase
+	PasswordStrength   int
+	UserChangeNotifier *UserChangeNotifier
 }
 
 // GetUsers returns all the users
@@ -125,6 +159,10 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 		internal := a.toInternalUser(&user, []byte{})
 		if a.DB.GetUserByName(internal.Name) == nil {
 			a.DB.CreateUser(internal)
+			if err := a.UserChangeNotifier.fireUserAdded(internal.ID); err != nil {
+				ctx.AbortWithError(500, err)
+				return
+			}
 			ctx.JSON(200, toExternalUser(internal))
 		} else {
 			ctx.AbortWithError(400, errors.New("username already exists"))
@@ -214,7 +252,10 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if user := a.DB.GetUserByID(id); user != nil {
-			a.NotifyDeleted(id)
+			if err := a.UserChangeNotifier.fireUserDeleted(id); err != nil {
+				ctx.AbortWithError(500, err)
+				return
+			}
 			a.DB.DeleteUserByID(id)
 		} else {
 			ctx.AbortWithError(404, errors.New("user does not exist"))

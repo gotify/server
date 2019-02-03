@@ -37,7 +37,7 @@ func New(pingPeriod, pongTimeout time.Duration, allowedWebSocketOrigins []string
 }
 
 // NotifyDeletedUser closes existing connections for the given user.
-func (a *API) NotifyDeletedUser(userID uint) {
+func (a *API) NotifyDeletedUser(userID uint) error {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	if clients, ok := a.clients[userID]; ok {
@@ -46,6 +46,7 @@ func (a *API) NotifyDeletedUser(userID uint) {
 		}
 		delete(a.clients, userID)
 	}
+	return nil
 }
 
 // NotifyDeletedClient closes existing connections with the given token.

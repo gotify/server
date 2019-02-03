@@ -12,6 +12,7 @@ import (
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/test"
+	"github.com/gotify/server/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -22,7 +23,7 @@ func TestMessageSuite(t *testing.T) {
 
 type MessageSuite struct {
 	suite.Suite
-	db              *test.Database
+	db              *testdb.Database
 	a               *MessageAPI
 	ctx             *gin.Context
 	recorder        *httptest.ResponseRecorder
@@ -34,7 +35,7 @@ func (s *MessageSuite) BeforeTest(suiteName, testName string) {
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	s.ctx.Request = httptest.NewRequest("GET", "/irrelevant", nil)
-	s.db = test.NewDB(s.T())
+	s.db = testdb.NewDB(s.T())
 	s.notifiedMessage = nil
 	s.a = &MessageAPI{DB: s.db, Notifier: s}
 }

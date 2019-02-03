@@ -1,4 +1,4 @@
-package test
+package testdb
 
 import (
 	"fmt"
@@ -64,31 +64,76 @@ func (d *Database) NewUserWithName(id uint, name string) *model.User {
 
 // App creates an application and returns a message builder.
 func (ab *AppClientBuilder) App(id uint) *MessageBuilder {
-	return ab.AppWithToken(id, "app"+fmt.Sprint(id))
+	return ab.app(id, false)
+}
+
+// InternalApp creates an internal application and returns a message builder.
+func (ab *AppClientBuilder) InternalApp(id uint) *MessageBuilder {
+	return ab.app(id, true)
+}
+
+func (ab *AppClientBuilder) app(id uint, internal bool) *MessageBuilder {
+	return ab.appWithToken(id, "app"+fmt.Sprint(id), internal)
 }
 
 // AppWithToken creates an application with a token and returns a message builder.
 func (ab *AppClientBuilder) AppWithToken(id uint, token string) *MessageBuilder {
-	ab.NewAppWithToken(id, token)
+	return ab.appWithToken(id, token, false)
+}
+
+// InternalAppWithToken creates an internal application with a token and returns a message builder.
+func (ab *AppClientBuilder) InternalAppWithToken(id uint, token string) *MessageBuilder {
+	return ab.appWithToken(id, token, true)
+}
+
+func (ab *AppClientBuilder) appWithToken(id uint, token string, internal bool) *MessageBuilder {
+	ab.newAppWithToken(id, token, internal)
 	return &MessageBuilder{db: ab.db, appID: id}
 }
 
 // NewAppWithToken creates an application with a token and returns the app.
 func (ab *AppClientBuilder) NewAppWithToken(id uint, token string) *model.Application {
-	application := &model.Application{ID: id, UserID: ab.userID, Token: token}
+	return ab.newAppWithToken(id, token, false)
+}
+
+// NewInternalAppWithToken creates an internal application with a token and returns the app.
+func (ab *AppClientBuilder) NewInternalAppWithToken(id uint, token string) *model.Application {
+	return ab.newAppWithToken(id, token, true)
+}
+
+func (ab *AppClientBuilder) newAppWithToken(id uint, token string, internal bool) *model.Application {
+	application := &model.Application{ID: id, UserID: ab.userID, Token: token, Internal: internal}
 	ab.db.CreateApplication(application)
 	return application
 }
 
 // AppWithTokenAndName creates an application with a token and name and returns a message builder.
 func (ab *AppClientBuilder) AppWithTokenAndName(id uint, token, name string) *MessageBuilder {
-	ab.NewAppWithTokenAndName(id, token, name)
+	return ab.appWithTokenAndName(id, token, name, false)
+}
+
+// InternalAppWithTokenAndName creates an internal application with a token and name and returns a message builder.
+func (ab *AppClientBuilder) InternalAppWithTokenAndName(id uint, token, name string) *MessageBuilder {
+	return ab.appWithTokenAndName(id, token, name, true)
+}
+
+func (ab *AppClientBuilder) appWithTokenAndName(id uint, token, name string, internal bool) *MessageBuilder {
+	ab.newAppWithTokenAndName(id, token, name, internal)
 	return &MessageBuilder{db: ab.db, appID: id}
 }
 
 // NewAppWithTokenAndName creates an application with a token and name and returns the app.
 func (ab *AppClientBuilder) NewAppWithTokenAndName(id uint, token, name string) *model.Application {
-	application := &model.Application{ID: id, UserID: ab.userID, Token: token, Name: name}
+	return ab.newAppWithTokenAndName(id, token, name, false)
+}
+
+// NewInternalAppWithTokenAndName creates an internal application with a token and name and returns the app.
+func (ab *AppClientBuilder) NewInternalAppWithTokenAndName(id uint, token, name string) *model.Application {
+	return ab.newAppWithTokenAndName(id, token, name, true)
+}
+
+func (ab *AppClientBuilder) newAppWithTokenAndName(id uint, token, name string, internal bool) *model.Application {
+	application := &model.Application{ID: id, UserID: ab.userID, Token: token, Name: name, Internal: internal}
 	ab.db.CreateApplication(application)
 	return application
 }

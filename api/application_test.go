@@ -16,6 +16,7 @@ import (
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/test"
+	"github.com/gotify/server/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -31,7 +32,7 @@ func TestApplicationSuite(t *testing.T) {
 
 type ApplicationSuite struct {
 	suite.Suite
-	db       *test.Database
+	db       *testdb.Database
 	a        *ApplicationAPI
 	ctx      *gin.Context
 	recorder *httptest.ResponseRecorder
@@ -41,7 +42,7 @@ func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
 	rand.Seed(50)
 	s.recorder = httptest.NewRecorder()
-	s.db = test.NewDB(s.T())
+	s.db = testdb.NewDB(s.T())
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	withURL(s.ctx, "http", "example.com")
 	s.a = &ApplicationAPI{DB: s.db}
@@ -76,8 +77,9 @@ func (s *ApplicationSuite) Test_ensureApplicationHasCorrectJsonRepresentation() 
 		Name:        "myapp",
 		Description: "mydesc",
 		Image:       "asd",
+		Internal:    true,
 	}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd"}`)
+	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true}`)
 }
 func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {
 	s.db.User(5)
@@ -181,6 +183,18 @@ func (s *ApplicationSuite) Test_GetApplications_WithImage() {
 	first.Image = "http://example.com/image/abcd.jpg"
 	second.Image = "http://example.com/static/defaultapp.png"
 	test.BodyEquals(s.T(), []*model.Application{first, second}, s.recorder)
+}
+
+func (s *ApplicationSuite) Test_DeleteApplication_internal_expectBadRequest() {
+	s.db.User(5).InternalApp(10)
+
+	test.WithUser(s.ctx, 5)
+	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstApplicationToken, nil)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "10"}}
+
+	s.a.DeleteApplication(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
 func (s *ApplicationSuite) Test_DeleteApplication_expectNotFound() {

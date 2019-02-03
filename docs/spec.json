@@ -990,6 +990,404 @@
         }
       }
     },
+    "/plugin": {
+      "get": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "plugin"
+        ],
+        "summary": "Return all plugins.",
+        "operationId": "getPlugins",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/PluginConf"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/plugin/:id/config": {
+      "get": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/x-yaml"
+        ],
+        "tags": [
+          "plugin"
+        ],
+        "summary": "Get YAML configuration for Configurer plugin.",
+        "operationId": "getPluginConfig",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "the plugin id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "description": "plugin configuration",
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "consumes": [
+          "application/x-yaml"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "plugin"
+        ],
+        "summary": "Update YAML configuration for Configurer plugin.",
+        "operationId": "updatePluginConfig",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "the plugin id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/plugin/:id/disable": {
+      "post": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "plugin"
+        ],
+        "summary": "Disable a plugin.",
+        "operationId": "disablePlugin",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "the plugin id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/plugin/:id/display": {
+      "get": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "plugin"
+        ],
+        "summary": "Get display info for a Displayer plugin.",
+        "operationId": "getPluginDisplay",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "the plugin id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/plugin/:id/enable": {
+      "post": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "plugin"
+        ],
+        "summary": "Enable a plugin.",
+        "operationId": "enablePlugin",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "the plugin id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/stream": {
       "get": {
         "security": [
@@ -1383,6 +1781,7 @@
         "token",
         "name",
         "description",
+        "internal",
         "image"
       ],
       "properties": {
@@ -1406,6 +1805,13 @@
           "x-go-name": "Image",
           "readOnly": true,
           "example": "https://example.com/image.jpeg"
+        },
+        "internal": {
+          "description": "Whether the application is an internal application. Internal applications should not be deleted.",
+          "type": "boolean",
+          "x-go-name": "Internal",
+          "readOnly": true,
+          "example": false
         },
         "name": {
           "description": "The application name. This is how the application should be displayed to the user.",
@@ -1632,6 +2038,90 @@
           "example": 5
         }
       },
+      "x-go-package": "github.com/gotify/server/model"
+    },
+    "PluginConf": {
+      "description": "Holds information about a plugin instance for one user.",
+      "type": "object",
+      "title": "PluginConfExternal Model",
+      "required": [
+        "id",
+        "name",
+        "token",
+        "modulePath",
+        "enabled",
+        "capabilities"
+      ],
+      "properties": {
+        "author": {
+          "description": "The author of the plugin.",
+          "type": "string",
+          "x-go-name": "Author",
+          "readOnly": true,
+          "example": "jmattheis"
+        },
+        "capabilities": {
+          "description": "Capabilities the plugin provides",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Capabilities",
+          "example": [
+            "webhook",
+            "display"
+          ]
+        },
+        "enabled": {
+          "description": "Whether the plugin instance is enabled.",
+          "type": "boolean",
+          "x-go-name": "Enabled",
+          "example": true
+        },
+        "id": {
+          "description": "The plugin id.",
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "ID",
+          "readOnly": true,
+          "example": 25
+        },
+        "license": {
+          "description": "The license of the plugin.",
+          "type": "string",
+          "x-go-name": "License",
+          "readOnly": true,
+          "example": "MIT"
+        },
+        "modulePath": {
+          "description": "The module path of the plugin.",
+          "type": "string",
+          "x-go-name": "ModulePath",
+          "readOnly": true,
+          "example": "github.com/gotify/server/plugin/example/echo"
+        },
+        "name": {
+          "description": "The plugin name.",
+          "type": "string",
+          "x-go-name": "Name",
+          "readOnly": true,
+          "example": "RSS poller"
+        },
+        "token": {
+          "description": "The user name. For login.",
+          "type": "string",
+          "x-go-name": "Token",
+          "example": "P1234"
+        },
+        "website": {
+          "description": "The website of the plugin.",
+          "type": "string",
+          "x-go-name": "Website",
+          "readOnly": true,
+          "example": "gotify.net"
+        }
+      },
+      "x-go-name": "PluginConfExternal",
       "x-go-package": "github.com/gotify/server/model"
     },
     "User": {

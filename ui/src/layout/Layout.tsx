@@ -12,6 +12,8 @@ import SnackBarHandler from '../snack/SnackBarHandler';
 import * as config from '../config';
 import Applications from '../application/Applications';
 import Clients from '../client/Clients';
+import Plugins from '../plugin/Plugins';
+import PluginDetailView from '../plugin/PluginDetailView';
 import Login from '../user/Login';
 import Messages from '../message/Messages';
 import Users from '../user/Users';
@@ -101,6 +103,8 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
                                 <Route exact path="/applications" component={Applications} />
                                 <Route exact path="/clients" component={Clients} />
                                 <Route exact path="/users" component={Users} />
+                                <Route exact path="/plugins" component={Plugins} />
+                                <Route exact path="/plugins/:id" component={PluginDetailView} />
                             </Switch>
                         </main>
                         {showSettings && (
