@@ -205,7 +205,7 @@ class ConfigurerPanel extends Component<IConfigurerPanelProps, {unsavedChanges: 
                     onClick={() => {
                         const newConfig = this.state.unsavedChanges;
                         this.props.save(newConfig!).then(() => {
-                            this.setState({unsavedChanges: ''});
+                            this.setState({unsavedChanges: null});
                         });
                     }}>
                     <Typography variant="button">Save</Typography>
