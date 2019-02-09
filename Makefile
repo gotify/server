@@ -35,11 +35,11 @@ check-js:
 	(cd ui && npm run testformat)
 
 download-tools:
-	go get -u golang.org/x/lint/golint
-	go get -u github.com/fzipp/gocyclo
-	go get -u github.com/gobuffalo/packr/...
-	go get -u github.com/go-swagger/go-swagger/cmd/swagger
-	go get -u golang.org/x/tools/cmd/goimports
+	GO111MODULE=off go get -u golang.org/x/lint/golint
+	GO111MODULE=off go get -u github.com/fzipp/gocyclo
+	GO111MODULE=off go get -u github.com/gobuffalo/packr/...
+	GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger
+	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
 
 update-swagger:
 	go mod vendor
