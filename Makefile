@@ -70,9 +70,6 @@ build-docker: require-version
 	cp ${BUILD_DIR}gotify-linux-amd64 ./docker/gotify-app
 	(cd ${DOCKER_DIR} && docker build -t gotify/server:latest -t gotify/server:${VERSION} .)
 	rm ${DOCKER_DIR}gotify-app
-	cp ${BUILD_DIR}gotify-linux-arm-7 ./docker/gotify-app
-	(cd ${DOCKER_DIR} && docker build -f Dockerfile.arm7 -t gotify/server-arm7:latest -t gotify/server-arm7:${VERSION} .)
-	rm ${DOCKER_DIR}gotify-app
 
 build-js:
 	(cd ui && npm run build)
