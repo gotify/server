@@ -1051,7 +1051,7 @@
         }
       }
     },
-    "/plugin/:id/config": {
+    "/plugin/{id}/config": {
       "get": {
         "security": [
           {
@@ -1193,7 +1193,7 @@
         }
       }
     },
-    "/plugin/:id/disable": {
+    "/plugin/{id}/disable": {
       "post": {
         "security": [
           {
@@ -1257,7 +1257,7 @@
         }
       }
     },
-    "/plugin/:id/display": {
+    "/plugin/{id}/display": {
       "get": {
         "security": [
           {
@@ -1324,7 +1324,7 @@
         }
       }
     },
-    "/plugin/:id/enable": {
+    "/plugin/{id}/enable": {
       "post": {
         "security": [
           {

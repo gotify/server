@@ -85,7 +85,7 @@ func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 }
 
 // EnablePlugin enables a plugin.
-// swagger:operation POST /plugin/:id/enable plugin enablePlugin
+// swagger:operation POST /plugin/{id}/enable plugin enablePlugin
 //
 // Enable a plugin.
 //
@@ -139,7 +139,7 @@ func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 }
 
 // DisablePlugin disables a plugin.
-// swagger:operation POST /plugin/:id/disable plugin disablePlugin
+// swagger:operation POST /plugin/{id}/disable plugin disablePlugin
 //
 // Disable a plugin.
 //
@@ -193,7 +193,7 @@ func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 }
 
 // GetDisplay get display info for Displayer plugin.
-// swagger:operation GET /plugin/:id/display plugin getPluginDisplay
+// swagger:operation GET /plugin/{id}/display plugin getPluginDisplay
 //
 // Get display info for a Displayer plugin.
 //
@@ -245,7 +245,7 @@ func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 }
 
 // GetConfig returns Configurer plugin configuration in YAML format.
-// swagger:operation GET /plugin/:id/config plugin getPluginConfig
+// swagger:operation GET /plugin/{id}/config plugin getPluginConfig
 //
 // Get YAML configuration for Configurer plugin.
 //
@@ -309,7 +309,7 @@ func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 }
 
 // UpdateConfig updates Configurer plugin configuration in YAML format.
-// swagger:operation POST /plugin/:id/config plugin updatePluginConfig
+// swagger:operation POST /plugin/{id}/config plugin updatePluginConfig
 //
 // Update YAML configuration for Configurer plugin.
 //
