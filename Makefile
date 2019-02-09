@@ -77,4 +77,18 @@ build-docker: require-version
 build-js:
 	(cd ui && npm run build)
 
-.PHONY: test-race test-coverage test check-go check-js verify-swagger check download-tools update-swagger package-zip build-docker build-js
+build-linux-amd64:
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:v1-linux-amd64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-amd64 /proj
+
+build-linux-arm-7:
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:v1-linux-arm-7 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm-7 /proj
+
+build-linux-arm64:
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:v1-linux-arm64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm64 /proj
+
+build-windows-amd64:
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:v1-windows-amd64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-windows-amd64.exe /proj
+
+build: build-linux-arm-7 build-linux-amd64 build-linux-arm64 build-windows-amd64
+
+.PHONY: test-race test-coverage test check-go check-js verify-swagger check download-tools update-swagger package-zip build-docker build-js build
