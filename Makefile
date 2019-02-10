@@ -2,6 +2,7 @@ LICENSE_DIR=./licenses/
 BUILD_DIR=./build/
 DOCKER_DIR=./docker/
 SHELL := /bin/bash
+GO_VERSION=`cat GO_VERSION`
 
 test: test-coverage test-race test-js
 check: check-go check-swagger check-js
@@ -75,16 +76,16 @@ build-js:
 	(cd ui && npm run build)
 
 build-linux-amd64:
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:v1-linux-amd64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-amd64 /proj
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-amd64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-amd64 /proj
 
 build-linux-arm-7:
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:v1-linux-arm-7 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm-7 /proj
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-arm-7 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm-7 /proj
 
 build-linux-arm64:
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:v1-linux-arm64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm64 /proj
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-arm64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm64 /proj
 
 build-windows-amd64:
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:v1-windows-amd64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-windows-amd64.exe /proj
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-windows-amd64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-windows-amd64.exe /proj
 
 build: build-linux-arm-7 build-linux-amd64 build-linux-arm64 build-windows-amd64
 
