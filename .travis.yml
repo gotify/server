@@ -1,6 +1,4 @@
 language: go
-go:
-  - "1.11.5"
 
 notifications:
   email: false
@@ -12,6 +10,7 @@ env:
   - GO111MODULE=on
 
 before_install:
+  - eval "$(gimme $(< GO_VERSION))";
   - make download-tools
 
 install:
