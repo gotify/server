@@ -1804,7 +1804,7 @@
           "type": "string",
           "x-go-name": "Image",
           "readOnly": true,
-          "example": "https://example.com/image.jpeg"
+          "example": "image/image.jpeg"
         },
         "internal": {
           "description": "Whether the application is an internal application. Internal applications should not be deleted.",

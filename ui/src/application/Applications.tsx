@@ -18,6 +18,7 @@ import AddApplicationDialog from './AddApplicationDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
+import * as config from '../config';
 import UpdateDialog from './UpdateApplicationDialog';
 
 @observer
@@ -152,7 +153,7 @@ const Row: SFC<IRowProps> = observer(
         <TableRow>
             <TableCell padding="checkbox">
                 <div style={{display: 'flex'}}>
-                    <Avatar src={image} />
+                    <Avatar src={config.get('url') + image} />
                     <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
                     </IconButton>

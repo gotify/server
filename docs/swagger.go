@@ -10,11 +10,14 @@ import (
 
 // Serve serves the documentation.
 func Serve(ctx *gin.Context) {
-	url := location.Get(ctx)
-	ctx.Writer.WriteString(get(url.Host))
+	base := location.Get(ctx).Host
+	if bQ := ctx.Query("base"); bQ != "" {
+		base = bQ
+	}
+	ctx.Writer.WriteString(get(base))
 }
 
-func get(host string) string {
+func get(base string) string {
 	box := packr.NewBox("./")
-	return strings.Replace(box.String("spec.json"), "localhost", host, 1)
+	return strings.Replace(box.String("spec.json"), "localhost", base, 1)
 }

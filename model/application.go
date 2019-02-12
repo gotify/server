@@ -39,7 +39,7 @@ type Application struct {
 	//
 	// read only: true
 	// required: true
-	// example: https://example.com/image.jpeg
+	// example: image/image.jpeg
 	Image    string            `json:"image"`
 	Messages []MessageExternal `json:"-"`
 }

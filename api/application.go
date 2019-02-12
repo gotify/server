@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/location"
 	"github.com/gotify/server/auth"
 	"github.com/gotify/server/model"
 	"github.com/h2non/filetype"
@@ -70,7 +69,7 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 		app.UserID = auth.GetUserID(ctx)
 		app.Internal = false
 		a.DB.CreateApplication(&app)
-		ctx.JSON(200, withAbsoluteURL(ctx, &app))
+		ctx.JSON(200, withResolvedImage(&app))
 	}
 }
 
@@ -102,7 +101,7 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	apps := a.DB.GetApplicationsByUser(userID)
 	for _, app := range apps {
-		withAbsoluteURL(ctx, app)
+		app = withResolvedImage(app)
 	}
 	ctx.JSON(200, apps)
 }
@@ -210,7 +209,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 
 				a.DB.UpdateApplication(app)
 
-				ctx.JSON(200, withAbsoluteURL(ctx, app))
+				ctx.JSON(200, withResolvedImage(app))
 			}
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
@@ -302,11 +301,20 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 
 			app.Image = name + ext
 			a.DB.UpdateApplication(app)
-			ctx.JSON(200, withAbsoluteURL(ctx, app))
+			ctx.JSON(200, withResolvedImage(app))
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
 		}
 	})
+}
+
+func withResolvedImage(app *model.Application) *model.Application {
+	if app.Image == "" {
+		app.Image = "static/defaultapp.png"
+	} else {
+		app.Image = "image/" + app.Image
+	}
+	return app
 }
 
 func (a *ApplicationAPI) applicationExists(token string) bool {
@@ -318,16 +326,4 @@ func exist(path string) bool {
 		return false
 	}
 	return true
-}
-
-func withAbsoluteURL(ctx *gin.Context, app *model.Application) *model.Application {
-	url := location.Get(ctx)
-
-	if app.Image == "" {
-		url.Path = "static/defaultapp.png"
-	} else {
-		url.Path = "image/" + app.Image
-	}
-	app.Image = url.String()
-	return app
 }
