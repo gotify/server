@@ -21,17 +21,6 @@ import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
 
-const lightTheme = createMuiTheme({
-    palette: {
-        type: 'light',
-    },
-});
-const darkTheme = createMuiTheme({
-    palette: {
-        type: 'dark',
-    },
-});
-
 const styles = (theme: Theme) => ({
     content: {
         margin: '0 auto',
@@ -41,12 +30,31 @@ const styles = (theme: Theme) => ({
     },
 });
 
+const localStorageThemeKey = 'gotify-theme';
+type ThemeKey = 'dark' | 'light';
+const themeMap: Record<ThemeKey, Theme> = {
+    light: createMuiTheme({
+        palette: {
+            type: 'light',
+        },
+    }),
+    dark: createMuiTheme({
+        palette: {
+            type: 'dark',
+        },
+    }),
+};
+
+const isThemeKey = (value: string | null): value is ThemeKey => {
+    return value === 'light' || value === 'dark';
+};
+
 @observer
 class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser'>> {
     private static defaultVersion = '0.0.0';
 
     @observable
-    private darkThemeVisible = true;
+    private currentTheme: ThemeKey = 'dark';
     @observable
     private showSettings = false;
     @observable
@@ -58,10 +66,17 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
                 this.version = resp.data.version;
             });
         }
+
+        const localStorageTheme = window.localStorage.getItem(localStorageThemeKey);
+        if (isThemeKey(localStorageTheme)) {
+            this.currentTheme = localStorageTheme;
+        } else {
+            window.localStorage.setItem(localStorageThemeKey, this.currentTheme);
+        }
     }
 
     public render() {
-        const {version, showSettings, darkThemeVisible} = this;
+        const {version, showSettings, currentTheme} = this;
         const {
             classes,
             currentUser: {
@@ -71,7 +86,7 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
                 logout,
             },
         } = this.props;
-        const theme = darkThemeVisible ? darkTheme : lightTheme;
+        const theme = themeMap[currentTheme];
         const loginRoute = () => (loggedIn ? <Redirect to="/" /> : <Login />);
         return (
             <MuiThemeProvider theme={theme}>
@@ -83,7 +98,7 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
                             name={name}
                             version={version}
                             loggedIn={loggedIn}
-                            toggleTheme={() => (this.darkThemeVisible = !this.darkThemeVisible)}
+                            toggleTheme={this.toggleTheme.bind(this)}
                             showSettings={() => (this.showSettings = true)}
                             logout={logout}
                         />
@@ -116,6 +131,11 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
                 </HashRouter>
             </MuiThemeProvider>
         );
+    }
+
+    private toggleTheme() {
+        this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem(localStorageThemeKey, this.currentTheme);
     }
 }
 
