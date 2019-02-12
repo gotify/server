@@ -11,8 +11,8 @@ import (
 // Serve serves the documentation.
 func Serve(ctx *gin.Context) {
 	base := location.Get(ctx).Host
-	if bQ := ctx.Query("base"); bQ != "" {
-		base = bQ
+	if basePathFromQuery := ctx.Query("base"); basePathFromQuery != "" {
+		base = basePathFromQuery
 	}
 	ctx.Writer.WriteString(get(base))
 }

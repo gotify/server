@@ -101,7 +101,7 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	apps := a.DB.GetApplicationsByUser(userID)
 	for _, app := range apps {
-		app = withResolvedImage(app)
+		withResolvedImage(app)
 	}
 	ctx.JSON(200, apps)
 }
