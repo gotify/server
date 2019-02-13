@@ -16,12 +16,13 @@ func TestServe(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(recorder)
 	withURL(ctx, "http", "example.com")
 
-	ctx.Request = httptest.NewRequest("GET", "/swagger", nil)
+	ctx.Request = httptest.NewRequest("GET", "/swagger?base="+url.QueryEscape("127.0.0.1/proxy/"), nil)
 
 	Serve(ctx)
 
 	content := recorder.Body.String()
 	assert.NotEmpty(t, content)
+	assert.Contains(t, content, "127.0.0.1/proxy/")
 }
 
 func withURL(ctx *gin.Context, scheme, host string) {

@@ -21,9 +21,10 @@ const defaultDevConfig = {
     url: 'http://localhost:80/',
 };
 
-const {port, hostname, protocol} = window.location;
+const {port, hostname, protocol, pathname} = window.location;
 const slashes = protocol.concat('//');
-const url = slashes.concat(port ? hostname.concat(':', port) : hostname);
+const path = pathname.endsWith('/') ? pathname : pathname.substring(0, pathname.lastIndexOf('/'));
+const url = slashes.concat(port ? hostname.concat(':', port) : hostname) + path;
 const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
 
 const defaultProdConfig = {

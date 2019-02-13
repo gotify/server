@@ -130,7 +130,7 @@ func (s *ApplicationSuite) Test_CreateApplication_returnsApplicationWithID() {
 		ID:     1,
 		Token:  firstApplicationToken,
 		Name:   "custom_name",
-		Image:  "http://example.com/static/defaultapp.png",
+		Image:  "static/defaultapp.png",
 		UserID: 5,
 	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -162,8 +162,8 @@ func (s *ApplicationSuite) Test_GetApplications() {
 	s.a.GetApplications(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	first.Image = "http://example.com/static/defaultapp.png"
-	second.Image = "http://example.com/static/defaultapp.png"
+	first.Image = "static/defaultapp.png"
+	second.Image = "static/defaultapp.png"
 	test.BodyEquals(s.T(), []*model.Application{first, second}, s.recorder)
 }
 
@@ -180,8 +180,8 @@ func (s *ApplicationSuite) Test_GetApplications_WithImage() {
 	s.a.GetApplications(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	first.Image = "http://example.com/image/abcd.jpg"
-	second.Image = "http://example.com/static/defaultapp.png"
+	first.Image = "image/abcd.jpg"
+	second.Image = "static/defaultapp.png"
 	test.BodyEquals(s.T(), []*model.Application{first, second}, s.recorder)
 }
 

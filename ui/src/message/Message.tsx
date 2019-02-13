@@ -5,6 +5,7 @@ import Delete from '@material-ui/icons/Delete';
 import React from 'react';
 import TimeAgo from 'react-timeago';
 import Container from '../common/Container';
+import * as config from '../config';
 import {StyleRulesCallback} from '@material-ui/core/styles/withStyles';
 
 const styles: StyleRulesCallback = () => ({
@@ -57,7 +58,7 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                 <Container style={{display: 'flex'}}>
                     <div className={classes.imageWrapper}>
                         <img
-                            src={image}
+                            src={config.get('url') + image}
                             alt="app logo"
                             width="70"
                             height="70"

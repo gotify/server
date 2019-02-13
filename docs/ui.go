@@ -39,10 +39,15 @@ var ui = `
     <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.20.5/swagger-ui-bundle.js"> </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.20.5/swagger-ui-standalone-preset.js"> </script>
     <script>
+    function getBaseURL() {
+      var path = window.location.pathname
+      path = path.substr(0, path.lastIndexOf('/')+1)
+      return window.location.host + path;
+    }
     window.onload = function() {
       // Begin Swagger UI call region
       const ui = SwaggerUIBundle({
-        url: "../swagger",
+        url: "swagger?base="+encodeURIComponent(getBaseURL()),
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [
