@@ -17,6 +17,7 @@ type UserDatabase interface {
 	DeleteUserByID(id uint) error
 	UpdateUser(user *model.User)
 	CreateUser(user *model.User) error
+	CountUser(condition ...interface{}) int
 }
 
 // UserChangeNotifier notifies listeners for user changes.
@@ -252,6 +253,10 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if user := a.DB.GetUserByID(id); user != nil {
+			if user.Admin && a.DB.CountUser(&model.User{Admin: true}) == 1 {
+				ctx.AbortWithError(400, errors.New("cannot delete last admin"))
+				return
+			}
 			if err := a.UserChangeNotifier.fireUserDeleted(id); err != nil {
 				ctx.AbortWithError(500, err)
 				return

@@ -101,6 +101,19 @@ func (s *UserSuite) Test_GetUserByID_UnknownUser() {
 	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
+func (s *UserSuite) Test_DeleteUserByID_LastAdmin_Expect400() {
+	s.db.CreateUser(&model.User{
+		ID:    7,
+		Name:  "admin",
+		Admin: true,
+	})
+	s.ctx.Params = gin.Params{{Key: "id", Value: "7"}}
+
+	s.a.DeleteUserByID(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
 func (s *UserSuite) Test_DeleteUserByID_InvalidID() {
 	s.ctx.Params = gin.Params{{Key: "id", Value: "abc"}}
 
