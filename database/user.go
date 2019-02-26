@@ -24,6 +24,19 @@ func (d *GormDatabase) GetUserByID(id uint) *model.User {
 	return nil
 }
 
+// CountUser returns the user count which satisfies the given condition.
+func (d *GormDatabase) CountUser(condition ...interface{}) int {
+	c := -1
+	handle := d.DB.Model(new(model.User))
+	if len(condition) == 1 {
+		handle = handle.Where(condition[0])
+	} else if len(condition) > 1 {
+		handle = handle.Where(condition[0], condition[1:]...)
+	}
+	handle.Count(&c)
+	return c
+}
+
 // GetUsers returns all users.
 func (d *GormDatabase) GetUsers() []*model.User {
 	var users []*model.User

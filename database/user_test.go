@@ -11,6 +11,7 @@ func (s *DatabaseSuite) TestUser() {
 
 	jmattheis := s.db.GetUserByID(1)
 	assert.NotNil(s.T(), jmattheis, "on bootup the first user should be automatically created")
+	assert.Equal(s.T(), 1, s.db.CountUser("admin = ?", true), 1, "there is initially one admin")
 
 	users := s.db.GetUsers()
 	assert.Len(s.T(), users, 1)
@@ -19,6 +20,7 @@ func (s *DatabaseSuite) TestUser() {
 	nicories := &model.User{Name: "nicories", Pass: []byte{1, 2, 3, 4}, Admin: false}
 	s.db.CreateUser(nicories)
 	assert.NotEqual(s.T(), 0, nicories.ID, "on create user a new id should be assigned")
+	assert.Equal(s.T(), 2, s.db.CountUser(), "two users should exist")
 
 	assert.Equal(s.T(), nicories, s.db.GetUserByName("nicories"))
 
@@ -35,6 +37,7 @@ func (s *DatabaseSuite) TestUser() {
 	assert.Equal(s.T(), &model.User{ID: nicories.ID, Name: "tom", Pass: []byte{12}, Admin: true}, tom)
 	users = s.db.GetUsers()
 	assert.Len(s.T(), users, 2)
+	assert.Equal(s.T(), 2, s.db.CountUser(&model.User{Admin: true}), "two admins exist")
 
 	s.db.DeleteUserByID(tom.ID)
 	users = s.db.GetUsers()
