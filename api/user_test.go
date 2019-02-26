@@ -234,6 +234,22 @@ func (s *UserSuite) Test_UpdateUserByID_InvalidID() {
 	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
+func (s *UserSuite) Test_UpdateUserByID_LastAdmin_Expect400() {
+	s.db.CreateUser(&model.User{
+		ID:    7,
+		Name:  "admin",
+		Admin: true,
+	})
+
+	s.ctx.Params = gin.Params{{Key: "id", Value: "7"}}
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user/7", strings.NewReader(`{"name": "admin", "pass": "", "admin": false}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+	s.a.UpdateUserByID(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
 func (s *UserSuite) Test_UpdateUserByID_UnknownUser() {
 	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 

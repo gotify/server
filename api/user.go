@@ -355,6 +355,10 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 		var user *model.UserExternalWithPass
 		if err := ctx.Bind(&user); err == nil {
 			if oldUser := a.DB.GetUserByID(id); oldUser != nil {
+				if !user.Admin && oldUser.Admin && a.DB.CountUser(&model.User{Admin: true}) == 1 {
+					ctx.AbortWithError(400, errors.New("cannot delete last admin"))
+					return
+				}
 				internal := a.toInternalUser(user, oldUser.Pass)
 				internal.ID = id
 				a.DB.UpdateUser(internal)
