@@ -10,7 +10,8 @@ env:
   - GO111MODULE=on
 
 before_install:
-  - eval "$(gimme $(< GO_VERSION))";
+  - export GIMME_GO=$(< GO_VERSION)
+  - eval "$(gimme ${GIMME_GO%.0})";
   - make download-tools
 
 install:
