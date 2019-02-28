@@ -9,6 +9,10 @@ services:
 env:
   - GO111MODULE=on
 
+cache:
+  directories:
+    - $HOME/gopath/pkg/mod
+
 before_install:
   - export GIMME_GO=$(< GO_VERSION)
   - eval "$(gimme ${GIMME_GO%.0})";
