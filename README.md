@@ -11,11 +11,11 @@
     <a href="https://codecov.io/gh/gotify/server">
         <img alt="codecov" src="https://codecov.io/gh/gotify/server/branch/master/graph/badge.svg">
     </a>
-     <a href="https://goreportcard.com/report/github.com/gotify/server">
+    <a href="https://goreportcard.com/report/github.com/gotify/server">
         <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/gotify/server">
     </a>
-    <a href="https://github.com/gotify/server/blob/master/docs/spec.json">
-        <img alt="Swagger Valid" src="https://img.shields.io/swagger/valid/2.0/https/raw.githubusercontent.com/gotify/server/master/docs/spec.json.svg">
+    <a href="https://hub.docker.com/r/gotify/server">
+        <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/gotify/server.svg">
     </a>
     <a href="https://app.fossa.io/projects/git%2Bgithub.com%2Fgotify%2Fserver">
         <img alt="FOSSA Status" src="https://app.fossa.io/api/projects/git%2Bgithub.com%2Fgotify%2Fserver.svg?type=shield">
@@ -35,7 +35,7 @@ We wanted a simple server for sending and receiving messages (in real time per w
 * send messages via REST-API
 * receive messages via web socket
 * manage users, clients and applications
-* [API Docs](https://gotify.net/api-docs) (also available at `/docs`)
+* [Plugins](https://gotify.net/docs/plugin)
 * Web-UI -> [./ui](ui)
 * CLI for sending messages -> [gotify/cli](https://github.com/gotify/cli)
 * Android-App -> [gotify/android](https://github.com/gotify/android)
@@ -52,7 +52,7 @@ We wanted a simple server for sending and receiving messages (in real time per w
 [Install](https://gotify.net/docs/install) ᛫
 [Configuration](https://gotify.net/docs/config) ᛫
 [REST-API](https://gotify.net/api-docs) ᛫
-[Setup Dev Environment](https://gotify.net/docs/dev-environment)
+[Setup Dev Environment](https://gotify.net/docs/dev-setup)
 
 ## Versioning
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the
