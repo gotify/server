@@ -41,6 +41,7 @@ before_deploy:
       export VERSION=$(echo $TRAVIS_TAG | cut -c 2-);
       export LD_FLAGS="-w -s -X main.Version=${VERSION} -X main.BuildDate=$(date "+%F-%T") -X main.Commit=$(git rev-parse --verify HEAD) -X main.Mode=prod";
       make build
+      sudo chown -R travis:travis build
       make package-zip;
       ls -lath build;
       make build-docker;
