@@ -75,17 +75,20 @@ build-docker: require-version
 build-js:
 	(cd ui && npm run build)
 
-build-linux-amd64:
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-amd64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-amd64 /proj
+vendor:
+	go mod vendor
 
-build-linux-arm-7:
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-arm-7 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm-7 /proj
+build-linux-amd64: vendor
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-amd64 go build -mod=vendor -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-amd64 /proj
 
-build-linux-arm64:
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-arm64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm64 /proj
+build-linux-arm-7: vendor
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-arm-7 go build -mod=vendor -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm-7 /proj
 
-build-windows-amd64:
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-windows-amd64 go build -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-windows-amd64.exe /proj
+build-linux-arm64: vendor
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-arm64 go build -mod=vendor -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm64 /proj
+
+build-windows-amd64: vendor
+	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-windows-amd64 go build -mod=vendor -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-windows-amd64.exe /proj
 
 build: build-linux-arm-7 build-linux-amd64 build-linux-arm64 build-windows-amd64
 
