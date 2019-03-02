@@ -1,8 +1,12 @@
 LICENSE_DIR=./licenses/
-BUILD_DIR=./build/
+BUILD_DIR=./build
 DOCKER_DIR=./docker/
 SHELL := /bin/bash
 GO_VERSION=`cat GO_VERSION`
+DOCKER_BUILD_IMAGE=gotify/build
+DOCKER_WORKDIR=/proj
+DOCKER_RUN=docker run --rm -v "$$PWD/.:${DOCKER_WORKDIR}" -v "`go env GOPATH`/pkg/mod/.:/go/pkg/mod:ro" -w ${DOCKER_WORKDIR}
+DOCKER_GO_BUILD=go build -mod=readonly -a -installsuffix cgo -ldflags "$$LD_FLAGS"
 
 test: test-coverage test-race test-js
 check: check-go check-swagger check-js
@@ -62,33 +66,30 @@ extract-licenses:
     done
 
 package-zip: extract-licenses
-	for BUILD in $(shell find ${BUILD_DIR}*); do \
+	for BUILD in $(shell find ${BUILD_DIR}/*); do \
        zip -j $$BUILD.zip $$BUILD ./LICENSE; \
        zip -ur $$BUILD.zip ${LICENSE_DIR}; \
     done
 
 build-docker: require-version
-	cp ${BUILD_DIR}gotify-linux-amd64 ./docker/gotify-app
+	cp ${BUILD_DIR}/gotify-linux-amd64 ./docker/gotify-app
 	(cd ${DOCKER_DIR} && docker build -t gotify/server:latest -t gotify/server:${VERSION} .)
 	rm ${DOCKER_DIR}gotify-app
 
 build-js:
 	(cd ui && npm run build)
 
-vendor:
-	go mod vendor
+build-linux-amd64:
+	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-amd64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-amd64 ${DOCKER_WORKDIR}
 
-build-linux-amd64: vendor
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-amd64 go build -mod=vendor -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-amd64 /proj
+build-linux-arm-7:
+	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-arm-7 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-arm-7 ${DOCKER_WORKDIR}
 
-build-linux-arm-7: vendor
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-arm-7 go build -mod=vendor -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm-7 /proj
+build-linux-arm64:
+	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-arm64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-arm64 ${DOCKER_WORKDIR}
 
-build-linux-arm64: vendor
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-linux-arm64 go build -mod=vendor -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-linux-arm64 /proj
-
-build-windows-amd64: vendor
-	docker run --rm -v "$$PWD/.:/proj" -w /proj gotify/build:$(GO_VERSION)-windows-amd64 go build -mod=vendor -a -installsuffix cgo -ldflags "$$LD_FLAGS" -o build/gotify-windows-amd64.exe /proj
+build-windows-amd64:
+	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-windows-amd64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-windows-amd64.exe ${DOCKER_WORKDIR}
 
 build: build-linux-arm-7 build-linux-amd64 build-linux-arm64 build-windows-amd64
 
