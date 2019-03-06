@@ -129,6 +129,7 @@ func (a *API) register(client *client) {
 func (a *API) Handle(ctx *gin.Context) {
 	conn, err := a.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
+		ctx.Error(err)
 		return
 	}
 
