@@ -21,7 +21,7 @@ func Run(engine *gin.Engine, conf *config.Configuration) {
 			httpHandler = redirectToHTTPS(string(conf.Server.SSL.Port))
 		}
 
-		addr := fmt.Sprintf("%s:%d", conf.Server.ListenAddr, conf.Server.SSL.Port)
+		addr := fmt.Sprintf("%s:%d", conf.Server.SSL.ListenAddr, conf.Server.SSL.Port)
 		s := &http.Server{
 			Addr:    addr,
 			Handler: engine,
