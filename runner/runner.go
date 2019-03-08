@@ -21,8 +21,9 @@ func Run(engine *gin.Engine, conf *config.Configuration) {
 			httpHandler = redirectToHTTPS(string(conf.Server.SSL.Port))
 		}
 
+		addr := fmt.Sprintf("%s:%d", conf.Server.SSL.ListenAddr, conf.Server.SSL.Port)
 		s := &http.Server{
-			Addr:    fmt.Sprintf(":%d", conf.Server.SSL.Port),
+			Addr:    addr,
 			Handler: engine,
 		}
 
@@ -35,13 +36,14 @@ func Run(engine *gin.Engine, conf *config.Configuration) {
 			httpHandler = certManager.HTTPHandler(httpHandler)
 			s.TLSConfig = &tls.Config{GetCertificate: certManager.GetCertificate}
 		}
-		fmt.Println("Started Listening on port", conf.Server.SSL.Port)
+		fmt.Println("Started Listening for TLS connection on " + addr)
 		go func() {
 			log.Fatal(s.ListenAndServeTLS(conf.Server.SSL.CertFile, conf.Server.SSL.CertKey))
 		}()
 	}
-	fmt.Println("Started Listening on port", conf.Server.Port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", conf.Server.Port), httpHandler))
+	addr := fmt.Sprintf("%s:%d", conf.Server.ListenAddr, conf.Server.Port)
+	fmt.Println("Started Listening for plain HTTP connection on " + addr)
+	log.Fatal(http.ListenAndServe(addr, httpHandler))
 }
 
 func redirectToHTTPS(port string) http.HandlerFunc {
