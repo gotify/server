@@ -17,9 +17,6 @@
     <a href="https://hub.docker.com/r/gotify/server">
         <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/gotify/server.svg">
     </a>
-    <a href="https://app.fossa.io/projects/git%2Bgithub.com%2Fgotify%2Fserver">
-        <img alt="FOSSA Status" src="https://app.fossa.io/api/projects/git%2Bgithub.com%2Fgotify%2Fserver.svg?type=shield">
-    </a>
     <a href="https://github.com/gotify/server/releases/latest">
         <img alt="latest release" src="https://img.shields.io/github/release/gotify/server.svg">
     </a>
