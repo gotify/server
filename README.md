@@ -1,5 +1,7 @@
 <p align="center">
-    <img src="logo.png" />
+    <a href="https://github.com/gotify/logo">
+        <img height="370px" src="https://raw.githubusercontent.com/gotify/logo/master/gotify-logo.png" />
+    </a>
 </p>
 
 <h1 align="center">gotify/server</h1>
