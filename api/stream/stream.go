@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -165,12 +166,12 @@ func isAllowedOrigin(r *http.Request, allowedOrigins []*regexp.Regexp) bool {
 		return false
 	}
 
-	if u.Hostname() == r.Host {
+	if strings.ToLower(u.Host) == strings.ToLower(r.Host) {
 		return true
 	}
 
 	for _, allowedOrigin := range allowedOrigins {
-		if allowedOrigin.Match([]byte(u.Hostname())) {
+		if allowedOrigin.Match([]byte(strings.ToLower(u.Hostname()))) {
 			return true
 		}
 	}
