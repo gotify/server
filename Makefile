@@ -82,6 +82,9 @@ build-js:
 build-linux-amd64:
 	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-amd64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-amd64 ${DOCKER_WORKDIR}
 
+build-linux-386:
+	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-386 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-386 ${DOCKER_WORKDIR}
+
 build-linux-arm-7:
 	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-arm-7 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-arm-7 ${DOCKER_WORKDIR}
 
@@ -91,6 +94,9 @@ build-linux-arm64:
 build-windows-amd64:
 	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-windows-amd64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-windows-amd64.exe ${DOCKER_WORKDIR}
 
-build: build-linux-arm-7 build-linux-amd64 build-linux-arm64 build-windows-amd64
+build-windows-386:
+	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-windows-386 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-windows-386.exe ${DOCKER_WORKDIR}
+
+build: build-linux-arm-7 build-linux-amd64 build-linux-386 build-linux-arm64 build-windows-amd64 build-windows-386
 
 .PHONY: test-race test-coverage test check-go check-js verify-swagger check download-tools update-swagger package-zip build-docker build-js build
