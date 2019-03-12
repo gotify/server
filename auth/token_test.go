@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gotify/server/test"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,4 +31,13 @@ func TestGenerateNotExistingToken(t *testing.T) {
 		return true
 	})
 	assert.Equal(t, "0", token)
+}
+
+func TestBadCryptoReaderPanics(t *testing.T) {
+	assert.Panics(t, func() {
+		randReader = test.UnreadableReader()
+		defer UseMathRand()
+
+		randIntn(1)
+	})
 }

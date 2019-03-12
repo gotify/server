@@ -1,13 +1,13 @@
 package api
 
 import (
-	"math/rand"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/auth"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/test"
@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	firstClientToken  = "CPorrUa5b1IIK3y"
-	secondClientToken = "CKo_Pp6ww_9vZal"
+	firstClientToken  = "ChHw-pDqdehDnEa"
+	secondClientToken = "Cw5IihP5yeNL2lH"
 )
 
 func TestClientSuite(t *testing.T) {
@@ -35,8 +35,8 @@ type ClientSuite struct {
 }
 
 func (s *ClientSuite) BeforeTest(suiteName, testName string) {
+	auth.UseMathRand()
 	mode.Set(mode.TestDev)
-	rand.Seed(50)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())
 	s.ctx, _ = gin.CreateTestContext(s.recorder)

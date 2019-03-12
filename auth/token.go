@@ -1,7 +1,8 @@
 package auth
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math"
 )
 
 var (
@@ -10,7 +11,27 @@ var (
 	applicationPrefix = "A"
 	clientPrefix      = "C"
 	pluginPrefix      = "P"
+
+	randReader = rand.Reader
 )
+
+func randIntn(n int) int {
+	requiredBytes := (int(math.Ceil(math.Log2(float64(n)))) + 7) / 8
+	for {
+		buf := make([]byte, requiredBytes)
+		if _, err := randReader.Read(buf); err != nil {
+			panic("crypto rand is unavailable")
+		}
+		res := 0
+		for _, n := range buf {
+			res <<= 8
+			res += int(n)
+		}
+		if res < n {
+			return res
+		}
+	}
+}
 
 // GenerateNotExistingToken receives a token generation func and a func to check whether the token exists, returns a unique token.
 func GenerateNotExistingToken(generateToken func() string, tokenExists func(token string) bool) string {
@@ -49,7 +70,12 @@ func generateRandomToken(prefix string) string {
 func generateRandomString(length int) string {
 	b := make([]rune, length)
 	for i := range b {
-		b[i] = tokenCharacters[rand.Intn(len(tokenCharacters))]
+		index := randIntn(len(tokenCharacters))
+		b[i] = tokenCharacters[index]
 	}
 	return string(b)
+}
+
+func init() {
+	randIntn(1)
 }
