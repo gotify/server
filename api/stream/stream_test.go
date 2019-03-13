@@ -408,6 +408,14 @@ func Test_sameOrigin_returnsTrue(t *testing.T) {
 	assert.True(t, actual)
 }
 
+func Test_sameOrigin_returnsTrue_withCustomPort(t *testing.T) {
+	mode.Set(mode.Prod)
+	req := httptest.NewRequest("GET", "http://example.com:8080/stream", nil)
+	req.Header.Set("Origin", "http://example.com:8080")
+	actual := isAllowedOrigin(req, nil)
+	assert.True(t, actual)
+}
+
 func Test_isAllowedOrigin_withoutAllowedOrigins_failsWhenNotSameOrigin(t *testing.T) {
 	mode.Set(mode.Prod)
 	req := httptest.NewRequest("GET", "http://example.com/stream", nil)
