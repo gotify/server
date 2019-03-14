@@ -52,6 +52,7 @@ class Clients extends Component<Stores<'clientStore'>> {
                                     <TableCell>Name</TableCell>
                                     <TableCell style={{width: 200}}>token</TableCell>
                                     <TableCell />
+                                    <TableCell />
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -118,6 +119,8 @@ const Row: SFC<IRowProps> = ({name, value, fEdit, fDelete}) => (
             <IconButton onClick={fEdit} className="edit">
                 <Edit />
             </IconButton>
+        </TableCell>
+        <TableCell>
             <IconButton onClick={fDelete} className="delete">
                 <Delete />
             </IconButton>
