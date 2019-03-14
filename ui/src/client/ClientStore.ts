@@ -19,7 +19,7 @@ export class ClientStore extends BaseStore<IClient> {
             .then(() => this.snack('Client deleted'));
     }
 
-    @action 
+    @action
     public update(id: number, name: string): Promise<void> {
         return axios
             .put(`${config.get('url')}client/${id}`, {name})

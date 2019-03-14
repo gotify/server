@@ -80,9 +80,7 @@ class Clients extends Component<Stores<'clientStore'>> {
                 {updateId !== false && (
                     <UpdateDialog
                         fClose={() => (this.updateId = false)}
-                        fOnSubmit={(name) =>
-                            clientStore.update(updateId, name)
-                        }
+                        fOnSubmit={(name) => clientStore.update(updateId, name)}
                         initialName={clientStore.getByID(updateId).name}
                     />
                 )}

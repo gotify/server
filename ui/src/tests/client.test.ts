@@ -27,10 +27,7 @@ const hasClient = (name: string, row: number): (() => Promise<void>) => {
     };
 };
 
-export const updateClient = (
-    id: number,
-    data: {name?: string}
-): (() => Promise<void>) => {
+export const updateClient = (id: number, data: {name?: string}): (() => Promise<void>) => {
     return async () => {
         await page.click($table.cell(id, Col.Edit, '.edit'));
         await page.waitForSelector($dialog.selector());

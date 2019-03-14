@@ -42,7 +42,8 @@ export default class UpdateDialog extends Component<IProps, IState> {
                 <DialogTitle id="form-dialog-title">Update a Client</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        A client receives message and manages creation of a new tokens and delete messages.
+                        A client receives message and manages creation of a new tokens and delete
+                        messages.
                     </DialogContentText>
                     <TextField
                         autoFocus
