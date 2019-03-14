@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -155,22 +156,22 @@ func (a *API) Close() {
 }
 
 func isAllowedOrigin(r *http.Request, allowedOrigins []*regexp.Regexp) bool {
-	origin := r.Header["Origin"]
-	if len(origin) == 0 {
+	origin := r.Header.Get("origin")
+	if origin == "" {
 		return true
 	}
 
-	u, err := url.Parse(origin[0])
+	u, err := url.Parse(origin)
 	if err != nil {
 		return false
 	}
 
-	if u.Hostname() == r.Host {
+	if strings.ToLower(u.Host) == strings.ToLower(r.Host) {
 		return true
 	}
 
 	for _, allowedOrigin := range allowedOrigins {
-		if allowedOrigin.Match([]byte(u.Hostname())) {
+		if allowedOrigin.Match([]byte(strings.ToLower(u.Hostname()))) {
 			return true
 		}
 	}
