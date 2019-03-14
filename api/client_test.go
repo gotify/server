@@ -165,7 +165,7 @@ func (s *ClientSuite) Test_DeleteClient() {
 	assert.True(s.T(), s.notified)
 }
 
-func (s *ClientSuite) Test_UpdateClient() {
+func (s *ClientSuite) Test_UpdateClient_expectSucess() {
 	s.db.User(5).NewClientWithToken(1, firstClientToken)
 
 	test.WithUser(s.ctx, 5)
@@ -182,6 +182,21 @@ func (s *ClientSuite) Test_UpdateClient() {
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.Equal(s.T(), expected, s.db.GetClientByID(1))
+}
+
+func (s *ClientSuite) Test_UpdateClient_expectNotFound() {
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+	s.a.UpdateClient(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+}
+
+func (s *ClientSuite) Test_UpdateClient_WithMissingAttributes_expectBadRequest() {
+	test.WithUser(s.ctx, 5)
+	s.a.UpdateClient(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
 func (s *ClientSuite) withFormData(formData string) {
