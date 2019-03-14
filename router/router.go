@@ -139,6 +139,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			client.POST("", clientHandler.CreateClient)
 
 			client.DELETE("/:id", clientHandler.DeleteClient)
+
+			client.PUT("/:id", clientHandler.UpdateClient)
 		}
 
 		message := clientAuth.Group("/message")

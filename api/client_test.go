@@ -165,6 +165,25 @@ func (s *ClientSuite) Test_DeleteClient() {
 	assert.True(s.T(), s.notified)
 }
 
+func (s *ClientSuite) Test_UpdateClient() {
+	s.db.User(5).NewClientWithToken(1, firstClientToken)
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=firefox")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	s.a.UpdateClient(s.ctx)
+
+	expected := &model.Client{
+		ID:     1,
+		Token:  firstClientToken,
+		UserID: 5,
+		Name:   "firefox",
+	}
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), expected, s.db.GetClientByID(1))
+}
+
 func (s *ClientSuite) withFormData(formData string) {
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(formData))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")

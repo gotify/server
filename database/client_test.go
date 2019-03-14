@@ -29,6 +29,11 @@ func (s *DatabaseSuite) TestClient() {
 	newClient = s.db.GetClientByToken(client.Token)
 	assert.Equal(s.T(), client, newClient)
 
+	updateClient := &model.Client{ID: client.ID, UserID: user.ID, Token: "C0000000000", Name: "new_name"}
+	s.db.UpdateClient(updateClient)
+	updatedClient := s.db.GetClientByID(client.ID)
+	assert.Equal(s.T(), updateClient, updatedClient)
+
 	s.db.DeleteClientByID(client.ID)
 
 	clients = s.db.GetClientsByUser(user.ID)

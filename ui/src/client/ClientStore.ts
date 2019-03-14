@@ -19,6 +19,13 @@ export class ClientStore extends BaseStore<IClient> {
             .then(() => this.snack('Client deleted'));
     }
 
+    @action 
+    public update(id: number, name: string): Promise<void> {
+        return axios
+            .put(`${config.get('url')}client/${id}`, {name})
+            .then(() => this.snack('Client updated'));
+    }
+
     @action
     public createNoNotifcation = async (name: string): Promise<IClient> => {
         const client = await axios.post(`${config.get('url')}client`, {name});

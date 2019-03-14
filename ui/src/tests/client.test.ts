@@ -1,6 +1,6 @@
 import {Page} from 'puppeteer';
 import {newTest, GotifyTest} from './setup';
-import {count, innerText, waitForExists, waitToDisappear} from './utils';
+import {count, innerText, waitForExists, waitToDisappear, clearField} from './utils';
 import * as auth from './authentication';
 
 import * as selector from './selector';
@@ -17,8 +17,32 @@ afterAll(async () => await gotify.close());
 enum Col {
     Name = 1,
     Token = 2,
-    Delete = 3,
+    Edit = 3,
+    Delete = 4,
 }
+
+const hasClient = (name: string, row: number): (() => Promise<void>) => {
+    return async () => {
+        expect(await innerText(page, $table.cell(row, Col.Name))).toBe(name);
+    };
+};
+
+export const updateClient = (
+    id: number,
+    data: {name?: string}
+): (() => Promise<void>) => {
+    return async () => {
+        await page.click($table.cell(id, Col.Edit, '.edit'));
+        await page.waitForSelector($dialog.selector());
+        if (data.name) {
+            const nameSelector = $dialog.input('.name');
+            await clearField(page, nameSelector);
+            await page.type(nameSelector, data.name);
+        }
+        await page.click($dialog.button('.update'));
+        await waitToDisappear(page, $dialog.selector());
+    };
+};
 
 const $table = selector.table('#client-table');
 const $dialog = selector.form('#client-dialog');
@@ -55,6 +79,12 @@ describe('Client', () => {
         expect(await innerText(page, $table.cell(1, Col.Name))).toContain('chrome');
         expect(await innerText(page, $table.cell(2, Col.Name))).toBe('phone');
         expect(await innerText(page, $table.cell(3, Col.Name))).toBe('desktop app');
+    });
+    it('updates client', async () => {
+        await updateClient(1, {name: 'firefox'});
+    });
+    it('has updated client name', async () => {
+        await hasClient('firefox', 1);
     });
     it('shows token', async () => {
         await page.click($table.cell(3, Col.Token, '.toggle-visibility'));
