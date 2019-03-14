@@ -28,14 +28,14 @@
 </p>
 
 ## Intro
-We wanted a simple server for sending and receiving messages (in real time per web socket). For this, not many open source projects existed and most of the existing ones were abandoned. Also, a requirement was that it can be self-hosted. We know there are many free and commercial push services out there.
+We wanted a simple server for sending and receiving messages (in real time per WebSocket). For this, not many open source projects existed and most of the existing ones were abandoned. Also, a requirement was that it can be self-hosted. We know there are many free and commercial push services out there.
 
 ## Features
 
 <img alt="Gotify UI screenshot" src="ui.png" align="right" width="500px"/>
 
 * send messages via REST-API
-* receive messages via web socket
+* receive messages via WebSocket
 * manage users, clients and applications
 * [Plugins](https://gotify.net/docs/plugin)
 * Web-UI -> [./ui](ui)
