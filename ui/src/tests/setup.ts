@@ -120,7 +120,9 @@ const buildGoExecutable = (filename: string): Promise<void> => {
     } else {
         process.stdout.write(`### Building Gotify ${filename}\n`);
         return new Promise((resolve) =>
-            exec(`go build  -o ${filename} ${appDotGo}`, () => resolve())
+            exec(`go build -ldflags="-X main.Mode=prod" -o ${filename} ${appDotGo}`, () =>
+                resolve()
+            )
         );
     }
 };
