@@ -38,3 +38,8 @@ func (d *GormDatabase) GetClientsByUser(userID uint) []*model.Client {
 func (d *GormDatabase) DeleteClientByID(id uint) error {
 	return d.DB.Where("id = ?", id).Delete(&model.Client{}).Error
 }
+
+// UpdateClient updates a client.
+func (d *GormDatabase) UpdateClient(client *model.Client) error {
+	return d.DB.Save(client).Error
+}
