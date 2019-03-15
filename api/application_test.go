@@ -22,8 +22,8 @@ import (
 )
 
 var (
-	firstApplicationToken  = "AhHw-pDqdehDnEa"
-	secondApplicationToken = "Aw5IihP5yeNL2lH"
+	firstApplicationToken  = "Aaaaaaaaaaaaaaa"
+	secondApplicationToken = "Abbbbbbbbbbbbbb"
 )
 
 func TestApplicationSuite(t *testing.T) {
@@ -39,7 +39,9 @@ type ApplicationSuite struct {
 }
 
 func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
-	auth.UseMathRand()
+	auth.UseTokenSource(&auth.MockRandSource{
+		Tokens: []string{firstApplicationToken[1:], secondApplicationToken[1:]},
+	})
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())
@@ -49,6 +51,7 @@ func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (s *ApplicationSuite) AfterTest(suiteName, testName string) {
+	auth.UseCryptoRand()
 	s.db.Close()
 }
 
@@ -281,8 +284,11 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageAndGenerateNewName() {
+	existingImageName := "2lHMAel6BDHLL-HrwphcviX-l.png"
+	firstGeneratedImageName := firstApplicationToken[1:] + ".png"
+	secondGeneratedImageName := secondApplicationToken[1:] + ".png"
 	s.db.User(5)
-	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: "2lHMAel6BDHLL-HrwphcviX-l.png"})
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: existingImageName})
 
 	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
 	assert.Nil(s.T(), err)
@@ -290,20 +296,20 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageA
 	s.ctx.Request.Header.Set("Content-Type", cType)
 	test.WithUser(s.ctx, 5)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-	fakeImage(s.T(), "2lHMAel6BDHLL-HrwphcviX-l.png")
-	fakeImage(s.T(), "hHw-pDqdehDnEaw5IihP5yeNL.png")
+	fakeImage(s.T(), existingImageName)
+	fakeImage(s.T(), firstGeneratedImageName)
 
 	s.a.UploadApplicationImage(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 
-	_, err = os.Stat("2lHMAel6BDHLL-HrwphcviX-l.png")
+	_, err = os.Stat(existingImageName)
 	assert.True(s.T(), os.IsNotExist(err))
 
-	_, err = os.Stat("fESRgV2xU1m7jzpL_R2PI7ed-.png")
+	_, err = os.Stat(secondGeneratedImageName)
 	assert.Nil(s.T(), err)
-	assert.Nil(s.T(), os.Remove("fESRgV2xU1m7jzpL_R2PI7ed-.png"))
-	assert.Nil(s.T(), os.Remove("hHw-pDqdehDnEaw5IihP5yeNL.png"))
+	assert.Nil(s.T(), os.Remove(secondGeneratedImageName))
+	assert.Nil(s.T(), os.Remove(firstGeneratedImageName))
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage() {
@@ -325,7 +331,7 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage
 	_, err = os.Stat("existing.png")
 	assert.True(s.T(), os.IsNotExist(err))
 
-	os.Remove("hHw-pDqdehDnEaw5IihP5yeNL.png")
+	os.Remove(firstApplicationToken[1:] + ".png")
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithTextFile_expectBadRequest() {

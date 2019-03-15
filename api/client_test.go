@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	firstClientToken  = "ChHw-pDqdehDnEa"
-	secondClientToken = "Cw5IihP5yeNL2lH"
+	firstClientToken  = "Caaaaaaaaaaaaaa"
+	secondClientToken = "Cbbbbbbbbbbbbbb"
 )
 
 func TestClientSuite(t *testing.T) {
@@ -35,7 +35,9 @@ type ClientSuite struct {
 }
 
 func (s *ClientSuite) BeforeTest(suiteName, testName string) {
-	auth.UseMathRand()
+	auth.UseTokenSource(&auth.MockRandSource{
+		Tokens: []string{firstClientToken[1:], secondClientToken[1:]},
+	})
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())
@@ -50,6 +52,7 @@ func (s *ClientSuite) notify(uint, string) {
 }
 
 func (s *ClientSuite) AfterTest(suiteName, testName string) {
+	auth.UseCryptoRand()
 	s.db.Close()
 }
 

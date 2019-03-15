@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/http/httptest"
 	"testing"
 
@@ -41,7 +40,6 @@ type PluginSuite struct {
 
 func (s *PluginSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
-	rand.Seed(50)
 	s.db = testdb.NewDB(s.T())
 	s.resetRecorder()
 	manager, err := plugin.NewManager(s.db, "", nil, s)

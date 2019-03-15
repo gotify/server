@@ -2,35 +2,47 @@ package auth
 
 import (
 	"crypto/rand"
-	"math"
+	"io"
+	"math/big"
 )
 
 var (
-	tokenCharacters   = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_")
+	tokenCharacters   = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_")
 	randomTokenLength = 14
 	applicationPrefix = "A"
 	clientPrefix      = "C"
 	pluginPrefix      = "P"
 
-	randReader = rand.Reader
+	randSource RandSource = &RandSourceFromReader{rand.Reader}
 )
 
-func randIntn(n int) int {
-	requiredBytes := (int(math.Ceil(math.Log2(float64(n)))) + 7) / 8
-	for {
-		buf := make([]byte, requiredBytes)
-		if _, err := randReader.Read(buf); err != nil {
-			panic("crypto rand is unavailable")
-		}
-		res := 0
-		for _, n := range buf {
-			res <<= 8
-			res += int(n)
-		}
-		if res < n {
-			return res
-		}
+// RandSourceFromReader is randomization source from a Reader to random data
+type RandSourceFromReader struct {
+	Source io.Reader
+}
+
+// Token implements RandSource
+func (r *RandSourceFromReader) Token(length int, chars []byte) string {
+	b := make([]byte, length)
+	for i := range b {
+		index := randIntn(r.Source, len(chars))
+		b[i] = chars[index]
 	}
+	return string(b)
+}
+
+// RandSource is an abstraction of randomization provider
+type RandSource interface {
+	Token(len int, chars []byte) string
+}
+
+func randIntn(randReader io.Reader, n int) int {
+	max := big.NewInt(int64(n))
+	res, err := rand.Int(randReader, max)
+	if err != nil {
+		panic("random source is not available")
+	}
+	return int(res.Int64())
 }
 
 // GenerateNotExistingToken receives a token generation func and a func to check whether the token exists, returns a unique token.
@@ -68,14 +80,9 @@ func generateRandomToken(prefix string) string {
 }
 
 func generateRandomString(length int) string {
-	b := make([]rune, length)
-	for i := range b {
-		index := randIntn(len(tokenCharacters))
-		b[i] = tokenCharacters[index]
-	}
-	return string(b)
+	return randSource.Token(length, tokenCharacters)
 }
 
 func init() {
-	randIntn(1)
+	randSource.Token(1, tokenCharacters)
 }

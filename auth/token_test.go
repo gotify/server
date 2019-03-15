@@ -35,9 +35,6 @@ func TestGenerateNotExistingToken(t *testing.T) {
 
 func TestBadCryptoReaderPanics(t *testing.T) {
 	assert.Panics(t, func() {
-		randReader = test.UnreadableReader()
-		defer UseMathRand()
-
-		randIntn(1)
+		randIntn(test.UnreadableReader(), 2)
 	})
 }
