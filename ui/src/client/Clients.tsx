@@ -7,11 +7,13 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Delete from '@material-ui/icons/Delete';
+import Edit from '@material-ui/icons/Edit';
 import React, {Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import ToggleVisibility from '../common/ToggleVisibility';
 import AddClientDialog from './AddClientDialog';
+import UpdateDialog from './UpdateClientDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
@@ -22,12 +24,15 @@ class Clients extends Component<Stores<'clientStore'>> {
     private showDialog = false;
     @observable
     private deleteId: false | number = false;
+    @observable
+    private updateId: false | number = false;
 
     public componentDidMount = () => this.props.clientStore.refresh();
 
     public render() {
         const {
             deleteId,
+            updateId,
             showDialog,
             props: {clientStore},
         } = this;
@@ -47,6 +52,7 @@ class Clients extends Component<Stores<'clientStore'>> {
                                     <TableCell>Name</TableCell>
                                     <TableCell style={{width: 200}}>token</TableCell>
                                     <TableCell />
+                                    <TableCell />
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -56,6 +62,7 @@ class Clients extends Component<Stores<'clientStore'>> {
                                             key={client.id}
                                             name={client.name}
                                             value={client.token}
+                                            fEdit={() => (this.updateId = client.id)}
                                             fDelete={() => (this.deleteId = client.id)}
                                         />
                                     );
@@ -68,6 +75,13 @@ class Clients extends Component<Stores<'clientStore'>> {
                     <AddClientDialog
                         fClose={() => (this.showDialog = false)}
                         fOnSubmit={clientStore.create}
+                    />
+                )}
+                {updateId !== false && (
+                    <UpdateDialog
+                        fClose={() => (this.updateId = false)}
+                        fOnSubmit={(name) => clientStore.update(updateId, name)}
+                        initialName={clientStore.getByID(updateId).name}
                     />
                 )}
                 {deleteId !== false && (
@@ -86,10 +100,11 @@ class Clients extends Component<Stores<'clientStore'>> {
 interface IRowProps {
     name: string;
     value: string;
+    fEdit: VoidFunction;
     fDelete: VoidFunction;
 }
 
-const Row: SFC<IRowProps> = ({name, value, fDelete}) => (
+const Row: SFC<IRowProps> = ({name, value, fEdit, fDelete}) => (
     <TableRow>
         <TableCell>{name}</TableCell>
         <TableCell>
@@ -99,6 +114,11 @@ const Row: SFC<IRowProps> = ({name, value, fDelete}) => (
             />
         </TableCell>
         <TableCell numeric padding="none">
+            <IconButton onClick={fEdit} className="edit">
+                <Edit />
+            </IconButton>
+        </TableCell>
+        <TableCell>
             <IconButton onClick={fDelete} className="delete">
                 <Delete />
             </IconButton>

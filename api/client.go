@@ -15,6 +15,7 @@ type ClientDatabase interface {
 	GetClientByID(id uint) *model.Client
 	GetClientsByUser(userID uint) []*model.Client
 	DeleteClientByID(id uint) error
+	UpdateClient(client *model.Client) error
 }
 
 // The ClientAPI provides handlers for managing clients and applications.
@@ -22,6 +23,65 @@ type ClientAPI struct {
 	DB            ClientDatabase
 	ImageDir      string
 	NotifyDeleted func(uint, string)
+}
+
+// UpdateClient updates a client by its id.
+// swagger:operation PUT /client/{id} client updateClient
+//
+// Update a client.
+//
+// ---
+// consumes: [application/json]
+// produces: [application/json]
+// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// parameters:
+// - name: body
+//   in: body
+//   description: the client to update
+//   required: true
+//   schema:
+//     $ref: "#/definitions/Client"
+// - name: id
+//   in: path
+//   description: the client id
+//   required: true
+//   type: integer
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//         $ref: "#/definitions/Client"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
+//     schema:
+//         $ref: "#/definitions/Error"
+func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
+	withID(ctx, "id", func(id uint) {
+		if client := a.DB.GetClientByID(id); client != nil && client.UserID == auth.GetUserID(ctx) {
+			newValues := &model.Client{}
+			if err := ctx.Bind(newValues); err == nil {
+				client.Name = newValues.Name
+
+				a.DB.UpdateClient(client)
+
+				ctx.JSON(200, client)
+			}
+		} else {
+			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
+		}
+	})
 }
 
 // CreateClient creates a client and returns the access token.

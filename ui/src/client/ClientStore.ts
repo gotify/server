@@ -20,6 +20,13 @@ export class ClientStore extends BaseStore<IClient> {
     }
 
     @action
+    public update = async (id: number, name: string): Promise<void> => {
+        await axios.put(`${config.get('url')}client/${id}`, {name});
+        await this.refresh();
+        this.snack('Client updated');
+    };
+
+    @action
     public createNoNotifcation = async (name: string): Promise<IClient> => {
         const client = await axios.post(`${config.get('url')}client`, {name});
         await this.refresh();
