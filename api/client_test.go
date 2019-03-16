@@ -34,10 +34,20 @@ type ClientSuite struct {
 	notified bool
 }
 
+var originalGenerateClientToken func() string
+
 func (s *ClientSuite) BeforeTest(suiteName, testName string) {
-	auth.UseTokenSource(&auth.MockRandSource{
-		Tokens: []string{firstClientToken[1:], secondClientToken[1:]},
-	})
+	originalGenerateClientToken = generateClientToken
+	generateClientToken = func() func() string {
+		var t int
+		return func() string {
+			t++
+			if t%2 == 1 {
+				return firstClientToken
+			}
+			return secondClientToken
+		}
+	}()
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())
@@ -52,6 +62,7 @@ func (s *ClientSuite) notify(uint, string) {
 }
 
 func (s *ClientSuite) AfterTest(suiteName, testName string) {
+	generateClientToken = originalGenerateClientToken
 	auth.UseCryptoRand()
 	s.db.Close()
 }
