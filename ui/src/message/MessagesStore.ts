@@ -127,7 +127,7 @@ export class MessagesStore {
         }
     };
 
-    private getUnCached = (appId: number): Array<IMessage & {image: string}> => {
+    private getUnCached = (appId: number): Array<IMessage & {image: string | null}> => {
         const appToImage = this.appStore
             .getItems()
             .reduce((all, app) => ({...all, [app.id]: app.image}), {});
@@ -135,7 +135,7 @@ export class MessagesStore {
         return this.stateOf(appId, false).messages.map((message: IMessage) => {
             return {
                 ...message,
-                image: appToImage[message.appid] || 'still loading',
+                image: appToImage[message.appid] || null,
             };
         });
     };

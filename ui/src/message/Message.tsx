@@ -57,13 +57,15 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
             <div className={`${classes.wrapperPadding} message`} ref={(ref) => (this.node = ref)}>
                 <Container style={{display: 'flex'}}>
                     <div className={classes.imageWrapper}>
-                        <img
-                            src={config.get('url') + image}
-                            alt="app logo"
-                            width="70"
-                            height="70"
-                            className={classes.image}
-                        />
+                        {image !== null ? (
+                            <img
+                                src={config.get('url') + image}
+                                alt="app logo"
+                                width="70"
+                                height="70"
+                                className={classes.image}
+                            />
+                        ) : null}
                     </div>
                     <div className={classes.messageContentWrapper}>
                         <div className={classes.header}>
