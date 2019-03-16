@@ -1,16 +1,28 @@
 package auth
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 )
 
 var (
-	tokenCharacters   = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_")
+	tokenCharacters   = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_")
 	randomTokenLength = 14
 	applicationPrefix = "A"
 	clientPrefix      = "C"
 	pluginPrefix      = "P"
+
+	randReader = rand.Reader
 )
+
+func randIntn(n int) int {
+	max := big.NewInt(int64(n))
+	res, err := rand.Int(randReader, max)
+	if err != nil {
+		panic("random source is not available")
+	}
+	return int(res.Int64())
+}
 
 // GenerateNotExistingToken receives a token generation func and a func to check whether the token exists, returns a unique token.
 func GenerateNotExistingToken(generateToken func() string, tokenExists func(token string) bool) string {
@@ -47,9 +59,14 @@ func generateRandomToken(prefix string) string {
 }
 
 func generateRandomString(length int) string {
-	b := make([]rune, length)
-	for i := range b {
-		b[i] = tokenCharacters[rand.Intn(len(tokenCharacters))]
+	res := make([]byte, length)
+	for i := range res {
+		index := randIntn(len(tokenCharacters))
+		res[i] = tokenCharacters[index]
 	}
-	return string(b)
+	return string(res)
+}
+
+func init() {
+	randIntn(2)
 }

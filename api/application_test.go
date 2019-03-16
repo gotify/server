@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"mime/multipart"
 	"net/http/httptest"
 	"os"
@@ -22,8 +21,8 @@ import (
 )
 
 var (
-	firstApplicationToken  = "APorrUa5b1IIK3y"
-	secondApplicationToken = "AKo_Pp6ww_9vZal"
+	firstApplicationToken  = "Aaaaaaaaaaaaaaa"
+	secondApplicationToken = "Abbbbbbbbbbbbbb"
 )
 
 func TestApplicationSuite(t *testing.T) {
@@ -38,9 +37,15 @@ type ApplicationSuite struct {
 	recorder *httptest.ResponseRecorder
 }
 
+var originalGenerateApplicationToken func() string
+var originalGenerateImageName func() string
+
 func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
+	originalGenerateApplicationToken = generateApplicationToken
+	originalGenerateImageName = generateImageName
+	generateApplicationToken = test.Tokens(firstApplicationToken, secondApplicationToken)
+	generateImageName = test.Tokens(firstApplicationToken[1:], secondApplicationToken[1:])
 	mode.Set(mode.TestDev)
-	rand.Seed(50)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
@@ -49,6 +54,8 @@ func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (s *ApplicationSuite) AfterTest(suiteName, testName string) {
+	generateApplicationToken = originalGenerateApplicationToken
+	generateImageName = originalGenerateImageName
 	s.db.Close()
 }
 
@@ -268,19 +275,24 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
 
 	s.a.UploadApplicationImage(s.ctx)
 
+	imgName := s.db.GetApplicationByID(1).Image
+
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	_, err = os.Stat("PorrUa5b1IIK3yKo_Pp6ww_9v.png")
+	_, err = os.Stat(imgName)
 	assert.Nil(s.T(), err)
 
 	s.a.DeleteApplication(s.ctx)
 
-	_, err = os.Stat("PorrUa5b1IIK3yKo_Pp6ww_9v.png")
+	_, err = os.Stat(imgName)
 	assert.True(s.T(), os.IsNotExist(err))
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageAndGenerateNewName() {
+	existingImageName := "2lHMAel6BDHLL-HrwphcviX-l.png"
+	firstGeneratedImageName := firstApplicationToken[1:] + ".png"
+	secondGeneratedImageName := secondApplicationToken[1:] + ".png"
 	s.db.User(5)
-	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: "PorrUa5b1IIK3yKo_Pp6ww_9v.png"})
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: existingImageName})
 
 	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
 	assert.Nil(s.T(), err)
@@ -288,17 +300,20 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageA
 	s.ctx.Request.Header.Set("Content-Type", cType)
 	test.WithUser(s.ctx, 5)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-	fakeImage(s.T(), "PorrUa5b1IIK3yKo_Pp6ww_9v.png")
+	fakeImage(s.T(), existingImageName)
+	fakeImage(s.T(), firstGeneratedImageName)
 
 	s.a.UploadApplicationImage(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 
-	_, err = os.Stat("PorrUa5b1IIK3yKo_Pp6ww_9v.png")
+	_, err = os.Stat(existingImageName)
 	assert.True(s.T(), os.IsNotExist(err))
-	_, err = os.Stat("Zal6-ySIuL-T3EMLCcFtityHn.png")
+
+	_, err = os.Stat(secondGeneratedImageName)
 	assert.Nil(s.T(), err)
-	assert.Nil(s.T(), os.Remove("Zal6-ySIuL-T3EMLCcFtityHn.png"))
+	assert.Nil(s.T(), os.Remove(secondGeneratedImageName))
+	assert.Nil(s.T(), os.Remove(firstGeneratedImageName))
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage() {
@@ -320,7 +335,7 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage
 	_, err = os.Stat("existing.png")
 	assert.True(s.T(), os.IsNotExist(err))
 
-	os.Remove("PorrUa5b1IIK3yKo_Pp6ww_9v.png")
+	os.Remove(firstApplicationToken[1:] + ".png")
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithTextFile_expectBadRequest() {

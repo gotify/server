@@ -65,7 +65,7 @@ type ApplicationAPI struct {
 func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 	app := model.Application{}
 	if err := ctx.Bind(&app); err == nil {
-		app.Token = auth.GenerateNotExistingToken(auth.GenerateApplicationToken, a.applicationExists)
+		app.Token = auth.GenerateNotExistingToken(generateApplicationToken, a.applicationExists)
 		app.UserID = auth.GetUserID(ctx)
 		app.Internal = false
 		a.DB.CreateApplication(&app)
@@ -284,9 +284,9 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 
 			ext := filepath.Ext(file.Filename)
 
-			name := auth.GenerateImageName()
+			name := generateImageName()
 			for exist(a.ImageDir + name + ext) {
-				name = auth.GenerateImageName()
+				name = generateImageName()
 			}
 
 			err = ctx.SaveUploadedFile(file, a.ImageDir+name+ext)

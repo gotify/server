@@ -1,7 +1,6 @@
 package api
 
 import (
-	"math/rand"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -17,8 +16,8 @@ import (
 )
 
 var (
-	firstClientToken  = "CPorrUa5b1IIK3y"
-	secondClientToken = "CKo_Pp6ww_9vZal"
+	firstClientToken  = "Caaaaaaaaaaaaaa"
+	secondClientToken = "Cbbbbbbbbbbbbbb"
 )
 
 func TestClientSuite(t *testing.T) {
@@ -34,9 +33,12 @@ type ClientSuite struct {
 	notified bool
 }
 
+var originalGenerateClientToken func() string
+
 func (s *ClientSuite) BeforeTest(suiteName, testName string) {
+	originalGenerateClientToken = generateClientToken
+	generateClientToken = test.Tokens(firstClientToken, secondClientToken)
 	mode.Set(mode.TestDev)
-	rand.Seed(50)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
@@ -50,6 +52,7 @@ func (s *ClientSuite) notify(uint, string) {
 }
 
 func (s *ClientSuite) AfterTest(suiteName, testName string) {
+	generateClientToken = originalGenerateClientToken
 	s.db.Close()
 }
 
