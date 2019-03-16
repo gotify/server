@@ -43,26 +43,8 @@ var originalGenerateImageName func() string
 func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
 	originalGenerateApplicationToken = generateApplicationToken
 	originalGenerateImageName = generateImageName
-	generateApplicationToken = func() func() string {
-		var t int
-		return func() string {
-			t++
-			if t%2 == 1 {
-				return firstApplicationToken
-			}
-			return secondApplicationToken
-		}
-	}()
-	generateImageName = func() func() string {
-		var t int
-		return func() string {
-			t++
-			if t%2 == 1 {
-				return firstApplicationToken[1:]
-			}
-			return secondApplicationToken[1:]
-		}
-	}()
+	generateApplicationToken = test.Tokens(firstApplicationToken, secondApplicationToken)
+	generateImageName = test.Tokens(firstApplicationToken[1:], secondApplicationToken[1:])
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())

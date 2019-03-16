@@ -37,16 +37,7 @@ var originalGenerateClientToken func() string
 
 func (s *ClientSuite) BeforeTest(suiteName, testName string) {
 	originalGenerateClientToken = generateClientToken
-	generateClientToken = func() func() string {
-		var t int
-		return func() string {
-			t++
-			if t%2 == 1 {
-				return firstClientToken
-			}
-			return secondClientToken
-		}
-	}()
+	generateClientToken = test.Tokens(firstClientToken, secondClientToken)
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())

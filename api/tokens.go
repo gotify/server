@@ -4,14 +4,8 @@ import (
 	"github.com/gotify/server/auth"
 )
 
-var generateApplicationToken = func() string {
-	return auth.GenerateApplicationToken()
-}
+var generateApplicationToken = auth.GenerateApplicationToken
 
-var generateClientToken = func() string {
-	return auth.GenerateClientToken()
-}
+var generateClientToken = auth.GenerateClientToken
 
-var generateImageName = func() string {
-	return auth.GenerateImageName()
-}
+var generateImageName = auth.GenerateImageName
