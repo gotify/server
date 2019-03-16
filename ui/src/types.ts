@@ -63,10 +63,3 @@ interface IVersion {
     commit: string;
     buildDate: string;
 }
-
-interface IAppMessages {
-    messages: IMessage[];
-    hasMore: boolean;
-    nextSince: number;
-    id?: number;
-}
