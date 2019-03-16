@@ -2,7 +2,6 @@ package auth
 
 import (
 	"crypto/rand"
-	"io"
 	"math/big"
 )
 
@@ -13,30 +12,10 @@ var (
 	clientPrefix      = "C"
 	pluginPrefix      = "P"
 
-	randSource RandSource = &RandSourceFromReader{rand.Reader}
+	randReader = rand.Reader
 )
 
-// RandSourceFromReader is randomization source from a Reader to random data
-type RandSourceFromReader struct {
-	Source io.Reader
-}
-
-// Token implements RandSource
-func (r *RandSourceFromReader) Token(length int, chars []byte) string {
-	b := make([]byte, length)
-	for i := range b {
-		index := randIntn(r.Source, len(chars))
-		b[i] = chars[index]
-	}
-	return string(b)
-}
-
-// RandSource is an abstraction of randomization provider
-type RandSource interface {
-	Token(len int, chars []byte) string
-}
-
-func randIntn(randReader io.Reader, n int) int {
+func randIntn(n int) int {
 	max := big.NewInt(int64(n))
 	res, err := rand.Int(randReader, max)
 	if err != nil {
@@ -80,9 +59,14 @@ func generateRandomToken(prefix string) string {
 }
 
 func generateRandomString(length int) string {
-	return randSource.Token(length, tokenCharacters)
+	res := make([]byte, length)
+	for i := range res {
+		index := randIntn(len(tokenCharacters))
+		res[i] = tokenCharacters[index]
+	}
+	return string(res)
 }
 
 func init() {
-	randSource.Token(1, tokenCharacters)
+	randIntn(2)
 }

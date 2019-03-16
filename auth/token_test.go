@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/rand"
 	"fmt"
 	"strings"
 	"testing"
@@ -35,6 +36,10 @@ func TestGenerateNotExistingToken(t *testing.T) {
 
 func TestBadCryptoReaderPanics(t *testing.T) {
 	assert.Panics(t, func() {
-		randIntn(test.UnreadableReader(), 2)
+		randReader = test.UnreadableReader()
+		defer func() {
+			randReader = rand.Reader
+		}()
+		randIntn(2)
 	})
 }

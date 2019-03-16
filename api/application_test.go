@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/auth"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/test"
@@ -75,7 +74,6 @@ func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
 func (s *ApplicationSuite) AfterTest(suiteName, testName string) {
 	generateApplicationToken = originalGenerateApplicationToken
 	generateImageName = originalGenerateImageName
-	auth.UseCryptoRand()
 	s.db.Close()
 }
 

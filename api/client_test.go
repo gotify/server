@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/auth"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/test"
@@ -63,7 +62,6 @@ func (s *ClientSuite) notify(uint, string) {
 
 func (s *ClientSuite) AfterTest(suiteName, testName string) {
 	generateClientToken = originalGenerateClientToken
-	auth.UseCryptoRand()
 	s.db.Close()
 }
 
