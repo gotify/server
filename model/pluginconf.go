@@ -4,7 +4,7 @@ package model
 type PluginConf struct {
 	ID            uint `gorm:"primary_key;AUTO_INCREMENT;index"`
 	UserID        uint
-	ModulePath    string
+	ModulePath    string `gorm:"type:text"`
 	Token         string `gorm:"unique_index"`
 	ApplicationID uint
 	Enabled       bool

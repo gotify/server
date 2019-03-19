@@ -23,12 +23,12 @@ type Application struct {
 	//
 	// required: true
 	// example: Backup Server
-	Name string `form:"name" query:"name" json:"name" binding:"required"`
+	Name string `gorm:"type:text" form:"name" query:"name" json:"name" binding:"required"`
 	// The description of the application.
 	//
 	// required: true
 	// example: Backup server for the interwebs
-	Description string `form:"description" query:"description" json:"description"`
+	Description string `gorm:"type:text" form:"description" query:"description" json:"description"`
 	// Whether the application is an internal application. Internal applications should not be deleted.
 	//
 	// read only: true
@@ -40,6 +40,6 @@ type Application struct {
 	// read only: true
 	// required: true
 	// example: image/image.jpeg
-	Image    string            `json:"image"`
+	Image    string            `gorm:"type:text" json:"image"`
 	Messages []MessageExternal `json:"-"`
 }
