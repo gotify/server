@@ -13,18 +13,24 @@ assignees: ''
 - [ ] Docker
 - [ ] Linux machine
 - [ ] Windows machine
-<details><summary>Docker startup command or config file here (please mask sensitive information)</summary><br><pre>
+<details><summary>Docker startup command or config file here (please mask sensitive information)</summary><br>
 
-</pre></details>
+```
+
+```
+</details>
 
 **Do you have an reverse proxy installed in front of gotify server? (Please select None if the problem can be reproduced without the presense of a reverse proxy)**
 - [ ] None
 - [ ] Nginx
 - [ ] Apache
 - [ ] Caddy
-<details><summary>Reverse proxy configuration (please mask sensitive information)</summary><br><pre>
+<details><summary>Reverse proxy configuration (please mask sensitive information)</summary><br>
 
-</pre></details>
+```
+
+```
+</details>
 
 **On which client do you experience problems? (Select as many as you can see)**
 - [ ] WebUI
