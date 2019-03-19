@@ -1,6 +1,6 @@
 ---
 name: Questions
-about: Have problem setting up gotify server? Feel free to ask here
+about: Having difficulties setting up gotify server? Feel free to ask here
 title: ''
 labels: question
 assignees: ''
@@ -23,20 +23,22 @@ Community chat - https://matrix.to/#/#gotify:matrix.org
 - [ ] Linux native platform
 - [ ] Windows native platform
 
-<details><summary>Describe your configuration (the presense of reverse proxy, VPN connections, API gateways, etc.)<br><pre>
 
-I have an Apache reverse proxy forwarding requests to gotify. Here I will attach the related parts of my Apache configuration:
-<VirtualHost *:443>
-...
-</VirtualHost >
+**Describe your problem**
+<!-- EXAMPLE
+I'm having difficulties setting up my apache reverse proxy
+....
+my config is ...
+-->
 
-</pre></details>
-
-<details><summary>Paste your <code>docker run</code> command, <code>docker-compose.yml</code>, <code>config.yml</code>, if applicable (remember to mask sensitive information)</summary><br><pre>
-
-$ docker run -p 80:80 -v /var/gotify/data:/app/data gotify/server
-
-</pre></details>
 
 
 **Any errors, logs, or other information that might help us identify your problem**
+
+Ex: `docker-compose.yml`, `nginx.conf`, android logcat, browser requests, etc.
+
+<details><summary>Name of the information here</summary><br><pre>
+
+contents here
+
+</pre></details>
