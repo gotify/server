@@ -1,6 +1,6 @@
 ---
 name: Questions
-about: Having difficulties setting up gotify server? Feel free to ask here
+about: Having difficulties with gotify? Feel free to ask here
 title: ''
 labels: question
 assignees: ''
