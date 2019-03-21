@@ -23,5 +23,5 @@ type Client struct {
 	//
 	// required: true
 	// example: Android Phone
-	Name string `form:"name" query:"name" json:"name" binding:"required"`
+	Name string `gorm:"type:text" form:"name" query:"name" json:"name" binding:"required"`
 }
