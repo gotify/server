@@ -1,4 +1,4 @@
-import axios, {AxiosResponse} from 'axios';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 import * as config from './config';
 import {Base64} from 'js-base64';
 import {detect} from 'detect-browser';
@@ -84,8 +84,15 @@ export class CurrentUser {
                 this.loggedIn = true;
                 return passThrough;
             })
-            .catch((error) => {
-                this.logout();
+            .catch((error: AxiosError) => {
+                if (
+                    error &&
+                    error.response &&
+                    error.response.status >= 400 &&
+                    error.response.status < 500
+                ) {
+                    this.logout();
+                }
                 return Promise.reject(error);
             });
     };

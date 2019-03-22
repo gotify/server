@@ -42,6 +42,8 @@ export class WebSocketStore {
                 .catch((error: AxiosError) => {
                     if (error && error.response && error.response.status === 401) {
                         this.snack('Could not authenticate with client token, logging out.');
+                    } else {
+                        this.snack('Lost network connection, please refresh the page.');
                     }
                 });
         };
