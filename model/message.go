@@ -8,8 +8,8 @@ import (
 type Message struct {
 	ID            uint `gorm:"AUTO_INCREMENT;primary_key;index"`
 	ApplicationID uint
-	Message       string
-	Title         string
+	Message       string `gorm:"type:text"`
+	Title         string `gorm:"type:text"`
 	Priority      int
 	Extras        []byte
 	Date          time.Time
