@@ -15,6 +15,8 @@ export class CurrentUser {
     public authenticating = false;
     @observable
     public user: IUser = {name: 'unknown', admin: false, id: -1};
+    @observable
+    public hasNetwork = true;
 
     public constructor(private readonly snack: SnackReporter) {}
 
@@ -82,15 +84,18 @@ export class CurrentUser {
             .then((passThrough) => {
                 this.user = passThrough.data;
                 this.loggedIn = true;
+                this.hasNetwork = true;
                 return passThrough;
             })
             .catch((error: AxiosError) => {
-                if (
-                    error &&
-                    error.response &&
-                    error.response.status >= 400 &&
-                    error.response.status < 500
-                ) {
+                if (!error || !error.response) {
+                    this.hasNetwork = false;
+                    return Promise.reject(error);
+                }
+
+                this.hasNetwork = true;
+
+                if (error.response.status >= 400 && error.response.status < 500) {
                     this.logout();
                 }
                 return Promise.reject(error);

@@ -11,7 +11,7 @@ import ExitToApp from '@material-ui/icons/ExitToApp';
 import Highlight from '@material-ui/icons/Highlight';
 import Apps from '@material-ui/icons/Apps';
 import SupervisorAccount from '@material-ui/icons/SupervisorAccount';
-import React, {Component} from 'react';
+import React, {Component, CSSProperties} from 'react';
 import {Link} from 'react-router-dom';
 import {observer} from 'mobx-react';
 
@@ -43,15 +43,16 @@ interface IProps {
     toggleTheme: VoidFunction;
     showSettings: VoidFunction;
     logout: VoidFunction;
+    style: CSSProperties;
 }
 
 @observer
 class Header extends Component<IProps & Styles> {
     public render() {
-        const {classes, version, name, loggedIn, admin, toggleTheme, logout} = this.props;
+        const {classes, version, name, loggedIn, admin, toggleTheme, logout, style} = this.props;
 
         return (
-            <AppBar position="absolute" className={classes.appBar}>
+            <AppBar position="absolute" style={style} className={classes.appBar}>
                 <Toolbar>
                     <div className={classes.title}>
                         <a href="https://github.com/gotify/server" className={classes.link}>
