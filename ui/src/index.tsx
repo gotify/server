@@ -5,10 +5,8 @@ import {initAxios} from './apiAuth';
 import * as config from './config';
 import Layout from './layout/Layout';
 import registerServiceWorker from './registerServiceWorker';
-import * as Notifications from './snack/browserNotification';
 import {CurrentUser} from './CurrentUser';
 import {AppStore} from './application/AppStore';
-import {reaction} from 'mobx';
 import {WebSocketStore} from './message/WebSocketStore';
 import {SnackManager} from './snack/SnackManager';
 import {InjectProvider, StoreMapping} from './inject';
@@ -16,6 +14,8 @@ import {UserStore} from './user/UserStore';
 import {MessagesStore} from './message/MessagesStore';
 import {ClientStore} from './client/ClientStore';
 import {PluginStore} from './plugin/PluginStore';
+import * as Notifications from './snack/browserNotification';
+import {registerReactions} from './reactions';
 
 const defaultDevConfig = {
     url: 'http://localhost:80/',
@@ -71,24 +71,7 @@ const initStores = (): StoreMapping => {
     const stores = initStores();
     initAxios(stores.currentUser, stores.snackManager.snack);
 
-    reaction(
-        () => stores.currentUser.loggedIn,
-        (loggedIn) => {
-            if (loggedIn) {
-                stores.wsStore.listen((message) => {
-                    stores.messagesStore.publishSingleMessage(message);
-                    Notifications.notifyNewMessage(message);
-                });
-                stores.appStore.refresh();
-            } else {
-                stores.messagesStore.clearAll();
-                stores.appStore.clear();
-                stores.clientStore.clear();
-                stores.userStore.clear();
-                stores.wsStore.close();
-            }
-        }
-    );
+    registerReactions(stores);
 
     stores.currentUser.tryAuthenticate().catch(() => {});
 

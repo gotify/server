@@ -20,6 +20,7 @@ import Users from '../user/Users';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
+import {NetworkLostBanner} from '../common/NetworkLostBanner';
 
 const styles = (theme: Theme) => ({
     content: {
@@ -50,7 +51,9 @@ const isThemeKey = (value: string | null): value is ThemeKey => {
 };
 
 @observer
-class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser'>> {
+class Layout extends React.Component<
+    WithStyles<'content'> & Stores<'currentUser' | 'snackManager'>
+> {
     private static defaultVersion = '0.0.0';
 
     @observable
@@ -59,6 +62,8 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
     private showSettings = false;
     @observable
     private version = Layout.defaultVersion;
+    @observable
+    private reconnecting = false;
 
     public componentDidMount() {
         if (this.version === Layout.defaultVersion) {
@@ -75,6 +80,19 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
         }
     }
 
+    private doReconnect = () => {
+        this.reconnecting = true;
+        this.props.currentUser
+            .tryAuthenticate()
+            .then(() => {
+                this.reconnecting = false;
+            })
+            .catch(() => {
+                this.reconnecting = false;
+                this.props.snackManager.snack('Reconnect failed');
+            });
+    };
+
     public render() {
         const {version, showSettings, currentTheme} = this;
         const {
@@ -84,6 +102,7 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
                 authenticating,
                 user: {name, admin},
                 logout,
+                hasNetwork,
             },
         } = this.props;
         const theme = themeMap[currentTheme];
@@ -91,42 +110,48 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
         return (
             <MuiThemeProvider theme={theme}>
                 <HashRouter>
-                    <div style={{display: 'flex'}}>
-                        <CssBaseline />
-                        <Header
-                            admin={admin}
-                            name={name}
-                            version={version}
-                            loggedIn={loggedIn}
-                            toggleTheme={this.toggleTheme.bind(this)}
-                            showSettings={() => (this.showSettings = true)}
-                            logout={logout}
-                        />
-                        <Navigation loggedIn={loggedIn} />
-
-                        <main className={classes.content}>
-                            <Switch>
-                                {authenticating ? (
-                                    <Route path="/">
-                                        <LoadingSpinner />
-                                    </Route>
-                                ) : null}
-                                <Route exact path="/login" render={loginRoute} />
-                                {loggedIn ? null : <Redirect to="/login" />}
-                                <Route exact path="/" component={Messages} />
-                                <Route exact path="/messages/:id" component={Messages} />
-                                <Route exact path="/applications" component={Applications} />
-                                <Route exact path="/clients" component={Clients} />
-                                <Route exact path="/users" component={Users} />
-                                <Route exact path="/plugins" component={Plugins} />
-                                <Route exact path="/plugins/:id" component={PluginDetailView} />
-                            </Switch>
-                        </main>
-                        {showSettings && (
-                            <SettingsDialog fClose={() => (this.showSettings = false)} />
+                    <div>
+                        {hasNetwork ? null : (
+                            <NetworkLostBanner height={64} retry={this.doReconnect} />
                         )}
-                        <ScrollUpButton />
-                        <SnackBarHandler />
+                        <div style={{display: 'flex'}}>
+                            <CssBaseline />
+                            <Header
+                                style={{top: hasNetwork ? 0 : 64}}
+                                admin={admin}
+                                name={name}
+                                version={version}
+                                loggedIn={loggedIn}
+                                toggleTheme={this.toggleTheme.bind(this)}
+                                showSettings={() => (this.showSettings = true)}
+                                logout={logout}
+                            />
+                            <Navigation loggedIn={loggedIn} />
+
+                            <main className={classes.content}>
+                                <Switch>
+                                    {authenticating || this.reconnecting ? (
+                                        <Route path="/">
+                                            <LoadingSpinner />
+                                        </Route>
+                                    ) : null}
+                                    <Route exact path="/login" render={loginRoute} />
+                                    {loggedIn ? null : <Redirect to="/login" />}
+                                    <Route exact path="/" component={Messages} />
+                                    <Route exact path="/messages/:id" component={Messages} />
+                                    <Route exact path="/applications" component={Applications} />
+                                    <Route exact path="/clients" component={Clients} />
+                                    <Route exact path="/users" component={Users} />
+                                    <Route exact path="/plugins" component={Plugins} />
+                                    <Route exact path="/plugins/:id" component={PluginDetailView} />
+                                </Switch>
+                            </main>
+                            {showSettings && (
+                                <SettingsDialog fClose={() => (this.showSettings = false)} />
+                            )}
+                            <ScrollUpButton />
+                            <SnackBarHandler />
+                        </div>
                     </div>
                 </HashRouter>
             </MuiThemeProvider>
@@ -139,4 +164,6 @@ class Layout extends React.Component<WithStyles<'content'> & Stores<'currentUser
     }
 }
 
-export default withStyles(styles, {withTheme: true})<{}>(inject('currentUser')(Layout));
+export default withStyles(styles, {withTheme: true})<{}>(
+    inject('currentUser', 'snackManager')(Layout)
+);
