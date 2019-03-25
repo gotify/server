@@ -33,8 +33,8 @@
     "eject": "react-scripts-ts eject",
     "lint": "tslint --project .",
     "lintfix": "tslint --fix --project .",
-    "format": "prettier src/**/*.{ts,tsx} --write",
-    "testformat": "prettier src/**/*.{ts,tsx} --list-different"
+    "format": "prettier \"src/**/*.{ts,tsx}\" --write",
+    "testformat": "prettier \"src/**/*.{ts,tsx}\" --list-different"
   },
   "devDependencies": {
     "@types/codemirror": "0.0.71",
