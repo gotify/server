@@ -7,6 +7,7 @@ import TimeAgo from 'react-timeago';
 import Container from '../common/Container';
 import * as config from '../config';
 import {StyleRulesCallback} from '@material-ui/core/styles/withStyles';
+import ReactMarkdown from 'react-markdown';
 
 const styles: StyleRulesCallback = () => ({
     header: {
@@ -24,6 +25,7 @@ const styles: StyleRulesCallback = () => ({
     },
     messageContentWrapper: {
         width: '100%',
+        maxWidth: 585,
     },
     image: {
         marginRight: 15,
@@ -33,6 +35,15 @@ const styles: StyleRulesCallback = () => ({
     },
     content: {
         whiteSpace: 'pre-wrap',
+        '& p': {
+            margin: 0,
+        },
+        '& a': {
+            color: '#ff7f50',
+        },
+        '& pre': {
+            overflow: 'auto',
+        },
     },
 });
 
@@ -81,8 +92,8 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                                 <Delete />
                             </IconButton>
                         </div>
-                        <Typography component="p" className={`${classes.content} content`}>
-                            {content}
+                        <Typography component="div" className={`${classes.content} content`}>
+                            <ReactMarkdown source={content} escapeHtml={false} />
                         </Typography>
                     </div>
                 </Container>
