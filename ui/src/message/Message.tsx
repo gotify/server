@@ -93,7 +93,7 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                             </IconButton>
                         </div>
                         <Typography component="div" className={`${classes.content} content`}>
-                            <ReactMarkdown source={content} escapeHtml={false} />
+                            <ReactMarkdown source={content} escapeHtml={true} />
                         </Typography>
                     </div>
                 </Container>

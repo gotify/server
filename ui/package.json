@@ -23,6 +23,7 @@
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
     "react-timeago": "^4.1.9",
+    "remove-markdown": "^0.3.0",
     "typeface-roboto": "0.0.54"
   },
   "scripts": {
@@ -49,6 +50,7 @@
     "@types/react-dom": "^16.0.7",
     "@types/react-infinite": "0.0.33",
     "@types/react-router-dom": "^4.3.0",
+    "@types/remove-markdown": "^0.1.1",
     "@types/rimraf": "^2.0.2",
     "get-port": "^4.0.0",
     "prettier": "^1.14.2",

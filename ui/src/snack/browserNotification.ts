@@ -1,4 +1,5 @@
 import Notify from 'notifyjs';
+import removeMarkdown from 'remove-markdown';
 
 export function requestPermission() {
     if (Notify.needsPermission && Notify.isSupported()) {
@@ -11,7 +12,7 @@ export function requestPermission() {
 
 export function notifyNewMessage(msg: IMessage) {
     const notify = new Notify(msg.title, {
-        body: msg.message,
+        body: removeMarkdown(msg.message),
         icon: msg.image,
         notifyClick: closeAndFocus,
         notifyShow: closeAfterTimeout,
