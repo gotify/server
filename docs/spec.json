@@ -2021,10 +2021,10 @@
           "example": 25
         },
         "message": {
-          "description": "The actual message.",
+          "description": "The message. Markdown (excluding html) is allowed.",
           "type": "string",
           "x-go-name": "Message",
-          "example": "Backup was successfully finished."
+          "example": "**Backup** was successfully finished."
         },
         "priority": {
           "description": "The priority of the message.",

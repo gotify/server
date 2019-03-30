@@ -33,10 +33,10 @@ type MessageExternal struct {
 	// required: true
 	// example: 5
 	ApplicationID uint `json:"appid"`
-	// The actual message.
+	// The message. Markdown (excluding html) is allowed.
 	//
 	// required: true
-	// example: Backup was successfully finished.
+	// example: **Backup** was successfully finished.
 	Message string `form:"message" query:"message" json:"message" binding:"required"`
 	// The title of the message.
 	//
