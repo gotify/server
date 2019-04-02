@@ -56,6 +56,10 @@ We wanted a simple server for sending and receiving messages (in real time per W
 [REST-API](https://gotify.net/api-docs) ᛫
 [Setup Dev Environment](https://gotify.net/docs/dev-setup)
 
+## Contributing
+
+We welcome all kinds of contribution, including bug reports, feature requests, documentation improvements, UI refinements, etc. Check out [CONTRIBUTING.md](CONTRIBUTING.md) for how you could contribute to this project.
+
 ## Versioning
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the
 [tags on this repository](https://github.com/gotify/server/tags).
