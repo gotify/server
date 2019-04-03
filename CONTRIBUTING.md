@@ -8,12 +8,14 @@ If you have any questions you can join the chat on [#gotify:matrix.org](https://
 
 ## Where to Contribute
 
-- [gotify/server](https://github.com/gotify/server) - server implementation and WebUI code. Written in Golang and React Typescript.
-- [gotify/android](https://github.com/gotify/android) - android client implementation. Written in Java.
-- [gotify/plugin-template](https://github.com/gotify/plugin-template) - official gotify plugin template. Written in Golang.
-- [gotify/cli](https://github.com/gotify/cli) - official CLI client. Written in Golang.
-- [gotify/website](https://github.com/gotify/website) - contents for [gotify.net](https://gotify.net/). Written in Markdown.
-
+|                                                         Repository|                                   Description|               Technology|
+|                                                                ---|                                           ---|                      ---|
+|[gotify/server](https://github.com/gotify/server)                  |server implementation and WebUI code          |`Go` `Typescript` `React`|
+|[gotify/android](https://github.com/gotify/android)                |android client implementation                 |`Java` `Android`         |
+|[gotify/plugin-template](https://github.com/gotify/plugin-template)|official gotify plugin template               |`Go`                     |
+|[gotify/cli](https://github.com/gotify/cli)                        |official CLI client                           |`Go`                     |
+|[gotify/website](https://github.com/gotify/website)                |documentaion [gotify.net](https://gotify.net/)|`Markdown` `Docusaurus`  |
+|[gotify/contrib](https://github.com/gotify/contrib)                |community-contributed projects                |`misc`                   |    
 
 ## Ways to Contribute
 
