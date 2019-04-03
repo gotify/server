@@ -58,7 +58,7 @@ We wanted a simple server for sending and receiving messages (in real time per W
 
 ## Contributing
 
-We welcome all kinds of contribution, including bug reports, feature requests, documentation improvements, UI refinements, etc. Check out [CONTRIBUTING.md](CONTRIBUTING.md) for how you could contribute to this project.
+We welcome all kinds of contribution, including bug reports, feature requests, documentation improvements, UI refinements, etc. Check out [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Versioning
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the

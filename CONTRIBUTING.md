@@ -29,9 +29,9 @@ Documents are residing in the [gotify/website](https://github.com/gotify/website
 
 _Keywords: **Features**, **Coding**_
 
-When proposing features to gotify/\*, please first discuss the change (typos excluded) you wish to make via issue, chat or any other method with the maintainers.
+When proposing features to gotify/\*, please first discuss the change you wish to make via issue, chat or any other method with the maintainers.
 
-After the feature request is approved, file an issue or comment under the existing one indicating whether you want to sumbit the implementation yourself. If you decided not to, the maintainers would evaluate the necessity and urgency of the feature and decide whether to wait for another contributor to claim the request or commit an implementation himself/herself.
+After the feature request is approved, file an issue or comment under the existing one indicating whether you want to submit the implementation yourself. If you decided not to, the maintainers would evaluate the necessity and urgency of the feature and decide whether to wait for another contributor to claim the request or commit an implementation himself/herself.
 
 ### Bug Reports and Fixes
 
@@ -41,7 +41,7 @@ If you are not sure if the problem you are facing is indeed a bug, we recommend 
 
 After the bug is confirmed, please file a new or comment under the existing issue describing the bug and indicate whether you want to sumbit the fix yourself.
 
-If you want to sumbit a fix to an already confimed issue, please indicate that you wish to submit a PR in a comment before starting your work.
+If you want to submit a fix to an already confirmed issue, please indicate that you wish to submit a PR in a comment before starting your work.
 
 ### Community Contribution Projects
 
@@ -52,4 +52,4 @@ Make gotify more powerful and easy-to-use than ever by:
  - writing a client (smartphones, Windows, Linux, Browser Add-on, etc.)
  - writing about how you have used gotify for your applications
  
-Also, after you have finished, consider sumbitting your hard work to the community contributions [repository](https://github.com/gotify/contrib) so that it could benefit more users.
+Also, after you have finished, consider submitting your hard work to the community contributions [repository](https://github.com/gotify/contrib) so that more users can make a use of it.
