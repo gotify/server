@@ -8,6 +8,7 @@ import Container from '../common/Container';
 import * as config from '../config';
 import {StyleRulesCallback} from '@material-ui/core/styles/withStyles';
 import ReactMarkdown from 'react-markdown';
+import {RenderMode, contentType} from './extras';
 
 const styles: StyleRulesCallback = () => ({
     header: {
@@ -53,6 +54,7 @@ interface IProps {
     date: string;
     content: string;
     fDelete: VoidFunction;
+    extras?: IMessageExtras;
     height: (height: number) => void;
 }
 
@@ -62,8 +64,20 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
     public componentDidMount = () =>
         this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
 
+    private renderContent = () => {
+        const content = this.props.content;
+        switch (contentType(this.props.extras)) {
+            case RenderMode.Markdown:
+                return <ReactMarkdown source={content} escapeHtml={true} />;
+            case RenderMode.Plain:
+            default:
+                return content;
+        }
+    };
+
     public render(): React.ReactNode {
-        const {fDelete, classes, title, date, content, image} = this.props;
+        const {fDelete, classes, title, date, image} = this.props;
+
         return (
             <div className={`${classes.wrapperPadding} message`} ref={(ref) => (this.node = ref)}>
                 <Container style={{display: 'flex'}}>
@@ -93,7 +107,7 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                             </IconButton>
                         </div>
                         <Typography component="div" className={`${classes.content} content`}>
-                            <ReactMarkdown source={content} escapeHtml={true} />
+                            {this.renderContent()}
                         </Typography>
                     </div>
                 </Container>
