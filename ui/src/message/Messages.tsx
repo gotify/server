@@ -116,6 +116,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                 date={message.date}
                 content={message.message}
                 image={message.image}
+                extras={message.extras}
             />
         );
     };
