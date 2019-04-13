@@ -17,7 +17,7 @@ type Client struct {
 	// read only: true
 	// required: true
 	// example: CWH0wZ5r0Mbac.r
-	Token  string `gorm:"unique_index" json:"token"`
+	Token  string `gorm:"type:varchar(180);unique_index" json:"token"`
 	UserID uint   `gorm:"index" json:"-"`
 	// The client name. This is how the client should be displayed to the user.
 	//
