@@ -130,6 +130,8 @@ func (m *Manager) SetPluginEnabled(pluginID uint, enabled bool) error {
 	if err != nil {
 		return err
 	}
+
+	conf = m.db.GetPluginConfByID(pluginID) // conf might be updated by instance
 	conf.Enabled = enabled
 	return m.db.UpdatePluginConf(conf)
 }
