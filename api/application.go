@@ -68,8 +68,9 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 		app.Token = auth.GenerateNotExistingToken(generateApplicationToken, a.applicationExists)
 		app.UserID = auth.GetUserID(ctx)
 		app.Internal = false
-		a.DB.CreateApplication(&app)
-		ctx.JSON(200, withResolvedImage(&app))
+		if success := checkErrorOrAbort(ctx, 500, a.DB.CreateApplication(&app)); success {
+			ctx.JSON(200, withResolvedImage(&app))
+		}
 	}
 }
 
@@ -147,9 +148,10 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 				ctx.AbortWithError(400, errors.New("cannot delete internal application"))
 				return
 			}
-			a.DB.DeleteApplicationByID(id)
-			if app.Image != "" {
-				os.Remove(a.ImageDir + app.Image)
+			if success := checkErrorOrAbort(ctx, 500, a.DB.DeleteApplicationByID(id)); success {
+				if app.Image != "" {
+					os.Remove(a.ImageDir + app.Image)
+				}
 			}
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
@@ -207,9 +209,10 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 				app.Description = newValues.Description
 				app.Name = newValues.Name
 
-				a.DB.UpdateApplication(app)
+				if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateApplication(app)); success {
+					ctx.JSON(200, withResolvedImage(app))
+				}
 
-				ctx.JSON(200, withResolvedImage(app))
 			}
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
@@ -300,8 +303,9 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 			}
 
 			app.Image = name + ext
-			a.DB.UpdateApplication(app)
-			ctx.JSON(200, withResolvedImage(app))
+			if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateApplication(app)); success {
+				ctx.JSON(200, withResolvedImage(app))
+			}
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
 		}

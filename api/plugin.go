@@ -378,7 +378,7 @@ func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 			return
 		}
 		conf.Config = newconfBytes
-		c.DB.UpdatePluginConf(conf)
+		checkErrorOrAbort(ctx, 500, c.DB.UpdatePluginConf(conf))
 	})
 }
 

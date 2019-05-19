@@ -15,7 +15,7 @@ type UserDatabase interface {
 	GetUserByID(id uint) *model.User
 	GetUserByName(name string) *model.User
 	DeleteUserByID(id uint) error
-	UpdateUser(user *model.User)
+	UpdateUser(user *model.User) error
 	CreateUser(user *model.User) error
 	CountUser(condition ...interface{}) int
 }
@@ -159,12 +159,13 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 	if err := ctx.Bind(&user); err == nil {
 		internal := a.toInternalUser(&user, []byte{})
 		if a.DB.GetUserByName(internal.Name) == nil {
-			a.DB.CreateUser(internal)
-			if err := a.UserChangeNotifier.fireUserAdded(internal.ID); err != nil {
-				ctx.AbortWithError(500, err)
-				return
+			if success := checkErrorOrAbort(ctx, 500, a.DB.CreateUser(internal)); success {
+				if err := a.UserChangeNotifier.fireUserAdded(internal.ID); err != nil {
+					ctx.AbortWithError(500, err)
+					return
+				}
+				ctx.JSON(200, toExternalUser(internal))
 			}
-			ctx.JSON(200, toExternalUser(internal))
 		} else {
 			ctx.AbortWithError(400, errors.New("username already exists"))
 		}
@@ -261,7 +262,7 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 				ctx.AbortWithError(500, err)
 				return
 			}
-			a.DB.DeleteUserByID(id)
+			checkErrorOrAbort(ctx, 500, a.DB.DeleteUserByID(id))
 		} else {
 			ctx.AbortWithError(404, errors.New("user does not exist"))
 		}
@@ -304,7 +305,7 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 	if err := ctx.Bind(&pw); err == nil {
 		user := a.DB.GetUserByID(auth.GetUserID(ctx))
 		user.Pass = password.CreatePassword(pw.Pass, a.PasswordStrength)
-		a.DB.UpdateUser(user)
+		checkErrorOrAbort(ctx, 500, a.DB.UpdateUser(user))
 	}
 }
 
@@ -361,7 +362,7 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 				}
 				internal := a.toInternalUser(user, oldUser.Pass)
 				internal.ID = id
-				a.DB.UpdateUser(internal)
+				checkErrorOrAbort(ctx, 500, a.DB.UpdateUser(internal))
 				ctx.JSON(200, toExternalUser(internal))
 			} else {
 				ctx.AbortWithError(404, errors.New("user does not exist"))

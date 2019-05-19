@@ -74,9 +74,9 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 			if err := ctx.Bind(newValues); err == nil {
 				client.Name = newValues.Name
 
-				a.DB.UpdateClient(client)
-
-				ctx.JSON(200, client)
+				if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateClient(client)); success {
+					ctx.JSON(200, client)
+				}
 			}
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
@@ -122,8 +122,9 @@ func (a *ClientAPI) CreateClient(ctx *gin.Context) {
 	if err := ctx.Bind(&client); err == nil {
 		client.Token = auth.GenerateNotExistingToken(generateClientToken, a.clientExists)
 		client.UserID = auth.GetUserID(ctx)
-		a.DB.CreateClient(&client)
-		ctx.JSON(200, client)
+		if success := checkErrorOrAbort(ctx, 500, a.DB.CreateClient(&client)); success {
+			ctx.JSON(200, client)
+		}
 	}
 }
 
@@ -195,7 +196,7 @@ func (a *ClientAPI) DeleteClient(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if client := a.DB.GetClientByID(id); client != nil && client.UserID == auth.GetUserID(ctx) {
 			a.NotifyDeleted(client.UserID, client.Token)
-			a.DB.DeleteClientByID(id)
+			checkErrorOrAbort(ctx, 500, a.DB.DeleteClientByID(id))
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
 		}

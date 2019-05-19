@@ -59,8 +59,8 @@ func (d *GormDatabase) DeleteUserByID(id uint) error {
 }
 
 // UpdateUser updates a user.
-func (d *GormDatabase) UpdateUser(user *model.User) {
-	d.DB.Save(user)
+func (d *GormDatabase) UpdateUser(user *model.User) error {
+	return d.DB.Save(user).Error
 }
 
 // CreateUser creates a user.

@@ -206,7 +206,7 @@ func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
-	a.DB.DeleteMessagesByUser(userID)
+	checkErrorOrAbort(ctx, 500, a.DB.DeleteMessagesByUser(userID))
 }
 
 // DeleteMessageWithApplication deletes all messages from a specific application.
@@ -245,7 +245,7 @@ func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if application := a.DB.GetApplicationByID(id); application != nil && application.UserID == auth.GetUserID(ctx) {
-			a.DB.DeleteMessagesByApplication(id)
+			checkErrorOrAbort(ctx, 500, a.DB.DeleteMessagesByApplication(id))
 		} else {
 			ctx.AbortWithError(404, errors.New("application does not exists"))
 		}
@@ -288,7 +288,7 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		if msg := a.DB.GetMessageByID(id); msg != nil && a.DB.GetApplicationByID(msg.ApplicationID).UserID == auth.GetUserID(ctx) {
-			a.DB.DeleteMessageByID(id)
+			checkErrorOrAbort(ctx, 500, a.DB.DeleteMessageByID(id))
 		} else {
 			ctx.AbortWithError(404, errors.New("message does not exists"))
 		}
@@ -339,9 +339,10 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		}
 		message.Date = timeNow()
 		msgInternal := toInternalMessage(&message)
-		a.DB.CreateMessage(msgInternal)
-		a.Notifier.Notify(auth.GetUserID(ctx), toExternalMessage(msgInternal))
-		ctx.JSON(200, toExternalMessage(msgInternal))
+		if success := checkErrorOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); success {
+			a.Notifier.Notify(auth.GetUserID(ctx), toExternalMessage(msgInternal))
+			ctx.JSON(200, toExternalMessage(msgInternal))
+		}
 	}
 }
 
