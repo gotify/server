@@ -2,16 +2,20 @@ package database
 
 import (
 	"github.com/gotify/server/model"
+	"github.com/jinzhu/gorm"
 )
 
 // GetMessageByID returns the messages for the given id or nil.
-func (d *GormDatabase) GetMessageByID(id uint) *model.Message {
+func (d *GormDatabase) GetMessageByID(id uint) (*model.Message, error) {
 	msg := new(model.Message)
-	d.DB.Find(msg, id)
-	if msg.ID == id {
-		return msg
+	err := d.DB.Find(msg, id).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
 	}
-	return nil
+	if msg.ID == id {
+		return msg, err
+	}
+	return nil, err
 }
 
 // CreateMessage creates a message.
@@ -20,43 +24,55 @@ func (d *GormDatabase) CreateMessage(message *model.Message) error {
 }
 
 // GetMessagesByUser returns all messages from a user.
-func (d *GormDatabase) GetMessagesByUser(userID uint) []*model.Message {
+func (d *GormDatabase) GetMessagesByUser(userID uint) ([]*model.Message, error) {
 	var messages []*model.Message
-	d.DB.Joins("JOIN applications ON applications.user_id = ?", userID).
-		Where("messages.application_id = applications.id").Order("id desc").Find(&messages)
-	return messages
+	err := d.DB.Joins("JOIN applications ON applications.user_id = ?", userID).
+		Where("messages.application_id = applications.id").Order("id desc").Find(&messages).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return messages, err
 }
 
 // GetMessagesByUserSince returns limited messages from a user.
 // If since is 0 it will be ignored.
-func (d *GormDatabase) GetMessagesByUserSince(userID uint, limit int, since uint) []*model.Message {
+func (d *GormDatabase) GetMessagesByUserSince(userID uint, limit int, since uint) ([]*model.Message, error) {
 	var messages []*model.Message
 	db := d.DB.Joins("JOIN applications ON applications.user_id = ?", userID).
 		Where("messages.application_id = applications.id").Order("id desc").Limit(limit)
 	if since != 0 {
 		db = db.Where("messages.id < ?", since)
 	}
-	db.Find(&messages)
-	return messages
+	err := db.Find(&messages).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return messages, err
 }
 
 // GetMessagesByApplication returns all messages from an application.
-func (d *GormDatabase) GetMessagesByApplication(tokenID uint) []*model.Message {
+func (d *GormDatabase) GetMessagesByApplication(tokenID uint) ([]*model.Message, error) {
 	var messages []*model.Message
-	d.DB.Where("application_id = ?", tokenID).Order("id desc").Find(&messages)
-	return messages
+	err := d.DB.Where("application_id = ?", tokenID).Order("id desc").Find(&messages).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return messages, err
 }
 
 // GetMessagesByApplicationSince returns limited messages from an application.
 // If since is 0 it will be ignored.
-func (d *GormDatabase) GetMessagesByApplicationSince(appID uint, limit int, since uint) []*model.Message {
+func (d *GormDatabase) GetMessagesByApplicationSince(appID uint, limit int, since uint) ([]*model.Message, error) {
 	var messages []*model.Message
 	db := d.DB.Where("application_id = ?", appID).Order("id desc").Limit(limit)
 	if since != 0 {
 		db = db.Where("messages.id < ?", since)
 	}
-	db.Find(&messages)
-	return messages
+	err := db.Find(&messages).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return messages, err
 }
 
 // DeleteMessageByID deletes a message by its id.
@@ -71,7 +87,8 @@ func (d *GormDatabase) DeleteMessagesByApplication(applicationID uint) error {
 
 // DeleteMessagesByUser deletes all messages from a user.
 func (d *GormDatabase) DeleteMessagesByUser(userID uint) error {
-	for _, app := range d.GetApplicationsByUser(userID) {
+	app, _ := d.GetApplicationsByUser(userID)
+	for _, app := range app {
 		d.DeleteMessagesByApplication(app.ID)
 	}
 	return nil

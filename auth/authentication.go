@@ -14,11 +14,11 @@ const (
 
 // The Database interface for encapsulating database access.
 type Database interface {
-	GetApplicationByToken(token string) *model.Application
-	GetClientByToken(token string) *model.Client
-	GetPluginConfByToken(token string) *model.PluginConf
-	GetUserByName(name string) *model.User
-	GetUserByID(id uint) *model.User
+	GetApplicationByToken(token string) (*model.Application, error)
+	GetClientByToken(token string) (*model.Client, error)
+	GetPluginConfByToken(token string) (*model.PluginConf, error)
+	GetUserByName(name string) (*model.User, error)
+	GetUserByID(id uint) (*model.User, error)
 }
 
 // Auth is the provider for authentication middleware
@@ -35,8 +35,9 @@ func (a *Auth) RequireAdmin() gin.HandlerFunc {
 		if user != nil {
 			return true, user.Admin, user.ID
 		}
-		if token := a.DB.GetClientByToken(tokenID); token != nil {
-			return true, a.DB.GetUserByID(token.UserID).Admin, token.UserID
+		if token, _ := a.DB.GetClientByToken(tokenID); token != nil {
+			user, _ := a.DB.GetUserByID(token.UserID)
+			return true, user.Admin, token.UserID
 		}
 		return false, false, 0
 	})
@@ -49,7 +50,7 @@ func (a *Auth) RequireClient() gin.HandlerFunc {
 		if user != nil {
 			return true, true, user.ID
 		}
-		if token := a.DB.GetClientByToken(tokenID); token != nil {
+		if token, _ := a.DB.GetClientByToken(tokenID); token != nil {
 			return true, true, token.UserID
 		}
 		return false, false, 0
@@ -62,7 +63,7 @@ func (a *Auth) RequireApplicationToken() gin.HandlerFunc {
 		if user != nil {
 			return true, false, 0
 		}
-		if token := a.DB.GetApplicationByToken(tokenID); token != nil {
+		if token, _ := a.DB.GetApplicationByToken(tokenID); token != nil {
 			return true, true, token.UserID
 		}
 		return false, false, 0
@@ -88,7 +89,7 @@ func (a *Auth) tokenFromHeader(ctx *gin.Context) string {
 
 func (a *Auth) userFromBasicAuth(ctx *gin.Context) *model.User {
 	if name, pass, ok := ctx.Request.BasicAuth(); ok {
-		if user := a.DB.GetUserByName(name); user != nil && password.ComparePassword(user.Pass, []byte(pass)) {
+		if user, _ := a.DB.GetUserByName(name); user != nil && password.ComparePassword(user.Pass, []byte(pass)) {
 			return user
 		}
 	}

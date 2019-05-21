@@ -6,11 +6,18 @@ type dbStorageHandler struct {
 }
 
 func (c dbStorageHandler) Save(b []byte) error {
-	conf := c.db.GetPluginConfByID(c.pluginID)
+	conf, err := c.db.GetPluginConfByID(c.pluginID)
+	if err != nil {
+		return err
+	}
 	conf.Storage = b
 	return c.db.UpdatePluginConf(conf)
 }
 
 func (c dbStorageHandler) Load() ([]byte, error) {
-	return c.db.GetPluginConfByID(c.pluginID).Storage, nil
+	pluginConf, err := c.db.GetPluginConfByID(c.pluginID)
+	if err != nil {
+		return nil, err
+	}
+	return pluginConf.Storage, nil
 }

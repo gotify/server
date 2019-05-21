@@ -85,7 +85,9 @@ func (s *ManagerSuite) SetupSuite() {
 	s.msgReceiver = make(chan MessageWithUserID)
 
 	assert.Contains(s.T(), s.manager.plugins, examplePluginPath)
-	assert.NotNil(s.T(), s.db.GetPluginConfByUserAndPath(1, examplePluginPath))
+	if pluginConf, err := s.db.GetPluginConfByUserAndPath(1, examplePluginPath); assert.NoError(s.T(), err) {
+		assert.NotNil(s.T(), pluginConf)
+	}
 }
 
 func (s *ManagerSuite) TearDownSuite() {
@@ -93,11 +95,16 @@ func (s *ManagerSuite) TearDownSuite() {
 }
 
 func (s *ManagerSuite) getConfForExamplePlugin(uid uint) *model.PluginConf {
-	return s.db.GetPluginConfByUserAndPath(uid, examplePluginPath)
+	pluginConf, err := s.db.GetPluginConfByUserAndPath(uid, examplePluginPath)
+	assert.NoError(s.T(), err)
+	return pluginConf
+
 }
 
 func (s *ManagerSuite) getConfForMockPlugin(uid uint) *model.PluginConf {
-	return s.db.GetPluginConfByUserAndPath(uid, mockPluginPath)
+	pluginConf, err := s.db.GetPluginConfByUserAndPath(uid, mockPluginPath)
+	assert.NoError(s.T(), err)
+	return pluginConf
 }
 
 func (s *ManagerSuite) getMockPluginInstance(uid uint) *mock.PluginInstance {
@@ -394,53 +401,69 @@ func TestNewManager_InternalApplicationManagement(t *testing.T) {
 			UserID:   1,
 		})
 
-		assert.True(t, db.GetApplicationByToken("Ainternal_obsolete").Internal)
+		if app, err := db.GetApplicationByToken("Ainternal_obsolete"); assert.NoError(t, err) {
+			assert.True(t, app.Internal)
+		}
 		_, err := NewManager(db, "", nil, nil)
 		assert.Nil(t, err)
-		assert.False(t, db.GetApplicationByToken("Ainternal_obsolete").Internal)
+		if app, err := db.GetApplicationByToken("Ainternal_obsolete"); assert.NoError(t, err) {
+			assert.False(t, app.Internal)
+		}
 	}
 	{
 		// Application exist, conf exist, no compat
-		db.CreateApplication(&model.Application{
+		assert.NoError(t, db.CreateApplication(&model.Application{
 			Token:    "Ainternal_not_loaded",
 			Internal: true,
 			Name:     "not loaded plugin application",
 			UserID:   1,
-		})
-		db.CreatePluginConf(&model.PluginConf{
-			ApplicationID: db.GetApplicationByToken("Ainternal_not_loaded").ID,
-			UserID:        1,
-			Enabled:       true,
-			Token:         auth.GeneratePluginToken(),
-		})
+		}))
+		if app, err := db.GetApplicationByToken("Ainternal_not_loaded"); assert.NoError(t, err) {
+			assert.NoError(t, db.CreatePluginConf(&model.PluginConf{
+				ApplicationID: app.ID,
+				UserID:        1,
+				Enabled:       true,
+				Token:         auth.GeneratePluginToken(),
+			}))
+		}
 
-		assert.True(t, db.GetApplicationByToken("Ainternal_not_loaded").Internal)
+		if app, err := db.GetApplicationByToken("Ainternal_not_loaded"); assert.NoError(t, err) {
+			assert.True(t, app.Internal)
+		}
 		_, err := NewManager(db, "", nil, nil)
 		assert.Nil(t, err)
-		assert.False(t, db.GetApplicationByToken("Ainternal_not_loaded").Internal)
+		if app, err := db.GetApplicationByToken("Ainternal_not_loaded"); assert.NoError(t, err) {
+			assert.False(t, app.Internal)
+		}
 	}
 	{
 		// Application exist, conf exist, has compat
-		db.CreateApplication(&model.Application{
+		assert.NoError(t, db.CreateApplication(&model.Application{
 			Token:    "Ainternal_loaded",
 			Internal: false,
 			Name:     "not loaded plugin application",
 			UserID:   1,
-		})
-		db.CreatePluginConf(&model.PluginConf{
-			ApplicationID: db.GetApplicationByToken("Ainternal_loaded").ID,
-			UserID:        1,
-			Enabled:       true,
-			ModulePath:    mock.ModulePath,
-			Token:         auth.GeneratePluginToken(),
-		})
+		}))
+		if app, err := db.GetApplicationByToken("Ainternal_loaded"); assert.NoError(t, err) {
+			assert.NoError(t, db.CreatePluginConf(&model.PluginConf{
+				ApplicationID: app.ID,
+				UserID:        1,
+				Enabled:       true,
+				ModulePath:    mock.ModulePath,
+				Token:         auth.GeneratePluginToken(),
+			}))
+		}
 
-		assert.False(t, db.GetApplicationByToken("Ainternal_loaded").Internal)
+		if app, err := db.GetApplicationByToken("Ainternal_loaded"); assert.NoError(t, err) {
+			assert.False(t, app.Internal)
+		}
 		manager, err := NewManager(db, "", nil, nil)
 		assert.Nil(t, err)
 		assert.Nil(t, manager.LoadPlugin(new(mock.Plugin)))
 		assert.Nil(t, manager.InitializeForUserID(1))
-		assert.True(t, db.GetApplicationByToken("Ainternal_loaded").Internal)
+		if app, err := db.GetApplicationByToken("Ainternal_loaded"); assert.NoError(t, err) {
+			assert.True(t, app.Internal)
+		}
 	}
 }
 

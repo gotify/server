@@ -2,33 +2,43 @@ package database
 
 import (
 	"github.com/gotify/server/model"
+	"github.com/jinzhu/gorm"
 )
 
 // GetPluginConfByUser gets plugin configurations from a user
-func (d *GormDatabase) GetPluginConfByUser(userid uint) []*model.PluginConf {
+func (d *GormDatabase) GetPluginConfByUser(userid uint) ([]*model.PluginConf, error) {
 	var plugins []*model.PluginConf
-	d.DB.Where("user_id = ?", userid).Find(&plugins)
-	return plugins
+	err := d.DB.Where("user_id = ?", userid).Find(&plugins).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return plugins, err
 }
 
 // GetPluginConfByUserAndPath gets plugin configuration by user and file name
-func (d *GormDatabase) GetPluginConfByUserAndPath(userid uint, path string) *model.PluginConf {
+func (d *GormDatabase) GetPluginConfByUserAndPath(userid uint, path string) (*model.PluginConf, error) {
 	plugin := new(model.PluginConf)
-	d.DB.Where("user_id = ? AND module_path = ?", userid, path).First(plugin)
-	if plugin.ModulePath == path {
-		return plugin
+	err := d.DB.Where("user_id = ? AND module_path = ?", userid, path).First(plugin).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
 	}
-	return nil
+	if plugin.ModulePath == path {
+		return plugin, err
+	}
+	return nil, err
 }
 
 // GetPluginConfByApplicationID gets plugin configuration by its internal appid.
-func (d *GormDatabase) GetPluginConfByApplicationID(appid uint) *model.PluginConf {
+func (d *GormDatabase) GetPluginConfByApplicationID(appid uint) (*model.PluginConf, error) {
 	plugin := new(model.PluginConf)
-	d.DB.Where("application_id = ?", appid).First(plugin)
-	if plugin.ApplicationID == appid {
-		return plugin
+	err := d.DB.Where("application_id = ?", appid).First(plugin).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
 	}
-	return nil
+	if plugin.ApplicationID == appid {
+		return plugin, err
+	}
+	return nil, err
 }
 
 // CreatePluginConf creates a new plugin configuration
@@ -37,23 +47,29 @@ func (d *GormDatabase) CreatePluginConf(p *model.PluginConf) error {
 }
 
 // GetPluginConfByToken gets plugin configuration by plugin token
-func (d *GormDatabase) GetPluginConfByToken(token string) *model.PluginConf {
+func (d *GormDatabase) GetPluginConfByToken(token string) (*model.PluginConf, error) {
 	plugin := new(model.PluginConf)
-	d.DB.Where("token = ?", token).First(plugin)
-	if plugin.Token == token {
-		return plugin
+	err := d.DB.Where("token = ?", token).First(plugin).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
 	}
-	return nil
+	if plugin.Token == token {
+		return plugin, err
+	}
+	return nil, err
 }
 
 // GetPluginConfByID gets plugin configuration by plugin ID
-func (d *GormDatabase) GetPluginConfByID(id uint) *model.PluginConf {
+func (d *GormDatabase) GetPluginConfByID(id uint) (*model.PluginConf, error) {
 	plugin := new(model.PluginConf)
-	d.DB.Where("id = ?", id).First(plugin)
-	if plugin.ID == id {
-		return plugin
+	err := d.DB.Where("id = ?", id).First(plugin).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
 	}
-	return nil
+	if plugin.ID == id {
+		return plugin, err
+	}
+	return nil, err
 }
 
 // UpdatePluginConf updates plugin configuration

@@ -16,9 +16,9 @@ import (
 // The ApplicationDatabase interface for encapsulating database access.
 type ApplicationDatabase interface {
 	CreateApplication(application *model.Application) error
-	GetApplicationByToken(token string) *model.Application
-	GetApplicationByID(id uint) *model.Application
-	GetApplicationsByUser(userID uint) []*model.Application
+	GetApplicationByToken(token string) (*model.Application, error)
+	GetApplicationByID(id uint) (*model.Application, error)
+	GetApplicationsByUser(userID uint) ([]*model.Application, error)
 	DeleteApplicationByID(id uint) error
 	UpdateApplication(application *model.Application) error
 }
@@ -100,11 +100,13 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
-	apps := a.DB.GetApplicationsByUser(userID)
-	for _, app := range apps {
-		withResolvedImage(app)
+	apps, err := a.DB.GetApplicationsByUser(userID)
+	if success := checkErrorOrAbort(ctx, 500, err); success {
+		for _, app := range apps {
+			withResolvedImage(app)
+		}
+		ctx.JSON(200, apps)
 	}
-	ctx.JSON(200, apps)
 }
 
 // DeleteApplication deletes an application by its id.
@@ -143,18 +145,21 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
-			if app.Internal {
-				ctx.AbortWithError(400, errors.New("cannot delete internal application"))
-				return
-			}
-			if success := checkErrorOrAbort(ctx, 500, a.DB.DeleteApplicationByID(id)); success {
-				if app.Image != "" {
-					os.Remove(a.ImageDir + app.Image)
+		app, err := a.DB.GetApplicationByID(id)
+		if success := checkErrorOrAbort(ctx, 500, err); success {
+			if app != nil && app.UserID == auth.GetUserID(ctx) {
+				if app.Internal {
+					ctx.AbortWithError(400, errors.New("cannot delete internal application"))
+					return
 				}
+				if success := checkErrorOrAbort(ctx, 500, a.DB.DeleteApplicationByID(id)); success {
+					if app.Image != "" {
+						os.Remove(a.ImageDir + app.Image)
+					}
+				}
+			} else {
+				ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
 			}
-		} else {
-			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
 		}
 	})
 }
@@ -203,19 +208,22 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
-			newValues := &model.Application{}
-			if err := ctx.Bind(newValues); err == nil {
-				app.Description = newValues.Description
-				app.Name = newValues.Name
+		app, err := a.DB.GetApplicationByID(id)
+		if success := checkErrorOrAbort(ctx, 500, err); success {
+			if app != nil && app.UserID == auth.GetUserID(ctx) {
+				newValues := &model.Application{}
+				if err := ctx.Bind(newValues); err == nil {
+					app.Description = newValues.Description
+					app.Name = newValues.Name
 
-				if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateApplication(app)); success {
-					ctx.JSON(200, withResolvedImage(app))
+					if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateApplication(app)); success {
+						ctx.JSON(200, withResolvedImage(app))
+					}
+
 				}
-
+			} else {
+				ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
 			}
-		} else {
-			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
 		}
 	})
 }
@@ -268,46 +276,49 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		if app := a.DB.GetApplicationByID(id); app != nil && app.UserID == auth.GetUserID(ctx) {
-			file, err := ctx.FormFile("file")
-			if err == http.ErrMissingFile {
-				ctx.AbortWithError(400, errors.New("file with key 'file' must be present"))
-				return
-			} else if err != nil {
-				ctx.AbortWithError(500, err)
-				return
-			}
-			head := make([]byte, 261)
-			open, _ := file.Open()
-			open.Read(head)
-			if !filetype.IsImage(head) {
-				ctx.AbortWithError(400, errors.New("file must be an image"))
-				return
-			}
+		app, err := a.DB.GetApplicationByID(id)
+		if success := checkErrorOrAbort(ctx, 500, err); success {
+			if app != nil && app.UserID == auth.GetUserID(ctx) {
+				file, err := ctx.FormFile("file")
+				if err == http.ErrMissingFile {
+					ctx.AbortWithError(400, errors.New("file with key 'file' must be present"))
+					return
+				} else if err != nil {
+					ctx.AbortWithError(500, err)
+					return
+				}
+				head := make([]byte, 261)
+				open, _ := file.Open()
+				open.Read(head)
+				if !filetype.IsImage(head) {
+					ctx.AbortWithError(400, errors.New("file must be an image"))
+					return
+				}
 
-			ext := filepath.Ext(file.Filename)
+				ext := filepath.Ext(file.Filename)
 
-			name := generateImageName()
-			for exist(a.ImageDir + name + ext) {
-				name = generateImageName()
-			}
+				name := generateImageName()
+				for exist(a.ImageDir + name + ext) {
+					name = generateImageName()
+				}
 
-			err = ctx.SaveUploadedFile(file, a.ImageDir+name+ext)
-			if err != nil {
-				ctx.AbortWithError(500, err)
-				return
-			}
+				err = ctx.SaveUploadedFile(file, a.ImageDir+name+ext)
+				if err != nil {
+					ctx.AbortWithError(500, err)
+					return
+				}
 
-			if app.Image != "" {
-				os.Remove(a.ImageDir + app.Image)
-			}
+				if app.Image != "" {
+					os.Remove(a.ImageDir + app.Image)
+				}
 
-			app.Image = name + ext
-			if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateApplication(app)); success {
-				ctx.JSON(200, withResolvedImage(app))
+				app.Image = name + ext
+				if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateApplication(app)); success {
+					ctx.JSON(200, withResolvedImage(app))
+				}
+			} else {
+				ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
 			}
-		} else {
-			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
 		}
 	})
 }
@@ -322,7 +333,8 @@ func withResolvedImage(app *model.Application) *model.Application {
 }
 
 func (a *ApplicationAPI) applicationExists(token string) bool {
-	return a.DB.GetApplicationByToken(token) != nil
+	app, _ := a.DB.GetApplicationByToken(token)
+	return app != nil
 }
 
 func exist(path string) bool {

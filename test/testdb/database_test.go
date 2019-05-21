@@ -12,7 +12,9 @@ import (
 
 func Test_WithDefault(t *testing.T) {
 	db := testdb.NewDBWithDefaultUser(t)
-	assert.NotNil(t, db.GetUserByName("admin"))
+	if user, err := db.GetUserByName("admin"); assert.NoError(t, err) {
+		assert.NotNil(t, user)
+	}
 	db.Close()
 }
 
@@ -45,7 +47,9 @@ func (s *DatabaseSuite) Test_Users() {
 
 	users := []*model.User{{ID: 1, Name: "user1"}, {ID: 2, Name: "user2"}, {ID: 3, Name: "tom"}}
 
-	assert.Equal(s.T(), users, s.db.GetUsers())
+	if usersActual, err := s.db.GetUsers(); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), users, usersActual)
+	}
 	s.db.AssertUserExist(1)
 	s.db.AssertUserExist(2)
 	s.db.AssertUserExist(3)
@@ -68,9 +72,13 @@ func (s *DatabaseSuite) Test_Clients() {
 	assert.Equal(s.T(), newClientExpected, newClientActual)
 
 	userOneExpected := []*model.Client{{ID: 1, Token: "client1", UserID: 1}, {ID: 2, Token: "asdf", UserID: 1}}
-	assert.Equal(s.T(), userOneExpected, s.db.GetClientsByUser(1))
+	if clients, err := s.db.GetClientsByUser(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), userOneExpected, clients)
+	}
 	userTwoExpected := []*model.Client{{ID: 5, Token: "client5", UserID: 2}}
-	assert.Equal(s.T(), userTwoExpected, s.db.GetClientsByUser(2))
+	if clients, err := s.db.GetClientsByUser(2); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), userTwoExpected, clients)
+	}
 
 	s.db.AssertClientExist(1)
 	s.db.AssertClientExist(2)
@@ -99,9 +107,13 @@ func (s *DatabaseSuite) Test_Apps() {
 	assert.Equal(s.T(), newInternalAppExpected, newInternalAppActual)
 
 	userOneExpected := []*model.Application{{ID: 1, Token: "app1", UserID: 1}, {ID: 2, Token: "asdf", UserID: 1}, {ID: 3, Token: "qwer", UserID: 1, Internal: true}}
-	assert.Equal(s.T(), userOneExpected, s.db.GetApplicationsByUser(1))
+	if app, err := s.db.GetApplicationsByUser(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), userOneExpected, app)
+	}
 	userTwoExpected := []*model.Application{{ID: 5, Token: "app5", UserID: 2, Internal: true}}
-	assert.Equal(s.T(), userTwoExpected, s.db.GetApplicationsByUser(2))
+	if app, err := s.db.GetApplicationsByUser(2); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), userTwoExpected, app)
+	}
 
 	newAppWithName := userBuilder.NewAppWithTokenAndName(7, "test-token", "app name")
 	newAppWithNameExpected := &model.Application{ID: 7, Token: "test-token", UserID: 1, Name: "app name"}
@@ -139,9 +151,13 @@ func (s *DatabaseSuite) Test_Messages() {
 	s.db.User(2).App(2).Message(4).Message(5)
 
 	userOneExpected := []*model.Message{{ID: 2, ApplicationID: 1}, {ID: 1, ApplicationID: 1}}
-	assert.Equal(s.T(), userOneExpected, s.db.GetMessagesByUser(1))
+	if msgs, err := s.db.GetMessagesByUser(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), userOneExpected, msgs)
+	}
 	userTwoExpected := []*model.Message{{ID: 5, ApplicationID: 2}, {ID: 4, ApplicationID: 2}}
-	assert.Equal(s.T(), userTwoExpected, s.db.GetMessagesByUser(2))
+	if msgs, err := s.db.GetMessagesByUser(2); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), userTwoExpected, msgs)
+	}
 
 	s.db.AssertMessageExist(1)
 	s.db.AssertMessageExist(2)

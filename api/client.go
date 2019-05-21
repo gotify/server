@@ -11,9 +11,9 @@ import (
 // The ClientDatabase interface for encapsulating database access.
 type ClientDatabase interface {
 	CreateClient(client *model.Client) error
-	GetClientByToken(token string) *model.Client
-	GetClientByID(id uint) *model.Client
-	GetClientsByUser(userID uint) []*model.Client
+	GetClientByToken(token string) (*model.Client, error)
+	GetClientByID(id uint) (*model.Client, error)
+	GetClientsByUser(userID uint) ([]*model.Client, error)
 	DeleteClientByID(id uint) error
 	UpdateClient(client *model.Client) error
 }
@@ -69,17 +69,20 @@ type ClientAPI struct {
 //         $ref: "#/definitions/Error"
 func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		if client := a.DB.GetClientByID(id); client != nil && client.UserID == auth.GetUserID(ctx) {
-			newValues := &model.Client{}
-			if err := ctx.Bind(newValues); err == nil {
-				client.Name = newValues.Name
+		client, err := a.DB.GetClientByID(id)
+		if success := checkErrorOrAbort(ctx, 500, err); success {
+			if client != nil && client.UserID == auth.GetUserID(ctx) {
+				newValues := &model.Client{}
+				if err := ctx.Bind(newValues); err == nil {
+					client.Name = newValues.Name
 
-				if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateClient(client)); success {
-					ctx.JSON(200, client)
+					if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateClient(client)); success {
+						ctx.JSON(200, client)
+					}
 				}
+			} else {
+				ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
 			}
-		} else {
-			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
 		}
 	})
 }
@@ -154,8 +157,10 @@ func (a *ClientAPI) CreateClient(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *ClientAPI) GetClients(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
-	clients := a.DB.GetClientsByUser(userID)
-	ctx.JSON(200, clients)
+	clients, err := a.DB.GetClientsByUser(userID)
+	if success := checkErrorOrAbort(ctx, 500, err); success {
+		ctx.JSON(200, clients)
+	}
 }
 
 // DeleteClient deletes a client by its id.
@@ -194,15 +199,19 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *ClientAPI) DeleteClient(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		if client := a.DB.GetClientByID(id); client != nil && client.UserID == auth.GetUserID(ctx) {
-			a.NotifyDeleted(client.UserID, client.Token)
-			checkErrorOrAbort(ctx, 500, a.DB.DeleteClientByID(id))
-		} else {
-			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
+		client, err := a.DB.GetClientByID(id)
+		if success := checkErrorOrAbort(ctx, 500, err); success {
+			if client != nil && client.UserID == auth.GetUserID(ctx) {
+				a.NotifyDeleted(client.UserID, client.Token)
+				checkErrorOrAbort(ctx, 500, a.DB.DeleteClientByID(id))
+			} else {
+				ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
+			}
 		}
 	})
 }
 
 func (a *ClientAPI) clientExists(token string) bool {
-	return a.DB.GetClientByToken(token) != nil
+	client, _ := a.DB.GetClientByToken(token)
+	return client != nil
 }

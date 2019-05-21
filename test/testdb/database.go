@@ -171,42 +171,58 @@ func (mb *MessageBuilder) NewMessage(id uint) model.Message {
 
 // AssertAppNotExist asserts that the app does not exist.
 func (d *Database) AssertAppNotExist(id uint) {
-	assert.True(d.t, d.GetApplicationByID(id) == nil, "app %d must not exist", id)
+	if app, err := d.GetApplicationByID(id); assert.NoError(d.t, err) {
+		assert.True(d.t, app == nil, "app %d must not exist", id)
+	}
 }
 
 // AssertUserNotExist asserts that the user does not exist.
 func (d *Database) AssertUserNotExist(id uint) {
-	assert.True(d.t, d.GetUserByID(id) == nil, "user %d must not exist", id)
+	if user, err := d.GetUserByID(id); assert.NoError(d.t, err) {
+		assert.True(d.t, user == nil, "user %d must not exist", id)
+	}
 }
 
 // AssertClientNotExist asserts that the client does not exist.
 func (d *Database) AssertClientNotExist(id uint) {
-	assert.True(d.t, d.GetClientByID(id) == nil, "client %d must not exist", id)
+	if client, err := d.GetClientByID(id); assert.NoError(d.t, err) {
+		assert.True(d.t, client == nil, "client %d must not exist", id)
+	}
 }
 
 // AssertMessageNotExist asserts that the messages does not exist.
 func (d *Database) AssertMessageNotExist(ids ...uint) {
 	for _, id := range ids {
-		assert.True(d.t, d.GetMessageByID(id) == nil, "message %d must not exist", id)
+		if msg, err := d.GetMessageByID(id); assert.NoError(d.t, err) {
+			assert.True(d.t, msg == nil, "message %d must not exist", id)
+		}
 	}
 }
 
 // AssertAppExist asserts that the app does exist.
 func (d *Database) AssertAppExist(id uint) {
-	assert.False(d.t, d.GetApplicationByID(id) == nil, "app %d must exist", id)
+	if app, err := d.GetApplicationByID(id); assert.NoError(d.t, err) {
+		assert.False(d.t, app == nil, "app %d must exist", id)
+	}
 }
 
 // AssertUserExist asserts that the user does exist.
 func (d *Database) AssertUserExist(id uint) {
-	assert.False(d.t, d.GetUserByID(id) == nil, "user %d must exist", id)
+	if user, err := d.GetUserByID(id); assert.NoError(d.t, err) {
+		assert.False(d.t, user == nil, "user %d must exist", id)
+	}
 }
 
 // AssertClientExist asserts that the client does exist.
 func (d *Database) AssertClientExist(id uint) {
-	assert.False(d.t, d.GetClientByID(id) == nil, "client %d must exist", id)
+	if client, err := d.GetClientByID(id); assert.NoError(d.t, err) {
+		assert.False(d.t, client == nil, "client %d must exist", id)
+	}
 }
 
 // AssertMessageExist asserts that the message does exist.
 func (d *Database) AssertMessageExist(id uint) {
-	assert.False(d.t, d.GetMessageByID(id) == nil, "message %d must exist", id)
+	if msg, err := d.GetMessageByID(id); assert.NoError(d.t, err) {
+		assert.False(d.t, msg == nil, "message %d must exist", id)
+	}
 }

@@ -173,15 +173,20 @@ func (s *UserSuite) Test_CreateUser() {
 	test.BodyEquals(s.T(), user, s.recorder)
 	assert.Equal(s.T(), 200, s.recorder.Code)
 
-	created := s.db.GetUserByName("tom")
-	assert.NotNil(s.T(), created)
-	assert.True(s.T(), password.ComparePassword(created.Pass, []byte("mylittlepony")))
+	if created, err := s.db.GetUserByName("tom"); assert.NoError(s.T(), err) {
+		assert.NotNil(s.T(), created)
+		assert.True(s.T(), password.ComparePassword(created.Pass, []byte("mylittlepony")))
+	}
 	assert.True(s.T(), s.notifiedAdd)
 }
 
 func (s *UserSuite) Test_CreateUser_NotifyFail() {
 	s.notifier.OnUserAdded(func(id uint) error {
-		if s.db.GetUserByID(id).Name == "eva" {
+		user, err := s.db.GetUserByID(id)
+		if err != nil {
+			return err
+		}
+		if user.Name == "eva" {
 			return errors.New("some error")
 		}
 		return nil
@@ -272,7 +277,8 @@ func (s *UserSuite) Test_UpdateUserByID_UpdateNotPassword() {
 	s.a.UpdateUserByID(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	user := s.db.GetUserByID(2)
+	user, err := s.db.GetUserByID(2)
+	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), user)
 	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("old")))
 }
@@ -288,7 +294,8 @@ func (s *UserSuite) Test_UpdateUserByID_UpdatePassword() {
 	s.a.UpdateUserByID(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	user := s.db.GetUserByID(2)
+	user, err := s.db.GetUserByID(2)
+	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), user)
 	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("new")))
 }
@@ -303,7 +310,8 @@ func (s *UserSuite) Test_UpdatePassword() {
 	s.a.ChangePassword(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	user := s.db.GetUserByID(1)
+	user, err := s.db.GetUserByID(1)
+	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), user)
 	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("new")))
 }
@@ -318,7 +326,8 @@ func (s *UserSuite) Test_UpdatePassword_EmptyPassword() {
 	s.a.ChangePassword(s.ctx)
 
 	assert.Equal(s.T(), 400, s.recorder.Code)
-	user := s.db.GetUserByID(1)
+	user, err := s.db.GetUserByID(1)
+	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), user)
 	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("old")))
 }

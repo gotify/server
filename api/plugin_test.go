@@ -65,7 +65,9 @@ func (s *PluginSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (s *PluginSuite) getDanglingConf(uid uint) *model.PluginConf {
-	return s.db.GetPluginConfByUserAndPath(uid, "github.com/gotify/server/plugin/example/removed")
+	conf, err := s.db.GetPluginConfByUserAndPath(uid, "github.com/gotify/server/plugin/example/removed")
+	assert.NoError(s.T(), err)
+	return conf
 }
 
 func (s *PluginSuite) resetRecorder() {
@@ -109,7 +111,9 @@ func (s *PluginSuite) Test_EnableDisablePlugin() {
 
 		assert.Equal(s.T(), 200, s.recorder.Code)
 
-		assert.True(s.T(), s.db.GetPluginConfByUserAndPath(1, mock.ModulePath).Enabled)
+		if pluginConf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath); assert.NoError(s.T(), err) {
+			assert.True(s.T(), pluginConf.Enabled)
+		}
 		s.resetRecorder()
 	}
 
@@ -122,7 +126,9 @@ func (s *PluginSuite) Test_EnableDisablePlugin() {
 
 		assert.Equal(s.T(), 400, s.recorder.Code)
 
-		assert.True(s.T(), s.db.GetPluginConfByUserAndPath(1, mock.ModulePath).Enabled)
+		if pluginConf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath); assert.NoError(s.T(), err) {
+			assert.True(s.T(), pluginConf.Enabled)
+		}
 		s.resetRecorder()
 	}
 
@@ -135,7 +141,9 @@ func (s *PluginSuite) Test_EnableDisablePlugin() {
 
 		assert.Equal(s.T(), 200, s.recorder.Code)
 
-		assert.False(s.T(), s.db.GetPluginConfByUserAndPath(1, mock.ModulePath).Enabled)
+		if pluginConf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath); assert.NoError(s.T(), err) {
+			assert.False(s.T(), pluginConf.Enabled)
+		}
 		s.resetRecorder()
 	}
 
@@ -148,7 +156,9 @@ func (s *PluginSuite) Test_EnableDisablePlugin() {
 
 		assert.Equal(s.T(), 400, s.recorder.Code)
 
-		assert.False(s.T(), s.db.GetPluginConfByUserAndPath(1, mock.ModulePath).Enabled)
+		if pluginConf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath); assert.NoError(s.T(), err) {
+			assert.False(s.T(), pluginConf.Enabled)
+		}
 		s.resetRecorder()
 	}
 
@@ -158,7 +168,8 @@ func (s *PluginSuite) Test_EnableDisablePlugin_EnableReturnsError_expect500() {
 	s.db.User(16)
 	assert.Nil(s.T(), s.manager.InitializeForUserID(16))
 	mock.ReturnErrorOnEnableForUser(16, errors.New("test error"))
-	conf := s.db.GetPluginConfByUserAndPath(16, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(16, mock.ModulePath)
+	assert.NoError(s.T(), err)
 
 	{
 		test.WithUser(s.ctx, 16)
@@ -168,7 +179,9 @@ func (s *PluginSuite) Test_EnableDisablePlugin_EnableReturnsError_expect500() {
 
 		assert.Equal(s.T(), 500, s.recorder.Code)
 
-		assert.False(s.T(), s.db.GetPluginConfByUserAndPath(1, mock.ModulePath).Enabled)
+		if pluginConf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath); assert.NoError(s.T(), err) {
+			assert.False(s.T(), pluginConf.Enabled)
+		}
 		s.resetRecorder()
 	}
 }
@@ -177,7 +190,8 @@ func (s *PluginSuite) Test_EnableDisablePlugin_DisableReturnsError_expect500() {
 	s.db.User(17)
 	assert.Nil(s.T(), s.manager.InitializeForUserID(17))
 	mock.ReturnErrorOnDisableForUser(17, errors.New("test error"))
-	conf := s.db.GetPluginConfByUserAndPath(17, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(17, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	s.manager.SetPluginEnabled(conf.ID, true)
 
 	{
@@ -188,7 +202,9 @@ func (s *PluginSuite) Test_EnableDisablePlugin_DisableReturnsError_expect500() {
 
 		assert.Equal(s.T(), 500, s.recorder.Code)
 
-		assert.False(s.T(), s.db.GetPluginConfByUserAndPath(1, mock.ModulePath).Enabled)
+		if pluginConf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath); assert.NoError(s.T(), err) {
+			assert.False(s.T(), pluginConf.Enabled)
+		}
 		s.resetRecorder()
 	}
 }
@@ -203,7 +219,9 @@ func (s *PluginSuite) Test_EnableDisablePlugin_incorrectUser_expectNotFound() {
 
 		assert.Equal(s.T(), 404, s.recorder.Code)
 
-		assert.False(s.T(), s.db.GetPluginConfByUserAndPath(1, mock.ModulePath).Enabled)
+		if pluginConf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath); assert.NoError(s.T(), err) {
+			assert.False(s.T(), pluginConf.Enabled)
+		}
 		s.resetRecorder()
 	}
 
@@ -216,7 +234,9 @@ func (s *PluginSuite) Test_EnableDisablePlugin_incorrectUser_expectNotFound() {
 
 		assert.Equal(s.T(), 404, s.recorder.Code)
 
-		assert.False(s.T(), s.db.GetPluginConfByUserAndPath(1, mock.ModulePath).Enabled)
+		if pluginConf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath); assert.NoError(s.T(), err) {
+			assert.False(s.T(), pluginConf.Enabled)
+		}
 		s.resetRecorder()
 	}
 
@@ -274,7 +294,8 @@ func (s *PluginSuite) Test_EnableDisablePlugin_danglingConf_expectNotFound() {
 }
 
 func (s *PluginSuite) Test_GetDisplay() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -294,7 +315,8 @@ func (s *PluginSuite) Test_GetDisplay() {
 }
 
 func (s *PluginSuite) Test_GetDisplay_NotImplemented_expectEmptyString() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -315,7 +337,8 @@ func (s *PluginSuite) Test_GetDisplay_NotImplemented_expectEmptyString() {
 }
 
 func (s *PluginSuite) Test_GetDisplay_incorrectUser_expectNotFound() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -360,7 +383,8 @@ func (s *PluginSuite) Test_GetDisplay_nonExistPlugin_expectNotFound() {
 }
 
 func (s *PluginSuite) Test_GetConfig() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -381,7 +405,8 @@ func (s *PluginSuite) Test_GetConfig() {
 }
 
 func (s *PluginSuite) Test_GetConfg_notImplemeted_expect400() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -401,7 +426,8 @@ func (s *PluginSuite) Test_GetConfg_notImplemeted_expect400() {
 }
 
 func (s *PluginSuite) Test_GetConfig_incorrectUser_expectNotFound() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 
 	{
 		test.WithUser(s.ctx, 2)
@@ -441,7 +467,8 @@ func (s *PluginSuite) Test_GetConfig_nonExistPlugin_expectNotFound() {
 }
 
 func (s *PluginSuite) Test_UpdateConfig() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -463,7 +490,10 @@ func (s *PluginSuite) Test_UpdateConfig() {
 		assert.Equal(s.T(), 200, s.recorder.Code)
 		assert.Equal(s.T(), newConfig, mockInst.Config, "config should be received by plugin")
 
-		pluginFromDBBytes := s.db.GetPluginConfByID(conf.ID).Config
+		var pluginFromDBBytes []byte
+		if pluginConf, err := s.db.GetPluginConfByID(conf.ID); assert.NoError(s.T(), err) {
+			pluginFromDBBytes = pluginConf.Config
+		}
 		pluginFromDB := new(mock.PluginConfig)
 		err := yaml.Unmarshal(pluginFromDBBytes, pluginFromDB)
 		assert.Nil(s.T(), err)
@@ -472,7 +502,8 @@ func (s *PluginSuite) Test_UpdateConfig() {
 }
 
 func (s *PluginSuite) Test_UpdateConfig_invalidConfig_expect400() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -496,7 +527,10 @@ func (s *PluginSuite) Test_UpdateConfig_invalidConfig_expect400() {
 		assert.Equal(s.T(), 400, s.recorder.Code)
 		assert.Equal(s.T(), origConfig, mockInst.Config, "config should not be received by plugin")
 
-		pluginFromDBBytes := s.db.GetPluginConfByID(conf.ID).Config
+		var pluginFromDBBytes []byte
+		if pluginConf, err := s.db.GetPluginConfByID(conf.ID); assert.NoError(s.T(), err) {
+			pluginFromDBBytes = pluginConf.Config
+		}
 		pluginFromDB := new(mock.PluginConfig)
 		err := yaml.Unmarshal(pluginFromDBBytes, pluginFromDB)
 		assert.Nil(s.T(), err)
@@ -505,7 +539,8 @@ func (s *PluginSuite) Test_UpdateConfig_invalidConfig_expect400() {
 }
 
 func (s *PluginSuite) Test_UpdateConfig_malformedYAML_expect400() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -524,7 +559,10 @@ func (s *PluginSuite) Test_UpdateConfig_malformedYAML_expect400() {
 		assert.Equal(s.T(), 400, s.recorder.Code)
 		assert.Equal(s.T(), origConfig, mockInst.Config, "config should not be received by plugin")
 
-		pluginFromDBBytes := s.db.GetPluginConfByID(conf.ID).Config
+		var pluginFromDBBytes []byte
+		if pluginConf, err := s.db.GetPluginConfByID(conf.ID); assert.NoError(s.T(), err) {
+			pluginFromDBBytes = pluginConf.Config
+		}
 		pluginFromDB := new(mock.PluginConfig)
 		err := yaml.Unmarshal(pluginFromDBBytes, pluginFromDB)
 		assert.Nil(s.T(), err)
@@ -533,7 +571,8 @@ func (s *PluginSuite) Test_UpdateConfig_malformedYAML_expect400() {
 }
 
 func (s *PluginSuite) Test_UpdateConfig_ioError_expect500() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -550,7 +589,10 @@ func (s *PluginSuite) Test_UpdateConfig_ioError_expect500() {
 		assert.Equal(s.T(), 500, s.recorder.Code)
 		assert.Equal(s.T(), origConfig, mockInst.Config, "config should not be received by plugin")
 
-		pluginFromDBBytes := s.db.GetPluginConfByID(conf.ID).Config
+		var pluginFromDBBytes []byte
+		if pluginConf, err := s.db.GetPluginConfByID(conf.ID); assert.NoError(s.T(), err) {
+			pluginFromDBBytes = pluginConf.Config
+		}
 		pluginFromDB := new(mock.PluginConfig)
 		err := yaml.Unmarshal(pluginFromDBBytes, pluginFromDB)
 		assert.Nil(s.T(), err)
@@ -559,7 +601,8 @@ func (s *PluginSuite) Test_UpdateConfig_ioError_expect500() {
 }
 
 func (s *PluginSuite) Test_UpdateConfig_notImplemented_expect400() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -586,7 +629,8 @@ func (s *PluginSuite) Test_UpdateConfig_notImplemented_expect400() {
 }
 
 func (s *PluginSuite) Test_UpdateConfig_incorrectUser_expectNotFound() {
-	conf := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
 	mockInst := inst.(*mock.PluginInstance)
@@ -609,7 +653,10 @@ func (s *PluginSuite) Test_UpdateConfig_incorrectUser_expectNotFound() {
 		assert.Equal(s.T(), 404, s.recorder.Code)
 		assert.Equal(s.T(), origConfig, mockInst.Config, "config should not be received by plugin")
 
-		pluginFromDBBytes := s.db.GetPluginConfByID(conf.ID).Config
+		var pluginFromDBBytes []byte
+		if pluginConf, err := s.db.GetPluginConfByID(conf.ID); assert.NoError(s.T(), err) {
+			pluginFromDBBytes = pluginConf.Config
+		}
 		pluginFromDB := new(mock.PluginConfig)
 		err := yaml.Unmarshal(pluginFromDBBytes, pluginFromDB)
 		assert.Nil(s.T(), err)

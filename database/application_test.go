@@ -6,57 +6,87 @@ import (
 )
 
 func (s *DatabaseSuite) TestApplication() {
-	assert.Nil(s.T(), s.db.GetApplicationByToken("asdasdf"), "not existing app")
-	assert.Nil(s.T(), s.db.GetApplicationByID(uint(1)), "not existing app")
+
+	if app, err := s.db.GetApplicationByToken("asdasdf"); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), app, "not existing app")
+	}
+
+	if app, err := s.db.GetApplicationByID(uint(1)); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), app, "not existing app")
+	}
 
 	user := &model.User{Name: "test", Pass: []byte{1}}
 	s.db.CreateUser(user)
 	assert.NotEqual(s.T(), 0, user.ID)
 
-	apps := s.db.GetApplicationsByUser(user.ID)
-	assert.Empty(s.T(), apps)
+	if apps, err := s.db.GetApplicationsByUser(user.ID); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), apps)
+	}
 
 	app := &model.Application{UserID: user.ID, Token: "C0000000000", Name: "backupserver"}
 	s.db.CreateApplication(app)
 
-	apps = s.db.GetApplicationsByUser(user.ID)
-	assert.Len(s.T(), apps, 1)
-	assert.Contains(s.T(), apps, app)
+	if apps, err := s.db.GetApplicationsByUser(user.ID); assert.NoError(s.T(), err) {
+		assert.Len(s.T(), apps, 1)
+		assert.Contains(s.T(), apps, app)
+	}
 
-	newApp := s.db.GetApplicationByToken(app.Token)
-	assert.Equal(s.T(), app, newApp)
+	newApp, err := s.db.GetApplicationByToken(app.Token)
+	if assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), app, newApp)
+	}
 
-	newApp = s.db.GetApplicationByID(app.ID)
-	assert.Equal(s.T(), app, newApp)
+	newApp, err = s.db.GetApplicationByID(app.ID)
+	if assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), app, newApp)
+	}
 
 	newApp.Image = "asdasd"
-	s.db.UpdateApplication(newApp)
+	assert.NoError(s.T(), s.db.UpdateApplication(newApp))
 
-	newApp = s.db.GetApplicationByID(app.ID)
-	assert.Equal(s.T(), "asdasd", newApp.Image)
+	newApp, err = s.db.GetApplicationByID(app.ID)
+	if assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), "asdasd", newApp.Image)
+	}
 
-	s.db.DeleteApplicationByID(app.ID)
+	assert.NoError(s.T(), s.db.DeleteApplicationByID(app.ID))
 
-	apps = s.db.GetApplicationsByUser(user.ID)
-	assert.Empty(s.T(), apps)
+	if apps, err := s.db.GetApplicationsByUser(user.ID); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), apps)
+	}
 
-	assert.Nil(s.T(), s.db.GetApplicationByID(app.ID))
+	if app, err := s.db.GetApplicationByID(app.ID); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), app)
+	}
 }
 
 func (s *DatabaseSuite) TestDeleteAppDeletesMessages() {
-	s.db.CreateApplication(&model.Application{ID: 55, Token: "token"})
-	s.db.CreateApplication(&model.Application{ID: 66, Token: "token2"})
-	s.db.CreateMessage(&model.Message{ID: 12, ApplicationID: 55})
-	s.db.CreateMessage(&model.Message{ID: 13, ApplicationID: 66})
-	s.db.CreateMessage(&model.Message{ID: 14, ApplicationID: 55})
-	s.db.CreateMessage(&model.Message{ID: 15, ApplicationID: 55})
+	assert.NoError(s.T(), s.db.CreateApplication(&model.Application{ID: 55, Token: "token"}))
+	assert.NoError(s.T(), s.db.CreateApplication(&model.Application{ID: 66, Token: "token2"}))
+	assert.NoError(s.T(), s.db.CreateMessage(&model.Message{ID: 12, ApplicationID: 55}))
+	assert.NoError(s.T(), s.db.CreateMessage(&model.Message{ID: 13, ApplicationID: 66}))
+	assert.NoError(s.T(), s.db.CreateMessage(&model.Message{ID: 14, ApplicationID: 55}))
+	assert.NoError(s.T(), s.db.CreateMessage(&model.Message{ID: 15, ApplicationID: 55}))
 
-	s.db.DeleteApplicationByID(55)
+	assert.NoError(s.T(), s.db.DeleteApplicationByID(55))
 
-	assert.Nil(s.T(), s.db.GetMessageByID(12))
-	assert.NotNil(s.T(), s.db.GetMessageByID(13))
-	assert.Nil(s.T(), s.db.GetMessageByID(14))
-	assert.Nil(s.T(), s.db.GetMessageByID(15))
-	assert.Empty(s.T(), s.db.GetMessagesByApplication(55))
-	assert.NotEmpty(s.T(), s.db.GetMessagesByApplication(66))
+	if msg, err := s.db.GetMessageByID(12); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), msg)
+	}
+	if msg, err := s.db.GetMessageByID(13); assert.NoError(s.T(), err) {
+		assert.NotNil(s.T(), msg)
+	}
+	if msg, err := s.db.GetMessageByID(14); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), msg)
+	}
+	if msg, err := s.db.GetMessageByID(15); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), msg)
+	}
+
+	if msgs, err := s.db.GetMessagesByApplication(55); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), msgs)
+	}
+	if msgs, err := s.db.GetMessagesByApplication(66); assert.NoError(s.T(), err) {
+		assert.NotEmpty(s.T(), msgs)
+	}
 }
