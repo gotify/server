@@ -297,10 +297,9 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 
 				ext := filepath.Ext(file.Filename)
 
-				name := generateImageName()
-				for exist(a.ImageDir + name + ext) {
-					name = generateImageName()
-				}
+				name := generateNonExistingImageName(func() string {
+					return a.ImageDir + generateImageName() + ext
+				})
 
 				err = ctx.SaveUploadedFile(file, a.ImageDir+name+ext)
 				if err != nil {
@@ -317,7 +316,7 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 					ctx.JSON(200, withResolvedImage(app))
 				}
 			} else {
-				ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
+				ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
 			}
 		}
 	})
@@ -342,4 +341,13 @@ func exist(path string) bool {
 		return false
 	}
 	return true
+}
+
+func generateNonExistingImageName(gen func() string) string {
+	for {
+		name := gen()
+		if !exist(name) {
+			return name
+		}
+	}
 }
