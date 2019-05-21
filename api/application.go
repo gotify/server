@@ -301,7 +301,7 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 					return a.ImageDir + generateImageName() + ext
 				})
 
-				err = ctx.SaveUploadedFile(file, a.ImageDir+name+ext)
+				err = ctx.SaveUploadedFile(file, name)
 				if err != nil {
 					ctx.AbortWithError(500, err)
 					return
@@ -311,7 +311,7 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 					os.Remove(a.ImageDir + app.Image)
 				}
 
-				app.Image = name + ext
+				app.Image = name
 				if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateApplication(app)); success {
 					ctx.JSON(200, withResolvedImage(app))
 				}
