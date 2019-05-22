@@ -31,7 +31,7 @@ test-js:
 
 check-go:
 	go vet ./...
-	gocyclo -over 10 $(shell find . -iname '*.go' -type f | grep -v /vendor/ | grep -v _test.go)
+	gocyclo -over 10 $(shell find . -iname '*.go' -type f | grep -v /vendor/)
 	golint -set_exit_status $(shell go list ./... | grep -v mock)
 	goimports -l $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
