@@ -90,9 +90,10 @@ func (a *MessageAPI) GetMessages(ctx *gin.Context) {
 	withPaging(ctx, func(params *pagingParams) {
 		// the +1 is used to check if there are more messages and will be removed on buildWithPaging
 		messages, err := a.DB.GetMessagesByUserSince(userID, params.Limit+1, params.Since)
-		if success := checkErrorOrAbort(ctx, 500, err); success {
-			ctx.JSON(200, buildWithPaging(ctx, params, messages))
+		if success := checkErrorOrAbort(ctx, 500, err); !success {
+			return
 		}
+		ctx.JSON(200, buildWithPaging(ctx, params, messages))
 	})
 }
 
@@ -177,16 +178,18 @@ func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		withPaging(ctx, func(params *pagingParams) {
 			app, err := a.DB.GetApplicationByID(id)
-			if success := checkErrorOrAbort(ctx, 500, err); success {
-				if app != nil && app.UserID == auth.GetUserID(ctx) {
-					// the +1 is used to check if there are more messages and will be removed on buildWithPaging
-					messages, err := a.DB.GetMessagesByApplicationSince(id, params.Limit+1, params.Since)
-					if success := checkErrorOrAbort(ctx, 500, err); success {
-						ctx.JSON(200, buildWithPaging(ctx, params, messages))
-					}
-				} else {
-					ctx.AbortWithError(404, errors.New("application does not exist"))
+			if success := checkErrorOrAbort(ctx, 500, err); !success {
+				return
+			}
+			if app != nil && app.UserID == auth.GetUserID(ctx) {
+				// the +1 is used to check if there are more messages and will be removed on buildWithPaging
+				messages, err := a.DB.GetMessagesByApplicationSince(id, params.Limit+1, params.Since)
+				if success := checkErrorOrAbort(ctx, 500, err); !success {
+					return
 				}
+				ctx.JSON(200, buildWithPaging(ctx, params, messages))
+			} else {
+				ctx.AbortWithError(404, errors.New("application does not exist"))
 			}
 		})
 	})
@@ -252,12 +255,13 @@ func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		application, err := a.DB.GetApplicationByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); success {
-			if application != nil && application.UserID == auth.GetUserID(ctx) {
-				checkErrorOrAbort(ctx, 500, a.DB.DeleteMessagesByApplication(id))
-			} else {
-				ctx.AbortWithError(404, errors.New("application does not exists"))
-			}
+		if success := checkErrorOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if application != nil && application.UserID == auth.GetUserID(ctx) {
+			checkErrorOrAbort(ctx, 500, a.DB.DeleteMessagesByApplication(id))
+		} else {
+			ctx.AbortWithError(404, errors.New("application does not exists"))
 		}
 	})
 }
@@ -298,19 +302,21 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		msg, err := a.DB.GetMessageByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); success {
-			if msg == nil {
-				ctx.AbortWithError(404, errors.New("message does not exist"))
-				return
-			}
-			app, err := a.DB.GetApplicationByID(msg.ApplicationID)
-			if success := checkErrorOrAbort(ctx, 500, err); success {
-				if app != nil && app.UserID == auth.GetUserID(ctx) {
-					checkErrorOrAbort(ctx, 500, a.DB.DeleteMessageByID(id))
-				} else {
-					ctx.AbortWithError(404, errors.New("message does not exist"))
-				}
-			}
+		if success := checkErrorOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if msg == nil {
+			ctx.AbortWithError(404, errors.New("message does not exist"))
+			return
+		}
+		app, err := a.DB.GetApplicationByID(msg.ApplicationID)
+		if success := checkErrorOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if app != nil && app.UserID == auth.GetUserID(ctx) {
+			checkErrorOrAbort(ctx, 500, a.DB.DeleteMessageByID(id))
+		} else {
+			ctx.AbortWithError(404, errors.New("message does not exist"))
 		}
 	})
 }
@@ -353,18 +359,20 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	message := model.MessageExternal{}
 	if err := ctx.Bind(&message); err == nil {
 		application, err := a.DB.GetApplicationByToken(auth.GetTokenID(ctx))
-		if success := checkErrorOrAbort(ctx, 500, err); success {
-			message.ApplicationID = application.ID
-			if strings.TrimSpace(message.Title) == "" {
-				message.Title = application.Name
-			}
-			message.Date = timeNow()
-			msgInternal := toInternalMessage(&message)
-			if success := checkErrorOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); success {
-				a.Notifier.Notify(auth.GetUserID(ctx), toExternalMessage(msgInternal))
-				ctx.JSON(200, toExternalMessage(msgInternal))
-			}
+		if success := checkErrorOrAbort(ctx, 500, err); !success {
+			return
 		}
+		message.ApplicationID = application.ID
+		if strings.TrimSpace(message.Title) == "" {
+			message.Title = application.Name
+		}
+		message.Date = timeNow()
+		msgInternal := toInternalMessage(&message)
+		if success := checkErrorOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
+			return
+		}
+		a.Notifier.Notify(auth.GetUserID(ctx), toExternalMessage(msgInternal))
+		ctx.JSON(200, toExternalMessage(msgInternal))
 	}
 }
 

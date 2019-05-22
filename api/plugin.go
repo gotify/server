@@ -64,26 +64,27 @@ type PluginAPI struct {
 func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	plugins, err := c.DB.GetPluginConfByUser(userID)
-	if success := checkErrorOrAbort(ctx, 500, err); success {
-		result := make([]model.PluginConfExternal, 0)
-		for _, conf := range plugins {
-			if inst, err := c.Manager.Instance(conf.ID); err == nil {
-				info := c.Manager.PluginInfo(conf.ModulePath)
-				result = append(result, model.PluginConfExternal{
-					ID:           conf.ID,
-					Name:         info.String(),
-					Token:        conf.Token,
-					ModulePath:   conf.ModulePath,
-					Author:       info.Author,
-					Website:      info.Website,
-					License:      info.License,
-					Enabled:      conf.Enabled,
-					Capabilities: inst.Supports().Strings(),
-				})
-			}
-		}
-		ctx.JSON(200, result)
+	if success := checkErrorOrAbort(ctx, 500, err); !success {
+		return
 	}
+	result := make([]model.PluginConfExternal, 0)
+	for _, conf := range plugins {
+		if inst, err := c.Manager.Instance(conf.ID); err == nil {
+			info := c.Manager.PluginInfo(conf.ModulePath)
+			result = append(result, model.PluginConfExternal{
+				ID:           conf.ID,
+				Name:         info.String(),
+				Token:        conf.Token,
+				ModulePath:   conf.ModulePath,
+				Author:       info.Author,
+				Website:      info.Website,
+				License:      info.License,
+				Enabled:      conf.Enabled,
+				Capabilities: inst.Supports().Strings(),
+			})
+		}
+	}
+	ctx.JSON(200, result)
 }
 
 // EnablePlugin enables a plugin.
@@ -123,21 +124,22 @@ func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); success {
-			if conf == nil || !isPluginOwner(ctx, conf) {
-				ctx.AbortWithError(404, errors.New("unknown plugin"))
-				return
-			}
-			_, err := c.Manager.Instance(id)
-			if err != nil {
-				ctx.AbortWithError(404, errors.New("plugin instance not found"))
-				return
-			}
-			if err := c.Manager.SetPluginEnabled(id, true); err == plugin.ErrAlreadyEnabledOrDisabled {
-				ctx.AbortWithError(400, err)
-			} else if err != nil {
-				ctx.AbortWithError(500, err)
-			}
+		if success := checkErrorOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if conf == nil || !isPluginOwner(ctx, conf) {
+			ctx.AbortWithError(404, errors.New("unknown plugin"))
+			return
+		}
+		_, err = c.Manager.Instance(id)
+		if err != nil {
+			ctx.AbortWithError(404, errors.New("plugin instance not found"))
+			return
+		}
+		if err := c.Manager.SetPluginEnabled(id, true); err == plugin.ErrAlreadyEnabledOrDisabled {
+			ctx.AbortWithError(400, err)
+		} else if err != nil {
+			ctx.AbortWithError(500, err)
 		}
 	})
 }
@@ -179,21 +181,22 @@ func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); success {
-			if conf == nil || !isPluginOwner(ctx, conf) {
-				ctx.AbortWithError(404, errors.New("unknown plugin"))
-				return
-			}
-			_, err := c.Manager.Instance(id)
-			if err != nil {
-				ctx.AbortWithError(404, errors.New("plugin instance not found"))
-				return
-			}
-			if err := c.Manager.SetPluginEnabled(id, false); err == plugin.ErrAlreadyEnabledOrDisabled {
-				ctx.AbortWithError(400, err)
-			} else if err != nil {
-				ctx.AbortWithError(500, err)
-			}
+		if success := checkErrorOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if conf == nil || !isPluginOwner(ctx, conf) {
+			ctx.AbortWithError(404, errors.New("unknown plugin"))
+			return
+		}
+		_, err = c.Manager.Instance(id)
+		if err != nil {
+			ctx.AbortWithError(404, errors.New("plugin instance not found"))
+			return
+		}
+		if err := c.Manager.SetPluginEnabled(id, false); err == plugin.ErrAlreadyEnabledOrDisabled {
+			ctx.AbortWithError(400, err)
+		} else if err != nil {
+			ctx.AbortWithError(500, err)
 		}
 	})
 }
@@ -237,18 +240,19 @@ func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); success {
-			if conf == nil || !isPluginOwner(ctx, conf) {
-				ctx.AbortWithError(404, errors.New("unknown plugin"))
-				return
-			}
-			instance, err := c.Manager.Instance(id)
-			if err != nil {
-				ctx.AbortWithError(404, errors.New("plugin instance not found"))
-				return
-			}
-			ctx.JSON(200, instance.GetDisplay(location.Get(ctx)))
+		if success := checkErrorOrAbort(ctx, 500, err); !success {
+			return
 		}
+		if conf == nil || !isPluginOwner(ctx, conf) {
+			ctx.AbortWithError(404, errors.New("unknown plugin"))
+			return
+		}
+		instance, err := c.Manager.Instance(id)
+		if err != nil {
+			ctx.AbortWithError(404, errors.New("plugin instance not found"))
+			return
+		}
+		ctx.JSON(200, instance.GetDisplay(location.Get(ctx)))
 	})
 }
 
@@ -296,24 +300,25 @@ func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); success {
-			if conf == nil || !isPluginOwner(ctx, conf) {
-				ctx.AbortWithError(404, errors.New("unknown plugin"))
-				return
-			}
-			instance, err := c.Manager.Instance(id)
-			if err != nil {
-				ctx.AbortWithError(404, errors.New("plugin instance not found"))
-				return
-			}
-
-			if aborted := supportOrAbort(ctx, instance, compat.Configurer); aborted {
-				return
-			}
-
-			ctx.Header("content-type", "application/x-yaml")
-			ctx.Writer.Write(conf.Config)
+		if success := checkErrorOrAbort(ctx, 500, err); !success {
+			return
 		}
+		if conf == nil || !isPluginOwner(ctx, conf) {
+			ctx.AbortWithError(404, errors.New("unknown plugin"))
+			return
+		}
+		instance, err := c.Manager.Instance(id)
+		if err != nil {
+			ctx.AbortWithError(404, errors.New("plugin instance not found"))
+			return
+		}
+
+		if aborted := supportOrAbort(ctx, instance, compat.Configurer); aborted {
+			return
+		}
+
+		ctx.Header("content-type", "application/x-yaml")
+		ctx.Writer.Write(conf.Config)
 	})
 }
 
@@ -358,38 +363,39 @@ func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); success {
-			if conf == nil || !isPluginOwner(ctx, conf) {
-				ctx.AbortWithError(404, errors.New("unknown plugin"))
-				return
-			}
-			instance, err := c.Manager.Instance(id)
-			if err != nil {
-				ctx.AbortWithError(404, errors.New("plugin instance not found"))
-				return
-			}
-
-			if aborted := supportOrAbort(ctx, instance, compat.Configurer); aborted {
-				return
-			}
-
-			newConf := instance.DefaultConfig()
-			newconfBytes, err := ioutil.ReadAll(ctx.Request.Body)
-			if err != nil {
-				ctx.AbortWithError(500, err)
-				return
-			}
-			if err := yaml.Unmarshal(newconfBytes, newConf); err != nil {
-				ctx.AbortWithError(400, err)
-				return
-			}
-			if err := instance.ValidateAndSetConfig(newConf); err != nil {
-				ctx.AbortWithError(400, err)
-				return
-			}
-			conf.Config = newconfBytes
-			checkErrorOrAbort(ctx, 500, c.DB.UpdatePluginConf(conf))
+		if success := checkErrorOrAbort(ctx, 500, err); !success {
+			return
 		}
+		if conf == nil || !isPluginOwner(ctx, conf) {
+			ctx.AbortWithError(404, errors.New("unknown plugin"))
+			return
+		}
+		instance, err := c.Manager.Instance(id)
+		if err != nil {
+			ctx.AbortWithError(404, errors.New("plugin instance not found"))
+			return
+		}
+
+		if aborted := supportOrAbort(ctx, instance, compat.Configurer); aborted {
+			return
+		}
+
+		newConf := instance.DefaultConfig()
+		newconfBytes, err := ioutil.ReadAll(ctx.Request.Body)
+		if err != nil {
+			ctx.AbortWithError(500, err)
+			return
+		}
+		if err := yaml.Unmarshal(newconfBytes, newConf); err != nil {
+			ctx.AbortWithError(400, err)
+			return
+		}
+		if err := instance.ValidateAndSetConfig(newConf); err != nil {
+			ctx.AbortWithError(400, err)
+			return
+		}
+		conf.Config = newconfBytes
+		checkErrorOrAbort(ctx, 500, c.DB.UpdatePluginConf(conf))
 	})
 }
 
