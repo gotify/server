@@ -395,7 +395,9 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 				}
 				internal := a.toInternalUser(user, oldUser.Pass)
 				internal.ID = id
-				successOrAbort(ctx, 500, a.DB.UpdateUser(internal))
+				if success := successOrAbort(ctx, 500, a.DB.UpdateUser(internal)); !success {
+					return
+				}
 				ctx.JSON(200, toExternalUser(internal))
 			} else {
 				ctx.AbortWithError(404, errors.New("user does not exist"))
