@@ -68,7 +68,7 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 		app.Token = auth.GenerateNotExistingToken(generateApplicationToken, a.applicationExists)
 		app.UserID = auth.GetUserID(ctx)
 		app.Internal = false
-		if success := checkErrorOrAbort(ctx, 500, a.DB.CreateApplication(&app)); !success {
+		if success := successOrAbort(ctx, 500, a.DB.CreateApplication(&app)); !success {
 			return
 		}
 		ctx.JSON(200, withResolvedImage(&app))
@@ -102,7 +102,7 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	apps, err := a.DB.GetApplicationsByUser(userID)
-	if success := checkErrorOrAbort(ctx, 500, err); !success {
+	if success := successOrAbort(ctx, 500, err); !success {
 		return
 	}
 	for _, app := range apps {
@@ -148,7 +148,7 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		app, err := a.DB.GetApplicationByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if app != nil && app.UserID == auth.GetUserID(ctx) {
@@ -156,7 +156,7 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 				ctx.AbortWithError(400, errors.New("cannot delete internal application"))
 				return
 			}
-			if success := checkErrorOrAbort(ctx, 500, a.DB.DeleteApplicationByID(id)); !success {
+			if success := successOrAbort(ctx, 500, a.DB.DeleteApplicationByID(id)); !success {
 				return
 			}
 			if app.Image != "" {
@@ -213,7 +213,7 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		app, err := a.DB.GetApplicationByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if app != nil && app.UserID == auth.GetUserID(ctx) {
@@ -222,7 +222,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 				app.Description = newValues.Description
 				app.Name = newValues.Name
 
-				if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
+				if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
 					return
 				}
 				ctx.JSON(200, withResolvedImage(app))
@@ -283,7 +283,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		app, err := a.DB.GetApplicationByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if app != nil && app.UserID == auth.GetUserID(ctx) {
@@ -305,11 +305,11 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 
 			ext := filepath.Ext(file.Filename)
 
-			name := generateNonExistingImageName(func() string {
-				return a.ImageDir + generateImageName() + ext
+			name := generateNonExistingImageName(a.ImageDir, func() string {
+				return generateImageName() + ext
 			})
 
-			err = ctx.SaveUploadedFile(file, name)
+			err = ctx.SaveUploadedFile(file, a.ImageDir+name)
 			if err != nil {
 				ctx.AbortWithError(500, err)
 				return
@@ -320,7 +320,7 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 			}
 
 			app.Image = name
-			if success := checkErrorOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
+			if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
 				return
 			}
 			ctx.JSON(200, withResolvedImage(app))
@@ -351,10 +351,10 @@ func exist(path string) bool {
 	return true
 }
 
-func generateNonExistingImageName(gen func() string) string {
+func generateNonExistingImageName(imgDir string, gen func() string) string {
 	for {
 		name := gen()
-		if !exist(name) {
+		if !exist(imgDir + name) {
 			return name
 		}
 	}

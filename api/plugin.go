@@ -64,7 +64,7 @@ type PluginAPI struct {
 func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	plugins, err := c.DB.GetPluginConfByUser(userID)
-	if success := checkErrorOrAbort(ctx, 500, err); !success {
+	if success := successOrAbort(ctx, 500, err); !success {
 		return
 	}
 	result := make([]model.PluginConfExternal, 0)
@@ -124,7 +124,7 @@ func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if conf == nil || !isPluginOwner(ctx, conf) {
@@ -181,7 +181,7 @@ func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if conf == nil || !isPluginOwner(ctx, conf) {
@@ -240,7 +240,7 @@ func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if conf == nil || !isPluginOwner(ctx, conf) {
@@ -300,7 +300,7 @@ func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if conf == nil || !isPluginOwner(ctx, conf) {
@@ -363,7 +363,7 @@ func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if conf == nil || !isPluginOwner(ctx, conf) {
@@ -395,7 +395,7 @@ func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 			return
 		}
 		conf.Config = newconfBytes
-		checkErrorOrAbort(ctx, 500, c.DB.UpdatePluginConf(conf))
+		successOrAbort(ctx, 500, c.DB.UpdatePluginConf(conf))
 	})
 }
 

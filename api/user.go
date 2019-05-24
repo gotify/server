@@ -86,7 +86,7 @@ type UserAPI struct {
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) GetUsers(ctx *gin.Context) {
 	users, err := a.DB.GetUsers()
-	if success := checkErrorOrAbort(ctx, 500, err); !success {
+	if success := successOrAbort(ctx, 500, err); !success {
 		return
 	}
 	var resp []*model.UserExternal
@@ -120,7 +120,7 @@ func (a *UserAPI) GetUsers(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 	user, err := a.DB.GetUserByID(auth.GetUserID(ctx))
-	if success := checkErrorOrAbort(ctx, 500, err); !success {
+	if success := successOrAbort(ctx, 500, err); !success {
 		return
 	}
 	ctx.JSON(200, toExternalUser(user))
@@ -164,11 +164,11 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 	if err := ctx.Bind(&user); err == nil {
 		internal := a.toInternalUser(&user, []byte{})
 		existingUser, err := a.DB.GetUserByName(internal.Name)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if existingUser == nil {
-			if success := checkErrorOrAbort(ctx, 500, a.DB.CreateUser(internal)); !success {
+			if success := successOrAbort(ctx, 500, a.DB.CreateUser(internal)); !success {
 				return
 			}
 			if err := a.UserChangeNotifier.fireUserAdded(internal.ID); err != nil {
@@ -221,7 +221,7 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		user, err := a.DB.GetUserByID(uint(id))
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if user != nil {
@@ -268,12 +268,12 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		user, err := a.DB.GetUserByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if user != nil {
 			adminCount, err := a.DB.CountUser(&model.User{Admin: true})
-			if success := checkErrorOrAbort(ctx, 500, err); !success {
+			if success := successOrAbort(ctx, 500, err); !success {
 				return
 			}
 			if user.Admin && adminCount == 1 {
@@ -284,7 +284,7 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 				ctx.AbortWithError(500, err)
 				return
 			}
-			checkErrorOrAbort(ctx, 500, a.DB.DeleteUserByID(id))
+			successOrAbort(ctx, 500, a.DB.DeleteUserByID(id))
 		} else {
 			ctx.AbortWithError(404, errors.New("user does not exist"))
 		}
@@ -326,11 +326,11 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 	pw := model.UserExternalPass{}
 	if err := ctx.Bind(&pw); err == nil {
 		user, err := a.DB.GetUserByID(auth.GetUserID(ctx))
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		user.Pass = password.CreatePassword(pw.Pass, a.PasswordStrength)
-		checkErrorOrAbort(ctx, 500, a.DB.UpdateUser(user))
+		successOrAbort(ctx, 500, a.DB.UpdateUser(user))
 	}
 }
 
@@ -381,12 +381,12 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 		var user *model.UserExternalWithPass
 		if err := ctx.Bind(&user); err == nil {
 			oldUser, err := a.DB.GetUserByID(id)
-			if success := checkErrorOrAbort(ctx, 500, err); !success {
+			if success := successOrAbort(ctx, 500, err); !success {
 				return
 			}
 			if oldUser != nil {
 				adminCount, err := a.DB.CountUser(&model.User{Admin: true})
-				if success := checkErrorOrAbort(ctx, 500, err); !success {
+				if success := successOrAbort(ctx, 500, err); !success {
 					return
 				}
 				if !user.Admin && oldUser.Admin && adminCount == 1 {
@@ -395,7 +395,7 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 				}
 				internal := a.toInternalUser(user, oldUser.Pass)
 				internal.ID = id
-				checkErrorOrAbort(ctx, 500, a.DB.UpdateUser(internal))
+				successOrAbort(ctx, 500, a.DB.UpdateUser(internal))
 				ctx.JSON(200, toExternalUser(internal))
 			} else {
 				ctx.AbortWithError(404, errors.New("user does not exist"))

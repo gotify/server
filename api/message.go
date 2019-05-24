@@ -90,7 +90,7 @@ func (a *MessageAPI) GetMessages(ctx *gin.Context) {
 	withPaging(ctx, func(params *pagingParams) {
 		// the +1 is used to check if there are more messages and will be removed on buildWithPaging
 		messages, err := a.DB.GetMessagesByUserSince(userID, params.Limit+1, params.Since)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		ctx.JSON(200, buildWithPaging(ctx, params, messages))
@@ -178,13 +178,13 @@ func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		withPaging(ctx, func(params *pagingParams) {
 			app, err := a.DB.GetApplicationByID(id)
-			if success := checkErrorOrAbort(ctx, 500, err); !success {
+			if success := successOrAbort(ctx, 500, err); !success {
 				return
 			}
 			if app != nil && app.UserID == auth.GetUserID(ctx) {
 				// the +1 is used to check if there are more messages and will be removed on buildWithPaging
 				messages, err := a.DB.GetMessagesByApplicationSince(id, params.Limit+1, params.Since)
-				if success := checkErrorOrAbort(ctx, 500, err); !success {
+				if success := successOrAbort(ctx, 500, err); !success {
 					return
 				}
 				ctx.JSON(200, buildWithPaging(ctx, params, messages))
@@ -216,7 +216,7 @@ func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
-	checkErrorOrAbort(ctx, 500, a.DB.DeleteMessagesByUser(userID))
+	successOrAbort(ctx, 500, a.DB.DeleteMessagesByUser(userID))
 }
 
 // DeleteMessageWithApplication deletes all messages from a specific application.
@@ -255,11 +255,11 @@ func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		application, err := a.DB.GetApplicationByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if application != nil && application.UserID == auth.GetUserID(ctx) {
-			checkErrorOrAbort(ctx, 500, a.DB.DeleteMessagesByApplication(id))
+			successOrAbort(ctx, 500, a.DB.DeleteMessagesByApplication(id))
 		} else {
 			ctx.AbortWithError(404, errors.New("application does not exists"))
 		}
@@ -302,7 +302,7 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		msg, err := a.DB.GetMessageByID(id)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if msg == nil {
@@ -310,11 +310,11 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 			return
 		}
 		app, err := a.DB.GetApplicationByID(msg.ApplicationID)
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if app != nil && app.UserID == auth.GetUserID(ctx) {
-			checkErrorOrAbort(ctx, 500, a.DB.DeleteMessageByID(id))
+			successOrAbort(ctx, 500, a.DB.DeleteMessageByID(id))
 		} else {
 			ctx.AbortWithError(404, errors.New("message does not exist"))
 		}
@@ -359,7 +359,7 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	message := model.MessageExternal{}
 	if err := ctx.Bind(&message); err == nil {
 		application, err := a.DB.GetApplicationByToken(auth.GetTokenID(ctx))
-		if success := checkErrorOrAbort(ctx, 500, err); !success {
+		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		message.ApplicationID = application.ID
@@ -368,7 +368,7 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		}
 		message.Date = timeNow()
 		msgInternal := toInternalMessage(&message)
-		if success := checkErrorOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
+		if success := successOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
 			return
 		}
 		a.Notifier.Notify(auth.GetUserID(ctx), toExternalMessage(msgInternal))

@@ -183,7 +183,13 @@ func (m *Manager) HasInstance(pluginID uint) bool {
 // RemoveUser disabled all plugins of a user when the user is disabled
 func (m *Manager) RemoveUser(userID uint) error {
 	for _, p := range m.plugins {
-		pluginConf, _ := m.db.GetPluginConfByUserAndPath(userID, p.PluginInfo().ModulePath)
+		pluginConf, err := m.db.GetPluginConfByUserAndPath(userID, p.PluginInfo().ModulePath)
+		if err != nil {
+			return err
+		}
+		if pluginConf == nil {
+			continue
+		}
 		if pluginConf.Enabled {
 			inst, err := m.Instance(pluginConf.ID)
 			if err != nil {

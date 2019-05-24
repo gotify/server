@@ -12,7 +12,7 @@ func TestErrorHandling(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	ctx, _ := gin.CreateTestContext(rec)
-	checkErrorOrAbort(ctx, 500, errors.New("err"))
+	successOrAbort(ctx, 500, errors.New("err"))
 
 	if rec.Code != 500 {
 		t.Fail()
