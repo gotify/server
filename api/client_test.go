@@ -71,7 +71,9 @@ func (s *ClientSuite) Test_CreateClient_mapAllParameters() {
 
 	expected := &model.Client{ID: 1, Token: firstClientToken, UserID: 5, Name: "custom_name"}
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Contains(s.T(), s.db.GetClientsByUser(5), expected)
+	if clients, err := s.db.GetClientsByUser(5); assert.NoError(s.T(), err) {
+		assert.Contains(s.T(), clients, expected)
+	}
 }
 
 func (s *ClientSuite) Test_CreateClient_expectBadRequestOnEmptyName() {
@@ -83,7 +85,9 @@ func (s *ClientSuite) Test_CreateClient_expectBadRequestOnEmptyName() {
 	s.a.CreateClient(s.ctx)
 
 	assert.Equal(s.T(), 400, s.recorder.Code)
-	assert.Empty(s.T(), s.db.GetClientsByUser(5))
+	if clients, err := s.db.GetClientsByUser(5); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), clients)
+	}
 }
 
 func (s *ClientSuite) Test_DeleteClient_expectNotFoundOnCurrentUserIsNotOwner() {
@@ -184,7 +188,9 @@ func (s *ClientSuite) Test_UpdateClient_expectSuccess() {
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Equal(s.T(), expected, s.db.GetClientByID(1))
+	if client, err := s.db.GetClientByID(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), expected, client)
+	}
 }
 
 func (s *ClientSuite) Test_UpdateClient_expectNotFound() {

@@ -47,17 +47,25 @@ func (s *MigrationSuite) TestMigration() {
 	assert.True(s.T(), db.DB.HasTable(new(model.Application)))
 
 	// a user already exist, not adding a new user
-	assert.Nil(s.T(), db.GetUserByName("admin"))
+	if user, err := db.GetUserByName("admin"); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), user)
+	}
 
 	// the old user should persist
-	assert.Equal(s.T(), true, db.GetUserByName("test_user").Admin)
+	if user, err := db.GetUserByName("test_user"); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), true, user.Admin)
+	}
 
 	// we should be able to create applications
-	assert.Nil(s.T(), db.CreateApplication(&model.Application{
-		Token:       "A1234",
-		UserID:      db.GetUserByName("test_user").ID,
-		Description: "this is a test application",
-		Name:        "test application",
-	}))
-	assert.Equal(s.T(), "test application", db.GetApplicationByToken("A1234").Name)
+	if user, err := db.GetUserByName("test_user"); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), db.CreateApplication(&model.Application{
+			Token:       "A1234",
+			UserID:      user.ID,
+			Description: "this is a test application",
+			Name:        "test application",
+		}))
+	}
+	if app, err := db.GetApplicationByToken("A1234"); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), "test application", app.Name)
+	}
 }

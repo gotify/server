@@ -2,26 +2,33 @@ package database
 
 import (
 	"github.com/gotify/server/model"
+	"github.com/jinzhu/gorm"
 )
 
 // GetApplicationByToken returns the application for the given token or nil.
-func (d *GormDatabase) GetApplicationByToken(token string) *model.Application {
+func (d *GormDatabase) GetApplicationByToken(token string) (*model.Application, error) {
 	app := new(model.Application)
-	d.DB.Where("token = ?", token).Find(app)
-	if app.Token == token {
-		return app
+	err := d.DB.Where("token = ?", token).Find(app).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
 	}
-	return nil
+	if app.Token == token {
+		return app, err
+	}
+	return nil, err
 }
 
 // GetApplicationByID returns the application for the given id or nil.
-func (d *GormDatabase) GetApplicationByID(id uint) *model.Application {
+func (d *GormDatabase) GetApplicationByID(id uint) (*model.Application, error) {
 	app := new(model.Application)
-	d.DB.Where("id = ?", id).Find(app)
-	if app.ID == id {
-		return app
+	err := d.DB.Where("id = ?", id).Find(app).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
 	}
-	return nil
+	if app.ID == id {
+		return app, err
+	}
+	return nil, err
 }
 
 // CreateApplication creates an application.
@@ -36,10 +43,13 @@ func (d *GormDatabase) DeleteApplicationByID(id uint) error {
 }
 
 // GetApplicationsByUser returns all applications from a user.
-func (d *GormDatabase) GetApplicationsByUser(userID uint) []*model.Application {
+func (d *GormDatabase) GetApplicationsByUser(userID uint) ([]*model.Application, error) {
 	var apps []*model.Application
-	d.DB.Where("user_id = ?", userID).Find(&apps)
-	return apps
+	err := d.DB.Where("user_id = ?", userID).Find(&apps).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return apps, err
 }
 
 // UpdateApplication updates an application.

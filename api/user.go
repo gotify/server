@@ -11,13 +11,13 @@ import (
 
 // The UserDatabase interface for encapsulating database access.
 type UserDatabase interface {
-	GetUsers() []*model.User
-	GetUserByID(id uint) *model.User
-	GetUserByName(name string) *model.User
+	GetUsers() ([]*model.User, error)
+	GetUserByID(id uint) (*model.User, error)
+	GetUserByName(name string) (*model.User, error)
 	DeleteUserByID(id uint) error
-	UpdateUser(user *model.User)
+	UpdateUser(user *model.User) error
 	CreateUser(user *model.User) error
-	CountUser(condition ...interface{}) int
+	CountUser(condition ...interface{}) (int, error)
 }
 
 // UserChangeNotifier notifies listeners for user changes.
@@ -85,8 +85,10 @@ type UserAPI struct {
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) GetUsers(ctx *gin.Context) {
-	users := a.DB.GetUsers()
-
+	users, err := a.DB.GetUsers()
+	if success := successOrAbort(ctx, 500, err); !success {
+		return
+	}
 	var resp []*model.UserExternal
 	for _, user := range users {
 		resp = append(resp, toExternalUser(user))
@@ -117,7 +119,10 @@ func (a *UserAPI) GetUsers(ctx *gin.Context) {
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
-	user := a.DB.GetUserByID(auth.GetUserID(ctx))
+	user, err := a.DB.GetUserByID(auth.GetUserID(ctx))
+	if success := successOrAbort(ctx, 500, err); !success {
+		return
+	}
 	ctx.JSON(200, toExternalUser(user))
 }
 
@@ -158,8 +163,14 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 	user := model.UserExternalWithPass{}
 	if err := ctx.Bind(&user); err == nil {
 		internal := a.toInternalUser(&user, []byte{})
-		if a.DB.GetUserByName(internal.Name) == nil {
-			a.DB.CreateUser(internal)
+		existingUser, err := a.DB.GetUserByName(internal.Name)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if existingUser == nil {
+			if success := successOrAbort(ctx, 500, a.DB.CreateUser(internal)); !success {
+				return
+			}
 			if err := a.UserChangeNotifier.fireUserAdded(internal.ID); err != nil {
 				ctx.AbortWithError(500, err)
 				return
@@ -209,7 +220,11 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		if user := a.DB.GetUserByID(uint(id)); user != nil {
+		user, err := a.DB.GetUserByID(uint(id))
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if user != nil {
 			ctx.JSON(200, toExternalUser(user))
 		} else {
 			ctx.AbortWithError(404, errors.New("user does not exist"))
@@ -252,8 +267,16 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		if user := a.DB.GetUserByID(id); user != nil {
-			if user.Admin && a.DB.CountUser(&model.User{Admin: true}) == 1 {
+		user, err := a.DB.GetUserByID(id)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if user != nil {
+			adminCount, err := a.DB.CountUser(&model.User{Admin: true})
+			if success := successOrAbort(ctx, 500, err); !success {
+				return
+			}
+			if user.Admin && adminCount == 1 {
 				ctx.AbortWithError(400, errors.New("cannot delete last admin"))
 				return
 			}
@@ -261,7 +284,7 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 				ctx.AbortWithError(500, err)
 				return
 			}
-			a.DB.DeleteUserByID(id)
+			successOrAbort(ctx, 500, a.DB.DeleteUserByID(id))
 		} else {
 			ctx.AbortWithError(404, errors.New("user does not exist"))
 		}
@@ -302,9 +325,12 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 	pw := model.UserExternalPass{}
 	if err := ctx.Bind(&pw); err == nil {
-		user := a.DB.GetUserByID(auth.GetUserID(ctx))
+		user, err := a.DB.GetUserByID(auth.GetUserID(ctx))
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
 		user.Pass = password.CreatePassword(pw.Pass, a.PasswordStrength)
-		a.DB.UpdateUser(user)
+		successOrAbort(ctx, 500, a.DB.UpdateUser(user))
 	}
 }
 
@@ -354,14 +380,24 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		var user *model.UserExternalWithPass
 		if err := ctx.Bind(&user); err == nil {
-			if oldUser := a.DB.GetUserByID(id); oldUser != nil {
-				if !user.Admin && oldUser.Admin && a.DB.CountUser(&model.User{Admin: true}) == 1 {
+			oldUser, err := a.DB.GetUserByID(id)
+			if success := successOrAbort(ctx, 500, err); !success {
+				return
+			}
+			if oldUser != nil {
+				adminCount, err := a.DB.CountUser(&model.User{Admin: true})
+				if success := successOrAbort(ctx, 500, err); !success {
+					return
+				}
+				if !user.Admin && oldUser.Admin && adminCount == 1 {
 					ctx.AbortWithError(400, errors.New("cannot delete last admin"))
 					return
 				}
 				internal := a.toInternalUser(user, oldUser.Pass)
 				internal.ID = id
-				a.DB.UpdateUser(internal)
+				if success := successOrAbort(ctx, 500, a.DB.UpdateUser(internal)); !success {
+					return
+				}
 				ctx.JSON(200, toExternalUser(internal))
 			} else {
 				ctx.AbortWithError(404, errors.New("user does not exist"))

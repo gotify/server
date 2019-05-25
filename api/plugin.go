@@ -17,9 +17,9 @@ import (
 
 // The PluginDatabase interface for encapsulating database access.
 type PluginDatabase interface {
-	GetPluginConfByUser(userid uint) []*model.PluginConf
+	GetPluginConfByUser(userid uint) ([]*model.PluginConf, error)
 	UpdatePluginConf(p *model.PluginConf) error
-	GetPluginConfByID(id uint) *model.PluginConf
+	GetPluginConfByID(id uint) (*model.PluginConf, error)
 }
 
 // The PluginAPI provides handlers for managing plugins.
@@ -63,7 +63,10 @@ type PluginAPI struct {
 //         $ref: "#/definitions/Error"
 func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
-	plugins := c.DB.GetPluginConfByUser(userID)
+	plugins, err := c.DB.GetPluginConfByUser(userID)
+	if success := successOrAbort(ctx, 500, err); !success {
+		return
+	}
 	result := make([]model.PluginConfExternal, 0)
 	for _, conf := range plugins {
 		if inst, err := c.Manager.Instance(conf.ID); err == nil {
@@ -120,12 +123,15 @@ func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		conf := c.DB.GetPluginConfByID(id)
+		conf, err := c.DB.GetPluginConfByID(id)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
 		if conf == nil || !isPluginOwner(ctx, conf) {
 			ctx.AbortWithError(404, errors.New("unknown plugin"))
 			return
 		}
-		_, err := c.Manager.Instance(id)
+		_, err = c.Manager.Instance(id)
 		if err != nil {
 			ctx.AbortWithError(404, errors.New("plugin instance not found"))
 			return
@@ -174,12 +180,15 @@ func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		conf := c.DB.GetPluginConfByID(id)
+		conf, err := c.DB.GetPluginConfByID(id)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
 		if conf == nil || !isPluginOwner(ctx, conf) {
 			ctx.AbortWithError(404, errors.New("unknown plugin"))
 			return
 		}
-		_, err := c.Manager.Instance(id)
+		_, err = c.Manager.Instance(id)
 		if err != nil {
 			ctx.AbortWithError(404, errors.New("plugin instance not found"))
 			return
@@ -230,7 +239,10 @@ func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		conf := c.DB.GetPluginConfByID(id)
+		conf, err := c.DB.GetPluginConfByID(id)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
 		if conf == nil || !isPluginOwner(ctx, conf) {
 			ctx.AbortWithError(404, errors.New("unknown plugin"))
 			return
@@ -287,7 +299,10 @@ func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		conf := c.DB.GetPluginConfByID(id)
+		conf, err := c.DB.GetPluginConfByID(id)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
 		if conf == nil || !isPluginOwner(ctx, conf) {
 			ctx.AbortWithError(404, errors.New("unknown plugin"))
 			return
@@ -305,7 +320,6 @@ func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 		ctx.Header("content-type", "application/x-yaml")
 		ctx.Writer.Write(conf.Config)
 	})
-
 }
 
 // UpdateConfig updates Configurer plugin configuration in YAML format.
@@ -348,7 +362,10 @@ func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		conf := c.DB.GetPluginConfByID(id)
+		conf, err := c.DB.GetPluginConfByID(id)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
 		if conf == nil || !isPluginOwner(ctx, conf) {
 			ctx.AbortWithError(404, errors.New("unknown plugin"))
 			return
@@ -378,7 +395,7 @@ func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 			return
 		}
 		conf.Config = newconfBytes
-		c.DB.UpdatePluginConf(conf)
+		successOrAbort(ctx, 500, c.DB.UpdatePluginConf(conf))
 	})
 }
 

@@ -329,7 +329,8 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 
 	s.a.CreateMessage(s.ctx)
 
-	msgs := s.db.GetMessagesByApplication(7)
+	msgs, err := s.db.GetMessagesByApplication(7)
+	assert.NoError(s.T(), err)
 	expected := &model.MessageExternal{ID: 1, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
@@ -349,7 +350,8 @@ func (s *MessageSuite) Test_CreateMessage_WithTitle() {
 
 	s.a.CreateMessage(s.ctx)
 
-	msgs := s.db.GetMessagesByApplication(5)
+	msgs, err := s.db.GetMessagesByApplication(5)
+	assert.NoError(s.T(), err)
 	expected := &model.MessageExternal{ID: 1, ApplicationID: 5, Title: "mytitle", Message: "mymessage", Date: t}
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
@@ -366,7 +368,9 @@ func (s *MessageSuite) Test_CreateMessage_failWhenNoMessage() {
 
 	s.a.CreateMessage(s.ctx)
 
-	assert.Empty(s.T(), s.db.GetMessagesByApplication(1))
+	if msgs, err := s.db.GetMessagesByApplication(1); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), msgs)
+	}
 	assert.Equal(s.T(), 400, s.recorder.Code)
 	assert.Nil(s.T(), s.notifiedMessage)
 }
@@ -380,7 +384,8 @@ func (s *MessageSuite) Test_CreateMessage_WithoutTitle() {
 
 	s.a.CreateMessage(s.ctx)
 
-	msgs := s.db.GetMessagesByApplication(8)
+	msgs, err := s.db.GetMessagesByApplication(8)
+	assert.NoError(s.T(), err)
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), "Application name", msgs[0].Title)
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -396,7 +401,8 @@ func (s *MessageSuite) Test_CreateMessage_WithBlankTitle() {
 
 	s.a.CreateMessage(s.ctx)
 
-	msgs := s.db.GetMessagesByApplication(8)
+	msgs, err := s.db.GetMessagesByApplication(8)
+	assert.NoError(s.T(), err)
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), "Application name", msgs[0].Title)
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -415,7 +421,8 @@ func (s *MessageSuite) Test_CreateMessage_WithExtras() {
 
 	s.a.CreateMessage(s.ctx)
 
-	msgs := s.db.GetMessagesByApplication(8)
+	msgs, err := s.db.GetMessagesByApplication(8)
+	assert.NoError(s.T(), err)
 	expected := &model.MessageExternal{
 		ID:            1,
 		ApplicationID: 8,
@@ -450,7 +457,9 @@ func (s *MessageSuite) Test_CreateMessage_failWhenPriorityNotNumber() {
 
 	assert.Equal(s.T(), 400, s.recorder.Code)
 	assert.Nil(s.T(), s.notifiedMessage)
-	assert.Empty(s.T(), s.db.GetMessagesByApplication(1))
+	if msgs, err := s.db.GetMessagesByApplication(1); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), msgs)
+	}
 }
 
 func (s *MessageSuite) Test_CreateMessage_onQueryData() {
@@ -468,7 +477,8 @@ func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 
 	expected := &model.MessageExternal{ID: 1, ApplicationID: 2, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 
-	msgs := s.db.GetMessagesByApplication(2)
+	msgs, err := s.db.GetMessagesByApplication(2)
+	assert.NoError(s.T(), err)
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -488,7 +498,8 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	s.a.CreateMessage(s.ctx)
 
 	expected := &model.MessageExternal{ID: 1, ApplicationID: 99, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
-	msgs := s.db.GetMessagesByApplication(99)
+	msgs, err := s.db.GetMessagesByApplication(99)
+	assert.NoError(s.T(), err)
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
 	assert.Equal(s.T(), 200, s.recorder.Code)

@@ -23,19 +23,19 @@ import (
 
 // The Database interface for encapsulating database access.
 type Database interface {
-	GetUsers() []*model.User
-	GetPluginConfByUserAndPath(userid uint, path string) *model.PluginConf
+	GetUsers() ([]*model.User, error)
+	GetPluginConfByUserAndPath(userid uint, path string) (*model.PluginConf, error)
 	CreatePluginConf(p *model.PluginConf) error
-	GetPluginConfByApplicationID(appid uint) *model.PluginConf
+	GetPluginConfByApplicationID(appid uint) (*model.PluginConf, error)
 	UpdatePluginConf(p *model.PluginConf) error
 	CreateMessage(message *model.Message) error
-	GetPluginConfByID(id uint) *model.PluginConf
-	GetPluginConfByToken(token string) *model.PluginConf
-	GetUserByID(id uint) *model.User
+	GetPluginConfByID(id uint) (*model.PluginConf, error)
+	GetPluginConfByToken(token string) (*model.PluginConf, error)
+	GetUserByID(id uint) (*model.User, error)
 	CreateApplication(application *model.Application) error
 	UpdateApplication(app *model.Application) error
-	GetApplicationsByUser(userID uint) []*model.Application
-	GetApplicationByToken(token string) *model.Application
+	GetApplicationsByUser(userID uint) ([]*model.Application, error)
+	GetApplicationByToken(token string) (*model.Application, error)
 }
 
 // Notifier notifies when a new message was created.
@@ -87,7 +87,11 @@ func NewManager(db Database, directory string, mux *gin.RouterGroup, notifier No
 		return nil, err
 	}
 
-	for _, user := range manager.db.GetUsers() {
+	users, err := manager.db.GetUsers()
+	if err != nil {
+		return nil, err
+	}
+	for _, user := range users {
 		if err := manager.initializeForUser(*user); err != nil {
 			return nil, err
 		}
@@ -100,11 +104,13 @@ func NewManager(db Database, directory string, mux *gin.RouterGroup, notifier No
 var ErrAlreadyEnabledOrDisabled = errors.New("config is already enabled/disabled")
 
 func (m *Manager) applicationExists(token string) bool {
-	return m.db.GetApplicationByToken(token) != nil
+	app, _ := m.db.GetApplicationByToken(token)
+	return app != nil
 }
 
 func (m *Manager) pluginConfExists(token string) bool {
-	return m.db.GetPluginConfByToken(token) != nil
+	pluginConf, _ := m.db.GetPluginConfByToken(token)
+	return pluginConf != nil
 }
 
 // SetPluginEnabled sets the plugins enabled state.
@@ -113,7 +119,10 @@ func (m *Manager) SetPluginEnabled(pluginID uint, enabled bool) error {
 	if err != nil {
 		return errors.New("instance not found")
 	}
-	conf := m.db.GetPluginConfByID(pluginID)
+	conf, err := m.db.GetPluginConfByID(pluginID)
+	if err != nil {
+		return err
+	}
 
 	if conf.Enabled == enabled {
 		return ErrAlreadyEnabledOrDisabled
@@ -131,7 +140,9 @@ func (m *Manager) SetPluginEnabled(pluginID uint, enabled bool) error {
 		return err
 	}
 
-	conf = m.db.GetPluginConfByID(pluginID) // conf might be updated by instance
+	if newConf, err := m.db.GetPluginConfByID(pluginID); /* conf might be updated by instance */ err == nil {
+		conf = newConf
+	}
 	conf.Enabled = enabled
 	return m.db.UpdatePluginConf(conf)
 }
@@ -172,7 +183,13 @@ func (m *Manager) HasInstance(pluginID uint) bool {
 // RemoveUser disabled all plugins of a user when the user is disabled
 func (m *Manager) RemoveUser(userID uint) error {
 	for _, p := range m.plugins {
-		pluginConf := m.db.GetPluginConfByUserAndPath(userID, p.PluginInfo().ModulePath)
+		pluginConf, err := m.db.GetPluginConfByUserAndPath(userID, p.PluginInfo().ModulePath)
+		if err != nil {
+			return err
+		}
+		if pluginConf == nil {
+			continue
+		}
 		if pluginConf.Enabled {
 			inst, err := m.Instance(pluginConf.ID)
 			if err != nil {
@@ -240,7 +257,10 @@ func (m *Manager) InitializeForUserID(userID uint) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	user := m.db.GetUserByID(userID)
+	user, err := m.db.GetUserByID(userID)
+	if err != nil {
+		return err
+	}
 	if user != nil {
 		return m.initializeForUser(*user)
 	}
@@ -261,8 +281,16 @@ func (m *Manager) initializeForUser(user model.User) error {
 		}
 	}
 
-	for _, app := range m.db.GetApplicationsByUser(user.ID) {
-		if conf := m.db.GetPluginConfByApplicationID(app.ID); conf != nil {
+	apps, err := m.db.GetApplicationsByUser(user.ID)
+	if err != nil {
+		return err
+	}
+	for _, app := range apps {
+		conf, err := m.db.GetPluginConfByApplicationID(app.ID)
+		if err != nil {
+			return err
+		}
+		if conf != nil {
 			_, compatExist := m.plugins[conf.ModulePath]
 			app.Internal = compatExist
 		} else {
@@ -279,7 +307,10 @@ func (m *Manager) initializeSingleUserPlugin(userCtx compat.UserContext, p compa
 	instance := p.NewPluginInstance(userCtx)
 	userID := userCtx.ID
 
-	pluginConf := m.db.GetPluginConfByUserAndPath(userID, info.ModulePath)
+	pluginConf, err := m.db.GetPluginConfByUserAndPath(userID, info.ModulePath)
+	if err != nil {
+		return err
+	}
 
 	if pluginConf == nil {
 		var err error

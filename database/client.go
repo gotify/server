@@ -1,25 +1,34 @@
 package database
 
-import "github.com/gotify/server/model"
+import (
+	"github.com/gotify/server/model"
+	"github.com/jinzhu/gorm"
+)
 
 // GetClientByID returns the client for the given id or nil.
-func (d *GormDatabase) GetClientByID(id uint) *model.Client {
+func (d *GormDatabase) GetClientByID(id uint) (*model.Client, error) {
 	client := new(model.Client)
-	d.DB.Where("id = ?", id).Find(client)
-	if client.ID == id {
-		return client
+	err := d.DB.Where("id = ?", id).Find(client).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
 	}
-	return nil
+	if client.ID == id {
+		return client, err
+	}
+	return nil, err
 }
 
 // GetClientByToken returns the client for the given token or nil.
-func (d *GormDatabase) GetClientByToken(token string) *model.Client {
+func (d *GormDatabase) GetClientByToken(token string) (*model.Client, error) {
 	client := new(model.Client)
-	d.DB.Where("token = ?", token).Find(client)
-	if client.Token == token {
-		return client
+	err := d.DB.Where("token = ?", token).Find(client).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
 	}
-	return nil
+	if client.Token == token {
+		return client, err
+	}
+	return nil, err
 }
 
 // CreateClient creates a client.
@@ -28,10 +37,13 @@ func (d *GormDatabase) CreateClient(client *model.Client) error {
 }
 
 // GetClientsByUser returns all clients from a user.
-func (d *GormDatabase) GetClientsByUser(userID uint) []*model.Client {
+func (d *GormDatabase) GetClientsByUser(userID uint) ([]*model.Client, error) {
 	var clients []*model.Client
-	d.DB.Where("user_id = ?", userID).Find(&clients)
-	return clients
+	err := d.DB.Where("user_id = ?", userID).Find(&clients).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return clients, err
 }
 
 // DeleteClientByID deletes a client by its id.

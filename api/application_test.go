@@ -74,7 +74,9 @@ func (s *ApplicationSuite) Test_CreateApplication_mapAllParameters() {
 		Description: "description_text",
 	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Equal(s.T(), expected, s.db.GetApplicationByID(1))
+	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), expected, app)
+	}
 }
 func (s *ApplicationSuite) Test_ensureApplicationHasCorrectJsonRepresentation() {
 	actual := &model.Application{
@@ -96,7 +98,9 @@ func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() 
 	s.a.CreateApplication(s.ctx)
 
 	assert.Equal(s.T(), 400, s.recorder.Code)
-	assert.Empty(s.T(), s.db.GetApplicationsByUser(5))
+	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), app)
+	}
 }
 
 func (s *ApplicationSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwner() {
@@ -122,7 +126,9 @@ func (s *ApplicationSuite) Test_CreateApplication_onlyRequiredParameters() {
 
 	expected := &model.Application{ID: 1, Token: firstApplicationToken, Name: "custom_name", UserID: 5}
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Contains(s.T(), s.db.GetApplicationsByUser(5), expected)
+	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
+		assert.Contains(s.T(), app, expected)
+	}
 }
 
 func (s *ApplicationSuite) Test_CreateApplication_returnsApplicationWithID() {
@@ -155,7 +161,9 @@ func (s *ApplicationSuite) Test_CreateApplication_withExistingToken() {
 
 	expected := &model.Application{ID: 2, Token: secondApplicationToken, Name: "custom_name", UserID: 5}
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Contains(s.T(), s.db.GetApplicationsByUser(5), expected)
+	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
+		assert.Contains(s.T(), app, expected)
+	}
 }
 
 func (s *ApplicationSuite) Test_GetApplications() {
@@ -275,16 +283,18 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
 
 	s.a.UploadApplicationImage(s.ctx)
 
-	imgName := s.db.GetApplicationByID(1).Image
+	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
+		imgName := app.Image
 
-	assert.Equal(s.T(), 200, s.recorder.Code)
-	_, err = os.Stat(imgName)
-	assert.Nil(s.T(), err)
+		assert.Equal(s.T(), 200, s.recorder.Code)
+		_, err = os.Stat(imgName)
+		assert.Nil(s.T(), err)
 
-	s.a.DeleteApplication(s.ctx)
+		s.a.DeleteApplication(s.ctx)
 
-	_, err = os.Stat(imgName)
-	assert.True(s.T(), os.IsNotExist(err))
+		_, err = os.Stat(imgName)
+		assert.True(s.T(), os.IsNotExist(err))
+	}
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageAndGenerateNewName() {
@@ -399,7 +409,9 @@ func (s *ApplicationSuite) Test_UpdateApplicationNameAndDescription_expectSucces
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Equal(s.T(), expected, s.db.GetApplicationByID(2))
+	if app, err := s.db.GetApplicationByID(2); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), expected, app)
+	}
 }
 
 func (s *ApplicationSuite) Test_UpdateApplicationName_expectSuccess() {
@@ -419,7 +431,9 @@ func (s *ApplicationSuite) Test_UpdateApplicationName_expectSuccess() {
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Equal(s.T(), expected, s.db.GetApplicationByID(2))
+	if app, err := s.db.GetApplicationByID(2); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), expected, app)
+	}
 }
 
 func (s *ApplicationSuite) Test_UpdateApplication_preservesImage() {
@@ -434,7 +448,9 @@ func (s *ApplicationSuite) Test_UpdateApplication_preservesImage() {
 	s.a.UpdateApplication(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Equal(s.T(), "existing.png", s.db.GetApplicationByID(2).Image)
+	if app, err := s.db.GetApplicationByID(2); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), "existing.png", app.Image)
+	}
 }
 
 func (s *ApplicationSuite) Test_UpdateApplication_setEmptyDescription() {
@@ -449,7 +465,9 @@ func (s *ApplicationSuite) Test_UpdateApplication_setEmptyDescription() {
 	s.a.UpdateApplication(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Equal(s.T(), "", s.db.GetApplicationByID(2).Description)
+	if app, err := s.db.GetApplicationByID(2); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), "", app.Description)
+	}
 }
 
 func (s *ApplicationSuite) Test_UpdateApplication_expectNotFound() {
