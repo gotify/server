@@ -20,7 +20,7 @@ export const initAxios = (currentUser: CurrentUser, snack: SnackReporter) => {
             currentUser.tryAuthenticate().then(() => snack('Could not complete request.'));
         }
 
-        if (status === 400) {
+        if (status === 400 || status === 403 || status === 500) {
             snack(error.response.data.error + ': ' + error.response.data.errorDescription);
         }
 
