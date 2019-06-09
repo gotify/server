@@ -8,8 +8,8 @@ type PluginConf struct {
 	Token         string `gorm:"type:varchar(180);unique_index"`
 	ApplicationID uint
 	Enabled       bool
-	Config        []byte `gorm:"type:longblob"`
-	Storage       []byte `gorm:"type:longblob"`
+	Config        []byte
+	Storage       []byte
 }
 
 // PluginConfExternal Model

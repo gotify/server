@@ -11,7 +11,7 @@ type Message struct {
 	Message       string `gorm:"type:text"`
 	Title         string `gorm:"type:text"`
 	Priority      int
-	Extras        []byte `gorm:"type:blob"`
+	Extras        []byte
 	Date          time.Time
 }
 
