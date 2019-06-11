@@ -35,7 +35,14 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 		db.DB().SetMaxOpenConns(1)
 	}
 
-	db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client), new(model.PluginConf))
+	if err := db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client), new(model.PluginConf)).Error; err != nil {
+		return nil, err
+	}
+
+	if err := prepareBlobColumn(dialect, db); err != nil {
+		return nil, err
+	}
+
 	userCount := 0
 	db.Find(new(model.User)).Count(&userCount)
 	if createDefaultUserIfNotExist && userCount == 0 {
@@ -43,6 +50,31 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 	}
 
 	return &GormDatabase{DB: db}, nil
+}
+
+func prepareBlobColumn(dialect string, db *gorm.DB) error {
+	blobType := ""
+	switch dialect {
+	case "mysql":
+		blobType = "longblob"
+	case "postgres":
+		blobType = "bytea"
+	}
+	if blobType != "" {
+		for _, target := range []struct {
+			Table  interface{}
+			Column string
+		}{
+			{model.Message{}, "extras"},
+			{model.PluginConf{}, "config"},
+			{model.PluginConf{}, "storage"},
+		} {
+			if err := db.Model(target.Table).ModifyColumn(target.Column, blobType).Error; err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func createDirectoryIfSqlite(dialect string, connection string) {
