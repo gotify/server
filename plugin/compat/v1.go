@@ -18,7 +18,7 @@ func (c PluginV1) APIVersion() string {
 	return "v1"
 }
 
-// PluginInfo implements conpat/Plugin
+// PluginInfo implements compat/Plugin
 func (c PluginV1) PluginInfo() Info {
 	return Info{
 		Version:     c.Info.Version,
