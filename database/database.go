@@ -1,10 +1,8 @@
 package database
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/gotify/server/auth/password"
 	"github.com/gotify/server/model"
@@ -55,7 +53,6 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 }
 
 func prepareBlobColumn(dialect string, db *gorm.DB) error {
-	alterBlobSQLStmtTpl := "alter table `%s` modify column %s %s"
 	blobType := ""
 	switch dialect {
 	case "mysql":
@@ -64,14 +61,15 @@ func prepareBlobColumn(dialect string, db *gorm.DB) error {
 		blobType = "bytea"
 	}
 	if blobType != "" {
-		for _, target := range []string{
-			"messages:extras",
-			"plugin_confs:config",
-			"plugin_confs:storage",
+		for _, target := range []struct {
+			Table  interface{}
+			Column string
+		}{
+			{model.Message{}, "extras"},
+			{model.PluginConf{}, "config"},
+			{model.PluginConf{}, "storage"},
 		} {
-			targetSpl := strings.Split(target, ":")
-			targetTbl, targetCol := targetSpl[0], targetSpl[1]
-			if err := db.Exec(fmt.Sprintf(alterBlobSQLStmtTpl, targetTbl, targetCol, blobType)).Error; err != nil {
+			if err := db.Model(target.Table).ModifyColumn(target.Column, blobType).Error; err != nil {
 				return err
 			}
 		}
