@@ -1852,13 +1852,19 @@
       "title": "Application Model",
       "required": [
         "id",
-        "token",
+        "Token",
         "name",
         "description",
         "internal",
         "image"
       ],
       "properties": {
+        "Token": {
+          "description": "The application token. Can be used as `appToken`. See Authentication.",
+          "type": "string",
+          "readOnly": true,
+          "example": "AWH0wZ5r0Mbac.r"
+        },
         "description": {
           "description": "The description of the application.",
           "type": "string",
@@ -1892,13 +1898,6 @@
           "type": "string",
           "x-go-name": "Name",
           "example": "Backup Server"
-        },
-        "token": {
-          "description": "The application token. Can be used as `appToken`. See Authentication.",
-          "type": "string",
-          "x-go-name": "Token",
-          "readOnly": true,
-          "example": "AWH0wZ5r0Mbac.r"
         }
       },
       "x-go-package": "github.com/gotify/server/model"
