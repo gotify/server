@@ -2,7 +2,7 @@ package model
 
 // Paging Model
 //
-// The Paging holds holds information about the limit and making requests to the next page.
+// The Paging holds information about the limit and making requests to the next page.
 //
 // swagger:model Paging
 type Paging struct {

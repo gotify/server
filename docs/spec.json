@@ -2068,7 +2068,7 @@
       "x-go-package": "github.com/gotify/server/model"
     },
     "Paging": {
-      "description": "The Paging holds holds information about the limit and making requests to the next page.",
+      "description": "The Paging holds information about the limit and making requests to the next page.",
       "type": "object",
       "title": "Paging Model",
       "required": [

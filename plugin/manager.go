@@ -43,7 +43,7 @@ type Notifier interface {
 	Notify(userID uint, message *model.MessageExternal)
 }
 
-// Manager is an encapusulating layer for plugins and manages all plugins and its instances.
+// Manager is an encapsulating layer for plugins and manages all plugins and its instances.
 type Manager struct {
 	mutex     *sync.RWMutex
 	instances map[uint]compat.PluginInstance

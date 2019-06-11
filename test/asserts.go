@@ -34,7 +34,7 @@ func (c unreadableReader) Read([]byte) (int, error) {
 	return 0, errors.New("this reader cannot be read")
 }
 
-// UnreadableReader returns an unreadadbe reader, used to mock IO issues.
+// UnreadableReader returns an unreadable reader, used to mock IO issues.
 func UnreadableReader() io.Reader {
 	return unreadableReader{}
 }
