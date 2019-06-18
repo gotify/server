@@ -7,6 +7,7 @@ import (
 
 	"github.com/gotify/server/database"
 	"github.com/gotify/server/model"
+	"github.com/gotify/server/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +31,14 @@ type MessageBuilder struct {
 
 // NewDBWithDefaultUser creates a new test db instance with the default user.
 func NewDBWithDefaultUser(t *testing.T) *Database {
-	db, err := database.New("sqlite3", fmt.Sprintf("file:%s?mode=memory&cache=shared", fmt.Sprint(time.Now().Unix())), "admin", "pw", 5, true)
+	db, err := database.New(
+		test.GetEnv("TEST_DB_DIALECT", "sqlite3"),
+		test.GetEnv("TEST_DB_CONNECTION", fmt.Sprintf("file:%v?mode=memory&cache=shared",
+			time.Now().Unix())),
+		"admin",
+		"pw",
+		5,
+		true)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
 	return &Database{GormDatabase: db, t: t}
@@ -38,7 +46,14 @@ func NewDBWithDefaultUser(t *testing.T) *Database {
 
 // NewDB creates a new test db instance.
 func NewDB(t *testing.T) *Database {
-	db, err := database.New("sqlite3", fmt.Sprintf("file:%s?mode=memory&cache=shared", fmt.Sprint(time.Now().Unix())), "admin", "pw", 5, false)
+	db, err := database.New(
+		test.GetEnv("TEST_DB_DIALECT", "sqlite3"),
+		test.GetEnv("TEST_DB_CONNECTION", fmt.Sprintf("file:%v?mode=memory&cache=shared",
+			time.Now().Unix())),
+		"admin",
+		"pw",
+		5,
+		false)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
 	return &Database{GormDatabase: db, t: t}
