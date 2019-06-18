@@ -2,8 +2,13 @@ package testdb
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/gotify/server/database"
 	"github.com/gotify/server/model"
@@ -13,6 +18,7 @@ import (
 
 // Database is the wrapper for the gorm database with sleek helper methods.
 type Database struct {
+	teardownShell string
 	*database.GormDatabase
 	t *testing.T
 }
@@ -31,32 +37,70 @@ type MessageBuilder struct {
 
 // NewDBWithDefaultUser creates a new test db instance with the default user.
 func NewDBWithDefaultUser(t *testing.T) *Database {
+	time := strconv.FormatInt(time.Now().UnixNano(), 10)
+	if setupShell := strings.ReplaceAll(
+		os.Getenv("TEST_DB_SETUP"),
+		"<time>",
+		time,
+	); setupShell != "" {
+		require.NoError(t, test.ExecShell(setupShell))
+	}
 	db, err := database.New(
 		test.GetEnv("TEST_DB_DIALECT", "sqlite3"),
-		test.GetEnv("TEST_DB_CONNECTION", fmt.Sprintf("file:%v?mode=memory&cache=shared",
-			time.Now().Unix())),
+		strings.ReplaceAll(
+			test.GetEnv("TEST_DB_CONNECTION", "file:<time>?mode=memory&cache=shared"),
+			"<time>",
+			time,
+		),
 		"admin",
 		"pw",
 		5,
 		true)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
-	return &Database{GormDatabase: db, t: t}
+	return &Database{
+		GormDatabase: db,
+		t:            t,
+		teardownShell: strings.ReplaceAll(
+			os.Getenv("TEST_DB_TEARDOWN"),
+			"<time>",
+			time,
+		),
+	}
 }
 
 // NewDB creates a new test db instance.
 func NewDB(t *testing.T) *Database {
+	time := strconv.FormatInt(time.Now().UnixNano(), 10)
+	if setupShell := strings.ReplaceAll(
+		os.Getenv("TEST_DB_SETUP"),
+		"<time>",
+		time,
+	); setupShell != "" {
+		require.NoError(t, test.ExecShell(setupShell))
+	}
 	db, err := database.New(
 		test.GetEnv("TEST_DB_DIALECT", "sqlite3"),
-		test.GetEnv("TEST_DB_CONNECTION", fmt.Sprintf("file:%v?mode=memory&cache=shared",
-			time.Now().Unix())),
+		strings.ReplaceAll(
+			test.GetEnv("TEST_DB_CONNECTION", "file:<time>?mode=memory&cache=shared"),
+			"<time>",
+			time,
+		),
 		"admin",
 		"pw",
 		5,
 		false)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
-	return &Database{GormDatabase: db, t: t}
+	return &Database{
+		GormDatabase: db,
+		t:            t,
+		teardownShell: strings.ReplaceAll(
+			os.Getenv("TEST_DB_TEARDOWN"),
+			"<time>",
+			time,
+		),
+	}
 }
 
 // User creates a user and returns a builder for applications and clients.
@@ -240,4 +284,13 @@ func (d *Database) AssertMessageExist(id uint) {
 	if msg, err := d.GetMessageByID(id); assert.NoError(d.t, err) {
 		assert.False(d.t, msg == nil, "message %d must exist", id)
 	}
+}
+
+// Close closes the database connection and executes database teardown.
+func (d *Database) Close() error {
+	d.GormDatabase.Close()
+	if d.teardownShell != "" {
+		return test.ExecShell(d.teardownShell)
+	}
+	return nil
 }
