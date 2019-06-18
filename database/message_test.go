@@ -238,7 +238,7 @@ func hasIDInclusiveBetween(t *testing.T, msgs []*model.Message, from, to, decrem
 
 // assertEquals compares messages and correctly check dates
 func assertEquals(t *testing.T, left *model.Message, right *model.Message) {
-	assert.Equal(t, left.Date.Unix(), right.Date.Unix())
+	assert.InDelta(t, left.Date.Unix(), right.Date.Unix(), 5)
 	left.Date = right.Date
 	assert.Equal(t, left, right)
 }
