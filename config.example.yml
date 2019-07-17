@@ -17,17 +17,17 @@ server:
       accepttos: false # if you accept the tos from letsencrypt
       cache: data/certs # the directory of the cache from letsencrypt
       hosts: # the hosts for which letsencrypt should request certificates
-      - mydomain.tld
-      - myotherdomain.tld
-  
+#      - mydomain.tld
+#      - myotherdomain.tld
+
   responseheaders: # response headers are added to every response (default: none)
-    Access-Control-Allow-Origin: "*"
-    Access-Control-Allow-Methods: "GET,POST"
+#    Access-Control-Allow-Origin: "*"
+#    Access-Control-Allow-Methods: "GET,POST"
 
   stream:
     allowedorigins: # allowed origins for websocket connections (same origin is always allowed)
-      - ".+.example.com"
-      - "otherdomain.com"
+#      - ".+.example.com"
+#      - "otherdomain.com"
 
 database: # for database see (configure database section)
   dialect: sqlite3
