@@ -6,9 +6,9 @@ import (
 )
 
 // RegisterAuthentication registers the user id, user and or token.
-func RegisterAuthentication(ctx *gin.Context, user *model.User, userID uint, tokenID string) {
+func RegisterAuthentication(ctx *gin.Context, user *model.User, tokenID string) {
 	ctx.Set("user", user)
-	ctx.Set("userid", userID)
+	ctx.Set("userid", user.ID)
 	ctx.Set("tokenid", tokenID)
 }
 

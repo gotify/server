@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gotify/server/auth/password"
+	"github.com/gotify/server/auth/basicauthenticator/password"
 	"github.com/gotify/server/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"    // enable the mysql dialect

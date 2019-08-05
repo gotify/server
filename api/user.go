@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/auth"
-	"github.com/gotify/server/auth/password"
+	"github.com/gotify/server/auth/basicauthenticator/password"
 	"github.com/gotify/server/model"
 )
 

@@ -9,6 +9,7 @@ import (
 	"github.com/gotify/server/api"
 	"github.com/gotify/server/api/stream"
 	"github.com/gotify/server/auth"
+	"github.com/gotify/server/auth/basicauthenticator"
 	"github.com/gotify/server/config"
 	"github.com/gotify/server/database"
 	"github.com/gotify/server/docs"
@@ -26,8 +27,10 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	g.Use(gin.Logger(), gin.Recovery(), error.Handler(), location.Default())
 	g.NoRoute(error.NotFound())
 
+	authenticator := auth.Auth{DB: db}
+	authenticator.RegisterAuthenticationProvider("", &basicauthenticator.AuthProvider{DB: db})
+
 	streamHandler := stream.New(200*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
-	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
 	clientHandler := api.ClientAPI{
 		DB:            db,
@@ -76,8 +79,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	})
 
 	{
-		g.GET("/plugin", authentication.RequireClient(), pluginHandler.GetPlugins)
-		pluginRoute := g.Group("/plugin/", authentication.RequireClient())
+		g.GET("/plugin", authenticator.RequireClient(), pluginHandler.GetPlugins)
+		pluginRoute := g.Group("/plugin/", authenticator.RequireClient())
 		{
 			pluginRoute.GET("/:id/config", pluginHandler.GetConfig)
 			pluginRoute.POST("/:id/config", pluginHandler.UpdateConfig)
@@ -104,11 +107,11 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		ctx.JSON(200, vInfo)
 	})
 
-	g.Group("/").Use(authentication.RequireApplicationToken()).POST("/message", messageHandler.CreateMessage)
+	g.Group("/").Use(authenticator.RequireApplicationToken()).POST("/message", messageHandler.CreateMessage)
 
 	clientAuth := g.Group("")
 	{
-		clientAuth.Use(authentication.RequireClient())
+		clientAuth.Use(authenticator.RequireClient())
 		app := clientAuth.Group("/application")
 		{
 
@@ -162,7 +165,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	authAdmin := g.Group("/user")
 	{
-		authAdmin.Use(authentication.RequireAdmin())
+		authAdmin.Use(authenticator.RequireAdmin())
 
 		authAdmin.GET("", userHandler.GetUsers)
 

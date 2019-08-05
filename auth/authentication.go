@@ -1,10 +1,9 @@
 package auth
 
 import (
-	"errors"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/auth/password"
 	"github.com/gotify/server/model"
 )
 
@@ -17,119 +16,164 @@ type Database interface {
 	GetApplicationByToken(token string) (*model.Application, error)
 	GetClientByToken(token string) (*model.Client, error)
 	GetPluginConfByToken(token string) (*model.PluginConf, error)
+
 	GetUserByName(name string) (*model.User, error)
 	GetUserByID(id uint) (*model.User, error)
+	CreateUser(user *model.User) error
+}
+
+type AuthenticationProvider interface {
+	Authenticate(req *http.Request) (user *model.User, err error)
 }
 
 // Auth is the provider for authentication middleware
 type Auth struct {
-	DB Database
+	authenticators map[string]AuthenticationProvider
+	DB             Database
 }
 
-type authenticate func(tokenID string, user *model.User) (authenticated bool, success bool, userId uint, err error)
+func (a *Auth) RegisterAuthenticationProvider(key string, auth AuthenticationProvider) {
+	a.authenticators[key] = auth
+}
 
-// RequireAdmin returns a gin middleware which requires a client token or basic authentication header to be supplied
+func (a *Auth) getUserInfoFromAuth(ctx *gin.Context) (user *model.User, authenticator string, err error) {
+	if designatedAuthenticator := ctx.GetHeader("X-Gotify-Authenticator"); designatedAuthenticator != "" {
+		auth, ok := a.authenticators[designatedAuthenticator]
+		if !ok {
+			return nil, "", AuthProviderNotFoundError{}
+		}
+		user, err := auth.Authenticate(ctx.Request)
+		if user == nil && err == nil {
+			err = NoAuthProviderError{designatedAuthenticator}
+		}
+		return user, designatedAuthenticator, err
+	}
+
+	internalAuthProvider := a.authenticators[""]
+	if user, err := internalAuthProvider.Authenticate(ctx.Request); user != nil {
+		return user, "", nil
+	} else if err != nil {
+		return nil, "", err
+	}
+	for key, externalAuthProvider := range a.authenticators {
+		if key == "" {
+			continue
+		}
+		if user, err := externalAuthProvider.Authenticate(ctx.Request); user != nil {
+			return user, key, nil
+		} else if err != nil {
+			return nil, key, err
+		}
+	}
+	return nil, "", NoAuthProviderError{}
+}
+
+func (a *Auth) ObtainAuthentication(ctx *gin.Context) (user *model.User, err error) {
+	// 1. check for existing client token
+	if token := tokenFromQueryOrHeader(ctx); token != "" {
+		client, _ := a.DB.GetClientByToken(token)
+		if client == nil {
+			return nil, TokenRequiredError{"client"}
+		}
+		user, _ := a.DB.GetUserByID(client.UserID)
+		if user == nil {
+			return nil, TokenRequiredError{"client"}
+		}
+		return user, nil
+	}
+
+	// 2. try user authentication
+	user, authenticator, err := a.getUserInfoFromAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if user.ID == 0 {
+		newUser := &model.User{
+			Name:          user.Name,
+			Authenticator: authenticator,
+			Admin:         user.Admin,
+		}
+		if err := a.DB.CreateUser(newUser); err != nil {
+			return nil, err
+		}
+		user = newUser
+	}
+	return a.DB.GetUserByName(user.Name)
+}
+
+type NotAdminError struct{}
+
+// Error implements
+func (e NotAdminError) Error() string {
+	return "you do not have sufficient priviledge to access this api"
+}
+
+// Code implements AuthenticationError
+func (e NotAdminError) Code() int {
+	return 403
+}
+
+// RequireAdmin returns a gin middleware which requires a client token or authentication to be supplied
 // with the request. Also the authenticated user must be an administrator.
 func (a *Auth) RequireAdmin() gin.HandlerFunc {
-	return a.requireToken(func(tokenID string, user *model.User) (bool, bool, uint, error) {
-		if user != nil {
-			return true, user.Admin, user.ID, nil
+	return func(ctx *gin.Context) {
+		user, err := a.ObtainAuthentication(ctx)
+		if err != nil {
+			abortContextWithAuthenticaionError(ctx, err)
+			return
 		}
-		if token, err := a.DB.GetClientByToken(tokenID); err != nil {
-			return false, false, 0, err
-		} else if token != nil {
-			user, err := a.DB.GetUserByID(token.UserID)
-			if err != nil {
-				return false, false, token.UserID, err
-			}
-			return true, user.Admin, token.UserID, nil
+		if !user.Admin {
+			abortContextWithAuthenticaionError(ctx, NotAdminError{})
+			return
 		}
-		return false, false, 0, nil
-	})
+		RegisterAuthentication(ctx, user, tokenFromQueryOrHeader(ctx))
+	}
 }
 
 // RequireClient returns a gin middleware which requires a client token or basic authentication header to be supplied
 // with the request.
 func (a *Auth) RequireClient() gin.HandlerFunc {
-	return a.requireToken(func(tokenID string, user *model.User) (bool, bool, uint, error) {
-		if user != nil {
-			return true, true, user.ID, nil
+	return func(ctx *gin.Context) {
+		user, err := a.ObtainAuthentication(ctx)
+		if err != nil {
+			abortContextWithAuthenticaionError(ctx, err)
+			return
 		}
-		if token, err := a.DB.GetClientByToken(tokenID); err != nil {
-			return false, false, 0, err
-		} else if token != nil {
-			return true, true, token.UserID, nil
-		}
-		return false, false, 0, nil
-	})
+		RegisterAuthentication(ctx, user, tokenFromQueryOrHeader(ctx))
+	}
 }
 
 // RequireApplicationToken returns a gin middleware which requires an application token to be supplied with the request.
 func (a *Auth) RequireApplicationToken() gin.HandlerFunc {
-	return a.requireToken(func(tokenID string, user *model.User) (bool, bool, uint, error) {
-		if user != nil {
-			return true, false, 0, nil
+	return func(ctx *gin.Context) {
+		token := tokenFromQueryOrHeader(ctx)
+		app, _ := a.DB.GetApplicationByToken(token)
+		if app == nil {
+			abortContextWithAuthenticaionError(ctx, TokenRequiredError{"application"})
+			return
 		}
-		if token, err := a.DB.GetApplicationByToken(tokenID); err != nil {
-			return false, false, 0, err
-		} else if token != nil {
-			return true, true, token.UserID, nil
+		user, err := a.DB.GetUserByID(app.UserID)
+		if err != nil {
+			abortContextWithAuthenticaionError(ctx, TokenRequiredError{"application"})
+			return
 		}
-		return false, false, 0, nil
-	})
+		RegisterAuthentication(ctx, user, token)
+	}
 }
 
-func (a *Auth) tokenFromQueryOrHeader(ctx *gin.Context) string {
-	if token := a.tokenFromQuery(ctx); token != "" {
+func tokenFromQueryOrHeader(ctx *gin.Context) string {
+	if token := tokenFromQuery(ctx); token != "" {
 		return token
-	} else if token := a.tokenFromHeader(ctx); token != "" {
+	} else if token := tokenFromHeader(ctx); token != "" {
 		return token
 	}
 	return ""
 }
 
-func (a *Auth) tokenFromQuery(ctx *gin.Context) string {
+func tokenFromQuery(ctx *gin.Context) string {
 	return ctx.Request.URL.Query().Get("token")
 }
 
-func (a *Auth) tokenFromHeader(ctx *gin.Context) string {
+func tokenFromHeader(ctx *gin.Context) string {
 	return ctx.Request.Header.Get(headerName)
-}
-
-func (a *Auth) userFromBasicAuth(ctx *gin.Context) (*model.User, error) {
-	if name, pass, ok := ctx.Request.BasicAuth(); ok {
-		if user, err := a.DB.GetUserByName(name); err != nil {
-			return nil, err
-		} else if user != nil && password.ComparePassword(user.Pass, []byte(pass)) {
-			return user, nil
-		}
-	}
-	return nil, nil
-}
-
-func (a *Auth) requireToken(auth authenticate) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		token := a.tokenFromQueryOrHeader(ctx)
-		user, err := a.userFromBasicAuth(ctx)
-		if err != nil {
-			ctx.AbortWithError(500, errors.New("an error occured while authenticating user"))
-			return
-		}
-
-		if user != nil || token != "" {
-			authenticated, ok, userID, err := auth(token, user)
-			if err != nil {
-				ctx.AbortWithError(500, errors.New("an error occured while authenticating user"))
-				return
-			} else if ok {
-				RegisterAuthentication(ctx, user, userID, token)
-				ctx.Next()
-				return
-			} else if authenticated {
-				ctx.AbortWithError(403, errors.New("you are not allowed to access this api"))
-				return
-			}
-		}
-		ctx.AbortWithError(401, errors.New("you need to provide a valid access token or user credentials to access this api"))
-	}
 }
