@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/auth/basicauthenticator"
 	"github.com/gotify/server/auth/basicauthenticator/password"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
@@ -29,7 +30,10 @@ type AuthenticationSuite struct {
 func (s *AuthenticationSuite) SetupSuite() {
 	mode.Set(mode.TestDev)
 	s.DB = testdb.NewDB(s.T())
-	s.auth = &Auth{s.DB}
+	s.auth = &Auth{
+		DB: s.DB,
+	}
+	s.auth.RegisterAuthenticationProvider("", &basicauthenticator.AuthProvider{DB: s.DB})
 
 	s.DB.CreateUser(&model.User{
 		Name:         "existing",

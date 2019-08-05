@@ -22,6 +22,7 @@ type Database interface {
 	CreateUser(user *model.User) error
 }
 
+// AuthenticationProvider provides authentication methods
 type AuthenticationProvider interface {
 	Authenticate(req *http.Request) (user *model.User, err error)
 }
@@ -32,21 +33,30 @@ type Auth struct {
 	DB             Database
 }
 
+// RegisterAuthenticationProvider registers a new authentication provider
+// use empty string as key to register internal credential manager
 func (a *Auth) RegisterAuthenticationProvider(key string, auth AuthenticationProvider) {
+	if a.authenticators == nil {
+		a.authenticators = make(map[string]AuthenticationProvider)
+	}
 	a.authenticators[key] = auth
+}
+
+func (a *Auth) useDesignatedAuthenticator(ctx *gin.Context, designatedAuthenticator string) (user *model.User, authenticator string, err error) {
+	auth, ok := a.authenticators[designatedAuthenticator]
+	if !ok {
+		return nil, "", ProviderNotFoundError{}
+	}
+	user, err = auth.Authenticate(ctx.Request)
+	if user == nil && err == nil {
+		err = NoAuthProviderError{designatedAuthenticator}
+	}
+	return user, designatedAuthenticator, err
 }
 
 func (a *Auth) getUserInfoFromAuth(ctx *gin.Context) (user *model.User, authenticator string, err error) {
 	if designatedAuthenticator := ctx.GetHeader("X-Gotify-Authenticator"); designatedAuthenticator != "" {
-		auth, ok := a.authenticators[designatedAuthenticator]
-		if !ok {
-			return nil, "", AuthProviderNotFoundError{}
-		}
-		user, err := auth.Authenticate(ctx.Request)
-		if user == nil && err == nil {
-			err = NoAuthProviderError{designatedAuthenticator}
-		}
-		return user, designatedAuthenticator, err
+		return a.useDesignatedAuthenticator(ctx, designatedAuthenticator)
 	}
 
 	internalAuthProvider := a.authenticators[""]
@@ -68,6 +78,7 @@ func (a *Auth) getUserInfoFromAuth(ctx *gin.Context) (user *model.User, authenti
 	return nil, "", NoAuthProviderError{}
 }
 
+// ObtainAuthentication attempts to get user authentication from either client token or an authentication provider
 func (a *Auth) ObtainAuthentication(ctx *gin.Context) (user *model.User, err error) {
 	// 1. check for existing client token
 	if token := tokenFromQueryOrHeader(ctx); token != "" {
@@ -99,18 +110,6 @@ func (a *Auth) ObtainAuthentication(ctx *gin.Context) (user *model.User, err err
 		user = newUser
 	}
 	return a.DB.GetUserByName(user.Name)
-}
-
-type NotAdminError struct{}
-
-// Error implements
-func (e NotAdminError) Error() string {
-	return "you do not have sufficient priviledge to access this api"
-}
-
-// Code implements AuthenticationError
-func (e NotAdminError) Code() int {
-	return 403
 }
 
 // RequireAdmin returns a gin middleware which requires a client token or authentication to be supplied
