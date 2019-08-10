@@ -12,7 +12,7 @@ type AuthenticationError interface {
 	Code() int
 }
 
-func abortContextWithAuthenticaionError(ctx *gin.Context, err error) {
+func abortContextWithAuthenticationError(ctx *gin.Context, err error) {
 	if authError, ok := err.(AuthenticationError); ok {
 		ctx.AbortWithError(authError.Code(), authError)
 	} else {

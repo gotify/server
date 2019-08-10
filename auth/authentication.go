@@ -24,55 +24,34 @@ type Database interface {
 
 // AuthenticationProvider provides authentication methods
 type AuthenticationProvider interface {
+	Name() string
 	Authenticate(req *http.Request) (user *model.User, err error)
 }
 
 // Auth is the provider for authentication middleware
 type Auth struct {
-	authenticators map[string]AuthenticationProvider
+	authenticators []AuthenticationProvider
 	DB             Database
 }
 
 // RegisterAuthenticationProvider registers a new authentication provider
-// use empty string as key to register internal credential manager
-func (a *Auth) RegisterAuthenticationProvider(key string, auth AuthenticationProvider) {
-	if a.authenticators == nil {
-		a.authenticators = make(map[string]AuthenticationProvider)
-	}
-	a.authenticators[key] = auth
-}
-
-func (a *Auth) useDesignatedAuthenticator(ctx *gin.Context, designatedAuthenticator string) (user *model.User, authenticator string, err error) {
-	auth, ok := a.authenticators[designatedAuthenticator]
-	if !ok {
-		return nil, "", ProviderNotFoundError{}
-	}
-	user, err = auth.Authenticate(ctx.Request)
-	if user == nil && err == nil {
-		err = NoAuthProviderError{designatedAuthenticator}
-	}
-	return user, designatedAuthenticator, err
+// the provider is used in the order it i registered
+func (a *Auth) RegisterAuthenticationProvider(auth AuthenticationProvider) {
+	a.authenticators = append(a.authenticators, auth)
 }
 
 func (a *Auth) getUserInfoFromAuth(ctx *gin.Context) (user *model.User, authenticator string, err error) {
-	if designatedAuthenticator := ctx.GetHeader("X-Gotify-Authenticator"); designatedAuthenticator != "" {
-		return a.useDesignatedAuthenticator(ctx, designatedAuthenticator)
-	}
+	designatedAuthenticator := ctx.GetHeader("X-Gotify-Authenticator")
 
-	internalAuthProvider := a.authenticators[""]
-	if user, err := internalAuthProvider.Authenticate(ctx.Request); user != nil {
-		return user, "", nil
-	} else if err != nil {
-		return nil, "", err
-	}
-	for key, externalAuthProvider := range a.authenticators {
-		if key == "" {
+	for _, authProvider := range a.authenticators {
+		providerName := authProvider.Name()
+		if designatedAuthenticator != "" && providerName != designatedAuthenticator {
 			continue
 		}
-		if user, err := externalAuthProvider.Authenticate(ctx.Request); user != nil {
-			return user, key, nil
+		if user, err := authProvider.Authenticate(ctx.Request); user != nil {
+			return user, providerName, nil
 		} else if err != nil {
-			return nil, key, err
+			return nil, providerName, err
 		}
 	}
 	return nil, "", NoAuthProviderError{}
@@ -118,11 +97,11 @@ func (a *Auth) RequireAdmin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user, err := a.ObtainAuthentication(ctx)
 		if err != nil {
-			abortContextWithAuthenticaionError(ctx, err)
+			abortContextWithAuthenticationError(ctx, err)
 			return
 		}
 		if !user.Admin {
-			abortContextWithAuthenticaionError(ctx, NotAdminError{})
+			abortContextWithAuthenticationError(ctx, NotAdminError{})
 			return
 		}
 		RegisterAuthentication(ctx, user, tokenFromQueryOrHeader(ctx))
@@ -135,7 +114,7 @@ func (a *Auth) RequireClient() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user, err := a.ObtainAuthentication(ctx)
 		if err != nil {
-			abortContextWithAuthenticaionError(ctx, err)
+			abortContextWithAuthenticationError(ctx, err)
 			return
 		}
 		RegisterAuthentication(ctx, user, tokenFromQueryOrHeader(ctx))
@@ -148,12 +127,12 @@ func (a *Auth) RequireApplicationToken() gin.HandlerFunc {
 		token := tokenFromQueryOrHeader(ctx)
 		app, _ := a.DB.GetApplicationByToken(token)
 		if app == nil {
-			abortContextWithAuthenticaionError(ctx, TokenRequiredError{"application"})
+			abortContextWithAuthenticationError(ctx, TokenRequiredError{"application"})
 			return
 		}
 		user, err := a.DB.GetUserByID(app.UserID)
 		if err != nil {
-			abortContextWithAuthenticaionError(ctx, TokenRequiredError{"application"})
+			abortContextWithAuthenticationError(ctx, TokenRequiredError{"application"})
 			return
 		}
 		RegisterAuthentication(ctx, user, token)

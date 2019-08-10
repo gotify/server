@@ -28,3 +28,8 @@ func (a *AuthProvider) Authenticate(req *http.Request) (user *model.User, err er
 	}
 	return nil, nil
 }
+
+// Name implements auth.AuthenticationProvider
+func (a *AuthProvider) Name() string {
+	return "internal"
+}

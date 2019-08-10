@@ -33,7 +33,7 @@ func (s *AuthenticationSuite) SetupSuite() {
 	s.auth = &Auth{
 		DB: s.DB,
 	}
-	s.auth.RegisterAuthenticationProvider("", &basicauthenticator.AuthProvider{DB: s.DB})
+	s.auth.RegisterAuthenticationProvider(&basicauthenticator.AuthProvider{DB: s.DB})
 
 	s.DB.CreateUser(&model.User{
 		Name:         "existing",

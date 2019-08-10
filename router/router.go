@@ -28,7 +28,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	g.NoRoute(error.NotFound())
 
 	authenticator := auth.Auth{DB: db}
-	authenticator.RegisterAuthenticationProvider("", &basicauthenticator.AuthProvider{DB: db})
+	authenticator.RegisterAuthenticationProvider(&basicauthenticator.AuthProvider{DB: db})
 
 	streamHandler := stream.New(200*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
