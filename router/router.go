@@ -3,6 +3,8 @@ package router
 import (
 	"time"
 
+	"github.com/gotify/server/auth/external"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/gotify/location"
@@ -29,6 +31,13 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	authenticator := auth.Auth{DB: db}
 	authenticator.RegisterAuthenticationProvider(&basicauthenticator.AuthProvider{DB: db})
+	for _, authenticatorConfig := range conf.ExternalAuthenticators {
+		compat, err := external.LoadAuthenticatorPlugin(authenticatorConfig.Path, authenticatorConfig.Name)
+		if err != nil {
+			panic(err)
+		}
+		authenticator.RegisterAuthenticationProvider(compat)
+	}
 
 	streamHandler := stream.New(200*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
