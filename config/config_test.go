@@ -90,6 +90,9 @@ defaultuser:
   name: nicories
   pass: 12345
 pluginsdir: data/plugins
+externalauthenticators:
+  - name: ldap
+    path: auth/ldap.so
 `)
 	file.Close()
 	assert.Nil(t, err)
@@ -105,6 +108,8 @@ pluginsdir: data/plugins
 	assert.Equal(t, "GET,POST", conf.Server.ResponseHeaders["Access-Control-Allow-Methods"])
 	assert.Equal(t, []string{".+.example.com", "otherdomain.com"}, conf.Server.Stream.AllowedOrigins)
 	assert.Equal(t, "data/plugins", conf.PluginsDir)
+	assert.Len(t, conf.ExternalAuthenticators, 1)
+	assert.Equal(t, "ldap", conf.ExternalAuthenticators[0].Name)
 
 	assert.Nil(t, os.Remove("config.yml"))
 }

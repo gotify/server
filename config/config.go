@@ -39,9 +39,13 @@ type Configuration struct {
 		Name string `default:"admin"`
 		Pass string `default:"admin"`
 	}
-	PassStrength      int    `default:"10"`
-	UploadedImagesDir string `default:"data/images"`
-	PluginsDir        string `default:"data/plugins"`
+	PassStrength           int    `default:"10"`
+	UploadedImagesDir      string `default:"data/images"`
+	PluginsDir             string `default:"data/plugins"`
+	ExternalAuthenticators []struct {
+		Name string
+		Path string
+	}
 }
 
 // Get returns the configuration extracted from env variables or config file.
