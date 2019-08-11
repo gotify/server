@@ -29,6 +29,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	streamHandler := stream.New(200*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
 	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
+	healthHandler := api.HealthAPI{DB: db}
 	clientHandler := api.ClientAPI{
 		DB:            db,
 		ImageDir:      conf.UploadedImagesDir,
@@ -57,6 +58,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	ui.Register(g)
 
+	g.GET("/health", healthHandler.Health)
 	g.GET("/swagger", docs.Serve)
 	g.Static("/image", conf.UploadedImagesDir)
 	g.GET("/docs", docs.UI)

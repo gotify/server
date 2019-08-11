@@ -839,6 +839,32 @@
         }
       }
     },
+    "/health": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "health"
+        ],
+        "summary": "Get health information.",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/Health"
+            }
+          },
+          "500": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/Health"
+            }
+          }
+        }
+      }
+    },
     "/message": {
       "get": {
         "security": [
@@ -1965,6 +1991,30 @@
           "type": "string",
           "x-go-name": "ErrorDescription",
           "example": "you need to provide a valid access token or user credentials to access this api"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/model"
+    },
+    "Health": {
+      "description": "Health represents how healthy the application is.",
+      "type": "object",
+      "title": "Health Model",
+      "required": [
+        "health",
+        "database"
+      ],
+      "properties": {
+        "database": {
+          "description": "The health of the database connection.",
+          "type": "string",
+          "x-go-name": "Database",
+          "example": "green"
+        },
+        "health": {
+          "description": "The health of the overall application.",
+          "type": "string",
+          "x-go-name": "Health",
+          "example": "green"
         }
       },
       "x-go-package": "github.com/gotify/server/model"
