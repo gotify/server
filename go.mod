@@ -27,3 +27,5 @@ require (
 	google.golang.org/appengine v1.4.0 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
 )
+
+replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
