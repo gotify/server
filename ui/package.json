@@ -27,11 +27,10 @@
     "typeface-roboto": "0.0.54"
   },
   "scripts": {
-    "start": "react-scripts-ts start",
-    "build": "react-scripts-ts build",
-    "postbuild": "rimraf build/**/*.map",
-    "test": "react-scripts-ts test",
-    "eject": "react-scripts-ts eject",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=node",
+    "eject": "react-scripts eject",
     "lint": "tslint --project .",
     "lintfix": "tslint --fix --project .",
     "format": "prettier \"src/**/*.{ts,tsx}\" --write",
@@ -55,11 +54,26 @@
     "get-port": "^4.0.0",
     "prettier": "^1.14.2",
     "puppeteer": "^1.8.0",
-    "react-scripts-ts": "2.17.0",
+    "react-scripts": "3.1.1",
     "rimraf": "^2.6.2",
     "tree-kill": "^1.2.0",
     "tslint-sonarts": "^1.7.0",
     "typescript": "^3.0.1",
     "wait-on": "^3.0.1"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
