@@ -17,7 +17,7 @@ interface MessagesState {
 
 export class MessagesStore {
     @observable
-    private state: Record<number, MessagesState> = {};
+    private state: Record<string, MessagesState> = {};
 
     private loading = false;
 
