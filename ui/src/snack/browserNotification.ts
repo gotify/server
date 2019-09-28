@@ -1,5 +1,6 @@
 import Notify from 'notifyjs';
 import removeMarkdown from 'remove-markdown';
+import {IMessage} from '../types';
 
 export function requestPermission() {
     if (Notify.needsPermission && Notify.isSupported()) {

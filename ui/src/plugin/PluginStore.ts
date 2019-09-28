@@ -3,6 +3,7 @@ import {action} from 'mobx';
 import {BaseStore} from '../common/BaseStore';
 import * as config from '../config';
 import {SnackReporter} from '../snack/SnackManager';
+import {IPlugin} from '../types';
 
 export class PluginStore extends BaseStore<IPlugin> {
     public onDelete: () => void = () => {};

@@ -4,6 +4,7 @@ import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
 import {createTransformer} from 'mobx-utils';
 import {SnackReporter} from '../snack/SnackManager';
+import {IApplication, IMessage, IPagedMessages} from '../types';
 
 const AllMessages = -1;
 

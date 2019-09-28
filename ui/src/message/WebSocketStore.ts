@@ -2,6 +2,7 @@ import {SnackReporter} from '../snack/SnackManager';
 import {CurrentUser} from '../CurrentUser';
 import * as config from '../config';
 import {AxiosError} from 'axios';
+import {IMessage} from '../types';
 
 export class WebSocketStore {
     private wsActive = false;

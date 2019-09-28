@@ -1,4 +1,4 @@
-interface IApplication {
+export interface IApplication {
     id: number;
     token: string;
     name: string;
@@ -7,13 +7,13 @@ interface IApplication {
     internal: boolean;
 }
 
-interface IClient {
+export interface IClient {
     id: number;
     token: string;
     name: string;
 }
 
-interface IPlugin {
+export interface IPlugin {
     id: number;
     token: string;
     name: string;
@@ -25,7 +25,7 @@ interface IPlugin {
     capabilities: Array<'webhooker' | 'displayer' | 'configurer' | 'messenger' | 'storager'>;
 }
 
-interface IMessage {
+export interface IMessage {
     id: number;
     appid: number;
     message: string;
@@ -36,29 +36,29 @@ interface IMessage {
     extras?: IMessageExtras;
 }
 
-interface IMessageExtras {
+export interface IMessageExtras {
     [key: string]: any; // tslint:disable-line no-any
 }
 
-interface IPagedMessages {
+export interface IPagedMessages {
     paging: IPaging;
     messages: IMessage[];
 }
 
-interface IPaging {
+export interface IPaging {
     next?: string;
     since?: number;
     size: number;
     limit: number;
 }
 
-interface IUser {
+export interface IUser {
     id: number;
     name: string;
     admin: boolean;
 }
 
-interface IVersion {
+export interface IVersion {
     version: string;
     commit: string;
     buildDate: string;
