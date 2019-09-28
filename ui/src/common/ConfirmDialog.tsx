@@ -36,7 +36,7 @@ export default function ConfirmDialog({title, text, fClose, fOnSubmit}: IProps) 
                     onClick={submitAndClose}
                     autoFocus
                     color="primary"
-                    variant="raised"
+                    variant="contained"
                     className="confirm">
                     Yes
                 </Button>

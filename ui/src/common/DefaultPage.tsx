@@ -32,7 +32,7 @@ const DefaultPage: SFC<IProps> = ({
                 {hideButton ? null : (
                     <Button
                         id={buttonId}
-                        variant="raised"
+                        variant="contained"
                         color="primary"
                         disabled={buttonDisabled}
                         onClick={fButton}>
