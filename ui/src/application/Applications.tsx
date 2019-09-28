@@ -165,12 +165,12 @@ const Row: SFC<IRowProps> = observer(
                 <ToggleVisibility value={value} style={{display: 'flex', alignItems: 'center'}} />
             </TableCell>
             <TableCell>{description}</TableCell>
-            <TableCell numeric padding="none">
+            <TableCell align="right" padding="none">
                 <IconButton onClick={fEdit} className="edit">
                     <Edit />
                 </IconButton>
             </TableCell>
-            <TableCell numeric padding="none">
+            <TableCell align="right" padding="none">
                 <IconButton onClick={fDelete} className="delete" disabled={noDelete}>
                     <Delete />
                 </IconButton>

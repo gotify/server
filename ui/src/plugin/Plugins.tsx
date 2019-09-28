@@ -88,7 +88,7 @@ const Row: SFC<IRowProps> = observer(({name, id, token, enabled, fToggleStatus})
         <TableCell>
             <ToggleVisibility value={token} style={{display: 'flex', alignItems: 'center'}} />
         </TableCell>
-        <TableCell numeric padding="none">
+        <TableCell align="right" padding="none">
             <Link to={'/plugins/' + id}>
                 <Button>
                     <Settings />

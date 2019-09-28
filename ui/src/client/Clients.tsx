@@ -114,7 +114,7 @@ const Row: SFC<IRowProps> = ({name, value, fEdit, fDelete}) => (
                 style={{display: 'flex', alignItems: 'center', width: 200}}
             />
         </TableCell>
-        <TableCell numeric padding="none">
+        <TableCell align="right" padding="none">
             <IconButton onClick={fEdit} className="edit">
                 <Edit />
             </IconButton>
