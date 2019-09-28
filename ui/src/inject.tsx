@@ -27,7 +27,8 @@ export const inject = <I extends AllStores>(...stores: I[]) => {
     return <P extends {}>(
         node: React.ComponentType<P>
     ): React.ComponentType<Pick<P, Exclude<keyof P, I>>> => {
-        return mobxInject(...stores)(node);
+        // tslint:disable-next-line:no-any
+        return mobxInject(...stores)(node) as any;
     };
 };
 
