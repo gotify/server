@@ -1,4 +1,4 @@
-import {ElementHandle, Page} from 'puppeteer';
+import {ElementHandle, JSHandle, Page} from 'puppeteer';
 
 export const innerText = async (page: ElementHandle | Page, selector: string): Promise<string> => {
     const element = await page.$(selector);
@@ -25,7 +25,7 @@ export const count = async (page: Page, selector: string): Promise<number> => {
     return page.$$(selector).then((elements) => elements.length);
 };
 
-export const waitToDisappear = async (page: Page, selector: string): Promise<void> => {
+export const waitToDisappear = async (page: Page, selector: string): Promise<JSHandle> => {
     return page.waitForFunction(
         (_selector: string) => !document.querySelector(_selector),
         {},
@@ -33,7 +33,11 @@ export const waitToDisappear = async (page: Page, selector: string): Promise<voi
     );
 };
 
-export const waitForCount = async (page: Page, selector: string, amount: number): Promise<void> => {
+export const waitForCount = async (
+    page: Page,
+    selector: string,
+    amount: number
+): Promise<JSHandle> => {
     return page.waitForFunction(
         (_selector: string, _amount: number) =>
             document.querySelectorAll(_selector).length === _amount,

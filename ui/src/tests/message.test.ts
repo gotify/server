@@ -58,7 +58,7 @@ describe('Messages', () => {
     it('has no applications', async () => {
         expect(await count(page, `${naviId} .item`)).toBe(0);
     });
-    describe('create apps', async () => {
+    describe('create apps', () => {
         it('Windows', async () => {
             windowsServerToken = await createApp('Windows');
             await page.reload();

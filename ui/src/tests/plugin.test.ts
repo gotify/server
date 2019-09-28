@@ -68,7 +68,7 @@ const hasReceivedMessage = async (title: RegExp, content: RegExp) => {
     await waitForExists(page, selector.heading(), 'Plugins');
 };
 
-const inDetailPage = async (id: number, callback: (() => Promise<void>)) => {
+const inDetailPage = async (id: number, callback: () => Promise<void>) => {
     const name = await innerText(page, $table.cell(id, Col.Name));
     await page.click($table.cell(id, Col.Details));
     await waitForExists(page, '.plugin-info .name > span', name);

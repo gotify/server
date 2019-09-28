@@ -60,7 +60,7 @@ export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
     };
 };
 
-const testPluginDir = (): {dir: string; generator: (() => string)} => {
+const testPluginDir = (): {dir: string; generator: () => string} => {
     const random = Math.random()
         .toString(36)
         .substring(2, 15);
