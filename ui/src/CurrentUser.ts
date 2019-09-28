@@ -107,9 +107,11 @@ export class CurrentUser {
         await axios
             .get(config.get('url') + 'client')
             .then((resp: AxiosResponse<IClient[]>) => {
-                resp.data.filter((client) => client.token === this.tokenCache).forEach((client) => {
-                    return axios.delete(config.get('url') + 'client/' + client.id);
-                });
+                resp.data
+                    .filter((client) => client.token === this.tokenCache)
+                    .forEach((client) => {
+                        return axios.delete(config.get('url') + 'client/' + client.id);
+                    });
             })
             .catch(() => Promise.resolve());
         window.localStorage.removeItem(tokenKey);
