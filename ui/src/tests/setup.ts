@@ -133,6 +133,8 @@ const startGotify = (filename: string, port: number, pluginDir: string): ChildPr
             GOTIFY_SERVER_PORT: '' + port,
             GOTIFY_DATABASE_CONNECTION: 'file::memory:?mode=memory&cache=shared',
             GOTIFY_PLUGINSDIR: pluginDir,
+            NODE_ENV: process.env.NODE_ENV,
+            PUBLIC_URL: process.env.PUBLIC_URL,
         },
     });
     gotify.stdout.pipe(process.stdout);
