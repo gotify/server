@@ -40,7 +40,7 @@ const enabledState = async (id: number) =>
     (await page.$eval(switchSelctor(id), (el) => el.getAttribute('data-enabled'))) === 'true';
 
 const toggleEnabled = async (id: number) => {
-    const origEnabled = await enabledState(id).toString();
+    const origEnabled = (await enabledState(id)).toString();
     await page.click(switchSelctor(id));
     await page.waitForFunction(
         `document.querySelector("${switchSelctor(
