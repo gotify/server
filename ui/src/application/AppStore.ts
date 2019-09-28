@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as config from '../config';
 import {action} from 'mobx';
 import {SnackReporter} from '../snack/SnackManager';
+import {IApplication} from '../types';
 
 export class AppStore extends BaseStore<IApplication> {
     public onDelete: () => void = () => {};

@@ -13,6 +13,7 @@ import DefaultPage from '../common/DefaultPage';
 import ToggleVisibility from '../common/ToggleVisibility';
 import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
+import {IPlugin} from '../types';
 
 @observer
 class Plugins extends Component<Stores<'pluginStore'>> {

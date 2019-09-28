@@ -1,3 +1,5 @@
+import {IMessageExtras} from '../types';
+
 export enum RenderMode {
     Markdown = 'text/markdown',
     Plain = 'text/plain',

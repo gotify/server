@@ -4,6 +4,7 @@ import {Base64} from 'js-base64';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
 import {observable} from 'mobx';
+import {IClient, IUser} from './types';
 
 const tokenKey = 'gotify-login-key';
 

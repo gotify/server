@@ -9,6 +9,7 @@ import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
 import {observable} from 'mobx';
 import ReactInfinite from 'react-infinite';
+import {IMessage} from '../types';
 
 interface IProps extends RouteComponentProps<{id: string}> {}
 

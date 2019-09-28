@@ -20,6 +20,7 @@ import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
 import * as config from '../config';
 import UpdateDialog from './UpdateApplicationDialog';
+import {IApplication} from '../types';
 
 @observer
 class Applications extends Component<Stores<'appStore'>> {

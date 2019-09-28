@@ -21,6 +21,7 @@ import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
 import {NetworkLostBanner} from '../common/NetworkLostBanner';
+import {IVersion} from '../types';
 
 const styles = (theme: Theme) => ({
     content: {

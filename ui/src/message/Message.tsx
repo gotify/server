@@ -9,6 +9,7 @@ import * as config from '../config';
 import {StyleRulesCallback} from '@material-ui/core/styles/withStyles';
 import ReactMarkdown from 'react-markdown';
 import {RenderMode, contentType} from './extras';
+import {IMessageExtras} from '../types';
 
 const styles: StyleRulesCallback = () => ({
     header: {

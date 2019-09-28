@@ -17,6 +17,7 @@ import UpdateDialog from './UpdateClientDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
+import {IClient} from '../types';
 
 @observer
 class Clients extends Component<Stores<'clientStore'>> {

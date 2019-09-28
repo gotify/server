@@ -15,6 +15,7 @@ import DefaultPage from '../common/DefaultPage';
 import * as config from '../config';
 import Container from '../common/Container';
 import {inject, Stores} from '../inject';
+import {IPlugin} from '../types';
 
 interface IProps extends RouteComponentProps<{id: string}> {}
 

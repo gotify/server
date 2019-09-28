@@ -5,6 +5,7 @@ import {clickByText, count, innerText, waitForCount, waitForExists} from './util
 import * as auth from './authentication';
 import * as selector from './selector';
 import axios from 'axios';
+import {IApplication, IMessage, IMessageExtras} from '../types';
 
 let page: Page;
 let gotify: GotifyTest;

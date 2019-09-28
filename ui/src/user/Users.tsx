@@ -16,6 +16,7 @@ import AddEditDialog from './AddEditUserDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
+import {IUser} from '../types';
 
 const styles = () => ({
     wrapper: {
