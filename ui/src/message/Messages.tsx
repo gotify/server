@@ -20,7 +20,7 @@ interface IState {
 @observer
 class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, IState> {
     @observable
-    private heights: Record<number, number> = {};
+    private heights: Record<string, number> = {};
 
     private static appId(props: IProps) {
         if (props === undefined) {
