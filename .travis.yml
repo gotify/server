@@ -15,13 +15,14 @@ cache:
     - $HOME/gopath/pkg/mod
 
 before_install:
+  - nvm install 12.10.0
   - export GIMME_GO=$(< GO_VERSION)
   - eval "$(gimme ${GIMME_GO%.0})";
   - make download-tools
 
 install:
   - go get
-  - (cd ui && npm install)
+  - (cd ui && yarn)
 
 script:
 # packr builds a go file for all packr "boxes", this would be f.ex. the spec.json file.
