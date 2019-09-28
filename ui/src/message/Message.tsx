@@ -60,7 +60,7 @@ interface IProps {
 }
 
 class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
-    private node: HTMLDivElement | null;
+    private node: HTMLDivElement | null = null;
 
     public componentDidMount = () =>
         this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
