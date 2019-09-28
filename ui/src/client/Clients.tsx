@@ -119,7 +119,7 @@ const Row: SFC<IRowProps> = ({name, value, fEdit, fDelete}) => (
                 <Edit />
             </IconButton>
         </TableCell>
-        <TableCell>
+        <TableCell align="right" padding="none">
             <IconButton onClick={fDelete} className="delete">
                 <Delete />
             </IconButton>

@@ -24,9 +24,9 @@ const DefaultPage: SFC<IProps> = ({
     children,
 }) => (
     <main style={{margin: '0 auto', maxWidth}}>
-        <Grid container spacing={24}>
+        <Grid container spacing={4}>
             <Grid item xs={12} style={{display: 'flex'}}>
-                <Typography variant="display1" style={{flex: 1}}>
+                <Typography variant="h4" style={{flex: 1}}>
                     {title}
                 </Typography>
                 {hideButton ? null : (

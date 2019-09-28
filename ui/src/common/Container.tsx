@@ -8,11 +8,11 @@ const styles = () => ({
     },
 });
 
-interface IProps {
+interface IProps extends WithStyles<'paper'> {
     style?: object;
 }
 
-const Container: React.SFC<IProps & WithStyles<'paper'>> = ({classes, children, style}) => {
+const Container: React.SFC<IProps> = ({classes, children, style}) => {
     return (
         <Paper elevation={6} className={classes.paper} style={style}>
             {children}
@@ -20,4 +20,4 @@ const Container: React.SFC<IProps & WithStyles<'paper'>> = ({classes, children, 
     );
 };
 
-export default withStyles(styles)<IProps>(Container);
+export default withStyles(styles)(Container);

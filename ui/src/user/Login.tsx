@@ -56,7 +56,7 @@ class Login extends Component<Stores<'currentUser'>> {
         );
     }
 
-    private login = (e: React.MouseEvent<HTMLInputElement>) => {
+    private login = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         this.props.currentUser.login(this.username, this.password);
     };
