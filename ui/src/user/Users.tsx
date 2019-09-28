@@ -36,7 +36,7 @@ const UserRow: SFC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
     <TableRow>
         <TableCell>{name}</TableCell>
         <TableCell>{admin ? 'Yes' : 'No'}</TableCell>
-        <TableCell numeric padding="none">
+        <TableCell align="right" padding="none">
             <IconButton onClick={fEdit} className="edit">
                 <Edit />
             </IconButton>
