@@ -5,7 +5,7 @@ import axios from 'axios';
 import * as auth from './authentication';
 import * as selector from './selector';
 import {GotifyTest, newTest, newPluginDir} from './setup';
-import {count, innerText, waitForExists} from './utils';
+import {innerText, waitForCount, waitForExists} from './utils';
 
 const pluginSupported = ['linux', 'darwin'].indexOf(os.platform()) !== -1;
 
@@ -94,7 +94,7 @@ describe('plugin', () => {
     describe('functionality test', () => {
         describe('initial status', () => {
             it('has echo plugin', async () => {
-                expect(await count(page, $table.rows())).toBe(1);
+                await waitForCount(page, $table.rows(), 1);
                 expect(await innerText(page, $table.cell(1, Col.Name))).toEqual('test plugin');
                 expect(await innerText(page, $table.cell(1, Col.Token))).toBe(hiddenToken);
                 expect(parseInt(await innerText(page, $table.cell(1, Col.ID)), 10)).toBeGreaterThan(
