@@ -1,0 +1,4 @@
+FROM arm32v7/debian
+WORKDIR /app
+ADD gotify-app /app/
+ENTRYPOINT ["./gotify-app"]
