@@ -268,6 +268,7 @@ class PluginInfo extends Component<{pluginInfo: IPlugin}> {
                             <a
                                 href={url}
                                 target="_blank"
+                                rel="noopener noreferrer"
                                 style={{color: 'white'}}
                                 className="custom-route">
                                 {url}
