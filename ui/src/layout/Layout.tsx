@@ -27,7 +27,7 @@ const styles = (theme: Theme) => ({
     content: {
         margin: '0 auto',
         marginTop: 64,
-        padding: theme.spacing.unit * 4,
+        padding: theme.spacing(4),
         width: '100%',
     },
 });
@@ -165,6 +165,4 @@ class Layout extends React.Component<
     }
 }
 
-export default withStyles(styles, {withTheme: true})<{}>(
-    inject('currentUser', 'snackManager')(Layout)
-);
+export default withStyles(styles, {withTheme: true})(inject('currentUser', 'snackManager')(Layout));

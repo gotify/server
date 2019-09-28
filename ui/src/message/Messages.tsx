@@ -107,7 +107,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
         return (
             <Message
                 key={message.id}
-                height={(height) => {
+                height={(height: number) => {
                     if (!this.heights[message.id]) {
                         this.heights[message.id] = height;
                     }
@@ -132,7 +132,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
 
     private label = (text: string) => (
         <Grid item xs={12}>
-            <Typography variant="caption" gutterBottom align="center">
+            <Typography variant="caption" component="div" gutterBottom align="center">
                 {text}
             </Typography>
         </Grid>

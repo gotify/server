@@ -152,7 +152,7 @@ interface IRowProps {
 const Row: SFC<IRowProps> = observer(
     ({name, value, noDelete, description, fDelete, fUpload, image, fEdit}) => (
         <TableRow>
-            <TableCell padding="checkbox">
+            <TableCell padding="default">
                 <div style={{display: 'flex'}}>
                     <Avatar src={config.get('url') + image} />
                     <IconButton onClick={fUpload} style={{height: 40}}>

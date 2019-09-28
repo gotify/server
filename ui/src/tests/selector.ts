@@ -1,5 +1,5 @@
 export const heading = () => {
-    return `main h1`;
+    return `main h4`;
 };
 
 export const table = (tableSelector: string) => {
@@ -16,7 +16,7 @@ export const form = (dialogSelector: string) => {
     return {
         selector: () => dialogSelector,
         input: (selector: string) => `${dialogSelector} ${selector} input`,
-        textarea: (selector: string) => `${dialogSelector} ${selector} textarea[type=text]`,
+        textarea: (selector: string) => `${dialogSelector} ${selector} textarea`,
         button: (selector: string) => `${dialogSelector} button${selector}`,
     };
 };

@@ -132,7 +132,7 @@ const PanelWrapper: React.SFC<IPanelWrapperProps> = ({
     const Icon = icon;
     return (
         <Container style={{display: 'block', width: '100%', margin: '20px', color: 'white'}}>
-            <Typography variant="headline">
+            <Typography variant="h5">
                 {Icon ? (
                     <span>
                         <Icon />
@@ -151,7 +151,7 @@ const PanelWrapper: React.SFC<IPanelWrapperProps> = ({
                 ) : null}
             </Typography>
             {description ? (
-                <Typography variant="subheading" style={{color: 'grey'}}>
+                <Typography variant="subtitle1" style={{color: 'grey'}}>
                     {description}
                 </Typography>
             ) : null}

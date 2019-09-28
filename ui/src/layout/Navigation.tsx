@@ -78,4 +78,4 @@ class Navigation extends Component<IProps & Styles & Stores<'appStore'>> {
     }
 }
 
-export default withStyles(styles, {withTheme: true})<IProps>(inject('appStore')(Navigation));
+export default withStyles(styles, {withTheme: true})(inject('appStore')(Navigation));

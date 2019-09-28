@@ -17,7 +17,7 @@ export const NetworkLostBanner = ({height, retry}: NetworkLostBannerProps) => {
                 zIndex: 1300,
                 position: 'relative',
             }}>
-            <Typography align="center" variant="title" style={{lineHeight: `${height}px`}}>
+            <Typography align="center" variant="h6" style={{lineHeight: `${height}px`}}>
                 No network connection.{' '}
                 <Button variant="outlined" onClick={retry}>
                     Retry

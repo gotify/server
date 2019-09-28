@@ -1,17 +1,16 @@
 import IconButton from '@material-ui/core/IconButton';
-import {withStyles, WithStyles} from '@material-ui/core/styles';
+import {StyleRules, withStyles, WithStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Delete from '@material-ui/icons/Delete';
 import React from 'react';
 import TimeAgo from 'react-timeago';
 import Container from '../common/Container';
 import * as config from '../config';
-import {StyleRulesCallback} from '@material-ui/core/styles/withStyles';
 import ReactMarkdown from 'react-markdown';
 import {RenderMode, contentType} from './extras';
 import {IMessageExtras} from '../types';
 
-const styles: StyleRulesCallback = () => ({
+const styles = (): StyleRules => ({
     header: {
         display: 'flex',
     },
@@ -95,9 +94,7 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                     </div>
                     <div className={classes.messageContentWrapper}>
                         <div className={classes.header}>
-                            <Typography
-                                className={`${classes.headerTitle} title`}
-                                variant="headline">
+                            <Typography className={`${classes.headerTitle} title`} variant="h5">
                                 {title}
                             </Typography>
                             <Typography variant="body1" className="date">
@@ -117,4 +114,4 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
     }
 }
 
-export default withStyles(styles)<IProps>(Message);
+export default withStyles(styles)(Message);

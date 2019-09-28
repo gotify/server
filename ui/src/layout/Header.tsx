@@ -35,7 +35,7 @@ const styles = (theme: Theme) => ({
 
 type Styles = WithStyles<'link' | 'titleName' | 'title' | 'appBar'>;
 
-interface IProps {
+interface IProps extends Styles {
     loggedIn: boolean;
     name: string;
     admin: boolean;
@@ -47,7 +47,7 @@ interface IProps {
 }
 
 @observer
-class Header extends Component<IProps & Styles> {
+class Header extends Component<IProps> {
     public render() {
         const {classes, version, name, loggedIn, admin, toggleTheme, logout, style} = this.props;
 
@@ -56,10 +56,7 @@ class Header extends Component<IProps & Styles> {
                 <Toolbar>
                     <div className={classes.title}>
                         <a href="https://github.com/gotify/server" className={classes.link}>
-                            <Typography
-                                variant="headline"
-                                className={classes.titleName}
-                                color="inherit">
+                            <Typography variant="h5" className={classes.titleName} color="inherit">
                                 Gotify
                             </Typography>
                         </a>
@@ -126,4 +123,4 @@ class Header extends Component<IProps & Styles> {
     }
 }
 
-export default withStyles(styles, {withTheme: true})<IProps>(Header);
+export default withStyles(styles, {withTheme: true})(Header);
