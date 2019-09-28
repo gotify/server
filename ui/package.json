@@ -59,7 +59,7 @@
     "tree-kill": "^1.2.0",
     "tslint": "^5.20.0",
     "tslint-sonarts": "^1.7.0",
-    "typescript": "^3.0.1",
+    "typescript": "3.6.2",
     "wait-on": "^3.0.1"
   },
   "eslintConfig": {
