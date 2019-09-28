@@ -40,7 +40,7 @@ class Login extends Component<Stores<'currentUser'>> {
                             />
                             <Button
                                 type="submit"
-                                variant="raised"
+                                variant="contained"
                                 size="large"
                                 className="login"
                                 color="primary"

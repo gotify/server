@@ -97,7 +97,7 @@ export default class AddEditDialog extends Component<IProps, IState> {
                                 disabled={!passPresent || !namePresent}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="raised">
+                                variant="contained">
                                 {isEdit ? 'Save' : 'Create'}
                             </Button>
                         </div>

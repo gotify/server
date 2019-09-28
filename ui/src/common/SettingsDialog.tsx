@@ -54,7 +54,7 @@ class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
                                 disabled={pass.length === 0}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="raised">
+                                variant="contained">
                                 Change
                             </Button>
                         </div>

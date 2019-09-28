@@ -69,7 +69,7 @@ export default class AddDialog extends Component<IProps, IState> {
                                 disabled={!submitEnabled}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="raised">
+                                variant="contained">
                                 Create
                             </Button>
                         </div>

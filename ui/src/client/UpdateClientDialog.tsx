@@ -65,7 +65,7 @@ export default class UpdateDialog extends Component<IProps, IState> {
                                 disabled={!submitEnabled}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="raised">
+                                variant="contained">
                                 Update
                             </Button>
                         </div>
