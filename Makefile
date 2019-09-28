@@ -26,7 +26,7 @@ format:
 
 test-js:
 	go build -ldflags="-s -w -X main.Mode=prod" -o removeme/gotify app.go
-	(cd ui && CI=true GOTIFY_EXE=../removeme/gotify npm test)
+	(cd ui && CI=true GOTIFY_EXE=../removeme/gotify yarn test)
 	rm -rf removeme
 
 check-go:
@@ -36,8 +36,8 @@ check-go:
 	goimports -l $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
 check-js:
-	(cd ui && npm run lint)
-	(cd ui && npm run testformat)
+	(cd ui && yarn lint)
+	(cd ui && yarn testformat)
 
 download-tools:
 	GO111MODULE=off go get -u golang.org/x/lint/golint
@@ -77,7 +77,7 @@ build-docker: require-version
 	rm ${DOCKER_DIR}gotify-app
 
 build-js:
-	(cd ui && npm run build)
+	(cd ui && yarn build)
 
 build-linux-amd64:
 	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-amd64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-amd64 ${DOCKER_WORKDIR}
