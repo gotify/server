@@ -8,7 +8,7 @@ export class SnackManager {
     @observable
     private messages: string[] = [];
     @observable
-    public message: string | null;
+    public message: string | null = null;
     @observable
     public counter = 0;
 
