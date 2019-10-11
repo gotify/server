@@ -62,7 +62,7 @@ func (a *API) NotifyDeletedClient(userID uint, token string) {
 				clients = append(clients[:i], clients[i+1:]...)
 			}
 		}*/
-		if cliente,okey := clients[token]; okey{
+		if client, ok := clients[token]; ok {
 			cliente.Close()
 			delete(clients,token)
 		}
