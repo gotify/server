@@ -13,6 +13,7 @@ type Message struct {
 	Priority      int
 	Extras        []byte
 	Date          time.Time
+	Clients       []byte
 }
 
 // MessageExternal Model
@@ -62,4 +63,11 @@ type MessageExternal struct {
 	// required: true
 	// example: 2018-02-27T19:36:10.5045044+01:00
 	Date time.Time `json:"date"`
+	// The tokens of the clients.
+	//
+	// read only: true
+	// required: false
+	// example: ["token1","token2","token3"]
+	// if empty, the message is sent to all clients
+	Clients[] string `form:"clients[]" query:"-" json:"clients"`
 }

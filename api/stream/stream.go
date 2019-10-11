@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/auth"
@@ -17,7 +16,7 @@ import (
 
 // The API provides a handler for a WebSocket stream API.
 type API struct {
-	clients     map[uint][]*client
+	clients     map[uint]map[string]*client
 	lock        sync.RWMutex
 	pingPeriod  time.Duration
 	pongTimeout time.Duration
@@ -30,7 +29,7 @@ type API struct {
 // pong command.
 func New(pingPeriod, pongTimeout time.Duration, allowedWebSocketOrigins []string) *API {
 	return &API{
-		clients:     make(map[uint][]*client),
+		clients:     make(map[uint]map[string]*client),
 		pingPeriod:  pingPeriod,
 		pongTimeout: pingPeriod + pongTimeout,
 		upgrader:    newUpgrader(allowedWebSocketOrigins),
@@ -55,12 +54,17 @@ func (a *API) NotifyDeletedClient(userID uint, token string) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	if clients, ok := a.clients[userID]; ok {
-		for i := len(clients) - 1; i >= 0; i-- {
+		
+		/*for i := len(clients) - 1; i >= 0; i-- {
 			client := clients[i]
 			if client.token == token {
 				client.Close()
 				clients = append(clients[:i], clients[i+1:]...)
 			}
+		}*/
+		if cliente,okey := clients[token]; okey{
+			cliente.Close()
+			delete(clients,token)
 		}
 		a.clients[userID] = clients
 	}
@@ -71,9 +75,18 @@ func (a *API) Notify(userID uint, msg *model.MessageExternal) {
 	a.lock.RLock()
 	defer a.lock.RUnlock()
 	if clients, ok := a.clients[userID]; ok {
-		for _, c := range clients {
-			c.write <- msg
+		if msg.Clients!=nil && len(msg.Clients)>0{
+			for _,token := range msg.Clients{
+				if c,ok := clients[token];ok {
+					c.write <- msg
+				}
+			}
+		}else{
+			for _, c := range clients {
+				c.write <- msg
+			}	
 		}
+		
 	}
 }
 
@@ -81,19 +94,23 @@ func (a *API) remove(remove *client) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	if userIDClients, ok := a.clients[remove.userID]; ok {
-		for i, client := range userIDClients {
+		for key, client := range userIDClients {
 			if client == remove {
-				a.clients[remove.userID] = append(userIDClients[:i], userIDClients[i+1:]...)
+				delete(a.clients[remove.userID],key)
+				//a.clients[remove.userID] = append(userIDClients[:i], userIDClients[i+1:]...)
 				break
 			}
 		}
 	}
 }
 
-func (a *API) register(client *client) {
+func (a *API) register(cliente *client) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
-	a.clients[client.userID] = append(a.clients[client.userID], client)
+	if a.clients[cliente.userID]==nil{
+		a.clients[cliente.userID] = map[string]*client{}
+	}
+	a.clients[cliente.userID][cliente.token] = cliente 
 }
 
 // Handle handles incoming requests. First it upgrades the protocol to the WebSocket protocol and then starts listening

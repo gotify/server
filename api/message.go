@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/gotify/location"
@@ -388,6 +387,9 @@ func toInternalMessage(msg *model.MessageExternal) *model.Message {
 	if msg.Extras != nil {
 		res.Extras, _ = json.Marshal(msg.Extras)
 	}
+	if msg.Clients!=nil{
+		res.Clients,_ =  json.Marshal(msg.Clients)
+	}
 	return res
 }
 
@@ -403,6 +405,10 @@ func toExternalMessage(msg *model.Message) *model.MessageExternal {
 	if len(msg.Extras) != 0 {
 		res.Extras = make(map[string]interface{})
 		json.Unmarshal(msg.Extras, &res.Extras)
+	}
+	if len(msg.Clients) != 0 {
+		res.Clients = []string{}
+		json.Unmarshal(msg.Clients, &res.Clients)
 	}
 	return res
 }
