@@ -9,9 +9,9 @@ interface NetworkLostBannerProps {
 
 export const NetworkLostBanner = ({height, retry}: NetworkLostBannerProps) => {
     useEffect(() => {
-            var intervalId = setInterval(retry, 3000);
+        const intervalId = setInterval(retry, 3000);
             
-            return() => {
+        return() => {
                 clearInterval(intervalId);
             }
         });
