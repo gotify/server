@@ -98,7 +98,7 @@ class Layout extends React.Component<
             <MuiThemeProvider theme={theme}>
                 <HashRouter>
                     <div>
-                        {hasNetwork ? null : <NetworkLostBanner height={64} retry={tryReconnect} />}
+                        {hasNetwork ? null : <NetworkLostBanner height={64} retry={() => tryReconnect()} />}
                         <div style={{display: 'flex'}}>
                             <CssBaseline />
                             <Header
