@@ -10,6 +10,8 @@ const tokenKey = 'gotify-login-key';
 
 export class CurrentUser {
     private tokenCache: string | null = null;
+    private reconnectTimeoutId: number | null = null;
+    private readonly reconnectTime: number = 3000;
     @observable
     public loggedIn = false;
     @observable
@@ -90,7 +92,7 @@ export class CurrentUser {
             })
             .catch((error: AxiosError) => {
                 if (!error || !error.response) {
-                    this.hasNetwork = false;
+                    this.lostNetwork();
                     return Promise.reject(error);
                 }
 
@@ -123,5 +125,24 @@ export class CurrentUser {
         axios
             .post(config.get('url') + 'current/user/password', {pass})
             .then(() => this.snack('Password changed'));
+    };
+
+    public tryReconnect = (quiet = false) => {
+        this.tryAuthenticate().catch(() => {
+            if (!quiet) {
+                this.snack('Reconnect failed');
+            }
+        });
+    };
+
+    private lostNetwork = () => {
+        this.hasNetwork = false;
+        if (this.reconnectTimeoutId !== null) {
+            window.clearTimeout(this.reconnectTimeoutId);
+        }
+        this.reconnectTimeoutId = window.setTimeout(
+            () => this.tryReconnect(true),
+            this.reconnectTime
+        );
     };
 }
