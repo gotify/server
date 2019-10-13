@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
@@ -8,14 +8,6 @@ interface NetworkLostBannerProps {
 }
 
 export const NetworkLostBanner = ({height, retry}: NetworkLostBannerProps) => {
-    useEffect(() => {
-        const intervalId = setInterval(retry, 3000);
-            
-        return() => {
-                clearInterval(intervalId);
-            }
-        });
-
     return (
         <div
             style={{
@@ -33,5 +25,4 @@ export const NetworkLostBanner = ({height, retry}: NetworkLostBannerProps) => {
             </Typography>
         </div>
     );
-
 };

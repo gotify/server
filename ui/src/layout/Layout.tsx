@@ -63,8 +63,6 @@ class Layout extends React.Component<
     private showSettings = false;
     @observable
     private version = Layout.defaultVersion;
-    @observable
-    private reconnecting = false;
 
     public componentDidMount() {
         if (this.version === Layout.defaultVersion) {
@@ -81,19 +79,6 @@ class Layout extends React.Component<
         }
     }
 
-    private doReconnect = () => {
-        this.reconnecting = true;
-        this.props.currentUser
-            .tryAuthenticate()
-            .then(() => {
-                this.reconnecting = false;
-            })
-            .catch(() => {
-                this.reconnecting = false;
-                this.props.snackManager.snack('Reconnect failed');
-            });
-    };
-
     public render() {
         const {version, showSettings, currentTheme} = this;
         const {
@@ -104,6 +89,7 @@ class Layout extends React.Component<
                 user: {name, admin},
                 logout,
                 hasNetwork,
+                tryReconnect,
             },
         } = this.props;
         const theme = themeMap[currentTheme];
@@ -112,9 +98,7 @@ class Layout extends React.Component<
             <MuiThemeProvider theme={theme}>
                 <HashRouter>
                     <div>
-                        {hasNetwork ? null : (
-                            <NetworkLostBanner height={64} retry={this.doReconnect} />
-                        )}
+                        {hasNetwork ? null : <NetworkLostBanner height={64} retry={tryReconnect} />}
                         <div style={{display: 'flex'}}>
                             <CssBaseline />
                             <Header
@@ -131,7 +115,7 @@ class Layout extends React.Component<
 
                             <main className={classes.content}>
                                 <Switch>
-                                    {authenticating || this.reconnecting ? (
+                                    {authenticating ? (
                                         <Route path="/">
                                             <LoadingSpinner />
                                         </Route>
