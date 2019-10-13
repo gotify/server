@@ -127,7 +127,7 @@ export class CurrentUser {
             .then(() => this.snack('Password changed'));
     };
 
-    public tryReconnect = (quiet: boolean = false) => {
+    public tryReconnect = (quiet = false) => {
         this.tryAuthenticate().catch(() => {
             if (!quiet) {
                 this.snack('Reconnect failed');
