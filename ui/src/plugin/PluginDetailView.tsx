@@ -131,7 +131,7 @@ const PanelWrapper: React.SFC<IPanelWrapperProps> = ({
 }) => {
     const Icon = icon;
     return (
-        <Container style={{display: 'block', width: '100%', margin: '20px', color: 'white'}}>
+        <Container style={{display: 'block', width: '100%', margin: '20px'}}>
             <Typography variant="h5">
                 {Icon ? (
                     <span>
@@ -150,11 +150,7 @@ const PanelWrapper: React.SFC<IPanelWrapperProps> = ({
                     </Button>
                 ) : null}
             </Typography>
-            {description ? (
-                <Typography variant="subtitle1" style={{color: 'grey'}}>
-                    {description}
-                </Typography>
-            ) : null}
+            {description ? <Typography variant="subtitle1">{description}</Typography> : null}
             <hr />
             <div
                 className={name
@@ -269,7 +265,6 @@ class PluginInfo extends Component<{pluginInfo: IPlugin}> {
                                 href={url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                style={{color: 'white'}}
                                 className="custom-route">
                                 {url}
                             </a>
