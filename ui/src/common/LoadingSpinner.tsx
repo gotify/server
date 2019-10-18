@@ -5,7 +5,7 @@ import DefaultPage from './DefaultPage';
 
 export default function LoadingSpinner() {
     return (
-        <DefaultPage title="" maxWidth={250} hideButton={true}>
+        <DefaultPage title="" maxWidth={250}>
             <Grid item xs={12} style={{textAlign: 'center'}}>
                 <CircularProgress size={150} />
             </Grid>

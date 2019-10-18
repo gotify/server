@@ -13,6 +13,7 @@ import CloudUpload from '@material-ui/icons/CloudUpload';
 import React, {ChangeEvent, Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
+import Button from '@material-ui/core/Button';
 import ToggleVisibility from '../common/ToggleVisibility';
 import AddApplicationDialog from './AddApplicationDialog';
 import {observer} from 'mobx-react';
@@ -47,10 +48,16 @@ class Applications extends Component<Stores<'appStore'>> {
         return (
             <DefaultPage
                 title="Applications"
-                buttonTitle="Create Application"
-                buttonId="create-app"
-                maxWidth={1000}
-                fButton={() => (this.createDialog = true)}>
+                rightControl={
+                    <Button
+                        id="create-app"
+                        variant="contained"
+                        color="primary"
+                        onClick={() => (this.createDialog = true)}>
+                        Create Application
+                    </Button>
+                }
+                maxWidth={1000}>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="app-table">

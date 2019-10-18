@@ -70,7 +70,7 @@ class PluginDetailView extends Component<IProps & Stores<'pluginStore'>, IState>
         const pluginInfo = this.pluginInfo();
         const {name, capabilities} = pluginInfo;
         return (
-            <DefaultPage title={name} hideButton={true} maxWidth={1000}>
+            <DefaultPage title={name} maxWidth={1000}>
                 <PanelWrapper name={'Plugin Info'} icon={Info}>
                     <PluginInfo pluginInfo={pluginInfo} />
                 </PanelWrapper>

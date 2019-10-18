@@ -11,6 +11,7 @@ import Edit from '@material-ui/icons/Edit';
 import React, {Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
+import Button from '@material-ui/core/Button';
 import ToggleVisibility from '../common/ToggleVisibility';
 import AddClientDialog from './AddClientDialog';
 import UpdateDialog from './UpdateClientDialog';
@@ -42,9 +43,15 @@ class Clients extends Component<Stores<'clientStore'>> {
         return (
             <DefaultPage
                 title="Clients"
-                buttonTitle="Create Client"
-                buttonId="create-client"
-                fButton={() => (this.showDialog = true)}>
+                rightControl={
+                    <Button
+                        id="create-client"
+                        variant="contained"
+                        color="primary"
+                        onClick={() => (this.showDialog = true)}>
+                        Create Client
+                    </Button>
+                }>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="client-table">

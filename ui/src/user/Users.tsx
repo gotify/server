@@ -12,6 +12,7 @@ import Edit from '@material-ui/icons/Edit';
 import React, {Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
+import Button from '@material-ui/core/Button';
 import AddEditDialog from './AddEditUserDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
@@ -69,9 +70,15 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
         return (
             <DefaultPage
                 title="Users"
-                buttonTitle="Create User"
-                buttonId="create-user"
-                fButton={() => (this.createDialog = true)}>
+                rightControl={
+                    <Button
+                        id="create-user"
+                        variant="contained"
+                        color="primary"
+                        onClick={() => (this.createDialog = true)}>
+                        Create User
+                    </Button>
+                }>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="user-table">

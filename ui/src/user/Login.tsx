@@ -18,7 +18,7 @@ class Login extends Component<Stores<'currentUser'>> {
     public render() {
         const {username, password} = this;
         return (
-            <DefaultPage title="Login" maxWidth={250} hideButton={true}>
+            <DefaultPage title="Login" maxWidth={250}>
                 <Grid item xs={12} style={{textAlign: 'center'}}>
                     <Container>
                         <form onSubmit={this.preventDefault} id="login-form">

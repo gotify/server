@@ -4,6 +4,7 @@ import Typography from '@material-ui/core/Typography';
 import React, {Component} from 'react';
 import {RouteComponentProps} from 'react-router';
 import DefaultPage from '../common/DefaultPage';
+import Button from '@material-ui/core/Button';
 import Message from './Message';
 import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
@@ -61,10 +62,16 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
         return (
             <DefaultPage
                 title={name}
-                buttonTitle="Delete All"
-                buttonId="delete-all"
-                fButton={() => messagesStore.removeByApp(appId)}
-                buttonDisabled={!hasMessages}>
+                rightControl={
+                    <Button
+                        id="delete-all"
+                        variant="contained"
+                        disabled={!hasMessages}
+                        color="primary"
+                        onClick={() => messagesStore.removeByApp(appId)}>
+                        Delete All
+                    </Button>
+                }>
                 {hasMessages ? (
                     <div style={{width: '100%'}} id="messages">
                         <ReactInfinite

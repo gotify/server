@@ -25,7 +25,7 @@ class Plugins extends Component<Stores<'pluginStore'>> {
         } = this;
         const plugins = pluginStore.getItems();
         return (
-            <DefaultPage title="Plugins" hideButton={true} maxWidth={1000}>
+            <DefaultPage title="Plugins" maxWidth={1000}>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="plugin-table">
