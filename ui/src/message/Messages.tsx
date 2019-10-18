@@ -63,14 +63,25 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
             <DefaultPage
                 title={name}
                 rightControl={
-                    <Button
-                        id="delete-all"
-                        variant="contained"
-                        disabled={!hasMessages}
-                        color="primary"
-                        onClick={() => messagesStore.removeByApp(appId)}>
-                        Delete All
-                    </Button>
+                    <div>
+                        <Button
+                            id="delete-all"
+                            variant="contained"
+                            disabled={!hasMessages}
+                            color="primary"
+                            onClick={() => messagesStore.refreshByApp(appId)}
+                            style={{marginRight: 5}}>
+                            Refresh
+                        </Button>
+                        <Button
+                            id="refresh"
+                            variant="contained"
+                            disabled={!hasMessages}
+                            color="primary"
+                            onClick={() => messagesStore.removeByApp(appId)}>
+                            Delete All
+                        </Button>
+                    </div>
                 }>
                 {hasMessages ? (
                     <div style={{width: '100%'}} id="messages">
