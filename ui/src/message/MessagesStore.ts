@@ -102,9 +102,8 @@ export class MessagesStore {
 
     @action
     public refreshByApp = async (appId: number) => {
-        const state = this.stateOf(appId);
-        const result = await this.fetchMessages(appId, 0).then((resp) => resp.data);
-        state.messages.replace(result.messages);
+        this.clearAll();
+        this.loadMore(appId);
     };
 
     public exists = (id: number) => this.stateOf(id).loaded;
