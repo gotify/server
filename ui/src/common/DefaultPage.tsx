@@ -15,7 +15,7 @@ const DefaultPage: SFC<IProps> = ({title, rightControl, maxWidth = 700, children
                 <Typography variant="h4" style={{flex: 1}}>
                     {title}
                 </Typography>
-                {rightControl ? rightControl : null}
+                {rightControl}
             </Grid>
             {children}
         </Grid>
