@@ -4,7 +4,7 @@ import React, {SFC} from 'react';
 
 interface IProps {
     title: string;
-    rightControl?: object;
+    rightControl?: React.ReactNode;
     maxWidth?: number;
 }
 
