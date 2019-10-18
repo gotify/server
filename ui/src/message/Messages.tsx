@@ -65,7 +65,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                 rightControl={
                     <div>
                         <Button
-                            id="delete-all"
+                            id="refresh-all"
                             variant="contained"
                             disabled={!hasMessages}
                             color="primary"
@@ -74,7 +74,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                             Refresh
                         </Button>
                         <Button
-                            id="refresh"
+                            id="delete-all"
                             variant="contained"
                             disabled={!hasMessages}
                             color="primary"
