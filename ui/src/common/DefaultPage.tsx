@@ -6,7 +6,6 @@ interface IProps {
     title: string;
     rightControl?: object;
     maxWidth?: number;
-    buttonId?: string;
 }
 
 const DefaultPage: SFC<IProps> = ({title, rightControl, maxWidth = 700, children}) => (
