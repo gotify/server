@@ -9,6 +9,7 @@ import Chat from '@material-ui/icons/Chat';
 import DevicesOther from '@material-ui/icons/DevicesOther';
 import ExitToApp from '@material-ui/icons/ExitToApp';
 import Highlight from '@material-ui/icons/Highlight';
+import GitHubIcon from '../common/GitHubIcon';
 import Apps from '@material-ui/icons/Apps';
 import SupervisorAccount from '@material-ui/icons/SupervisorAccount';
 import React, {Component, CSSProperties} from 'react';
@@ -55,7 +56,7 @@ class Header extends Component<IProps> {
             <AppBar position="absolute" style={style} className={classes.appBar}>
                 <Toolbar>
                     <div className={classes.title}>
-                        <a href="https://github.com/gotify/server" className={classes.link}>
+                        <a href="/" className={classes.link}>
                             <Typography variant="h5" className={classes.titleName} color="inherit">
                                 Gotify
                             </Typography>
@@ -72,6 +73,12 @@ class Header extends Component<IProps> {
                     <IconButton onClick={toggleTheme} color="inherit">
                         <Highlight />
                     </IconButton>
+
+                    <a href="https://github.com/gotify/server" className={classes.link}>
+                        <IconButton color="inherit">
+                            <GitHubIcon />
+                        </IconButton>
+                    </a>
                 </Toolbar>
             </AppBar>
         );
