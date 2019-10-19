@@ -100,6 +100,12 @@ export class MessagesStore {
         this.createEmptyStatesForApps(this.appStore.getItems());
     };
 
+    @action
+    public refreshByApp = async (appId: number) => {
+        this.clearAll();
+        this.loadMore(appId);
+    };
+
     public exists = (id: number) => this.stateOf(id).loaded;
 
     private removeFromList(messages: IMessage[], messageToDelete: IMessage): false | number {
