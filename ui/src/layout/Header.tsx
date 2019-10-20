@@ -56,11 +56,11 @@ class Header extends Component<IProps> {
             <AppBar position="absolute" style={style} className={classes.appBar}>
                 <Toolbar>
                     <div className={classes.title}>
-                        <a href="/" className={classes.link}>
+                        <Link to="/" className={classes.link}>
                             <Typography variant="h5" className={classes.titleName} color="inherit">
                                 Gotify
                             </Typography>
-                        </a>
+                        </Link>
                         <a
                             href={'https://github.com/gotify/server/releases/tag/v' + version}
                             className={classes.link}>
