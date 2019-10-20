@@ -9,7 +9,7 @@ import Chat from '@material-ui/icons/Chat';
 import DevicesOther from '@material-ui/icons/DevicesOther';
 import ExitToApp from '@material-ui/icons/ExitToApp';
 import Highlight from '@material-ui/icons/Highlight';
-import GitHubIcon from '../common/GitHubIcon';
+import GitHubIcon from '@material-ui/icons/GitHub';
 import Apps from '@material-ui/icons/Apps';
 import SupervisorAccount from '@material-ui/icons/SupervisorAccount';
 import React, {Component, CSSProperties} from 'react';
