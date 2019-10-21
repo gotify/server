@@ -2,12 +2,13 @@ import React from 'react';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
-interface NetworkLostBannerProps {
+interface ConnectionErrorBannerProps {
     height: number;
     retry: () => void;
+    message: string;
 }
 
-export const NetworkLostBanner = ({height, retry}: NetworkLostBannerProps) => {
+export const ConnectionErrorBanner = ({height, retry, message}: ConnectionErrorBannerProps) => {
     return (
         <div
             style={{
@@ -18,7 +19,7 @@ export const NetworkLostBanner = ({height, retry}: NetworkLostBannerProps) => {
                 position: 'relative',
             }}>
             <Typography align="center" variant="h6" style={{lineHeight: `${height}px`}}>
-                No network connection.{' '}
+                {message}{' '}
                 <Button variant="outlined" onClick={retry}>
                     Retry
                 </Button>

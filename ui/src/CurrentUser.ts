@@ -11,7 +11,7 @@ const tokenKey = 'gotify-login-key';
 export class CurrentUser {
     private tokenCache: string | null = null;
     private reconnectTimeoutId: number | null = null;
-    private readonly reconnectTime: number = 3000;
+    private reconnectTime = 7500;
     @observable
     public loggedIn = false;
     @observable
@@ -19,7 +19,7 @@ export class CurrentUser {
     @observable
     public user: IUser = {name: 'unknown', admin: false, id: -1};
     @observable
-    public hasNetwork = true;
+    public connectionErrorMessage: string | null = null;
 
     public constructor(private readonly snack: SnackReporter) {}
 
@@ -87,16 +87,22 @@ export class CurrentUser {
             .then((passThrough) => {
                 this.user = passThrough.data;
                 this.loggedIn = true;
-                this.hasNetwork = true;
+                this.connectionErrorMessage = null;
+                this.reconnectTime = 7500;
                 return passThrough;
             })
             .catch((error: AxiosError) => {
                 if (!error || !error.response) {
-                    this.lostNetwork();
+                    this.connectionError('No network connection.');
                     return Promise.reject(error);
                 }
 
-                this.hasNetwork = true;
+                if (error.response.status === 503) {
+                    this.connectionError(`${error.response.statusText} (code: ${error.response.status}).`);
+                    return Promise.reject(error);
+                }
+
+                this.connectionErrorMessage = null;
 
                 if (error.response.status >= 400 && error.response.status < 500) {
                     this.logout();
@@ -135,8 +141,8 @@ export class CurrentUser {
         });
     };
 
-    private lostNetwork = () => {
-        this.hasNetwork = false;
+    private connectionError = (message: string) => {
+        this.connectionErrorMessage = message;
         if (this.reconnectTimeoutId !== null) {
             window.clearTimeout(this.reconnectTimeoutId);
         }
@@ -144,5 +150,6 @@ export class CurrentUser {
             () => this.tryReconnect(true),
             this.reconnectTime
         );
+        this.reconnectTime = Math.min(this.reconnectTime * 2, 120000);
     };
 }

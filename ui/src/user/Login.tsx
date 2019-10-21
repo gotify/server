@@ -44,7 +44,7 @@ class Login extends Component<Stores<'currentUser'>> {
                                 size="large"
                                 className="login"
                                 color="primary"
-                                disabled={!this.props.currentUser.hasNetwork}
+                                disabled={this.props.currentUser.connectionErrorMessage}
                                 style={{marginTop: 15, marginBottom: 5}}
                                 onClick={this.login}>
                                 Login

@@ -20,7 +20,7 @@ import Users from '../user/Users';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
-import {NetworkLostBanner} from '../common/NetworkLostBanner';
+import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
 import {IVersion} from '../types';
 
 const styles = (theme: Theme) => ({
@@ -88,8 +88,8 @@ class Layout extends React.Component<
                 authenticating,
                 user: {name, admin},
                 logout,
-                hasNetwork,
                 tryReconnect,
+                connectionErrorMessage
             },
         } = this.props;
         const theme = themeMap[currentTheme];
@@ -98,13 +98,13 @@ class Layout extends React.Component<
             <MuiThemeProvider theme={theme}>
                 <HashRouter>
                     <div>
-                        {hasNetwork ? null : (
-                            <NetworkLostBanner height={64} retry={() => tryReconnect()} />
+                        {!connectionErrorMessage ? null : (
+                            <ConnectionErrorBanner height={64} retry={tryReconnect} message={connectionErrorMessage} />
                         )}
                         <div style={{display: 'flex'}}>
                             <CssBaseline />
                             <Header
-                                style={{top: hasNetwork ? 0 : 64}}
+                                style={{top: !connectionErrorMessage ? 0 : 64}}
                                 admin={admin}
                                 name={name}
                                 version={version}
