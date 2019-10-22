@@ -97,7 +97,7 @@ export class CurrentUser {
                     return Promise.reject(error);
                 }
 
-                if (error.response.status === 503) {
+                if (error.response.status >= 500) {
                     this.connectionError(`${error.response.statusText} (code: ${error.response.status}).`);
                     return Promise.reject(error);
                 }
