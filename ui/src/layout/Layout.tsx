@@ -101,7 +101,7 @@ class Layout extends React.Component<
                         {!connectionErrorMessage ? null : (
                             <ConnectionErrorBanner
                                 height={64}
-                                retry={tryReconnect}
+                                retry={() => tryReconnect()}
                                 message={connectionErrorMessage}
                             />
                         )}
