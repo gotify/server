@@ -89,7 +89,7 @@ class Layout extends React.Component<
                 user: {name, admin},
                 logout,
                 tryReconnect,
-                connectionErrorMessage
+                connectionErrorMessage,
             },
         } = this.props;
         const theme = themeMap[currentTheme];
@@ -99,7 +99,11 @@ class Layout extends React.Component<
                 <HashRouter>
                     <div>
                         {!connectionErrorMessage ? null : (
-                            <ConnectionErrorBanner height={64} retry={tryReconnect} message={connectionErrorMessage} />
+                            <ConnectionErrorBanner
+                                height={64}
+                                retry={tryReconnect}
+                                message={connectionErrorMessage}
+                            />
                         )}
                         <div style={{display: 'flex'}}>
                             <CssBaseline />
