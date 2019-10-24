@@ -30,9 +30,9 @@ export const registerReactions = (stores: StoreMapping) => {
     );
 
     reaction(
-        () => stores.currentUser.hasNetwork,
-        (hasNetwork) => {
-            if (hasNetwork) {
+        () => stores.currentUser.connectionErrorMessage,
+        (connectionErrorMessage) => {
+            if (!connectionErrorMessage) {
                 clearAll();
                 loadAll();
             }
