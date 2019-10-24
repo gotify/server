@@ -93,7 +93,7 @@ export class CurrentUser {
             })
             .catch((error: AxiosError) => {
                 if (!error || !error.response) {
-                    this.connectionError('No network connection.');
+                    this.connectionError('No network connection or server unavailable.');
                     return Promise.reject(error);
                 }
 
