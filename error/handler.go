@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/model"
-	"gopkg.in/go-playground/validator.v8"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // Handler creates a gin middleware for handling errors.
@@ -40,17 +40,17 @@ func Handler() gin.HandlerFunc {
 	}
 }
 
-func validationErrorToText(e *validator.FieldError) string {
-	runes := []rune(e.Field)
+func validationErrorToText(e validator.FieldError) string {
+	runes := []rune(e.Field())
 	runes[0] = unicode.ToLower(runes[0])
 	fieldName := string(runes)
-	switch e.Tag {
+	switch e.Tag() {
 	case "required":
 		return fmt.Sprintf("Field '%s' is required", fieldName)
 	case "max":
-		return fmt.Sprintf("Field '%s' must be less or equal to %s", fieldName, e.Param)
+		return fmt.Sprintf("Field '%s' must be less or equal to %s", fieldName, e.Param())
 	case "min":
-		return fmt.Sprintf("Field '%s' must be more or equal to %s", fieldName, e.Param)
+		return fmt.Sprintf("Field '%s' must be more or equal to %s", fieldName, e.Param())
 	}
 	return fmt.Sprintf("Field '%s' is not valid", fieldName)
 }
