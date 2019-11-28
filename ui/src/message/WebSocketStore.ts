@@ -50,5 +50,5 @@ export class WebSocketStore {
         this.ws = ws;
     };
 
-    public close = () => this.ws && this.ws.close();
+    public close = () => this.ws && this.ws.close(1000, 'WebSocketStore#close');
 }
