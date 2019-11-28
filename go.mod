@@ -11,7 +11,7 @@ require (
 	github.com/gotify/configor v1.0.2-0.20190112111140-7d9c7c7e6233
 	github.com/gotify/location v0.0.0-20170722210143-03bc4ad20437
 	github.com/gotify/plugin-api v1.0.0
-	github.com/h2non/filetype v1.0.6
+	github.com/h2non/filetype v1.0.10
 	github.com/jinzhu/gorm v1.9.11
 	github.com/lib/pq v1.2.0 // indirect
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967
