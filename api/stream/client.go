@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -67,6 +68,7 @@ func (c *client) startReading(pongWait time.Duration) {
 	})
 	for {
 		if _, _, err := c.conn.NextReader(); err != nil {
+			printWebSocketError("ReadError", err)
 			return
 		}
 	}
@@ -92,13 +94,26 @@ func (c *client) startWriteHandler(pingPeriod time.Duration) {
 
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := writeJSON(c.conn, message); err != nil {
+				printWebSocketError("WriteError", err)
 				return
 			}
 		case <-pingTicker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := ping(c.conn); err != nil {
+				printWebSocketError("PingError", err)
 				return
 			}
 		}
 	}
+}
+
+func printWebSocketError(prefix string, err error) {
+	closeError, ok := err.(*websocket.CloseError)
+
+	if ok && closeError != nil && (closeError.Code == 1000 || closeError.Code == 1001) {
+		// normal closure
+		return
+	}
+
+	fmt.Println("WebSocket:", prefix, err)
 }
