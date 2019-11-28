@@ -38,7 +38,7 @@ export class WebSocketStore {
                 .tryAuthenticate()
                 .then(() => {
                     this.snack('WebSocket connection closed, trying again in 30 seconds.');
-                    setTimeout(this.listen, 30000);
+                    setTimeout(() => this.listen(callback), 30000);
                 })
                 .catch((error: AxiosError) => {
                     if (error && error.response && error.response.status === 401) {
