@@ -75,6 +75,10 @@ const initStores = (): StoreMapping => {
 
     stores.currentUser.tryAuthenticate().catch(() => {});
 
+    window.onbeforeunload = () => {
+        stores.wsStore.close();
+    };
+
     ReactDOM.render(
         <InjectProvider stores={stores}>
             <Layout />
