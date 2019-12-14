@@ -36,6 +36,7 @@ const styles = (): StyleRules => ({
     },
     content: {
         whiteSpace: 'pre-wrap',
+        wordBreak: 'break-all',
         '& p': {
             margin: 0,
         },
