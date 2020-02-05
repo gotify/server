@@ -14,7 +14,6 @@ import {UserStore} from './user/UserStore';
 import {MessagesStore} from './message/MessagesStore';
 import {ClientStore} from './client/ClientStore';
 import {PluginStore} from './plugin/PluginStore';
-import * as Notifications from './snack/browserNotification';
 import {registerReactions} from './reactions';
 
 const defaultDevConfig = {
@@ -62,7 +61,6 @@ const initStores = (): StoreMapping => {
 };
 
 (function clientJS() {
-    Notifications.requestPermission();
     if (process.env.NODE_ENV === 'production') {
         config.set(window.config || defaultProdConfig);
     } else {
