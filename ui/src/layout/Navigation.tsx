@@ -7,6 +7,8 @@ import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
+import {mayAllowPermission, requestPermission} from '../snack/browserNotification';
+import {Button, Typography} from '@material-ui/core';
 
 const styles = (theme: Theme): StyleRules<'drawerPaper' | 'toolbar' | 'link'> => ({
     drawerPaper: {
@@ -29,9 +31,15 @@ interface IProps {
 }
 
 @observer
-class Navigation extends Component<IProps & Styles & Stores<'appStore'>> {
+class Navigation extends Component<
+    IProps & Styles & Stores<'appStore'>,
+    {showRequestNotification: boolean}
+> {
+    public state = {showRequestNotification: mayAllowPermission()};
+
     public render() {
         const {classes, loggedIn, appStore} = this.props;
+        const {showRequestNotification} = this.state;
         const apps = appStore.getItems();
 
         const userApps =
@@ -73,6 +81,17 @@ class Navigation extends Component<IProps & Styles & Stores<'appStore'>> {
                 <Divider />
                 <div>{loggedIn ? userApps : placeholderItems}</div>
                 <Divider />
+                <Typography align="center" style={{marginTop: 10}}>
+                    {showRequestNotification ? (
+                        <Button
+                            onClick={() => {
+                                requestPermission();
+                                this.setState({showRequestNotification: false});
+                            }}>
+                            Enable Notifications
+                        </Button>
+                    ) : null}
+                </Typography>
             </Drawer>
         );
     }
