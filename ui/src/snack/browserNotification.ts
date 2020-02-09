@@ -23,6 +23,12 @@ export function notifyNewMessage(msg: IMessage) {
         notifyShow: closeAfterTimeout,
     });
     notify.show();
+
+    if (!Notify.needsPermission) {
+        let src = 'static/notification.ogg';
+        let audio = new Audio(src);
+        audio.play();
+    }
 }
 
 function closeAndFocus(event: Event) {
