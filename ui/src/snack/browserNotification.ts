@@ -24,7 +24,7 @@ export function notifyNewMessage(msg: IMessage) {
     });
     notify.show();
 
-    if (!Notify.needsPermission) {
+    if (msg.priority >= 4 && !Notify.needsPermission) {
         let src = 'static/notification.ogg';
         let audio = new Audio(src);
         audio.play();
