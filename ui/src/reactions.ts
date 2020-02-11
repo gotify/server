@@ -14,6 +14,11 @@ export const registerReactions = (stores: StoreMapping) => {
         stores.wsStore.listen((message) => {
             stores.messagesStore.publishSingleMessage(message);
             Notifications.notifyNewMessage(message);
+            if (message.priority >= 4) {
+                const src = 'static/notification.ogg';
+                const audio = new Audio(src);
+                audio.play();
+            }
         });
         stores.appStore.refresh();
     };

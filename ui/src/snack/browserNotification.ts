@@ -22,14 +22,8 @@ export function notifyNewMessage(msg: IMessage) {
         silent: true,
         notifyClick: closeAndFocus,
         notifyShow: closeAfterTimeout,
-    } as any);
+    });
     notify.show();
-
-    if (msg.priority >= 4 && !Notify.needsPermission) {
-        const let src = 'static/notification.ogg';
-        const let audio = new Audio(src);
-        audio.play();
-    }
 }
 
 function closeAndFocus(event: Event) {
