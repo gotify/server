@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -13,6 +14,23 @@ type Message struct {
 	Priority      int
 	Extras        []byte
 	Date          time.Time
+}
+
+// ToExternal converts the event into an external representation.
+func (msg Message) ToExternal() interface{} {
+	res := &MessageExternal{
+		ID:            msg.ID,
+		ApplicationID: msg.ApplicationID,
+		Message:       msg.Message,
+		Title:         msg.Title,
+		Priority:      msg.Priority,
+		Date:          msg.Date,
+	}
+	if len(msg.Extras) != 0 {
+		res.Extras = make(map[string]interface{})
+		json.Unmarshal(msg.Extras, &res.Extras)
+	}
+	return res
 }
 
 // MessageExternal Model
