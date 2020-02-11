@@ -1,11 +1,9 @@
 package api
 
 import (
-	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -376,55 +374,23 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
-	message := model.MessageExternal{}
-	if err := ctx.Bind(&message); err == nil {
-		application, err := a.DB.GetApplicationByToken(auth.GetTokenID(ctx))
-		if success := successOrAbort(ctx, 500, err); !success {
-			return
-		}
-		message.ApplicationID = application.ID
-		if strings.TrimSpace(message.Title) == "" {
-			message.Title = application.Name
-		}
-		message.Date = time.Now()
-		msgInternal := toInternalMessage(&message)
-		if success := successOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
-			return
-		}
-		a.Notifier.Notify(auth.GetUserID(ctx), msgInternal)
-		ctx.JSON(200, toExternalMessage(msgInternal))
+	appMessage := model.ApplicationMessage{}
+	if err := ctx.Bind(&appMessage); err != nil {
+		return
 	}
-}
-
-func toInternalMessage(msg *model.MessageExternal) *model.Message {
-	res := &model.Message{
-		ID:            msg.ID,
-		ApplicationID: msg.ApplicationID,
-		Message:       msg.Message,
-		Title:         msg.Title,
-		Priority:      msg.Priority,
-		Date:          msg.Date,
+	application, err := a.DB.GetApplicationByToken(auth.GetTokenID(ctx))
+	if success := successOrAbort(ctx, 500, err); !success {
+		return
 	}
-	if msg.Extras != nil {
-		res.Extras, _ = json.Marshal(msg.Extras)
+	message := appMessage.ToInternal(application.ID)
+	if strings.TrimSpace(message.Title) == "" {
+		message.Title = application.Name
 	}
-	return res
-}
-
-func toExternalMessage(msg *model.Message) *model.MessageExternal {
-	res := &model.MessageExternal{
-		ID:            msg.ID,
-		ApplicationID: msg.ApplicationID,
-		Message:       msg.Message,
-		Title:         msg.Title,
-		Priority:      msg.Priority,
-		Date:          msg.Date,
+	if success := successOrAbort(ctx, 500, a.DB.CreateMessage(message)); !success {
+		return
 	}
-	if len(msg.Extras) != 0 {
-		res.Extras = make(map[string]interface{})
-		json.Unmarshal(msg.Extras, &res.Extras)
-	}
-	return res
+	a.Notifier.Notify(auth.GetUserID(ctx), message)
+	ctx.JSON(200, message.ToExternal())
 }
 
 func toExternalMessages(msg []*model.Message) []*model.MessageExternal {

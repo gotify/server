@@ -1,5 +1,10 @@
 package model
 
+import (
+	"encoding/json"
+	"time"
+)
+
 // Application Model
 //
 // The Application holds information about an app which can send notifications.
@@ -40,6 +45,52 @@ type Application struct {
 	// read only: true
 	// required: true
 	// example: image/image.jpeg
-	Image    string            `gorm:"type:text" json:"image"`
-	Messages []MessageExternal `json:"-"`
+	Image    string               `gorm:"type:text" json:"image"`
+	Messages []ApplicationMessage `json:"-"`
+}
+
+// ApplicationMessage Model
+//
+// The ApplicationMessage holds information about a message which was sent by an application.
+//
+// swagger:model ApplicationMessage
+type ApplicationMessage struct {
+	// The message. Markdown (excluding HTML) is allowed.
+	//
+	// required: true
+	// example: **Backup** was successfully finished.
+	Message string `form:"message" json:"message" binding:"required"`
+	// The title of the message.
+	//
+	// example: Backup
+	Title string `form:"title" json:"title"`
+	// The priority of the message.
+	//
+	// example: 2
+	Priority int `form:"priority" json:"priority"`
+	// The extra data sent along the message.
+	//
+	// The extra fields are stored in a key-value scheme. Only accepted in CreateMessage requests with application/json content-type.
+	//
+	// The keys should be in the following format: &lt;top-namespace&gt;::[&lt;sub-namespace&gt;::]&lt;action&gt;
+	//
+	// These namespaces are reserved and might be used in the official clients: gotify android ios web server client. Do not use them for other purposes.
+	//
+	// example: {"home::appliances::thermostat::change_temperature":{"temperature":23},"home::appliances::lighting::on":{"brightness":15}}
+	Extras map[string]interface{} `form:"-" json:"extras,omitempty"`
+}
+
+// ToInternal converts the ApplicationMessage to an internal representation.
+func (msg ApplicationMessage) ToInternal(applicationID uint) *Message {
+	res := &Message{
+		Message:       msg.Message,
+		Title:         msg.Title,
+		Priority:      msg.Priority,
+	}
+	res.ApplicationID = applicationID
+	res.Date = time.Now()
+	if msg.Extras != nil {
+		res.Extras, _ = json.Marshal(msg.Extras)
+	}
+	return res
 }
