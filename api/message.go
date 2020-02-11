@@ -16,8 +16,10 @@ import (
 
 // The MessageDatabase interface for encapsulating database access.
 type MessageDatabase interface {
+	GetMessagesByApplication(appID uint) ([]*model.Message, error)
 	GetMessagesByApplicationSince(appID uint, limit int, since uint) ([]*model.Message, error)
 	GetApplicationByID(id uint) (*model.Application, error)
+	GetMessagesByUser(userID uint) ([]*model.Message, error)
 	GetMessagesByUserSince(userID uint, limit int, since uint) ([]*model.Message, error)
 	DeleteMessageByID(id uint) error
 	GetMessageByID(id uint) (*model.Message, error)
@@ -27,11 +29,9 @@ type MessageDatabase interface {
 	GetApplicationByToken(token string) (*model.Application, error)
 }
 
-var timeNow = time.Now
-
 // Notifier notifies when a new message was created.
 type Notifier interface {
-	Notify(userID uint, message *model.MessageExternal)
+	Notify(userID uint, event model.Event)
 }
 
 // The MessageAPI provides handlers for managing messages.
@@ -216,6 +216,14 @@ func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
+	messages, err := a.DB.GetMessagesByUser(userID)
+	if success := successOrAbort(ctx, 500, err); !success {
+		return
+	}
+	event := &model.MessageDeletions{
+		messages,
+	}
+	a.Notifier.Notify(auth.GetUserID(ctx), event)
 	successOrAbort(ctx, 500, a.DB.DeleteMessagesByUser(userID))
 }
 
@@ -259,6 +267,14 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 			return
 		}
 		if application != nil && application.UserID == auth.GetUserID(ctx) {
+			messages, err := a.DB.GetMessagesByApplication(id)
+			if success := successOrAbort(ctx, 500, err); !success {
+				return
+			}
+			event := &model.MessageDeletions{
+				messages,
+			}
+			a.Notifier.Notify(auth.GetUserID(ctx), event)
 			successOrAbort(ctx, 500, a.DB.DeleteMessagesByApplication(id))
 		} else {
 			ctx.AbortWithError(404, errors.New("application does not exists"))
@@ -314,6 +330,10 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 			return
 		}
 		if app != nil && app.UserID == auth.GetUserID(ctx) {
+			event := &model.MessageDeletions{
+				[]*model.Message {msg},
+			}
+			a.Notifier.Notify(auth.GetUserID(ctx), event)
 			successOrAbort(ctx, 500, a.DB.DeleteMessageByID(id))
 		} else {
 			ctx.AbortWithError(404, errors.New("message does not exist"))
@@ -366,12 +386,12 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		if strings.TrimSpace(message.Title) == "" {
 			message.Title = application.Name
 		}
-		message.Date = timeNow()
+		message.Date = time.Now()
 		msgInternal := toInternalMessage(&message)
 		if success := successOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
 			return
 		}
-		a.Notifier.Notify(auth.GetUserID(ctx), toExternalMessage(msgInternal))
+		a.Notifier.Notify(auth.GetUserID(ctx), msgInternal)
 		ctx.JSON(200, toExternalMessage(msgInternal))
 	}
 }
@@ -410,7 +430,7 @@ func toExternalMessage(msg *model.Message) *model.MessageExternal {
 func toExternalMessages(msg []*model.Message) []*model.MessageExternal {
 	res := make([]*model.MessageExternal, len(msg))
 	for i := range msg {
-		res[i] = toExternalMessage(msg[i])
+		res[i] = msg[i].ToExternal().(*model.MessageExternal)
 	}
 	return res
 }

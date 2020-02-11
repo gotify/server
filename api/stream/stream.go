@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -9,10 +10,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/auth"
 	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
+	"github.com/gotify/server/model/eventencoder"
 )
 
 // The API provides a handler for a WebSocket stream API.
@@ -66,8 +69,8 @@ func (a *API) NotifyDeletedClient(userID uint, token string) {
 	}
 }
 
-// Notify notifies the clients with the given userID that a new messages was created.
-func (a *API) Notify(userID uint, msg *model.MessageExternal) {
+// Notify notifies the clients with the given userID of a new event.
+func (a *API) Notify(userID uint, msg model.Event) {
 	a.lock.RLock()
 	defer a.lock.RUnlock()
 	if clients, ok := a.clients[userID]; ok {
@@ -94,6 +97,10 @@ func (a *API) register(client *client) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	a.clients[client.userID] = append(a.clients[client.userID], client)
+}
+
+type upgradeParams struct {
+	Version uint `form:"version" binding:"min=1"`
 }
 
 // Handle handles incoming requests. First it upgrades the protocol to the WebSocket protocol and then starts listening
@@ -134,7 +141,19 @@ func (a *API) Handle(ctx *gin.Context) {
 		return
 	}
 
-	client := newClient(conn, auth.GetUserID(ctx), auth.GetTokenID(ctx), a.remove)
+	params := upgradeParams{Version: 1}
+	if err := ctx.MustBindWith(&params, binding.Query); err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	if !eventencoder.IsSupported(params.Version) {
+		err := fmt.Errorf("API version %d is not supported", params.Version)
+		ctx.Error(err)
+		return
+	}
+
+	client := newClient(conn, auth.GetUserID(ctx), auth.GetTokenID(ctx), a.remove, params.Version)
 	a.register(client)
 	go client.startReading(a.pongTimeout)
 	go client.startWriteHandler(a.pingPeriod)

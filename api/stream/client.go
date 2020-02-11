@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/model"
+	"github.com/gotify/server/model/eventencoder"
 )
 
 const (
@@ -21,21 +22,23 @@ var writeJSON = func(conn *websocket.Conn, v interface{}) error {
 }
 
 type client struct {
-	conn    *websocket.Conn
-	onClose func(*client)
-	write   chan *model.MessageExternal
-	userID  uint
-	token   string
-	once    once
+	conn        *websocket.Conn
+	onClose     func(*client)
+	write       chan model.Event
+	userID      uint
+	token       string
+	once        once
+	apiVersion  uint
 }
 
-func newClient(conn *websocket.Conn, userID uint, token string, onClose func(*client)) *client {
+func newClient(conn *websocket.Conn, userID uint, token string, onClose func(*client), apiVersion uint) *client {
 	return &client{
-		conn:    conn,
-		write:   make(chan *model.MessageExternal, 1),
-		userID:  userID,
-		token:   token,
-		onClose: onClose,
+		conn:       conn,
+		write:      make(chan model.Event, 1),
+		userID:     userID,
+		token:      token,
+		onClose:    onClose,
+		apiVersion: apiVersion,
 	}
 }
 
@@ -56,7 +59,7 @@ func (c *client) NotifyClose() {
 	})
 }
 
-// startWriteHandler starts listening on the client connection. As we do not need anything from the client,
+// startReading starts listening on the client connection. As we do not need anything from the client,
 // we ignore incoming messages. Leaves the loop on errors.
 func (c *client) startReading(pongWait time.Duration) {
 	defer c.NotifyClose()
@@ -87,13 +90,22 @@ func (c *client) startWriteHandler(pingPeriod time.Duration) {
 
 	for {
 		select {
-		case message, ok := <-c.write:
+		case event, ok := <-c.write:
 			if !ok {
 				return
 			}
 
+			writeData, err := eventencoder.Encode(c.apiVersion, event)
+			if _, ok := err.(*eventencoder.TypeNotSupportedError); ok {
+				// The type is not supported by this client, just skip it.
+				continue
+			} else if err != nil {
+				fmt.Println("WebSocket:", err)
+				continue
+			}
+
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := writeJSON(c.conn, message); err != nil {
+			if err := writeJSON(c.conn, writeData); err != nil {
 				printWebSocketError("WriteError", err)
 				return
 			}
