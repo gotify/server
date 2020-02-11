@@ -1,9 +1,12 @@
 package compat
 
 import (
+	"encoding/json"
 	"net/url"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/model"
 )
 
 // Capability is a capability the plugin provides
@@ -88,4 +91,19 @@ type Message struct {
 	Title    string
 	Priority int
 	Extras   map[string]interface{}
+}
+
+// ToInternalMessage turns the message into an internal representation.
+func (msg Message) ToInternalMessage(applicationID uint) *model.Message {
+	res := &model.Message{
+		Message:       msg.Message,
+		Title:         msg.Title,
+		Priority:      msg.Priority,
+	}
+	res.ApplicationID = applicationID
+	res.Date = time.Now()
+	if msg.Extras != nil {
+		res.Extras, _ = json.Marshal(msg.Extras)
+	}
+	return res
 }

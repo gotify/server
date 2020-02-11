@@ -3,7 +3,6 @@ package plugin
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -40,7 +39,7 @@ type Database interface {
 
 // Notifier notifies when a new message was created.
 type Notifier interface {
-	Notify(userID uint, message *model.MessageExternal)
+	Notify(userID uint, event model.Event)
 }
 
 // Manager is an encapsulating layer for plugins and manages all plugins and its instances.
@@ -66,20 +65,9 @@ func NewManager(db Database, directory string, mux *gin.RouterGroup, notifier No
 
 	go func() {
 		for {
-			message := <-manager.messages
-			internalMsg := &model.Message{
-				ApplicationID: message.Message.ApplicationID,
-				Title:         message.Message.Title,
-				Priority:      message.Message.Priority,
-				Date:          message.Message.Date,
-				Message:       message.Message.Message,
-			}
-			if message.Message.Extras != nil {
-				internalMsg.Extras, _ = json.Marshal(message.Message.Extras)
-			}
-			db.CreateMessage(internalMsg)
-			message.Message.ID = internalMsg.ID
-			notifier.Notify(message.UserID, &message.Message)
+			msgWithUID := <-manager.messages
+			db.CreateMessage(msgWithUID.Message)
+			notifier.Notify(msgWithUID.UserID, msgWithUID.Message)
 		}
 	}()
 
