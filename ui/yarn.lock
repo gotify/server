@@ -1337,9 +1337,9 @@
   integrity sha512-p/sGgiPaathCfOtqu2fx5Mu1bcjuP8ALFg4xpGgNkcin7LwRyzUKniEHBKdcE1RPsenq5JVPIpMTJSygLboygQ==
 
 "@types/notifyjs@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@types/notifyjs/-/notifyjs-3.0.0.tgz#a57126a90be2827d511d00a0615816cd5ca8a740"
-  integrity sha512-ur3eot/3XOOYk9n/AEf904D2H7rT8FE6wWSDQVABErveLyGjBmboFAzPpThgooJ+F7mBPbTDhV+CM8sYa/TFgw==
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@types/notifyjs/-/notifyjs-3.0.1.tgz#eba3bec10e44309df4aba31a73bfd26a562bc755"
+  integrity sha512-yTGCyGKVMUyL36usmerZbgC6bENPXBQC3OMqhdapzCsPzFcq1g8JFFAlbMjG3lHhkiT/0GKuG9H5IE+spkXZsA==
 
 "@types/prop-types@*":
   version "15.7.3"

@@ -19,6 +19,7 @@ export function notifyNewMessage(msg: IMessage) {
     const notify = new Notify(msg.title, {
         body: removeMarkdown(msg.message),
         icon: msg.image,
+        silent: true,
         notifyClick: closeAndFocus,
         notifyShow: closeAfterTimeout,
     });
