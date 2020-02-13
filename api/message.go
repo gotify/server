@@ -219,7 +219,7 @@ func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 		return
 	}
 	event := &model.MessageDeletions{
-		messages,
+		Messages: messages,
 	}
 	a.Notifier.Notify(auth.GetUserID(ctx), event)
 	successOrAbort(ctx, 500, a.DB.DeleteMessagesByUser(userID))
@@ -270,7 +270,7 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 				return
 			}
 			event := &model.MessageDeletions{
-				messages,
+				Messages: messages,
 			}
 			a.Notifier.Notify(auth.GetUserID(ctx), event)
 			successOrAbort(ctx, 500, a.DB.DeleteMessagesByApplication(id))
@@ -329,7 +329,7 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 		}
 		if app != nil && app.UserID == auth.GetUserID(ctx) {
 			event := &model.MessageDeletions{
-				[]*model.Message {msg},
+				Messages: []*model.Message {msg},
 			}
 			a.Notifier.Notify(auth.GetUserID(ctx), event)
 			successOrAbort(ctx, 500, a.DB.DeleteMessageByID(id))
