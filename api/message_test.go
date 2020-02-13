@@ -319,8 +319,8 @@ func (s *MessageSuite) Test_DeleteMessages() {
 func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 
-	timeNow = func() time.Time { return t }
-	defer func() { timeNow = time.Now }()
+	model.TimeNow = func() time.Time { return t }
+	defer func() { model.TimeNow = time.Now }()
 
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithToken(7, "app-token")
@@ -340,8 +340,8 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 
 func (s *MessageSuite) Test_CreateMessage_WithTitle() {
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
-	timeNow = func() time.Time { return t }
-	defer func() { timeNow = time.Now }()
+	model.TimeNow = func() time.Time { return t }
+	defer func() { model.TimeNow = time.Now }()
 
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithToken(5, "app-token")
@@ -413,8 +413,8 @@ func (s *MessageSuite) Test_CreateMessage_WithExtras() {
 	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
-	timeNow = func() time.Time { return t }
-	defer func() { timeNow = time.Now }()
+	model.TimeNow = func() time.Time { return t }
+	defer func() { model.TimeNow = time.Now }()
 
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"message": "mymessage", "title": "msg with extras", "extras": {"gotify::test":{"int":1,"float":0.5,"string":"test","array":[1,2,3]}}}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
@@ -467,8 +467,8 @@ func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 	s.db.User(4).AppWithToken(2, "app-token")
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
-	timeNow = func() time.Time { return t }
-	defer func() { timeNow = time.Now }()
+	model.TimeNow = func() time.Time { return t }
+	defer func() { model.TimeNow = time.Now }()
 
 	s.ctx.Request = httptest.NewRequest("POST", "/message?title=mytitle&message=mymessage&priority=1", nil)
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -489,8 +489,8 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	s.db.User(4).AppWithToken(99, "app-token")
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
-	timeNow = func() time.Time { return t }
-	defer func() { timeNow = time.Now }()
+	model.TimeNow = func() time.Time { return t }
+	defer func() { model.TimeNow = time.Now }()
 
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`title=mytitle&message=mymessage&priority=1`))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")

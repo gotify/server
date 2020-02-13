@@ -79,7 +79,7 @@ func (s *PluginSuite) AfterTest(suiteName, testName string) {
 	s.db.Close()
 }
 
-func (s *PluginSuite) Notify(userID uint, msg *model.Message) {
+func (s *PluginSuite) Notify(userID uint, msg model.Event) {
 	s.notified = true
 }
 

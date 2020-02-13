@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+// TimeNow is used to retrieve the current time. This variable was introduced to ease testing.
+var TimeNow = time.Now
+
 // Application Model
 //
 // The Application holds information about an app which can send notifications.
@@ -88,7 +91,7 @@ func (msg ApplicationMessage) ToInternal(applicationID uint) *Message {
 		Priority:      msg.Priority,
 	}
 	res.ApplicationID = applicationID
-	res.Date = time.Now()
+	res.Date = TimeNow()
 	if msg.Extras != nil {
 		res.Extras, _ = json.Marshal(msg.Extras)
 	}
