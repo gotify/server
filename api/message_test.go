@@ -44,8 +44,8 @@ func (s *MessageSuite) AfterTest(string, string) {
 	s.db.Close()
 }
 
-func (s *MessageSuite) Notify(userID uint, msg *model.MessageExternal) {
-	s.notifiedMessage = msg
+func (s *MessageSuite) Notify(userID uint, event model.Event) {
+	s.notifiedMessage, _ = event.ToExternal().(*model.MessageExternal)
 }
 
 func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
@@ -68,8 +68,8 @@ func (s *MessageSuite) Test_GetMessages() {
 	user := s.db.User(5)
 	first := user.App(1).NewMessage(1)
 	second := user.App(2).NewMessage(2)
-	firstExternal := toExternalMessage(&first)
-	secondExternal := toExternalMessage(&second)
+	firstExternal := first.ToExternal().(*model.MessageExternal)
+	secondExternal := second.ToExternal().(*model.MessageExternal)
 
 	test.WithUser(s.ctx, 5)
 	s.a.GetMessages(s.ctx)
@@ -333,7 +333,7 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 	assert.NoError(s.T(), err)
 	expected := &model.MessageExternal{ID: 1, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
 	assert.Len(s.T(), msgs, 1)
-	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
+	assert.Equal(s.T(), expected, msgs[0].ToExternal())
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.Equal(s.T(), expected, s.notifiedMessage)
 }
@@ -354,7 +354,7 @@ func (s *MessageSuite) Test_CreateMessage_WithTitle() {
 	assert.NoError(s.T(), err)
 	expected := &model.MessageExternal{ID: 1, ApplicationID: 5, Title: "mytitle", Message: "mymessage", Date: t}
 	assert.Len(s.T(), msgs, 1)
-	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
+	assert.Equal(s.T(), expected, msgs[0].ToExternal())
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.Equal(s.T(), expected, s.notifiedMessage)
 }
@@ -440,7 +440,7 @@ func (s *MessageSuite) Test_CreateMessage_WithExtras() {
 	}
 	assert.Len(s.T(), msgs, 1)
 
-	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
+	assert.Equal(s.T(), expected, msgs[0].ToExternal())
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.Equal(s.T(), uint(1), s.notifiedMessage.ID)
@@ -480,7 +480,7 @@ func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 	msgs, err := s.db.GetMessagesByApplication(2)
 	assert.NoError(s.T(), err)
 	assert.Len(s.T(), msgs, 1)
-	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
+	assert.Equal(s.T(), expected, msgs[0].ToExternal())
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.Equal(s.T(), uint(1), s.notifiedMessage.ID)
 }
@@ -501,7 +501,7 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	msgs, err := s.db.GetMessagesByApplication(99)
 	assert.NoError(s.T(), err)
 	assert.Len(s.T(), msgs, 1)
-	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
+	assert.Equal(s.T(), expected, msgs[0].ToExternal())
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.Equal(s.T(), uint(1), s.notifiedMessage.ID)
 }

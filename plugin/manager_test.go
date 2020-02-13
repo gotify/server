@@ -43,9 +43,9 @@ type ManagerSuite struct {
 	tmpDir test.TmpDir
 }
 
-func (s *ManagerSuite) Notify(uid uint, message *model.Message) {
+func (s *ManagerSuite) Notify(uid uint, message model.Event) {
 	s.msgReceiver <- MessageWithUserID{
-		Message: *message,
+		Message: message.(*model.Message),
 		UserID:  uid,
 	}
 }
