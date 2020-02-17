@@ -374,7 +374,7 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
-	appMessage := model.ApplicationMessage{}
+	appMessage := model.InputMessage{}
 	if err := ctx.Bind(&appMessage); err != nil {
 		return
 	}

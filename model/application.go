@@ -49,15 +49,15 @@ type Application struct {
 	// required: true
 	// example: image/image.jpeg
 	Image    string               `gorm:"type:text" json:"image"`
-	Messages []ApplicationMessage `json:"-"`
+	Messages []InputMessage `json:"-"`
 }
 
-// ApplicationMessage Model
+// InputMessage Model
 //
-// The ApplicationMessage holds information about a message which was sent by an application.
+// The InputMessage holds information about a message which was sent by an application.
 //
-// swagger:model ApplicationMessage
-type ApplicationMessage struct {
+// swagger:model InputMessage
+type InputMessage struct {
 	// The message. Markdown (excluding HTML) is allowed.
 	//
 	// required: true
@@ -83,8 +83,8 @@ type ApplicationMessage struct {
 	Extras map[string]interface{} `form:"-" json:"extras,omitempty"`
 }
 
-// ToInternal converts the ApplicationMessage to an internal representation.
-func (msg ApplicationMessage) ToInternal(applicationID uint) *Message {
+// ToInternal converts the InputMessage to an internal representation.
+func (msg InputMessage) ToInternal(applicationID uint) *Message {
 	res := &Message{
 		Message:       msg.Message,
 		Title:         msg.Title,

@@ -1929,10 +1929,10 @@
       },
       "x-go-package": "github.com/gotify/server/model"
     },
-    "ApplicationMessage": {
-      "description": "The ApplicationMessage holds information about a message which was sent by an application.",
+    "InputMessage": {
+      "description": "The InputMessage holds information about a message which was sent by an application.",
       "type": "object",
-      "title": "ApplicationMessage Model",
+      "title": "InputMessage Model",
       "required": [
         "message"
       ],
