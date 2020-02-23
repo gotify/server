@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Message holds information about a new message.
+// Message holds information about a message.
 type Message struct {
 	ID            uint `gorm:"AUTO_INCREMENT;primary_key;index"`
 	ApplicationID uint
@@ -35,7 +35,7 @@ func (msg Message) ToExternal() interface{} {
 
 // MessageExternal Model
 //
-// MessageExternal holds information about a message which will be sent to the clients.
+// MessageExternal holds information about a message.
 //
 // swagger:model Message
 type MessageExternal struct {

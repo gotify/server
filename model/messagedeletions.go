@@ -18,7 +18,7 @@ func (del MessageDeletions) ToExternal() interface{} {
 
 // MessageDeletionsExternal Model
 //
-// MessageDeletionsExternal holds information about deletions which will be sent to the clients.
+// MessageDeletionsExternal holds information about deleted messages.
 //
 // swagger:model MessageDeletions
 type MessageDeletionsExternal struct {
