@@ -25,9 +25,8 @@ install:
   - (cd ui && yarn)
 
 script:
-# packr builds a go file for all packr "boxes", this would be f.ex. the spec.json file.
   - make build-js
-  - packr
+  - make embed-static
   - make test
   - make check
 

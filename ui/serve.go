@@ -5,10 +5,10 @@ import (
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 )
 
-var box = packr.NewBox("../ui/build")
+var box = packr.New("ui", "../ui/build")
 
 // Register registers the ui on the root path.
 func Register(r *gin.Engine) {
@@ -24,6 +24,10 @@ func Register(r *gin.Engine) {
 func serveFile(name, contentType string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Header("Content-Type", contentType)
-		ctx.String(200, box.String(name))
+		content, err := box.FindString(name)
+		if err != nil {
+			panic(err)
+		}
+		ctx.String(200, content)
 	}
 }

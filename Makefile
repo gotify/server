@@ -42,9 +42,11 @@ check-js:
 download-tools:
 	GO111MODULE=off go get -u golang.org/x/lint/golint
 	GO111MODULE=off go get -u github.com/fzipp/gocyclo
-	GO111MODULE=off go get -u github.com/gobuffalo/packr/...
 	GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger
 	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
+
+embed-static:
+	go run hack/packr/packr.go
 
 update-swagger:
 	go mod vendor
