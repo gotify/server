@@ -5,10 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gotify/server/mode"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestConfigEnv(t *testing.T) {
+	mode.Set(mode.TestDev)
 	os.Setenv("GOTIFY_DEFAULTUSER_NAME", "jmattheis")
 	os.Setenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS", "- push.example.tld\n- push.other.tld")
 	os.Setenv("GOTIFY_SERVER_RESPONSEHEADERS",
@@ -31,6 +33,7 @@ func TestConfigEnv(t *testing.T) {
 }
 
 func TestAddSlash(t *testing.T) {
+	mode.Set(mode.TestDev)
 	os.Setenv("GOTIFY_UPLOADEDIMAGESDIR", "../data/images")
 	conf := Get()
 	assert.Equal(t, "../data/images"+string(filepath.Separator), conf.UploadedImagesDir)
@@ -38,6 +41,7 @@ func TestAddSlash(t *testing.T) {
 }
 
 func TestNotAddSlash(t *testing.T) {
+	mode.Set(mode.TestDev)
 	os.Setenv("GOTIFY_UPLOADEDIMAGESDIR", "../data/")
 	conf := Get()
 	assert.Equal(t, "../data/", conf.UploadedImagesDir)
@@ -45,6 +49,7 @@ func TestNotAddSlash(t *testing.T) {
 }
 
 func TestFileWithSyntaxErrors(t *testing.T) {
+	mode.Set(mode.TestDev)
 	file, err := os.Create("config.yml")
 	defer func() {
 		file.Close()
@@ -63,6 +68,7 @@ sdgsgsdfgsdfg
 }
 
 func TestConfigFile(t *testing.T) {
+	mode.Set(mode.TestDev)
 	file, err := os.Create("config.yml")
 	defer func() {
 		file.Close()
