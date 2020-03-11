@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gotify/configor"
+	"github.com/gotify/server/mode"
 )
 
 // Configuration is stuff that can be configured externally per env variables or config file (config.yml).
@@ -44,10 +45,17 @@ type Configuration struct {
 	PluginsDir        string `default:"data/plugins"`
 }
 
+func configFiles() []string {
+	if mode.Get() == mode.TestDev {
+		return []string{"config.yml"}
+	}
+	return []string{"config.yml", "/etc/gotify/config.yml"}
+}
+
 // Get returns the configuration extracted from env variables or config file.
 func Get() *Configuration {
 	conf := new(Configuration)
-	err := configor.New(&configor.Config{EnvironmentPrefix: "GOTIFY"}).Load(conf, "config.yml", "/etc/gotify/config.yml")
+	err := configor.New(&configor.Config{EnvironmentPrefix: "GOTIFY"}).Load(conf, configFiles()...)
 	if err != nil {
 		panic(err)
 	}
