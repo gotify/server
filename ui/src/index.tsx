@@ -17,7 +17,7 @@ import {PluginStore} from './plugin/PluginStore';
 import {registerReactions} from './reactions';
 
 const defaultDevConfig = {
-    url: 'http://localhost:80/',
+    url: 'http://localhost:3000/',
 };
 
 const {port, hostname, protocol, pathname} = window.location;
