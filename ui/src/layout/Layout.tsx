@@ -29,6 +29,9 @@ const styles = (theme: Theme) => ({
         marginTop: 64,
         padding: theme.spacing(4),
         width: '100%',
+        [theme.breakpoints.down('xs')]: {
+            marginTop: 0,
+        },
     },
 });
 
@@ -63,6 +66,12 @@ class Layout extends React.Component<
     private showSettings = false;
     @observable
     private version = Layout.defaultVersion;
+    @observable
+    private navOpen = false;
+
+    private setNavOpen(open: boolean) {
+        this.navOpen = open;
+    }
 
     public componentDidMount() {
         if (this.version === Layout.defaultVersion) {
@@ -105,7 +114,7 @@ class Layout extends React.Component<
                                 message={connectionErrorMessage}
                             />
                         )}
-                        <div style={{display: 'flex'}}>
+                        <div style={{display: 'flex', flexDirection: 'column'}}>
                             <CssBaseline />
                             <Header
                                 style={{top: !connectionErrorMessage ? 0 : 64}}
@@ -116,27 +125,41 @@ class Layout extends React.Component<
                                 toggleTheme={this.toggleTheme.bind(this)}
                                 showSettings={() => (this.showSettings = true)}
                                 logout={logout}
+                                setNavOpen={this.setNavOpen.bind(this)}
                             />
-                            <Navigation loggedIn={loggedIn} />
-
-                            <main className={classes.content}>
-                                <Switch>
-                                    {authenticating ? (
-                                        <Route path="/">
-                                            <LoadingSpinner />
-                                        </Route>
-                                    ) : null}
-                                    <Route exact path="/login" render={loginRoute} />
-                                    {loggedIn ? null : <Redirect to="/login" />}
-                                    <Route exact path="/" component={Messages} />
-                                    <Route exact path="/messages/:id" component={Messages} />
-                                    <Route exact path="/applications" component={Applications} />
-                                    <Route exact path="/clients" component={Clients} />
-                                    <Route exact path="/users" component={Users} />
-                                    <Route exact path="/plugins" component={Plugins} />
-                                    <Route exact path="/plugins/:id" component={PluginDetailView} />
-                                </Switch>
-                            </main>
+                            <div style={{display: 'flex'}}>
+                                <Navigation
+                                    loggedIn={loggedIn}
+                                    navOpen={this.navOpen}
+                                    setNavOpen={this.setNavOpen.bind(this)}
+                                />
+                                <main className={classes.content}>
+                                    <Switch>
+                                        {authenticating ? (
+                                            <Route path="/">
+                                                <LoadingSpinner />
+                                            </Route>
+                                        ) : null}
+                                        <Route exact path="/login" render={loginRoute} />
+                                        {loggedIn ? null : <Redirect to="/login" />}
+                                        <Route exact path="/" component={Messages} />
+                                        <Route exact path="/messages/:id" component={Messages} />
+                                        <Route
+                                            exact
+                                            path="/applications"
+                                            component={Applications}
+                                        />
+                                        <Route exact path="/clients" component={Clients} />
+                                        <Route exact path="/users" component={Users} />
+                                        <Route exact path="/plugins" component={Plugins} />
+                                        <Route
+                                            exact
+                                            path="/plugins/:id"
+                                            component={PluginDetailView}
+                                        />
+                                    </Switch>
+                                </main>
+                            </div>
                             {showSettings && (
                                 <SettingsDialog fClose={() => (this.showSettings = false)} />
                             )}
