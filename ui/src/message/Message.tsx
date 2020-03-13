@@ -1,5 +1,5 @@
 import IconButton from '@material-ui/core/IconButton';
-import {StyleRules, withStyles, WithStyles} from '@material-ui/core/styles';
+import {createStyles, Theme, withStyles, WithStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Delete from '@material-ui/icons/Delete';
 import React from 'react';
@@ -10,44 +10,58 @@ import ReactMarkdown from 'react-markdown';
 import {RenderMode, contentType} from './extras';
 import {IMessageExtras} from '../types';
 
-const styles = (): StyleRules => ({
-    header: {
-        display: 'flex',
-    },
-    headerTitle: {
-        flex: 1,
-    },
-    trash: {
-        marginTop: -15,
-        marginRight: -15,
-    },
-    wrapperPadding: {
-        padding: 12,
-    },
-    messageContentWrapper: {
-        width: '100%',
-        maxWidth: 585,
-    },
-    image: {
-        marginRight: 15,
-    },
-    imageWrapper: {
-        display: 'flex',
-    },
-    content: {
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-all',
-        '& p': {
-            margin: 0,
+const styles = (theme: Theme) =>
+    createStyles({
+        header: {
+            display: 'flex',
+            flexWrap: 'wrap',
+            marginBottom: 0,
         },
-        '& a': {
-            color: '#ff7f50',
+        headerTitle: {
+            flex: 1,
         },
-        '& pre': {
-            overflow: 'auto',
+        trash: {
+            marginTop: -15,
+            marginRight: -15,
         },
-    },
-});
+        wrapperPadding: {
+            padding: 12,
+        },
+        messageContentWrapper: {
+            width: '100%',
+            maxWidth: 585,
+        },
+        image: {
+            marginRight: 15,
+            [theme.breakpoints.down('sm')]: {
+                width: 32,
+                height: 32,
+            },
+        },
+        date: {
+            [theme.breakpoints.down('sm')]: {
+                order: 1,
+                flexBasis: '100%',
+                opacity: 0.7,
+            },
+        },
+        imageWrapper: {
+            display: 'flex',
+        },
+        content: {
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all',
+            '& p': {
+                margin: 0,
+            },
+            '& a': {
+                color: '#ff7f50',
+            },
+            '& pre': {
+                overflow: 'auto',
+            },
+        },
+    });
 
 interface IProps {
     title: string;
@@ -98,7 +112,7 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                             <Typography className={`${classes.headerTitle} title`} variant="h5">
                                 {title}
                             </Typography>
-                            <Typography variant="body1" className="date">
+                            <Typography variant="body1" className={classes.date}>
                                 <TimeAgo date={date} />
                             </Typography>
                             <IconButton onClick={fDelete} className={`${classes.trash} delete`}>
@@ -115,4 +129,4 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
     }
 }
 
-export default withStyles(styles)(Message);
+export default withStyles(styles, {withTheme: true})(Message);
