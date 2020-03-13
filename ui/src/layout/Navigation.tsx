@@ -8,7 +8,9 @@ import {Link} from 'react-router-dom';
 import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
 import {mayAllowPermission, requestPermission} from '../snack/browserNotification';
-import {Button, Typography} from '@material-ui/core';
+import {Button, Hidden, IconButton, Typography} from '@material-ui/core';
+import {DrawerProps} from '@material-ui/core/Drawer/Drawer';
+import CloseIcon from '@material-ui/icons/Close';
 
 const styles = (theme: Theme): StyleRules<'drawerPaper' | 'toolbar' | 'link'> => ({
     drawerPaper: {
@@ -28,6 +30,8 @@ type Styles = WithStyles<'drawerPaper' | 'toolbar' | 'link'>;
 
 interface IProps {
     loggedIn: boolean;
+    navOpen: boolean;
+    setNavOpen: (open: boolean) => void;
 }
 
 @observer
@@ -38,7 +42,7 @@ class Navigation extends Component<
     public state = {showRequestNotification: mayAllowPermission()};
 
     public render() {
-        const {classes, loggedIn, appStore} = this.props;
+        const {classes, loggedIn, appStore, navOpen, setNavOpen} = this.props;
         const {showRequestNotification} = this.state;
         const apps = appStore.getItems();
 
@@ -48,6 +52,7 @@ class Navigation extends Component<
                 : apps.map((app) => {
                       return (
                           <Link
+                              onClick={() => setNavOpen(false)}
                               className={`${classes.link} item`}
                               to={'/messages/' + app.id}
                               key={app.id}>
@@ -68,12 +73,13 @@ class Navigation extends Component<
         ];
 
         return (
-            <Drawer
-                variant="permanent"
+            <ResponsiveDrawer
                 classes={{paper: classes.drawerPaper}}
+                navOpen={navOpen}
+                setNavOpen={setNavOpen}
                 id="message-navigation">
                 <div className={classes.toolbar} />
-                <Link className={classes.link} to="/">
+                <Link className={classes.link} to="/" onClick={() => setNavOpen(false)}>
                     <ListItem button disabled={!loggedIn} className="all">
                         <ListItemText primary="All Messages" />
                     </ListItem>
@@ -92,9 +98,31 @@ class Navigation extends Component<
                         </Button>
                     ) : null}
                 </Typography>
-            </Drawer>
+            </ResponsiveDrawer>
         );
     }
 }
+
+const ResponsiveDrawer: React.FC<
+    DrawerProps & {navOpen: boolean; setNavOpen: (open: boolean) => void}
+> = ({navOpen, setNavOpen, children, ...rest}) => {
+    return (
+        <>
+            <Hidden smUp implementation="css">
+                <Drawer variant="temporary" open={navOpen} {...rest}>
+                    <IconButton onClick={() => setNavOpen(false)}>
+                        <CloseIcon />
+                    </IconButton>
+                    {children}
+                </Drawer>
+            </Hidden>
+            <Hidden xsDown implementation="css">
+                <Drawer variant="permanent" {...rest}>
+                    {children}
+                </Drawer>
+            </Hidden>
+        </>
+    );
+};
 
 export default withStyles(styles, {withTheme: true})(inject('appStore')(Navigation));
