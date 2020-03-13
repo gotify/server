@@ -1,6 +1,6 @@
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
-import React, {SFC} from 'react';
+import React, {FC} from 'react';
 
 interface IProps {
     title: string;
@@ -8,7 +8,7 @@ interface IProps {
     maxWidth?: number;
 }
 
-const DefaultPage: SFC<IProps> = ({title, rightControl, maxWidth = 700, children}) => (
+const DefaultPage: FC<IProps> = ({title, rightControl, maxWidth = 700, children}) => (
     <main style={{margin: '0 auto', maxWidth}}>
         <Grid container spacing={4}>
             <Grid item xs={12} style={{display: 'flex'}}>
