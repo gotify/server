@@ -70,11 +70,9 @@ const hasReceivedMessage = async (title: RegExp, content: RegExp) => {
 
 const inDetailPage = async (id: number, callback: () => Promise<void>) => {
     const name = await innerText(page, $table.cell(id, Col.Name));
-    await page.click($table.cell(id, Col.Details));
+    await page.click($table.cell(id, Col.Details, 'button'));
     await waitForExists(page, '.plugin-info .name > span', name);
-
     await callback();
-
     await page.click('#navigate-plugins');
     await waitForExists(page, selector.heading(), 'Plugins');
     await page.waitForSelector($table.selector());
