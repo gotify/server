@@ -31,6 +31,11 @@ type Configuration struct {
 		Stream          struct {
 			AllowedOrigins []string
 		}
+		Cors struct {
+			AllowOrigins []string
+			AllowMethods []string
+			AllowHeaders []string
+		}
 	}
 	Database struct {
 		Dialect    string `default:"sqlite3"`

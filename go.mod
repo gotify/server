@@ -3,6 +3,7 @@ module github.com/gotify/server
 require (
 	github.com/Southclaws/configor v1.0.0 // indirect
 	github.com/fortytw2/leaktest v1.3.0
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-contrib/gzip v0.0.1
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
