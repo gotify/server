@@ -24,6 +24,16 @@ server:
 #    Access-Control-Allow-Origin: "*"
 #    Access-Control-Allow-Methods: "GET,POST"
 
+  cors: # A better way to define CORS headers. NOTE: setting the CORS headers above will override the CORS config defined here
+    alloworigins:
+#      - ".+.example.com"
+#      - "otherdomain.com"
+    allowmethods:
+#      - "GET"
+#      - "POST"
+    allowheaders:
+#      - "Authorization"
+#      - "content-type"
   stream:
     allowedorigins: # allowed origins for websocket connections (same origin is always allowed)
 #      - ".+.example.com"
