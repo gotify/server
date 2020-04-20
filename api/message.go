@@ -362,6 +362,7 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
+
 		message.ApplicationID = application.ID
 		if strings.TrimSpace(message.Title) == "" {
 			message.Title = application.Name
@@ -384,6 +385,7 @@ func toInternalMessage(msg *model.MessageExternal) *model.Message {
 		Title:         msg.Title,
 		Priority:      msg.Priority,
 		Date:          msg.Date,
+		ClientID:      msg.TO,
 	}
 	if msg.Extras != nil {
 		res.Extras, _ = json.Marshal(msg.Extras)

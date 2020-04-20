@@ -6,6 +6,7 @@ import (
 
 // Message holds information about a message
 type Message struct {
+	ClientID      uint
 	ID            uint `gorm:"AUTO_INCREMENT;primary_key;index"`
 	ApplicationID uint
 	Message       string `gorm:"type:text"`
@@ -21,6 +22,13 @@ type Message struct {
 //
 // swagger:model Message
 type MessageExternal struct {
+	// The message clientToken.
+	//
+	// read only: true
+	// required: true
+	// example: 25
+	TO string `json:"to"`
+
 	// The message id.
 	//
 	// read only: true
