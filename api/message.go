@@ -25,6 +25,7 @@ type MessageDatabase interface {
 	DeleteMessagesByApplication(applicationID uint) error
 	CreateMessage(message *model.Message) error
 	GetApplicationByToken(token string) (*model.Application, error)
+	GetClientByToken(token string) (*model.Client, error)
 }
 
 var timeNow = time.Now
@@ -32,6 +33,7 @@ var timeNow = time.Now
 // Notifier notifies when a new message was created.
 type Notifier interface {
 	Notify(userID uint, message *model.MessageExternal)
+	NotifyToClient(userID uint, clientToken string, message *model.MessageExternal)
 }
 
 // The MessageAPI provides handlers for managing messages.
@@ -385,7 +387,6 @@ func toInternalMessage(msg *model.MessageExternal) *model.Message {
 		Title:         msg.Title,
 		Priority:      msg.Priority,
 		Date:          msg.Date,
-		ClientID:      msg.TO,
 	}
 	if msg.Extras != nil {
 		res.Extras, _ = json.Marshal(msg.Extras)
@@ -415,4 +416,59 @@ func toExternalMessages(msg []*model.Message) []*model.MessageExternal {
 		res[i] = toExternalMessage(msg[i])
 	}
 	return res
+}
+
+// CreateMessageForClient creates a message, authentication via application-token is required.
+// swagger:operation POST /message_client message CreateMessageForClient
+//
+// Create a message.
+//
+// __NOTE__: This API ONLY accepts an application token as authentication.
+// ---
+// consumes: [application/json]
+// produces: [application/json]
+// security: [appTokenHeader: [], appTokenQuery: []]
+// parameters:
+// - name: body
+//   in: body
+//   description: the message to add
+//   required: true
+//   schema:
+//     $ref: "#/definitions/Message"
+// responses:
+//   200:
+//     description: Ok
+//     schema:
+//       $ref: "#/definitions/Message"
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+func (a *MessageAPI) CreateMessageForClient(ctx *gin.Context) {
+	message := model.MessageExternal{}
+	if err := ctx.Bind(&message); err == nil {
+		token := auth.GetTokenID(ctx)
+		client, err := a.DB.GetClientByToken(token)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
+
+		message.ApplicationID = 0
+		message.Date = timeNow()
+		msgInternal := toInternalMessage(&message)
+		msgInternal.ClientID = client.ID
+		if success := successOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
+			return
+		}
+		a.Notifier.NotifyToClient(auth.GetUserID(ctx), token, toExternalMessage(msgInternal))
+		ctx.JSON(200, toExternalMessage(msgInternal))
+	}
 }

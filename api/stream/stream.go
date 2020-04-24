@@ -77,6 +77,20 @@ func (a *API) Notify(userID uint, msg *model.MessageExternal) {
 	}
 }
 
+// NotifyToClient notifies the clients with the given userID that a new messages was created.
+func (a *API) NotifyToClient(userID uint, clientToken string, msg *model.MessageExternal) {
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+	if clients, ok := a.clients[userID]; ok {
+		for _, c := range clients {
+			if c.token == clientToken {
+				c.write <- msg
+				break
+			}
+		}
+	}
+}
+
 func (a *API) remove(remove *client) {
 	a.lock.Lock()
 	defer a.lock.Unlock()

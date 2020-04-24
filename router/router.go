@@ -107,6 +107,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	})
 
 	g.Group("/").Use(authentication.RequireApplicationToken()).POST("/message", messageHandler.CreateMessage)
+	g.Group("/").Use(authentication.RequireClient()).POST("/message_client", messageHandler.CreateMessageForClient)
 
 	clientAuth := g.Group("")
 	{
