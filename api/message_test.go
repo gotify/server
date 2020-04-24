@@ -48,6 +48,10 @@ func (s *MessageSuite) Notify(userID uint, msg *model.MessageExternal) {
 	s.notifiedMessage = msg
 }
 
+func (s *MessageSuite) NotifyToClient(userID uint, token string, msg *model.MessageExternal) {
+	s.notifiedMessage = msg
+}
+
 func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 

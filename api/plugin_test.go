@@ -83,6 +83,10 @@ func (s *PluginSuite) Notify(userID uint, msg *model.MessageExternal) {
 	s.notified = true
 }
 
+func (s *PluginSuite) NotifyToClient(userID uint, token string, msg *model.MessageExternal) {
+	s.notified = true
+}
+
 func (s *PluginSuite) Test_GetPlugins() {
 	test.WithUser(s.ctx, 1)
 
