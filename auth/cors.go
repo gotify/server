@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// CorsConfig generates a config to use in gin cors middleware based on server configuration
 func CorsConfig(conf *config.Configuration) cors.Config {
 	corsConf := cors.Config{
 		MaxAge: 12 * time.Hour,
