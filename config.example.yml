@@ -24,7 +24,7 @@ server:
 #    Access-Control-Allow-Origin: "*"
 #    Access-Control-Allow-Methods: "GET,POST"
 
-  cors: # A better way to define CORS headers. NOTE: setting the CORS headers above will override the CORS config defined here
+  cors: # Sets cors headers only when needed and provides support for multiple allowed origins. Overrides Access-Control-* Headers in response headers.
     alloworigins:
 #      - ".+.example.com"
 #      - "otherdomain.com"
