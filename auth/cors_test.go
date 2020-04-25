@@ -59,8 +59,8 @@ func TestCorsConfig(t *testing.T) {
 			if !reflect.DeepEqual(got.AllowWildcard, tt.want.AllowWildcard) {
 				t.Errorf("CorsConfig() = %v, want %v", got.AllowWildcard, tt.want.AllowWildcard)
 			}
-			if got.AllowOriginFunc == nil {
-				t.Errorf("CorsConfig() = AllowOriginFunc is nil, want not nil")
+			if got.AllowOriginFunc("http://test.com") != true {
+				t.Errorf("CorsConfig() = AllowOriginFunc is false, want true")
 			}
 		})
 	}
