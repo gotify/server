@@ -59,15 +59,6 @@ func TestCorsConfig(t *testing.T) {
 			if !reflect.DeepEqual(got.AllowWildcard, tt.want.AllowWildcard) {
 				t.Errorf("CorsConfig() = %v, want %v", got.AllowWildcard, tt.want.AllowWildcard)
 			}
-			if !reflect.DeepEqual(got.AllowBrowserExtensions, tt.want.AllowBrowserExtensions) {
-				t.Errorf("CorsConfig() = %v, want %v", got.AllowBrowserExtensions, tt.want.AllowBrowserExtensions)
-			}
-			if !reflect.DeepEqual(got.AllowWebSockets, tt.want.AllowWebSockets) {
-				t.Errorf("CorsConfig() = %v, want %v", got.AllowWebSockets, tt.want.AllowWebSockets)
-			}
-			if !reflect.DeepEqual(got.AllowFiles, tt.want.AllowFiles) {
-				t.Errorf("CorsConfig() = %v, want %v", got.AllowFiles, tt.want.AllowFiles)
-			}
 			if got.AllowOriginFunc == nil {
 				t.Errorf("CorsConfig() = AllowOriginFunc is nil, want not nil")
 			}
@@ -124,14 +115,8 @@ func TestDevCorsConfig(t *testing.T) {
 			if !reflect.DeepEqual(got.AllowWildcard, tt.want.AllowWildcard) {
 				t.Errorf("CorsConfig() = %v, want %v", got.AllowWildcard, tt.want.AllowWildcard)
 			}
-			if !reflect.DeepEqual(got.AllowBrowserExtensions, tt.want.AllowBrowserExtensions) {
-				t.Errorf("CorsConfig() = %v, want %v", got.AllowBrowserExtensions, tt.want.AllowBrowserExtensions)
-			}
-			if !reflect.DeepEqual(got.AllowWebSockets, tt.want.AllowWebSockets) {
-				t.Errorf("CorsConfig() = %v, want %v", got.AllowWebSockets, tt.want.AllowWebSockets)
-			}
-			if !reflect.DeepEqual(got.AllowFiles, tt.want.AllowFiles) {
-				t.Errorf("CorsConfig() = %v, want %v", got.AllowFiles, tt.want.AllowFiles)
+			if got.AllowOriginFunc != nil {
+				t.Errorf("CorsConfig() = AllowOriginFunc is not nil, want nil")
 			}
 		})
 	}
