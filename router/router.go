@@ -1,11 +1,9 @@
 package router
 
 import (
-	"regexp"
-	"strings"
+	"github.com/gin-contrib/cors"
 	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/gotify/location"
@@ -16,7 +14,6 @@ import (
 	"github.com/gotify/server/database"
 	"github.com/gotify/server/docs"
 	"github.com/gotify/server/error"
-	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/plugin"
 	"github.com/gotify/server/ui"
@@ -71,33 +68,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		for header, value := range conf.Server.ResponseHeaders {
 			ctx.Header(header, value)
 		}
-
-		corsConf := cors.Config{
-			AllowWildcard: true,
-			MaxAge:        12 * time.Hour,
-		}
-		if mode.IsDev() {
-			corsConf.AllowAllOrigins = true
-			corsConf.AddAllowMethods("GET", "POST", "DELETE", "OPTIONS", "PUT")
-			corsConf.AddAllowHeaders("X-Gotify-Key", "Authorization", "Content-Type", "Upgrade", "Origin",
-				"Connection", "Accept-Encoding", "Accept-Language", "Host")
-		} else {
-			corsConf.AddAllowMethods(conf.Server.Cors.AllowMethods...)
-			corsConf.AddAllowHeaders(conf.Server.Cors.AllowHeaders...)
-			corsConf.AllowOriginFunc = func(origin string) bool {
-				for _, allowedOrigin := range conf.Server.Cors.AllowOrigins {
-					compiledOrigin := regexp.MustCompile(allowedOrigin)
-					if compiledOrigin.Match([]byte(strings.ToLower(origin))) {
-						return true
-					}
-				}
-				return false
-			}
-		}
-
-		//Apply CORS
-		(cors.New(corsConf))(ctx)
 	})
+	g.Use(cors.New(auth.CorsConfig(conf)))
 
 	{
 		g.GET("/plugin", authentication.RequireClient(), pluginHandler.GetPlugins)

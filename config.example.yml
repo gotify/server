@@ -21,8 +21,7 @@ server:
 #      - myotherdomain.tld
 
   responseheaders: # response headers are added to every response (default: none)
-#    Access-Control-Allow-Origin: "*"
-#    Access-Control-Allow-Methods: "GET,POST"
+#    X-Custom-Header: "custom value"
 
   cors: # Sets cors headers only when needed and provides support for multiple allowed origins. Overrides Access-Control-* Headers in response headers.
     alloworigins:
