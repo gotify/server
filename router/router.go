@@ -1,11 +1,10 @@
 package router
 
 import (
-	"github.com/gin-contrib/cors"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-
 	"github.com/gotify/location"
 	"github.com/gotify/server/api"
 	"github.com/gotify/server/api/stream"

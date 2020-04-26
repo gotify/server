@@ -1,12 +1,13 @@
 package auth
 
 import (
-	"github.com/gin-contrib/cors"
-	"github.com/gotify/server/config"
-	"github.com/gotify/server/mode"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gotify/server/config"
+	"github.com/gotify/server/mode"
 )
 
 // CorsConfig generates a config to use in gin cors middleware based on server configuration
