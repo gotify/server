@@ -61,6 +61,8 @@ func (s *IntegrationSuite) TestVersionInfo() {
 func (s *IntegrationSuite) TestHeaderInDev() {
 	mode.Set(mode.TestDev)
 	req := s.newRequest("GET", "version", "")
+	//Needs an origin to indicate that it is a CORS request
+	req.Header.Add("Origin", "some-origin")
 
 	res, err := client.Do(req)
 	assert.Nil(s.T(), err)
@@ -106,6 +108,134 @@ func TestHeadersFromConfiguration(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "---", res.Header.Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "Nice", res.Header.Get("New-Cool-Header"))
+}
+
+func TestHeadersFromCORSConfig(t *testing.T) {
+	mode.Set(mode.Prod)
+	db := testdb.NewDBWithDefaultUser(t)
+	defer db.Close()
+
+	config := config.Configuration{PassStrength: 5}
+	config.Server.Cors.AllowOrigins = []string{"---", "http://test.com"}
+
+	g, closable := Create(db.GormDatabase,
+		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
+		&config,
+	)
+	server := httptest.NewServer(g)
+
+	defer func() {
+		closable()
+		server.Close()
+	}()
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s", server.URL, "version"), nil)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Origin", "http://test.com")
+	assert.Nil(t, err)
+
+	res, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, "http://test.com", res.Header.Get("Access-Control-Allow-Origin"))
+}
+
+func TestInvalidOrigin(t *testing.T) {
+	mode.Set(mode.Prod)
+	db := testdb.NewDBWithDefaultUser(t)
+	defer db.Close()
+
+	config := config.Configuration{PassStrength: 5}
+	config.Server.Cors.AllowOrigins = []string{"---", "http://test.com"}
+
+	g, closable := Create(db.GormDatabase,
+		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
+		&config,
+	)
+	server := httptest.NewServer(g)
+
+	defer func() {
+		closable()
+		server.Close()
+	}()
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s", server.URL, "version"), nil)
+	req.Header.Add("Origin", "http://test1.com")
+	assert.Nil(t, err)
+
+	res, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, "", res.Header.Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, http.StatusForbidden, res.StatusCode)
+}
+
+func TestCORSHeaderRegex(t *testing.T) {
+	mode.Set(mode.Prod)
+	db := testdb.NewDBWithDefaultUser(t)
+	defer db.Close()
+
+	config := config.Configuration{PassStrength: 5}
+	config.Server.Cors.AllowOrigins = []string{"---", "^http://test\\d{3}.com$"}
+
+	g, closable := Create(db.GormDatabase,
+		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
+		&config,
+	)
+	server := httptest.NewServer(g)
+
+	defer func() {
+		closable()
+		server.Close()
+	}()
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s", server.URL, "version"), nil)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Origin", "http://test123.com")
+	assert.Nil(t, err)
+
+	res, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, "http://test123.com", res.Header.Get("Access-Control-Allow-Origin"))
+}
+
+// We want headers in cors config to override the responseheaders config
+func TestCORSConfigOverride(t *testing.T) {
+	mode.Set(mode.Prod)
+	db := testdb.NewDBWithDefaultUser(t)
+	defer db.Close()
+
+	config := config.Configuration{PassStrength: 5}
+	config.Server.ResponseHeaders = map[string]string{
+		"New-Cool-Header":              "Nice",
+		"Access-Control-Allow-Origin":  "something-else",
+		"Access-Control-Allow-Methods": "321test",
+		"Access-Control-Allow-Headers": "some-headers",
+	}
+	config.Server.Cors.AllowOrigins = []string{"http://test123.com", "aaa"}
+	config.Server.Cors.AllowMethods = []string{"GET", "OPTIONS"}
+	config.Server.Cors.AllowHeaders = []string{"Content-Type"}
+
+	g, closable := Create(db.GormDatabase,
+		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
+		&config,
+	)
+	server := httptest.NewServer(g)
+
+	defer func() {
+		closable()
+		server.Close()
+	}()
+
+	req, err := http.NewRequest("OPTIONS", fmt.Sprintf("%s/%s", server.URL, "version"), nil)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Origin", "http://test123.com")
+	assert.Nil(t, err)
+
+	res, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, "Nice", res.Header.Get("New-Cool-Header"))
+	assert.Equal(t, "http://test123.com", res.Header.Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "GET,OPTIONS", res.Header.Get("Access-Control-Allow-Methods"))
+	assert.Equal(t, "Content-Type", res.Header.Get("Access-Control-Allow-Headers"))
 }
 
 func (s *IntegrationSuite) TestOptionsRequest() {

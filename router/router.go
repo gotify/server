@@ -3,8 +3,8 @@ package router
 import (
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-
 	"github.com/gotify/location"
 	"github.com/gotify/server/api"
 	"github.com/gotify/server/api/stream"
@@ -13,7 +13,6 @@ import (
 	"github.com/gotify/server/database"
 	"github.com/gotify/server/docs"
 	"github.com/gotify/server/error"
-	"github.com/gotify/server/mode"
 	"github.com/gotify/server/model"
 	"github.com/gotify/server/plugin"
 	"github.com/gotify/server/ui"
@@ -65,17 +64,11 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	g.Use(func(ctx *gin.Context) {
 		ctx.Header("Content-Type", "application/json")
-
-		if mode.IsDev() {
-			ctx.Header("Access-Control-Allow-Origin", "*")
-			ctx.Header("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS,PUT")
-			ctx.Header("Access-Control-Allow-Headers", "X-Gotify-Key,Authorization,Content-Type,Upgrade,Origin,Connection,Accept-Encoding,Accept-Language,Host")
-		}
-
 		for header, value := range conf.Server.ResponseHeaders {
 			ctx.Header(header, value)
 		}
 	})
+	g.Use(cors.New(auth.CorsConfig(conf)))
 
 	{
 		g.GET("/plugin", authentication.RequireClient(), pluginHandler.GetPlugins)

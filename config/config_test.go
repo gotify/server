@@ -16,6 +16,9 @@ func TestConfigEnv(t *testing.T) {
 	os.Setenv("GOTIFY_SERVER_RESPONSEHEADERS",
 		"Access-Control-Allow-Origin: \"*\"\nAccess-Control-Allow-Methods: \"GET,POST\"",
 	)
+	os.Setenv("GOTIFY_SERVER_CORS_ALLOWORIGINS", "- \".+.example.com\"\n- \"otherdomain.com\"")
+	os.Setenv("GOTIFY_SERVER_CORS_ALLOWMETHODS", "- \"GET\"\n- \"POST\"")
+	os.Setenv("GOTIFY_SERVER_CORS_ALLOWHEADERS", "- \"Authorization\"\n- \"content-type\"")
 	os.Setenv("GOTIFY_SERVER_STREAM_ALLOWEDORIGINS", "- \".+.example.com\"\n- \"otherdomain.com\"")
 
 	conf := Get()
@@ -24,11 +27,17 @@ func TestConfigEnv(t *testing.T) {
 	assert.Equal(t, []string{"push.example.tld", "push.other.tld"}, conf.Server.SSL.LetsEncrypt.Hosts)
 	assert.Equal(t, "*", conf.Server.ResponseHeaders["Access-Control-Allow-Origin"])
 	assert.Equal(t, "GET,POST", conf.Server.ResponseHeaders["Access-Control-Allow-Methods"])
+	assert.Equal(t, []string{".+.example.com", "otherdomain.com"}, conf.Server.Cors.AllowOrigins)
+	assert.Equal(t, []string{"GET", "POST"}, conf.Server.Cors.AllowMethods)
+	assert.Equal(t, []string{"Authorization", "content-type"}, conf.Server.Cors.AllowHeaders)
 	assert.Equal(t, []string{".+.example.com", "otherdomain.com"}, conf.Server.Stream.AllowedOrigins)
 
 	os.Unsetenv("GOTIFY_DEFAULTUSER_NAME")
 	os.Unsetenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS")
 	os.Unsetenv("GOTIFY_SERVER_RESPONSEHEADERS")
+	os.Unsetenv("GOTIFY_SERVER_CORS_ALLOWORIGINS")
+	os.Unsetenv("GOTIFY_SERVER_CORS_ALLOWMETHODS")
+	os.Unsetenv("GOTIFY_SERVER_CORS_ALLOWHEADERS")
 	os.Unsetenv("GOTIFY_SERVER_STREAM_ALLOWEDORIGINS")
 }
 
@@ -85,6 +94,16 @@ server:
   responseheaders:
     Access-Control-Allow-Origin: "*"
     Access-Control-Allow-Methods: "GET,POST"
+  cors:
+    alloworigins:
+      - ".*"
+      - ".+"
+    allowmethods:
+      - "GET"
+      - "POST"
+    allowheaders:
+      - "Authorization"
+      - "content-type"
   stream:
     allowedorigins:
       - ".+.example.com"
@@ -109,6 +128,9 @@ pluginsdir: data/plugins
 	assert.Equal(t, "user name", conf.Database.Connection)
 	assert.Equal(t, "*", conf.Server.ResponseHeaders["Access-Control-Allow-Origin"])
 	assert.Equal(t, "GET,POST", conf.Server.ResponseHeaders["Access-Control-Allow-Methods"])
+	assert.Equal(t, []string{".*", ".+"}, conf.Server.Cors.AllowOrigins)
+	assert.Equal(t, []string{"GET", "POST"}, conf.Server.Cors.AllowMethods)
+	assert.Equal(t, []string{"Authorization", "content-type"}, conf.Server.Cors.AllowHeaders)
 	assert.Equal(t, []string{".+.example.com", "otherdomain.com"}, conf.Server.Stream.AllowedOrigins)
 	assert.Equal(t, "data/plugins", conf.PluginsDir)
 
