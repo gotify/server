@@ -1,4 +1,4 @@
-FROM frolvlad/alpine-glibc:glibc-2.28
+FROM frolvlad/alpine-glibc:glibc-2.31
 WORKDIR /app
 RUN apk add --no-cache ca-certificates tzdata curl
 ADD gotify-app /app/
