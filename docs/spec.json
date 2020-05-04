@@ -1927,7 +1927,7 @@
           "example": "AWH0wZ5r0Mbac.r"
         }
       },
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "Client": {
       "description": "The Client holds information about a device which can receive notifications (and other stuff).",
@@ -1961,7 +1961,7 @@
           "example": "CWH0wZ5r0Mbac.r"
         }
       },
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "Error": {
       "description": "The Error contains error relevant information.",
@@ -1993,7 +1993,7 @@
           "example": "you need to provide a valid access token or user credentials to access this api"
         }
       },
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "Health": {
       "description": "Health represents how healthy the application is.",
@@ -2017,7 +2017,7 @@
           "example": "green"
         }
       },
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "Message": {
       "description": "The MessageExternal holds information about a message which was sent by an Application.",
@@ -2091,7 +2091,7 @@
         }
       },
       "x-go-name": "MessageExternal",
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "PagedMessages": {
       "description": "Wrapper for the paging and the messages",
@@ -2115,7 +2115,7 @@
           "$ref": "#/definitions/Paging"
         }
       },
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "Paging": {
       "description": "The Paging holds information about the limit and making requests to the next page.",
@@ -2162,7 +2162,7 @@
           "example": 5
         }
       },
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "PluginConf": {
       "description": "Holds information about a plugin instance for one user.",
@@ -2246,7 +2246,7 @@
         }
       },
       "x-go-name": "PluginConfExternal",
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "User": {
       "description": "The User holds information about permission and other stuff.",
@@ -2279,7 +2279,7 @@
         }
       },
       "x-go-name": "UserExternal",
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "UserPass": {
       "description": "The Password for updating the user.",
@@ -2297,7 +2297,7 @@
         }
       },
       "x-go-name": "UserExternalPass",
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "UserWithPass": {
       "description": "The UserWithPass holds information about the credentials and other stuff.",
@@ -2337,7 +2337,7 @@
         }
       },
       "x-go-name": "UserExternalWithPass",
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "VersionInfo": {
       "description": "VersionInfo Model",
@@ -2367,7 +2367,7 @@
           "example": "5.2.6"
         }
       },
-      "x-go-package": "github.com/gotify/server/model"
+      "x-go-package": "github.com/gotify/server/v2/model"
     }
   },
   "securityDefinitions": {

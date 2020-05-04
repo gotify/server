@@ -49,8 +49,7 @@ embed-static:
 	go run hack/packr/packr.go
 
 update-swagger:
-	go mod vendor
-	GO111MODULE=off swagger generate spec --scan-models -o docs/spec.json
+	swagger generate spec --scan-models -o docs/spec.json
 
 check-swagger: update-swagger
 ## add the docs to git, this changes line endings in git, otherwise this does not work on windows
