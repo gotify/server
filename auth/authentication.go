@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/auth/password"
-	"github.com/gotify/server/model"
+	"github.com/gotify/server/v2/auth/password"
+	"github.com/gotify/server/v2/model"
 )
 
 const (

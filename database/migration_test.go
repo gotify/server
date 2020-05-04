@@ -3,8 +3,8 @@ package database
 import (
 	"testing"
 
-	"github.com/gotify/server/model"
-	"github.com/gotify/server/test"
+	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v2/test"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

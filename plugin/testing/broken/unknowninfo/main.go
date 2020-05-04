@@ -2,7 +2,7 @@ package main
 
 // GetGotifyPluginInfo returns gotify plugin info
 func GetGotifyPluginInfo() string {
-	return "github.com/gotify/server/plugin/testing/broken/unknowninfo"
+	return "github.com/gotify/server/v2/plugin/testing/broken/unknowninfo"
 }
 
 func main() {

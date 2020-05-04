@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/config"
+	"github.com/gotify/server/v2/config"
 	"golang.org/x/crypto/acme/autocert"
 )
 

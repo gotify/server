@@ -12,7 +12,7 @@ func GetGotifyPluginInfo() plugin.Info {
 	return plugin.Info{
 		Name:        "clock",
 		Description: "Sends an hourly reminder",
-		ModulePath:  "github.com/gotify/server/example/clock",
+		ModulePath:  "github.com/gotify/server/v2/example/clock",
 	}
 }
 

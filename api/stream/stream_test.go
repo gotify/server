@@ -14,9 +14,9 @@ import (
 	"github.com/fortytw2/leaktest"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/gotify/server/auth"
-	"github.com/gotify/server/mode"
-	"github.com/gotify/server/model"
+	"github.com/gotify/server/v2/auth"
+	"github.com/gotify/server/v2/mode"
+	"github.com/gotify/server/v2/model"
 	"github.com/stretchr/testify/assert"
 )
 

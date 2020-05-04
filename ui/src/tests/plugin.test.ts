@@ -14,7 +14,7 @@ let gotify: GotifyTest;
 
 beforeAll(async () => {
     const gotifyPluginDir = pluginSupported
-        ? await newPluginDir(['github.com/gotify/server/plugin/example/echo'])
+        ? await newPluginDir(['github.com/gotify/server/v2/plugin/example/echo'])
         : '';
     gotify = await newTest(gotifyPluginDir);
     page = gotify.page;
@@ -118,7 +118,7 @@ describe('plugin', () => {
             it('has plugin info', async () => {
                 await inDetailPage(1, async () => {
                     expect(await pluginInfo('module-path')).toBe(
-                        'github.com/gotify/server/plugin/example/echo'
+                        'github.com/gotify/server/v2/plugin/example/echo'
                     );
                 });
             });

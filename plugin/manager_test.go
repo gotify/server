@@ -13,12 +13,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gotify/server/auth"
-	"github.com/gotify/server/model"
-	"github.com/gotify/server/plugin/compat"
-	"github.com/gotify/server/plugin/testing/mock"
-	"github.com/gotify/server/test"
-	"github.com/gotify/server/test/testdb"
+	"github.com/gotify/server/v2/auth"
+	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v2/plugin/compat"
+	"github.com/gotify/server/v2/plugin/testing/mock"
+	"github.com/gotify/server/v2/test"
+	"github.com/gotify/server/v2/test/testdb"
 
 	"github.com/jinzhu/gorm"
 
@@ -28,9 +28,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const examplePluginPath = "github.com/gotify/server/plugin/example/echo"
+const examplePluginPath = "github.com/gotify/server/v2/plugin/example/echo"
 const mockPluginPath = mock.ModulePath
-const danglingPluginPath = "github.com/gotify/server/plugin/testing/removed"
+const danglingPluginPath = "github.com/gotify/server/v2/plugin/testing/removed"
 
 type ManagerSuite struct {
 	suite.Suite

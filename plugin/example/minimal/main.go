@@ -8,7 +8,7 @@ import (
 func GetGotifyPluginInfo() plugin.Info {
 	return plugin.Info{
 		Name:       "minimal plugin",
-		ModulePath: "github.com/gotify/server/example/minimal",
+		ModulePath: "github.com/gotify/server/v2/example/minimal",
 	}
 }
 

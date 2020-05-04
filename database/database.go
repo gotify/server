@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gotify/server/auth/password"
-	"github.com/gotify/server/model"
+	"github.com/gotify/server/v2/auth/password"
+	"github.com/gotify/server/v2/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"    // enable the mysql dialect
 	_ "github.com/jinzhu/gorm/dialects/postgres" // enable the postgres dialect

@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/auth"
-	"github.com/gotify/server/model"
+	"github.com/gotify/server/v2/auth"
+	"github.com/gotify/server/v2/model"
 	"github.com/h2non/filetype"
 )
 
