@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gotify/server/config"
-	"github.com/gotify/server/mode"
-	"github.com/gotify/server/model"
-	"github.com/gotify/server/test/testdb"
+	"github.com/gotify/server/v2/config"
+	"github.com/gotify/server/v2/mode"
+	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v2/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

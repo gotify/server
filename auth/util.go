@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/model"
+	"github.com/gotify/server/v2/model"
 )
 
 // RegisterAuthentication registers the user id, user and or token.

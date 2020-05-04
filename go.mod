@@ -1,4 +1,4 @@
-module github.com/gotify/server
+module github.com/gotify/server/v2
 
 require (
 	github.com/Southclaws/configor v1.0.0 // indirect

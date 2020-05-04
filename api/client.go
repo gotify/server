@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/auth"
-	"github.com/gotify/server/model"
+	"github.com/gotify/server/v2/auth"
+	"github.com/gotify/server/v2/model"
 )
 
 // The ClientDatabase interface for encapsulating database access.

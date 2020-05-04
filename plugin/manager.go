@@ -16,9 +16,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-yaml/yaml"
-	"github.com/gotify/server/auth"
-	"github.com/gotify/server/model"
-	"github.com/gotify/server/plugin/compat"
+	"github.com/gotify/server/v2/auth"
+	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v2/plugin/compat"
 )
 
 // The Database interface for encapsulating database access.

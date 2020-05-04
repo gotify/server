@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const examplePluginPath = "github.com/gotify/server/plugin/example/echo"
+const examplePluginPath = "github.com/gotify/server/v2/plugin/example/echo"
 
 func TestPluginInfoStringer(t *testing.T) {
 	info := Info{
