@@ -4,7 +4,7 @@ export const innerText = async (page: ElementHandle | Page, selector: string): P
     const element = await page.$(selector);
     const handle = await element!.getProperty('innerText');
     const value = await handle.jsonValue();
-    return value.toString().trim();
+    return (value as object).toString().trim();
 };
 
 export const clickByText = async (page: Page, selector: string, text: string): Promise<void> => {
