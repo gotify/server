@@ -152,13 +152,7 @@ const PanelWrapper: React.SFC<IPanelWrapperProps> = ({
             </Typography>
             {description ? <Typography variant="subtitle1">{description}</Typography> : null}
             <hr />
-            <div
-                className={name
-                    .toLowerCase()
-                    .trim()
-                    .replace(/ /g, '-')}>
-                {children}
-            </div>
+            <div className={name.toLowerCase().trim().replace(/ /g, '-')}>{children}</div>
         </Container>
     );
 };
