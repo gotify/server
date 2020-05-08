@@ -19,10 +19,7 @@ export class WebSocketStore {
         }
         this.wsActive = true;
 
-        const wsUrl = config
-            .get('url')
-            .replace('http', 'ws')
-            .replace('https', 'wss');
+        const wsUrl = config.get('url').replace('http', 'ws').replace('https', 'wss');
         const ws = new WebSocket(wsUrl + 'stream?token=' + this.currentUser.token());
 
         ws.onerror = (e) => {

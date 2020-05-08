@@ -135,9 +135,9 @@ describe('plugin', () => {
             it('updates configurer', async () => {
                 await inDetailPage(1, async () => {
                     expect(
-                        await (await (await page.$('.config-save'))!.getProperty(
-                            'disabled'
-                        )).jsonValue()
+                        await (
+                            await (await page.$('.config-save'))!.getProperty('disabled')
+                        ).jsonValue()
                     ).toBe(true);
                     await page.waitForSelector('.CodeMirror .CodeMirror-code');
                     await page.waitForFunction(
@@ -155,9 +155,9 @@ describe('plugin', () => {
             it('configurer updated', async () => {
                 await inDetailPage(1, async () => {
                     expect(
-                        await (await (await page.$('.config-save'))!.getProperty(
-                            'disabled'
-                        )).jsonValue()
+                        await (
+                            await (await page.$('.config-save'))!.getProperty('disabled')
+                        ).jsonValue()
                     ).toBe(true);
                     await page.waitForSelector('.CodeMirror .CodeMirror-code > div');
                     await page.waitForFunction(

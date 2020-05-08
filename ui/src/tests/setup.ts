@@ -61,9 +61,7 @@ export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
 };
 
 const testPluginDir = (): {dir: string; generator: () => string} => {
-    const random = Math.random()
-        .toString(36)
-        .substring(2, 15);
+    const random = Math.random().toString(36).substring(2, 15);
     const dirName = 'gotifyplugin_' + random;
     const dir = path.join(testBuildPath, dirName);
     if (!fs.existsSync(dir)) {
@@ -72,18 +70,14 @@ const testPluginDir = (): {dir: string; generator: () => string} => {
     return {
         dir,
         generator: () => {
-            const randomFn = Math.random()
-                .toString(36)
-                .substring(2, 15);
+            const randomFn = Math.random().toString(36).substring(2, 15);
             return path.join(dir, randomFn + '.so');
         },
     };
 };
 
 const testFilePath = (): string => {
-    const random = Math.random()
-        .toString(36)
-        .substring(2, 15);
+    const random = Math.random().toString(36).substring(2, 15);
     const filename = 'gotifytest_' + random + windowsPrefix;
     return path.join(testBuildPath, filename);
 };
