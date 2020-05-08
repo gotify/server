@@ -28,6 +28,4 @@ require (
 	golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 // indirect
 )
 
-replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
-
 go 1.13
