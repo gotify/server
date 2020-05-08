@@ -24,7 +24,7 @@ require (
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967
 	github.com/rogpeppe/go-internal v1.5.2 // indirect
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
 	golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 // indirect
 )
 
