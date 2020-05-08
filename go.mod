@@ -19,7 +19,7 @@ require (
 	github.com/gotify/plugin-api v1.0.0
 	github.com/h2non/filetype v1.0.10
 	github.com/jinzhu/gorm v1.9.11
-	github.com/lib/pq v1.2.0 // indirect
+	github.com/lib/pq v1.5.2 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967
 	github.com/rogpeppe/go-internal v1.5.2 // indirect
