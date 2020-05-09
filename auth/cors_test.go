@@ -32,6 +32,21 @@ func TestCorsConfig(t *testing.T) {
 	assert.False(t, allowF("https://test.com"))
 	assert.False(t, allowF("https://other.com"))
 }
+func TestEmptyCorsConfigWithResponseHeaders(t *testing.T) {
+	mode.Set(mode.Prod)
+	serverConf := config.Configuration{}
+	serverConf.Server.ResponseHeaders = map[string]string{"Access-control-allow-origin": "https://example.com"}
+
+	actual := CorsConfig(&serverConf)
+	assert.NotNil(t, actual.AllowOriginFunc)
+	actual.AllowOriginFunc = nil // func cannot be checked with equal
+
+	assert.Equal(t, cors.Config{
+		AllowAllOrigins: false,
+		AllowOrigins:    []string{"https://example.com"},
+		MaxAge:          12 * time.Hour,
+	}, actual)
+}
 
 func TestDevCorsConfig(t *testing.T) {
 	mode.Set(mode.Dev)
