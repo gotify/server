@@ -22,10 +22,11 @@ func TestCorsConfig(t *testing.T) {
 	actual.AllowOriginFunc = nil // func cannot be checked with equal
 
 	assert.Equal(t, cors.Config{
-		AllowAllOrigins: false,
-		AllowHeaders:    []string{"content-type"},
-		AllowMethods:    []string{"GET"},
-		MaxAge:          12 * time.Hour,
+		AllowAllOrigins:        false,
+		AllowHeaders:           []string{"content-type"},
+		AllowMethods:           []string{"GET"},
+		MaxAge:                 12 * time.Hour,
+		AllowBrowserExtensions: true,
 	}, actual)
 	assert.NotNil(t, allowF)
 	assert.True(t, allowF("http://test.com"))
@@ -42,9 +43,10 @@ func TestEmptyCorsConfigWithResponseHeaders(t *testing.T) {
 	actual.AllowOriginFunc = nil // func cannot be checked with equal
 
 	assert.Equal(t, cors.Config{
-		AllowAllOrigins: false,
-		AllowOrigins:    []string{"https://example.com"},
-		MaxAge:          12 * time.Hour,
+		AllowAllOrigins:        false,
+		AllowOrigins:           []string{"https://example.com"},
+		MaxAge:                 12 * time.Hour,
+		AllowBrowserExtensions: true,
 	}, actual)
 }
 
@@ -60,8 +62,9 @@ func TestDevCorsConfig(t *testing.T) {
 	assert.Equal(t, cors.Config{
 		AllowHeaders: []string{"X-Gotify-Key", "Authorization", "Content-Type", "Upgrade", "Origin",
 			"Connection", "Accept-Encoding", "Accept-Language", "Host"},
-		AllowMethods:    []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"},
-		MaxAge:          12 * time.Hour,
-		AllowAllOrigins: true,
+		AllowMethods:           []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"},
+		MaxAge:                 12 * time.Hour,
+		AllowAllOrigins:        true,
+		AllowBrowserExtensions: true,
 	}, actual)
 }
