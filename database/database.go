@@ -3,6 +3,7 @@ package database
 import (
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/gotify/server/v2/auth/password"
 	"github.com/gotify/server/v2/model"
@@ -33,6 +34,14 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 		// concurrent writes, so we limit sqlite to one connection.
 		// see https://github.com/mattn/go-sqlite3/issues/274
 		db.DB().SetMaxOpenConns(1)
+	}
+
+	if dialect == "mysql" {
+		// Mysql has a setting called wait_timeout, which defines the duration
+		// after which a connection may not be used anymore.
+		// The default for this setting on mariadb is 10 minutes.
+		// See https://github.com/docker-library/mariadb/issues/113
+		db.DB().SetConnMaxLifetime(9 * time.Minute)
 	}
 
 	if err := db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client), new(model.PluginConf)).Error; err != nil {
