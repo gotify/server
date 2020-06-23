@@ -50,6 +50,7 @@ embed-static:
 
 update-swagger:
 	swagger generate spec --scan-models -o docs/spec.json
+	sed -i 's/"uint64"/"int64"/g' docs/spec.json
 
 check-swagger: update-swagger
 ## add the docs to git, this changes line endings in git, otherwise this does not work on windows
