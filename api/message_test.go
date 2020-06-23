@@ -408,6 +408,23 @@ func (s *MessageSuite) Test_CreateMessage_WithBlankTitle() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.Equal(s.T(), "mymessage", msgs[0].Message)
 }
+
+func (s *MessageSuite) Test_CreateMessage_IgnoreID() {
+	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
+	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
+
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"message": "mymessage", "id": 1337}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateMessage(s.ctx)
+
+	msgs, err := s.db.GetMessagesByApplication(8)
+	assert.NoError(s.T(), err)
+	assert.Len(s.T(), msgs, 1)
+	assert.NotEqual(s.T(), msgs[0].ID, uint(1337))
+	assert.Equal(s.T(), 200, s.recorder.Code)
+}
+
 func (s *MessageSuite) Test_CreateMessage_WithExtras() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")

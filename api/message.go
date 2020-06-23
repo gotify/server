@@ -367,6 +367,7 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 			message.Title = application.Name
 		}
 		message.Date = timeNow()
+		message.ID = 0
 		msgInternal := toInternalMessage(&message)
 		if success := successOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
 			return
