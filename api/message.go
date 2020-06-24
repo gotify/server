@@ -68,6 +68,7 @@ type pagingParams struct {
 //   minimum: 0
 //   required: false
 //   type: integer
+//   format: int64
 // responses:
 //   200:
 //     description: Ok
@@ -139,6 +140,7 @@ func withPaging(ctx *gin.Context, f func(pagingParams *pagingParams)) {
 //   description: the application id
 //   required: true
 //   type: integer
+//   format: int64
 // - name: limit
 //   in: query
 //   description: the maximal amount of messages to return
@@ -153,6 +155,7 @@ func withPaging(ctx *gin.Context, f func(pagingParams *pagingParams)) {
 //   minimum: 0
 //   required: false
 //   type: integer
+//   format: int64
 // responses:
 //   200:
 //     description: Ok
@@ -233,6 +236,7 @@ func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 //   description: the application id
 //   required: true
 //   type: integer
+//   format: int64
 // responses:
 //   200:
 //     description: Ok
@@ -280,6 +284,7 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 //   description: the message id
 //   required: true
 //   type: integer
+//   format: int64
 // responses:
 //   200:
 //     description: Ok

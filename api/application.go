@@ -125,6 +125,7 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 //   description: the application id
 //   required: true
 //   type: integer
+//   format: int64
 // security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
@@ -189,6 +190,7 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 //   description: the application id
 //   required: true
 //   type: integer
+//   format: int64
 // responses:
 //   200:
 //     description: Ok
@@ -255,6 +257,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 //   description: the application id
 //   required: true
 //   type: integer
+//   format: int64
 // responses:
 //   200:
 //     description: Ok

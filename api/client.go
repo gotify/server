@@ -46,6 +46,7 @@ type ClientAPI struct {
 //   description: the client id
 //   required: true
 //   type: integer
+//   format: int64
 // responses:
 //   200:
 //     description: Ok
@@ -181,6 +182,7 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 //   description: the client id
 //   required: true
 //   type: integer
+//   format: int64
 // security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:

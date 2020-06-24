@@ -101,6 +101,7 @@ func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 //   description: the plugin id
 //   required: true
 //   type: integer
+//   format: int64
 // security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
@@ -158,6 +159,7 @@ func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 //   description: the plugin id
 //   required: true
 //   type: integer
+//   format: int64
 // security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
@@ -215,6 +217,7 @@ func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 //   description: the plugin id
 //   required: true
 //   type: integer
+//   format: int64
 // security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
@@ -270,6 +273,7 @@ func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 //   description: the plugin id
 //   required: true
 //   type: integer
+//   format: int64
 // security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
@@ -336,6 +340,7 @@ func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 //   description: the plugin id
 //   required: true
 //   type: integer
+//   format: int64
 // security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:

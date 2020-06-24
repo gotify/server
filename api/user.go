@@ -197,6 +197,7 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 //   description: the user id
 //   required: true
 //   type: integer
+//   format: int64
 // responses:
 //   200:
 //     description: Ok
@@ -246,6 +247,7 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 //   description: the user id
 //   required: true
 //   type: integer
+//   format: int64
 // responses:
 //   200:
 //     description: Ok
@@ -349,6 +351,7 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 //   description: the user id
 //   required: true
 //   type: integer
+//   format: int64
 // - name: body
 //   in: body
 //   description: the updated user

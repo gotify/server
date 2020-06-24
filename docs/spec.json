@@ -167,6 +167,7 @@
           },
           {
             "type": "integer",
+            "format": "int64",
             "description": "the application id",
             "name": "id",
             "in": "path",
@@ -232,6 +233,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the application id",
             "name": "id",
             "in": "path",
@@ -303,6 +305,7 @@
           },
           {
             "type": "integer",
+            "format": "int64",
             "description": "the application id",
             "name": "id",
             "in": "path",
@@ -373,6 +376,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the application id",
             "name": "id",
             "in": "path",
@@ -390,6 +394,7 @@
           {
             "minimum": 0,
             "type": "integer",
+            "format": "int64",
             "description": "return all messages with an ID less than this value",
             "name": "since",
             "in": "query"
@@ -451,6 +456,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the application id",
             "name": "id",
             "in": "path",
@@ -634,6 +640,7 @@
           },
           {
             "type": "integer",
+            "format": "int64",
             "description": "the client id",
             "name": "id",
             "in": "path",
@@ -699,6 +706,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the client id",
             "name": "id",
             "in": "path",
@@ -899,6 +907,7 @@
           {
             "minimum": 0,
             "type": "integer",
+            "format": "int64",
             "description": "return all messages with an ID less than this value",
             "name": "since",
             "in": "query"
@@ -1053,6 +1062,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the message id",
             "name": "id",
             "in": "path",
@@ -1178,6 +1188,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the plugin id",
             "name": "id",
             "in": "path",
@@ -1250,6 +1261,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the plugin id",
             "name": "id",
             "in": "path",
@@ -1320,6 +1332,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the plugin id",
             "name": "id",
             "in": "path",
@@ -1384,6 +1397,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the plugin id",
             "name": "id",
             "in": "path",
@@ -1451,6 +1465,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the plugin id",
             "name": "id",
             "in": "path",
@@ -1677,6 +1692,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the user id",
             "name": "id",
             "in": "path",
@@ -1742,6 +1758,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the user id",
             "name": "id",
             "in": "path",
@@ -1813,6 +1830,7 @@
         "parameters": [
           {
             "type": "integer",
+            "format": "int64",
             "description": "the user id",
             "name": "id",
             "in": "path",
