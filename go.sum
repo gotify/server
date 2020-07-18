@@ -116,6 +116,8 @@ github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH
 github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/gotify/configor v1.0.2-0.20190112111140-7d9c7c7e6233 h1:ZFYA2/LqyzFP2TunWDdU2XhmmQOSG2JL5aPvLOo6IPQ=
 github.com/gotify/configor v1.0.2-0.20190112111140-7d9c7c7e6233/go.mod h1:Sclq5yNfX/DJHu0TR2k0+Hi34YxsuKTacgrY3z83HoU=
+github.com/gotify/configor v1.0.2 h1:8uZKz6TpSup2dJKib8wz95KppQNtRMCmIl+eFY5uw+A=
+github.com/gotify/configor v1.0.2/go.mod h1:bxVAr7YmnLR8cGik/M9ROkytPzr521/IwM5zLOfkHwk=
 github.com/gotify/location v0.0.0-20170722210143-03bc4ad20437 h1:4qMhogAexRcnvdoY9O1RoCuuuNEhDF25jtbGIWPtcms=
 github.com/gotify/location v0.0.0-20170722210143-03bc4ad20437/go.mod h1:5JgfyQg+71Ck3uXX/4FBHc4YxdKZ9shU8gs2AUj7Nj0=
 github.com/gotify/plugin-api v1.0.0 h1:kab40p2TEPLzjmcafOc7JOz75aTsYQyS2PXtElH8xmI=
