@@ -1,7 +1,6 @@
 module github.com/gotify/server/v2
 
 require (
-	github.com/Southclaws/configor v1.0.0 // indirect
 	github.com/fortytw2/leaktest v1.3.0
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-contrib/gzip v0.0.1
@@ -14,7 +13,7 @@ require (
 	github.com/gobuffalo/packr/v2 v2.7.1
 	github.com/golang/protobuf v1.4.1 // indirect
 	github.com/gorilla/websocket v1.4.0
-	github.com/gotify/configor v1.0.2-0.20190112111140-7d9c7c7e6233
+	github.com/gotify/configor v1.0.2
 	github.com/gotify/location v0.0.0-20170722210143-03bc4ad20437
 	github.com/gotify/plugin-api v1.0.0
 	github.com/h2non/filetype v1.0.10
