@@ -31,7 +31,8 @@ type Configuration struct {
 		}
 		ResponseHeaders map[string]string
 		Stream          struct {
-			AllowedOrigins []string
+			PingPeriodSeconds int `default:"45"`
+			AllowedOrigins    []string
 		}
 		Cors struct {
 			AllowOrigins []string

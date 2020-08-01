@@ -35,6 +35,7 @@ server:
 #      - "Authorization"
 #      - "content-type"
   stream:
+    pingperiodseconds: 45 # the interval in which websocket pings will be sent. Only change this value if you know what you are doing.
     allowedorigins: # allowed origins for websocket connections (same origin is always allowed)
 #      - ".+.example.com"
 #      - "otherdomain.com"
