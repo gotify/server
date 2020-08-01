@@ -329,7 +329,7 @@ func TestMultipleClients(t *testing.T) {
 	userIDs := []uint{1, 1, 1, 2, 2, 3}
 	i := 0
 	server, api := bootTestServer(func(context *gin.Context) {
-		auth.RegisterAuthentication(context, nil, userIDs[i], "t"+string(userIDs[i]))
+		auth.RegisterAuthentication(context, nil, userIDs[i], "t"+fmt.Sprint(userIDs[i]))
 		i++
 	})
 	defer server.Close()
