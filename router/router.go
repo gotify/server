@@ -25,7 +25,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	g.Use(gin.Logger(), gin.Recovery(), error.Handler(), location.Default())
 	g.NoRoute(error.NotFound())
 
-	streamHandler := stream.New(45*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
+	streamHandler := stream.New(time.Duration(conf.Server.Stream.PingPeriodSeconds)*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
 	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
 	healthHandler := api.HealthAPI{DB: db}
