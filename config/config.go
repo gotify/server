@@ -11,9 +11,11 @@ import (
 // Configuration is stuff that can be configured externally per env variables or config file (config.yml).
 type Configuration struct {
 	Server struct {
-		ListenAddr string `default:""`
-		Port       int    `default:"80"`
-		SSL        struct {
+		KeepAlivePeriodSeconds int
+		ListenAddr             string `default:""`
+		Port                   int    `default:"80"`
+
+		SSL struct {
 			Enabled         *bool  `default:"false"`
 			RedirectToHTTPS *bool  `default:"true"`
 			ListenAddr      string `default:""`

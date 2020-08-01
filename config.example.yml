@@ -2,6 +2,7 @@
 # Save it to `config.yml` when edited
 
 server:
+  keepaliveperiodseconds: 0 # 0 = use system default; set the interval in which keepalive packages will be sent. Only change this value if you know what you are doing.
   listenaddr: "" # the address to bind on, leave empty to bind on all addresses
   port: 80 # the port the HTTP server will listen on
 

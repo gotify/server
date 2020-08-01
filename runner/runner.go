@@ -1,11 +1,14 @@
 package runner
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/config"
@@ -18,7 +21,7 @@ func Run(engine *gin.Engine, conf *config.Configuration) {
 
 	if *conf.Server.SSL.Enabled {
 		if *conf.Server.SSL.RedirectToHTTPS {
-			httpHandler = redirectToHTTPS(string(conf.Server.SSL.Port))
+			httpHandler = redirectToHTTPS(strconv.Itoa(conf.Server.SSL.Port))
 		}
 
 		addr := fmt.Sprintf("%s:%d", conf.Server.SSL.ListenAddr, conf.Server.SSL.Port)
@@ -38,12 +41,24 @@ func Run(engine *gin.Engine, conf *config.Configuration) {
 		}
 		fmt.Println("Started Listening for TLS connection on " + addr)
 		go func() {
-			log.Fatal(s.ListenAndServeTLS(conf.Server.SSL.CertFile, conf.Server.SSL.CertKey))
+			listener := startListening(addr, conf.Server.KeepAlivePeriodSeconds)
+			log.Fatal(s.ServeTLS(listener, conf.Server.SSL.CertFile, conf.Server.SSL.CertKey))
 		}()
 	}
 	addr := fmt.Sprintf("%s:%d", conf.Server.ListenAddr, conf.Server.Port)
 	fmt.Println("Started Listening for plain HTTP connection on " + addr)
-	log.Fatal(http.ListenAndServe(addr, httpHandler))
+	server := &http.Server{Addr: addr, Handler: httpHandler}
+
+	log.Fatal(server.Serve(startListening(addr, conf.Server.KeepAlivePeriodSeconds)))
+}
+
+func startListening(addr string, keepAlive int) net.Listener {
+	lc := net.ListenConfig{KeepAlive: time.Duration(keepAlive) * time.Second}
+	conn, err := lc.Listen(context.Background(), "tcp", addr)
+	if err != nil {
+		log.Fatalln("Could not listen on", addr, err)
+	}
+	return conn
 }
 
 func redirectToHTTPS(port string) http.HandlerFunc {
