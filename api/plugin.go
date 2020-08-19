@@ -8,11 +8,11 @@ import (
 	"github.com/gotify/location"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-yaml/yaml"
 	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/plugin"
 	"github.com/gotify/server/v2/plugin/compat"
+	"gopkg.in/yaml.v2"
 )
 
 // The PluginDatabase interface for encapsulating database access.

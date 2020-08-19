@@ -7,8 +7,6 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
-github.com/Southclaws/configor v1.0.0 h1:0bt6XsYs0q3GlK1gOqdjoM4VJj9ePdd/GcNNjzH567A=
-github.com/Southclaws/configor v1.0.0/go.mod h1:LVoYKxkifbFIINnnXwmqeiH4ciRalQNDMwQETyFomTs=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
@@ -114,8 +112,6 @@ github.com/gorilla/context v1.1.1/go.mod h1:kBGZzfjB9CEq2AlWe17Uuf7NDRt0dE0s8S51
 github.com/gorilla/mux v1.6.2/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
 github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=
 github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
-github.com/gotify/configor v1.0.2-0.20190112111140-7d9c7c7e6233 h1:ZFYA2/LqyzFP2TunWDdU2XhmmQOSG2JL5aPvLOo6IPQ=
-github.com/gotify/configor v1.0.2-0.20190112111140-7d9c7c7e6233/go.mod h1:Sclq5yNfX/DJHu0TR2k0+Hi34YxsuKTacgrY3z83HoU=
 github.com/gotify/configor v1.0.2 h1:8uZKz6TpSup2dJKib8wz95KppQNtRMCmIl+eFY5uw+A=
 github.com/gotify/configor v1.0.2/go.mod h1:bxVAr7YmnLR8cGik/M9ROkytPzr521/IwM5zLOfkHwk=
 github.com/gotify/location v0.0.0-20170722210143-03bc4ad20437 h1:4qMhogAexRcnvdoY9O1RoCuuuNEhDF25jtbGIWPtcms=

@@ -15,10 +15,10 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-yaml/yaml"
 	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/plugin/compat"
+	"gopkg.in/yaml.v2"
 )
 
 // The Database interface for encapsulating database access.
