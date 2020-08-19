@@ -6,7 +6,6 @@ require (
 	github.com/gin-contrib/gzip v0.0.1
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.2.0
-	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/gobuffalo/envy v1.9.0 // indirect
 	github.com/gobuffalo/logger v1.0.3 // indirect
 	github.com/gobuffalo/packd v1.0.0 // indirect
@@ -26,6 +25,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
 	golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 // indirect
+	gopkg.in/yaml.v2 v2.2.8
 )
 
 go 1.14

@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-yaml/yaml"
+	"gopkg.in/yaml.v2"
 
 	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
