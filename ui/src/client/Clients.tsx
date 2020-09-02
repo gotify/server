@@ -58,7 +58,7 @@ class Clients extends Component<Stores<'clientStore'>> {
                             <TableHead>
                                 <TableRow style={{textAlign: 'center'}}>
                                     <TableCell>Name</TableCell>
-                                    <TableCell style={{width: 200}}>token</TableCell>
+                                    <TableCell style={{width: 200}}>Token</TableCell>
                                     <TableCell />
                                     <TableCell />
                                 </TableRow>
