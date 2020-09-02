@@ -39,7 +39,7 @@ class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
                         autoFocus
                         margin="dense"
                         type="password"
-                        label="New Pass *"
+                        label="New Password *"
                         value={pass}
                         onChange={(e) => (this.pass = e.target.value)}
                         fullWidth
@@ -47,7 +47,7 @@ class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={fClose}>Cancel</Button>
-                    <Tooltip title={pass.length !== 0 ? '' : 'pass is required'}>
+                    <Tooltip title={pass.length !== 0 ? '' : 'Password is required'}>
                         <div>
                             <Button
                                 className="change"
