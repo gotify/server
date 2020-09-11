@@ -37,7 +37,7 @@ export class CurrentUser {
         return '';
     };
 
-    private setToken = (token: string) => {
+    private readonly setToken = (token: string) => {
         this.tokenCache = token;
         window.localStorage.setItem(tokenKey, token);
     };
@@ -53,6 +53,7 @@ export class CurrentUser {
                 url: config.get('url') + 'client',
                 method: 'POST',
                 data: {name},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 headers: {Authorization: 'Basic ' + Base64.encode(username + ':' + password)},
             })
             .then((resp: AxiosResponse<IClient>) => {
@@ -81,36 +82,39 @@ export class CurrentUser {
             return Promise.reject();
         }
 
-        return axios
-            .create()
-            .get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': this.token()}})
-            .then((passThrough) => {
-                this.user = passThrough.data;
-                this.loggedIn = true;
-                this.connectionErrorMessage = null;
-                this.reconnectTime = 7500;
-                return passThrough;
-            })
-            .catch((error: AxiosError) => {
-                if (!error || !error.response) {
-                    this.connectionError('No network connection or server unavailable.');
+        return (
+            axios
+                .create()
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                .get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': this.token()}})
+                .then((passThrough) => {
+                    this.user = passThrough.data;
+                    this.loggedIn = true;
+                    this.connectionErrorMessage = null;
+                    this.reconnectTime = 7500;
+                    return passThrough;
+                })
+                .catch((error: AxiosError) => {
+                    if (!error || !error.response) {
+                        this.connectionError('No network connection or server unavailable.');
+                        return Promise.reject(error);
+                    }
+
+                    if (error.response.status >= 500) {
+                        this.connectionError(
+                            `${error.response.statusText} (code: ${error.response.status}).`
+                        );
+                        return Promise.reject(error);
+                    }
+
+                    this.connectionErrorMessage = null;
+
+                    if (error.response.status >= 400 && error.response.status < 500) {
+                        this.logout();
+                    }
                     return Promise.reject(error);
-                }
-
-                if (error.response.status >= 500) {
-                    this.connectionError(
-                        `${error.response.statusText} (code: ${error.response.status}).`
-                    );
-                    return Promise.reject(error);
-                }
-
-                this.connectionErrorMessage = null;
-
-                if (error.response.status >= 400 && error.response.status < 500) {
-                    this.logout();
-                }
-                return Promise.reject(error);
-            });
+                })
+        );
     };
 
     public logout = async () => {
@@ -119,9 +123,7 @@ export class CurrentUser {
             .then((resp: AxiosResponse<IClient[]>) => {
                 resp.data
                     .filter((client) => client.token === this.tokenCache)
-                    .forEach((client) => {
-                        return axios.delete(config.get('url') + 'client/' + client.id);
-                    });
+                    .forEach((client) => axios.delete(config.get('url') + 'client/' + client.id));
             })
             .catch(() => Promise.resolve());
         window.localStorage.removeItem(tokenKey);
@@ -143,7 +145,7 @@ export class CurrentUser {
         });
     };
 
-    private connectionError = (message: string) => {
+    private readonly connectionError = (message: string) => {
         this.connectionErrorMessage = message;
         if (this.reconnectTimeoutId !== null) {
             window.clearTimeout(this.reconnectTimeoutId);
