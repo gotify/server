@@ -13,7 +13,7 @@ export const contentType = (extras?: IMessageExtras): RenderMode => {
     return valid ? type : RenderMode.Plain;
 };
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const extract = (extras: IMessageExtras | undefined, key: string, path: string): any => {
     if (!extras) {
         return null;

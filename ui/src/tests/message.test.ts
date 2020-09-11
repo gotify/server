@@ -16,7 +16,7 @@ beforeAll(async () => {
 
 afterAll(async () => await gotify.close());
 
-// tslint:disable-next-line
+// eslint-disable-next-line
 const axiosAuth = {auth: {username: 'admin', password: 'admin'}};
 
 let windowsServerToken: string;
@@ -35,7 +35,7 @@ const navigate = async (appName: string) => {
     await waitForExists(page, selector.heading(), appName);
 };
 
-// tslint:disable-next-line
+// eslint-disable-next-line
 describe('Messages', () => {
     it('does login', async () => await auth.login(page));
     it('is on messages', async () => {

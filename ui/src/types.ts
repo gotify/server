@@ -37,7 +37,7 @@ export interface IMessage {
 }
 
 export interface IMessageExtras {
-    [key: string]: any; // tslint:disable-line no-any
+    [key: string]: any; // eslint-disable-line  @typescript-eslint/no-explicit-any
 }
 
 export interface IPagedMessages {

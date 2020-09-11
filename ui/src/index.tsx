@@ -30,8 +30,8 @@ const defaultProdConfig = {
     url: urlWithSlash,
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare global {
-    // tslint:disable-next-line
     interface Window {
         config: config.IConfig;
     }
