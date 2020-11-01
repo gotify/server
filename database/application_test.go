@@ -6,7 +6,6 @@ import (
 )
 
 func (s *DatabaseSuite) TestApplication() {
-
 	if app, err := s.db.GetApplicationByToken("asdasdf"); assert.NoError(s.T(), err) {
 		assert.Nil(s.T(), app, "not existing app")
 	}

@@ -10,14 +10,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/config"
 	"golang.org/x/crypto/acme/autocert"
 )
 
 // Run starts the http server and if configured a https server.
-func Run(engine *gin.Engine, conf *config.Configuration) {
-	var httpHandler http.Handler = engine
+func Run(router http.Handler, conf *config.Configuration) {
+	httpHandler := router
 
 	if *conf.Server.SSL.Enabled {
 		if *conf.Server.SSL.RedirectToHTTPS {
@@ -27,7 +26,7 @@ func Run(engine *gin.Engine, conf *config.Configuration) {
 		addr := fmt.Sprintf("%s:%d", conf.Server.SSL.ListenAddr, conf.Server.SSL.Port)
 		s := &http.Server{
 			Addr:    addr,
-			Handler: engine,
+			Handler: router,
 		}
 
 		if *conf.Server.SSL.LetsEncrypt.Enabled {
@@ -73,7 +72,7 @@ func redirectToHTTPS(port string) http.HandlerFunc {
 	}
 }
 
-func changePort(hostPort string, port string) string {
+func changePort(hostPort, port string) string {
 	host, _, err := net.SplitHostPort(hostPort)
 	if err != nil {
 		return hostPort

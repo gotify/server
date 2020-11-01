@@ -156,7 +156,7 @@ func (ab *AppClientBuilder) NewClientWithToken(id uint, token string) *model.Cli
 	return client
 }
 
-// Message creates a message and returns itself
+// Message creates a message and returns itself.
 func (mb *MessageBuilder) Message(id uint) *MessageBuilder {
 	mb.NewMessage(id)
 	return mb

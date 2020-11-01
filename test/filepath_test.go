@@ -44,5 +44,4 @@ func TestWithWd(t *testing.T) {
 			WithWd(".", func(string) {})
 		})
 	})
-
 }

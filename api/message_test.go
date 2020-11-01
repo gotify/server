@@ -501,6 +501,7 @@ func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	assert.Equal(s.T(), uint(1), s.notifiedMessage.ID)
 }
+
 func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
 	s.db.User(4).AppWithToken(99, "app-token")

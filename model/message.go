@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Message holds information about a message
+// Message holds information about a message.
 type Message struct {
 	ID            uint `gorm:"AUTO_INCREMENT;primary_key;index"`
 	ApplicationID uint

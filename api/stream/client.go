@@ -77,7 +77,7 @@ func (c *client) startReading(pongWait time.Duration) {
 // startWriteHandler starts the write loop. The method has the following tasks:
 // * ping the client in the interval provided as parameter
 // * write messages send by the channel to the client
-// * on errors exit the loop
+// * on errors exit the loop.
 func (c *client) startWriteHandler(pingPeriod time.Duration) {
 	pingTicker := time.NewTicker(pingPeriod)
 	defer func() {

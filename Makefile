@@ -30,20 +30,14 @@ test-js:
 	rm -rf removeme
 
 check-go:
-	go vet ./...
-	gocyclo -over 10 $(shell find . -iname '*.go' -type f | grep -v /vendor/)
-	golint -set_exit_status $(shell go list ./... | grep -v mock)
-	goimports -l $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./packrd/*")
+	golangci-lint run
 
 check-js:
 	(cd ui && yarn lint)
 	(cd ui && yarn testformat)
 
 download-tools:
-	GO111MODULE=off go get -u golang.org/x/lint/golint
-	GO111MODULE=off go get -u github.com/fzipp/gocyclo
 	GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger
-	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
 
 embed-static:
 	go run hack/packr/packr.go

@@ -73,6 +73,6 @@ func Get() *Configuration {
 
 func addTrailingSlashToPaths(conf *Configuration) {
 	if !strings.HasSuffix(conf.UploadedImagesDir, "/") && !strings.HasSuffix(conf.UploadedImagesDir, "\\") {
-		conf.UploadedImagesDir = conf.UploadedImagesDir + string(filepath.Separator)
+		conf.UploadedImagesDir += string(filepath.Separator)
 	}
 }

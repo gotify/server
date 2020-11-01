@@ -47,6 +47,7 @@ func (s *UserSuite) BeforeTest(suiteName, testName string) {
 	})
 	s.a = &UserAPI{DB: s.db, UserChangeNotifier: s.notifier}
 }
+
 func (s *UserSuite) AfterTest(suiteName, testName string) {
 	s.db.Close()
 }

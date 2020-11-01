@@ -13,31 +13,29 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/plugin/compat"
 	"github.com/gotify/server/v2/plugin/testing/mock"
 	"github.com/gotify/server/v2/test"
 	"github.com/gotify/server/v2/test/testdb"
-
 	"github.com/jinzhu/gorm"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-
-	"github.com/gin-gonic/gin"
 )
 
-const examplePluginPath = "github.com/gotify/server/v2/plugin/example/echo"
-const mockPluginPath = mock.ModulePath
-const danglingPluginPath = "github.com/gotify/server/v2/plugin/testing/removed"
+const (
+	examplePluginPath  = "github.com/gotify/server/v2/plugin/example/echo"
+	mockPluginPath     = mock.ModulePath
+	danglingPluginPath = "github.com/gotify/server/v2/plugin/testing/removed"
+)
 
 type ManagerSuite struct {
 	suite.Suite
 	db          *testdb.Database
 	manager     *Manager
 	e           *gin.Engine
-	g           *gin.RouterGroup
 	msgReceiver chan MessageWithUserID
 
 	tmpDir test.TmpDir
@@ -57,9 +55,7 @@ func (s *ManagerSuite) SetupSuite() {
 		exec.Command("go", "get", "-d").Run()
 		goBuildFlags := []string{"build", "-buildmode=plugin", "-o=" + s.tmpDir.Path("echo.so")}
 
-		for _, extraFlag := range extraGoBuildFlags {
-			goBuildFlags = append(goBuildFlags, extraFlag)
-		}
+		goBuildFlags = append(goBuildFlags, extraGoBuildFlags...)
 
 		cmd := exec.Command("go", goBuildFlags...)
 		cmd.Stderr = os.Stderr
@@ -98,7 +94,6 @@ func (s *ManagerSuite) getConfForExamplePlugin(uid uint) *model.PluginConf {
 	pluginConf, err := s.db.GetPluginConfByUserAndPath(uid, examplePluginPath)
 	assert.NoError(s.T(), err)
 	return pluginConf
-
 }
 
 func (s *ManagerSuite) getConfForMockPlugin(uid uint) *model.PluginConf {
@@ -151,6 +146,7 @@ func (s *ManagerSuite) TestWebhook_successIfEnabled() {
 func (s *ManagerSuite) TestInitializePlugin_noOpIfEmpty() {
 	assert.Nil(s.T(), s.manager.loadPlugins(""))
 }
+
 func (s *ManagerSuite) TestInitializePlugin_directoryInvalid_expectError() {
 	assert.Error(s.T(), s.manager.loadPlugins("<<"))
 }
@@ -166,9 +162,7 @@ func (s *ManagerSuite) TestInitializePlugin_brokenPlugin_expectError() {
 		exec.Command("go", "get", "-d").Run()
 		goBuildFlags := []string{"build", "-buildmode=plugin", "-o=" + tmpDir.Path("empty.so")}
 
-		for _, extraFlag := range extraGoBuildFlags {
-			goBuildFlags = append(goBuildFlags, extraFlag)
-		}
+		goBuildFlags = append(goBuildFlags, extraGoBuildFlags...)
 
 		cmd := exec.Command("go", goBuildFlags...)
 		cmd.Stderr = os.Stderr
@@ -193,7 +187,6 @@ func (s *ManagerSuite) TestInitializePlugin_alreadyEnabledInConf_expectAutoEnabl
 	assert.Nil(s.T(), s.manager.InitializeForUserID(2))
 	inst := s.getMockPluginInstance(2)
 	assert.True(s.T(), inst.Enabled)
-
 }
 
 func (s *ManagerSuite) TestInitializePlugin_alreadyEnabledInConf_failedToLoadConfig_disableAutomatically() {
@@ -209,7 +202,6 @@ func (s *ManagerSuite) TestInitializePlugin_alreadyEnabledInConf_failedToLoadCon
 	assert.Nil(s.T(), s.manager.InitializeForUserID(3))
 	inst := s.getMockPluginInstance(3)
 	assert.False(s.T(), inst.Enabled)
-
 }
 
 func (s *ManagerSuite) TestInitializePlugin_alreadyEnabled_cannotEnable_disabledAutomatically() {
@@ -360,18 +352,16 @@ func TestNewManager_NonPluginFile_expectError(t *testing.T) {
 func TestNewManager_FaultyDB_expectError(t *testing.T) {
 	tmpDir := test.NewTmpDir("gotify_testnewmanager_faultydb")
 	defer tmpDir.Clean()
-	for _, suite := range []struct {
+	for _, data := range []struct {
 		pkg         string
 		faultyTable string
 		name        string
 	}{{"plugin/example/minimal/", "plugin_confs", "minimal"}, {"plugin/example/clock/", "applications", "clock"}} {
-		test.WithWd(path.Join(test.GetProjectDir(), suite.pkg), func(origWd string) {
+		test.WithWd(path.Join(test.GetProjectDir(), data.pkg), func(origWd string) {
 			exec.Command("go", "get", "-d").Run()
-			goBuildFlags := []string{"build", "-buildmode=plugin", "-o=" + tmpDir.Path(fmt.Sprintf("%s.so", suite.name))}
+			goBuildFlags := []string{"build", "-buildmode=plugin", "-o=" + tmpDir.Path(fmt.Sprintf("%s.so", data.name))}
 
-			for _, extraFlag := range extraGoBuildFlags {
-				goBuildFlags = append(goBuildFlags, extraFlag)
-			}
+			goBuildFlags = append(goBuildFlags, extraGoBuildFlags...)
 
 			cmd := exec.Command("go", goBuildFlags...)
 			cmd.Stderr = os.Stderr
@@ -379,13 +369,13 @@ func TestNewManager_FaultyDB_expectError(t *testing.T) {
 		})
 		db := testdb.NewDBWithDefaultUser(t)
 		db.GormDatabase.DB.Callback().Create().Register("no_create", func(s *gorm.Scope) {
-			if s.TableName() == suite.faultyTable {
+			if s.TableName() == data.faultyTable {
 				s.Err(errors.New("database failed"))
 			}
 		})
 		_, err := NewManager(db, tmpDir.Path(), nil, nil)
 		assert.Error(t, err)
-		os.Remove(tmpDir.Path(fmt.Sprintf("%s.so", suite.name)))
+		os.Remove(tmpDir.Path(fmt.Sprintf("%s.so", data.name)))
 	}
 }
 

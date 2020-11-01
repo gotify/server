@@ -166,7 +166,7 @@ func isAllowedOrigin(r *http.Request, allowedOrigins []*regexp.Regexp) bool {
 		return false
 	}
 
-	if strings.ToLower(u.Host) == strings.ToLower(r.Host) {
+	if strings.EqualFold(u.Host, r.Host) {
 		return true
 	}
 

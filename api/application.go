@@ -228,7 +228,6 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 					return
 				}
 				ctx.JSON(200, withResolvedImage(app))
-
 			}
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))

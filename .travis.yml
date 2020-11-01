@@ -18,6 +18,7 @@ before_install:
   - nvm install 12.10.0
   - export GIMME_GO=$(< GO_VERSION)
   - eval "$(gimme ${GIMME_GO%.0})";
+  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.31.0
   - make download-tools
 
 install:

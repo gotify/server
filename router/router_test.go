@@ -61,7 +61,7 @@ func (s *IntegrationSuite) TestVersionInfo() {
 func (s *IntegrationSuite) TestHeaderInDev() {
 	mode.Set(mode.TestDev)
 	req := s.newRequest("GET", "version", "")
-	//Needs an origin to indicate that it is a CORS request
+	// Needs an origin to indicate that it is a CORS request
 	req.Header.Add("Origin", "some-origin")
 
 	res, err := client.Do(req)
@@ -176,7 +176,8 @@ func TestAllowedOriginFromResponseHeaders(t *testing.T) {
 	config := config.Configuration{PassStrength: 5}
 	config.Server.ResponseHeaders = map[string]string{
 		"Access-Control-Allow-Origin":  "http://test1.com",
-		"Access-Control-Allow-Methods": "GET,POST"}
+		"Access-Control-Allow-Methods": "GET,POST",
+	}
 
 	g, closable := Create(db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
@@ -213,7 +214,8 @@ func TestAllowedWildcardOriginInHeader(t *testing.T) {
 	config := config.Configuration{PassStrength: 5}
 	config.Server.ResponseHeaders = map[string]string{
 		"Access-Control-Allow-Origin":  "*",
-		"Access-Control-Allow-Methods": "GET,POST"}
+		"Access-Control-Allow-Methods": "GET,POST",
+	}
 
 	g, closable := Create(db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
@@ -265,7 +267,7 @@ func TestCORSHeaderRegex(t *testing.T) {
 	assert.Equal(t, "http://test123.com", res.Header.Get("Access-Control-Allow-Origin"))
 }
 
-// We want headers in cors config to override the responseheaders config
+// We want headers in cors config to override the responseheaders config.
 func TestCORSConfigOverride(t *testing.T) {
 	mode.Set(mode.Prod)
 	db := testdb.NewDBWithDefaultUser(t)
@@ -398,7 +400,7 @@ func (s *IntegrationSuite) TestAuthentication() {
 	assert.Equal(s.T(), "android-client", token.Name)
 }
 
-func (s *IntegrationSuite) newRequest(method, url string, body string) *http.Request {
+func (s *IntegrationSuite) newRequest(method, url, body string) *http.Request {
 	req, err := http.NewRequest(method, fmt.Sprintf("%s/%s", s.server.URL, url), strings.NewReader(body))
 	req.Header.Add("Content-Type", "application/json")
 	assert.Nil(s.T(), err)

@@ -8,8 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gopkg.in/yaml.v2"
-
+	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/plugin"
@@ -17,11 +16,9 @@ import (
 	"github.com/gotify/server/v2/plugin/testing/mock"
 	"github.com/gotify/server/v2/test"
 	"github.com/gotify/server/v2/test/testdb"
-
-	"github.com/gin-gonic/gin"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"gopkg.in/yaml.v2"
 )
 
 func TestPluginSuite(t *testing.T) {
@@ -101,7 +98,6 @@ func (s *PluginSuite) Test_GetPlugins() {
 }
 
 func (s *PluginSuite) Test_EnableDisablePlugin() {
-
 	{
 		test.WithUser(s.ctx, 1)
 
@@ -161,7 +157,6 @@ func (s *PluginSuite) Test_EnableDisablePlugin() {
 		}
 		s.resetRecorder()
 	}
-
 }
 
 func (s *PluginSuite) Test_EnableDisablePlugin_EnableReturnsError_expect500() {
@@ -239,7 +234,6 @@ func (s *PluginSuite) Test_EnableDisablePlugin_incorrectUser_expectNotFound() {
 		}
 		s.resetRecorder()
 	}
-
 }
 
 func (s *PluginSuite) Test_EnableDisablePlugin_nonExistPlugin_expectNotFound() {
@@ -264,7 +258,6 @@ func (s *PluginSuite) Test_EnableDisablePlugin_nonExistPlugin_expectNotFound() {
 		assert.Equal(s.T(), 404, s.recorder.Code)
 		s.resetRecorder()
 	}
-
 }
 
 func (s *PluginSuite) Test_EnableDisablePlugin_danglingConf_expectNotFound() {

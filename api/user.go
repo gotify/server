@@ -221,7 +221,7 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 //         $ref: "#/definitions/Error"
 func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		user, err := a.DB.GetUserByID(uint(id))
+		user, err := a.DB.GetUserByID(id)
 		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}

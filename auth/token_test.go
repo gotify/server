@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/gotify/server/v2/test"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,10 +25,7 @@ func TestGenerateNotExistingToken(t *testing.T) {
 		return fmt.Sprint(count)
 	}, func(token string) bool {
 		count--
-		if token == "0" {
-			return false
-		}
-		return true
+		return token != "0"
 	})
 	assert.Equal(t, "0", token)
 }

@@ -6,23 +6,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Capability is a capability the plugin provides
+// Capability is a capability the plugin provides.
 type Capability string
 
 const (
-	// Messenger sends notifications
+	// Messenger sends notifications.
 	Messenger = Capability("messenger")
-	// Configurer are consigurables
+	// Configurer are consigurables.
 	Configurer = Capability("configurer")
-	// Storager stores data
+	// Storager stores data.
 	Storager = Capability("storager")
-	// Webhooker registers webhooks
+	// Webhooker registers webhooks.
 	Webhooker = Capability("webhooker")
-	// Displayer displays instructions
+	// Displayer displays instructions.
 	Displayer = Capability("displayer")
 )
 
-// PluginInstance is an encapsulation layer of plugin instances of different backends
+// PluginInstance is an encapsulation layer of plugin instances of different backends.
 type PluginInstance interface {
 	Enable() error
 	Disable() error
@@ -48,7 +48,7 @@ type PluginInstance interface {
 	Supports() Capabilities
 }
 
-// HasSupport tests a PluginInstance for a capability
+// HasSupport tests a PluginInstance for a capability.
 func HasSupport(p PluginInstance, toCheck Capability) bool {
 	for _, module := range p.Supports() {
 		if module == toCheck {
@@ -58,10 +58,10 @@ func HasSupport(p PluginInstance, toCheck Capability) bool {
 	return false
 }
 
-// Capabilities is a slice of module
+// Capabilities is a slice of module.
 type Capabilities []Capability
 
-// Strings converts []Module to []string
+// Strings converts []Module to []string.
 func (m Capabilities) Strings() []string {
 	var result []string
 	for _, module := range m {

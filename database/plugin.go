@@ -5,7 +5,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// GetPluginConfByUser gets plugin configurations from a user
+// GetPluginConfByUser gets plugin configurations from a user.
 func (d *GormDatabase) GetPluginConfByUser(userid uint) ([]*model.PluginConf, error) {
 	var plugins []*model.PluginConf
 	err := d.DB.Where("user_id = ?", userid).Find(&plugins).Error
@@ -15,7 +15,7 @@ func (d *GormDatabase) GetPluginConfByUser(userid uint) ([]*model.PluginConf, er
 	return plugins, err
 }
 
-// GetPluginConfByUserAndPath gets plugin configuration by user and file name
+// GetPluginConfByUserAndPath gets plugin configuration by user and file name.
 func (d *GormDatabase) GetPluginConfByUserAndPath(userid uint, path string) (*model.PluginConf, error) {
 	plugin := new(model.PluginConf)
 	err := d.DB.Where("user_id = ? AND module_path = ?", userid, path).First(plugin).Error
@@ -41,12 +41,12 @@ func (d *GormDatabase) GetPluginConfByApplicationID(appid uint) (*model.PluginCo
 	return nil, err
 }
 
-// CreatePluginConf creates a new plugin configuration
+// CreatePluginConf creates a new plugin configuration.
 func (d *GormDatabase) CreatePluginConf(p *model.PluginConf) error {
 	return d.DB.Create(p).Error
 }
 
-// GetPluginConfByToken gets plugin configuration by plugin token
+// GetPluginConfByToken gets plugin configuration by plugin token.
 func (d *GormDatabase) GetPluginConfByToken(token string) (*model.PluginConf, error) {
 	plugin := new(model.PluginConf)
 	err := d.DB.Where("token = ?", token).First(plugin).Error
@@ -59,7 +59,7 @@ func (d *GormDatabase) GetPluginConfByToken(token string) (*model.PluginConf, er
 	return nil, err
 }
 
-// GetPluginConfByID gets plugin configuration by plugin ID
+// GetPluginConfByID gets plugin configuration by plugin ID.
 func (d *GormDatabase) GetPluginConfByID(id uint) (*model.PluginConf, error) {
 	plugin := new(model.PluginConf)
 	err := d.DB.Where("id = ?", id).First(plugin).Error
@@ -72,7 +72,7 @@ func (d *GormDatabase) GetPluginConfByID(id uint) (*model.PluginConf, error) {
 	return nil, err
 }
 
-// UpdatePluginConf updates plugin configuration
+// UpdatePluginConf updates plugin configuration.
 func (d *GormDatabase) UpdatePluginConf(p *model.PluginConf) error {
 	return d.DB.Save(p).Error
 }

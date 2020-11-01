@@ -4,16 +4,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
+	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/test/testdb"
-
-	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRequirePluginEnabled(t *testing.T) {
-
 	db := testdb.NewDBWithDefaultUser(t)
 	conf := &model.PluginConf{
 		ID:      1,

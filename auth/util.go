@@ -26,7 +26,7 @@ func GetUserID(ctx *gin.Context) uint {
 	return user.ID
 }
 
-// GetTokenID returns the tokenID
+// GetTokenID returns the tokenID.
 func GetTokenID(ctx *gin.Context) string {
 	return ctx.MustGet("tokenid").(string)
 }

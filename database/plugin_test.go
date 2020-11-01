@@ -67,5 +67,4 @@ func (s *DatabaseSuite) TestPluginConf() {
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), false, pluginConf.Enabled)
 	assert.Equal(s.T(), testConf, string(pluginConf.Config))
-
 }

@@ -1,6 +1,6 @@
 package model
 
-// PluginConf holds information about the plugin
+// PluginConf holds information about the plugin.
 type PluginConf struct {
 	ID            uint `gorm:"primary_key;AUTO_INCREMENT;index"`
 	UserID        uint

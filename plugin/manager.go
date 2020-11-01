@@ -100,7 +100,7 @@ func NewManager(db Database, directory string, mux *gin.RouterGroup, notifier No
 	return manager, nil
 }
 
-// ErrAlreadyEnabledOrDisabled is returned on SetPluginEnabled call when a plugin is already enabled or disabled
+// ErrAlreadyEnabledOrDisabled is returned on SetPluginEnabled call when a plugin is already enabled or disabled.
 var ErrAlreadyEnabledOrDisabled = errors.New("config is already enabled/disabled")
 
 func (m *Manager) applicationExists(token string) bool {
@@ -163,7 +163,7 @@ func (m *Manager) PluginInfo(modulePath string) compat.Info {
 	}
 }
 
-// Instance returns an instance with the given ID
+// Instance returns an instance with the given ID.
 func (m *Manager) Instance(pluginID uint) (compat.PluginInstance, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
@@ -174,13 +174,13 @@ func (m *Manager) Instance(pluginID uint) (compat.PluginInstance, error) {
 	return nil, errors.New("instance not found")
 }
 
-// HasInstance returns whether the given plugin ID has a corresponding instance
+// HasInstance returns whether the given plugin ID has a corresponding instance.
 func (m *Manager) HasInstance(pluginID uint) bool {
 	instance, err := m.Instance(pluginID)
 	return err == nil && instance != nil
 }
 
-// RemoveUser disabled all plugins of a user when the user is disabled
+// RemoveUser disabled all plugins of a user when the user is disabled.
 func (m *Manager) RemoveUser(userID uint) error {
 	for _, p := range m.plugins {
 		pluginConf, err := m.db.GetPluginConfByUserAndPath(userID, p.PluginInfo().ModulePath)
@@ -242,7 +242,7 @@ func (m *Manager) loadPlugins(directory string) error {
 	return nil
 }
 
-// LoadPlugin loads a compat plugin, exported to sideload plugins for testing purposes
+// LoadPlugin loads a compat plugin, exported to sideload plugins for testing purposes.
 func (m *Manager) LoadPlugin(compatPlugin compat.Plugin) error {
 	modulePath := compatPlugin.PluginInfo().ModulePath
 	if _, ok := m.plugins[modulePath]; ok {
@@ -252,7 +252,7 @@ func (m *Manager) LoadPlugin(compatPlugin compat.Plugin) error {
 	return nil
 }
 
-// InitializeForUserID initializes all plugin instances for a given user
+// InitializeForUserID initializes all plugin instances for a given user.
 func (m *Manager) InitializeForUserID(userID uint) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -268,7 +268,6 @@ func (m *Manager) InitializeForUserID(userID uint) error {
 }
 
 func (m *Manager) initializeForUser(user model.User) error {
-
 	userCtx := compat.UserContext{
 		ID:    user.ID,
 		Name:  user.Name,
@@ -326,7 +325,8 @@ func (m *Manager) initializeSingleUserPlugin(userCtx compat.UserContext, p compa
 		instance.SetMessageHandler(redirectToChannel{
 			ApplicationID: pluginConf.ApplicationID,
 			UserID:        pluginConf.UserID,
-			Messages:      m.messages})
+			Messages:      m.messages,
+		})
 	}
 	if compat.HasSupport(instance, compat.Storager) {
 		instance.SetStorageHandler(dbStorageHandler{pluginConf.ID, m.db})
@@ -406,7 +406,6 @@ func (m *Manager) createPluginConf(instance compat.PluginInstance, info compat.I
 			return nil, err
 		}
 		pluginConf.ApplicationID = app.ID
-
 	}
 	if err := m.db.CreatePluginConf(pluginConf); err != nil {
 		return nil, err

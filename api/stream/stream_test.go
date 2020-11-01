@@ -484,7 +484,6 @@ func startReading(client *testingClient) {
 	go func() {
 		for {
 			_, payload, err := client.conn.ReadMessage()
-
 			if err != nil {
 				return
 			}

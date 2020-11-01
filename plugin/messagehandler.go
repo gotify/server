@@ -13,13 +13,13 @@ type redirectToChannel struct {
 	Messages      chan MessageWithUserID
 }
 
-// MessageWithUserID encapsulates a message with a given user ID
+// MessageWithUserID encapsulates a message with a given user ID.
 type MessageWithUserID struct {
 	Message model.MessageExternal
 	UserID  uint
 }
 
-// SendMessage sends a message to the underlying message channel
+// SendMessage sends a message to the underlying message channel.
 func (c redirectToChannel) SendMessage(msg compat.Message) error {
 	c.Messages <- MessageWithUserID{
 		Message: model.MessageExternal{

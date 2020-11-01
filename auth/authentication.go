@@ -21,12 +21,12 @@ type Database interface {
 	GetUserByID(id uint) (*model.User, error)
 }
 
-// Auth is the provider for authentication middleware
+// Auth is the provider for authentication middleware.
 type Auth struct {
 	DB Database
 }
 
-type authenticate func(tokenID string, user *model.User) (authenticated bool, success bool, userId uint, err error)
+type authenticate func(tokenID string, user *model.User) (authenticated, success bool, userId uint, err error)
 
 // RequireAdmin returns a gin middleware which requires a client token or basic authentication header to be supplied
 // with the request. Also the authenticated user must be an administrator.
@@ -112,14 +112,14 @@ func (a *Auth) requireToken(auth authenticate) gin.HandlerFunc {
 		token := a.tokenFromQueryOrHeader(ctx)
 		user, err := a.userFromBasicAuth(ctx)
 		if err != nil {
-			ctx.AbortWithError(500, errors.New("an error occured while authenticating user"))
+			ctx.AbortWithError(500, errors.New("an error occurred while authenticating user"))
 			return
 		}
 
 		if user != nil || token != "" {
 			authenticated, ok, userID, err := auth(token, user)
 			if err != nil {
-				ctx.AbortWithError(500, errors.New("an error occured while authenticating user"))
+				ctx.AbortWithError(500, errors.New("an error occurred while authenticating user"))
 				return
 			} else if ok {
 				RegisterAuthentication(ctx, user, userID, token)

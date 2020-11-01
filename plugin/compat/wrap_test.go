@@ -10,10 +10,8 @@ import (
 	"plugin"
 	"testing"
 
-	"github.com/gotify/server/v2/test"
-
 	"github.com/gin-gonic/gin"
-
+	"github.com/gotify/server/v2/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -32,9 +30,7 @@ func (s *CompatSuite) SetupSuite() {
 		exec.Command("go", "get", "-d").Run()
 		goBuildFlags := []string{"build", "-buildmode=plugin", "-o=" + s.tmpDir.Path("echo.so")}
 
-		for _, extraFlag := range extraGoBuildFlags {
-			goBuildFlags = append(goBuildFlags, extraFlag)
-		}
+		goBuildFlags = append(goBuildFlags, extraGoBuildFlags...)
 
 		cmd := exec.Command("go", goBuildFlags...)
 		cmd.Stderr = os.Stderr
@@ -109,6 +105,7 @@ func (s *CompatSuite) TestRegisterWebhook() {
 		inst.RegisterWebhook("/plugin/4/custom/Pabcd/", g)
 	})
 }
+
 func (s *CompatSuite) TestEnableDisable() {
 	inst := s.p.NewPluginInstance(UserContext{
 		ID:   5,
@@ -143,11 +140,7 @@ func TestWrapIncompatiblePlugins(t *testing.T) {
 		fName := tmpDir.Path(fmt.Sprintf("broken_%d.so", i))
 		exec.Command("go", "get", "-d").Run()
 		goBuildFlags := []string{"build", "-buildmode=plugin", "-o=" + fName}
-
-		for _, extraFlag := range extraGoBuildFlags {
-			goBuildFlags = append(goBuildFlags, extraFlag)
-		}
-
+		goBuildFlags = append(goBuildFlags, extraGoBuildFlags...)
 		goBuildFlags = append(goBuildFlags, modulePath)
 
 		cmd := exec.Command("go", goBuildFlags...)

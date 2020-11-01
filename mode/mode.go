@@ -3,11 +3,11 @@ package mode
 import "github.com/gin-gonic/gin"
 
 const (
-	// Dev for development mode
+	// Dev for development mode.
 	Dev = "dev"
-	// Prod for production mode
+	// Prod for production mode.
 	Prod = "prod"
-	// TestDev used for tests
+	// TestDev used for tests.
 	TestDev = "testdev"
 )
 

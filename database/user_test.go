@@ -72,7 +72,6 @@ func (s *DatabaseSuite) TestUser() {
 	users, err = s.db.GetUsers()
 	require.NoError(s.T(), err)
 	assert.Empty(s.T(), users)
-
 }
 
 func (s *DatabaseSuite) TestUserPlugins() {
@@ -100,7 +99,6 @@ func (s *DatabaseSuite) TestUserPlugins() {
 	if pluginConf, err := s.db.GetPluginConfByToken("P1234"); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), "github.com/gotify/example-plugin", pluginConf.ModulePath)
 	}
-
 }
 
 func (s *DatabaseSuite) TestDeleteUserDeletesApplicationsAndClientsAndPluginConfs() {
@@ -181,5 +179,4 @@ func (s *DatabaseSuite) TestDeleteUserDeletesApplicationsAndClientsAndPluginConf
 	msg, err = s.db.GetMessageByID(2000)
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), msg)
-
 }

@@ -145,7 +145,6 @@ func (s *DatabaseSuite) TestMessage() {
 	msgs, err = s.db.GetMessagesByUser(user.ID)
 	require.NoError(s.T(), err)
 	assert.Empty(s.T(), msgs)
-
 }
 
 func (s *DatabaseSuite) TestGetMessagesSince() {
@@ -222,7 +221,6 @@ func (s *DatabaseSuite) TestGetMessagesSince() {
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 100, 2, 2)
-
 }
 
 func hasIDInclusiveBetween(t *testing.T, msgs []*model.Message, from, to, decrement int) {
@@ -236,8 +234,8 @@ func hasIDInclusiveBetween(t *testing.T, msgs []*model.Message, from, to, decrem
 	assert.Equal(t, index, len(msgs), "not all entries inside msgs were checked")
 }
 
-// assertEquals compares messages and correctly check dates
-func assertEquals(t *testing.T, left *model.Message, right *model.Message) {
+// assertEquals compares messages and correctly check dates.
+func assertEquals(t *testing.T, left, right *model.Message) {
 	assert.Equal(t, left.Date.Unix(), right.Date.Unix())
 	left.Date = right.Date
 	assert.Equal(t, left, right)

@@ -10,7 +10,7 @@ import (
 	"github.com/gotify/server/v2/mode"
 )
 
-// CorsConfig generates a config to use in gin cors middleware based on server configuration
+// CorsConfig generates a config to use in gin cors middleware based on server configuration.
 func CorsConfig(conf *config.Configuration) cors.Config {
 	corsConf := cors.Config{
 		MaxAge:                 12 * time.Hour,
@@ -19,8 +19,10 @@ func CorsConfig(conf *config.Configuration) cors.Config {
 	if mode.IsDev() {
 		corsConf.AllowAllOrigins = true
 		corsConf.AllowMethods = []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"}
-		corsConf.AllowHeaders = []string{"X-Gotify-Key", "Authorization", "Content-Type", "Upgrade", "Origin",
-			"Connection", "Accept-Encoding", "Accept-Language", "Host"}
+		corsConf.AllowHeaders = []string{
+			"X-Gotify-Key", "Authorization", "Content-Type", "Upgrade", "Origin",
+			"Connection", "Accept-Encoding", "Accept-Language", "Host",
+		}
 	} else {
 		compiledOrigins := compileAllowedCORSOrigins(conf.Server.Cors.AllowOrigins)
 		corsConf.AllowMethods = conf.Server.Cors.AllowMethods

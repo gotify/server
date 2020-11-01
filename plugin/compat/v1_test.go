@@ -3,10 +3,9 @@ package compat
 import (
 	"testing"
 
+	papiv1 "github.com/gotify/plugin-api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-
-	papiv1 "github.com/gotify/plugin-api"
 )
 
 type v1MockInstance struct {
@@ -155,6 +154,7 @@ func (s *V1WrapperSuite) TestMessenger_sendMessageWithoutExtras() {
 		Extras:   nil,
 	}, handler.msgSent)
 }
+
 func TestV1Wrapper(t *testing.T) {
 	suite.Run(t, new(V1WrapperSuite))
 }

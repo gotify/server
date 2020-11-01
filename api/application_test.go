@@ -37,8 +37,10 @@ type ApplicationSuite struct {
 	recorder *httptest.ResponseRecorder
 }
 
-var originalGenerateApplicationToken func() string
-var originalGenerateImageName func() string
+var (
+	originalGenerateApplicationToken func() string
+	originalGenerateImageName        func() string
+)
 
 func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
 	originalGenerateApplicationToken = generateApplicationToken
@@ -78,6 +80,7 @@ func (s *ApplicationSuite) Test_CreateApplication_mapAllParameters() {
 		assert.Equal(s.T(), expected, app)
 	}
 }
+
 func (s *ApplicationSuite) Test_ensureApplicationHasCorrectJsonRepresentation() {
 	actual := &model.Application{
 		ID:          1,
@@ -90,6 +93,7 @@ func (s *ApplicationSuite) Test_ensureApplicationHasCorrectJsonRepresentation() 
 	}
 	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true}`)
 }
+
 func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {
 	s.db.User(5)
 

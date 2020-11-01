@@ -1,0 +1,58 @@
+run:
+    skip-dirs:
+        - plugin/example
+        - plugin/testing
+
+linters:
+    enable:
+        - asciicheck
+        - deadcode
+        - depguard
+        - exportloopref
+        - gci
+        - godot
+        - gofmt
+        - gofumpt
+        - goimports
+        - golint
+        - gomodguard
+        - goprintffuncname
+        - gosimple
+        - govet
+        - ineffassign
+        - interfacer
+        - misspell
+        - nakedret
+        - nolintlint
+        - sqlclosecheck
+        - staticcheck
+        - structcheck
+        - stylecheck
+        - typecheck
+        - unconvert
+        - unused
+        - varcheck
+        - whitespace
+    disable:
+        - goerr113
+        - errcheck
+        - funlen
+        - gochecknoglobals
+        - gocognit
+        - goconst
+        - gocyclo
+        - godox
+        - gomnd
+        - lll
+        - maligned
+        - nestif
+        - nlreturn
+        - noctx
+        - testpackage
+        - wsl
+
+linters-settings:
+    gofumpt:
+        extra-rules: true
+    misspell:
+        locale: US

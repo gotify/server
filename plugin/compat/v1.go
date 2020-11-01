@@ -13,12 +13,12 @@ type PluginV1 struct {
 	Constructor func(ctx papiv1.UserContext) papiv1.Plugin
 }
 
-// APIVersion returns the API version
+// APIVersion returns the API version.
 func (c PluginV1) APIVersion() string {
 	return "v1"
 }
 
-// PluginInfo implements compat/Plugin
+// PluginInfo implements compat/Plugin.
 func (c PluginV1) PluginInfo() Info {
 	return Info{
 		Version:     c.Info.Version,
@@ -31,7 +31,7 @@ func (c PluginV1) PluginInfo() Info {
 	}
 }
 
-// NewPluginInstance implements compat/Plugin
+// NewPluginInstance implements compat/Plugin.
 func (c PluginV1) NewPluginInstance(ctx UserContext) PluginInstance {
 	instance := c.Constructor(papiv1.UserContext{
 		ID:    ctx.ID,
@@ -66,7 +66,7 @@ func (c PluginV1) NewPluginInstance(ctx UserContext) PluginInstance {
 	return compat
 }
 
-// PluginV1Instance is an adapter for plugin using v1 API
+// PluginV1Instance is an adapter for plugin using v1 API.
 type PluginV1Instance struct {
 	instance   papiv1.Plugin
 	messenger  papiv1.Messenger
@@ -76,7 +76,7 @@ type PluginV1Instance struct {
 	displayer  papiv1.Displayer
 }
 
-// DefaultConfig see papiv1.Configurer
+// DefaultConfig see papiv1.Configurer.
 func (c *PluginV1Instance) DefaultConfig() interface{} {
 	if c.configurer != nil {
 		return c.configurer.DefaultConfig()
@@ -84,7 +84,7 @@ func (c *PluginV1Instance) DefaultConfig() interface{} {
 	return struct{}{}
 }
 
-// ValidateAndSetConfig see papiv1.Configurer
+// ValidateAndSetConfig see papiv1.Configurer.
 func (c *PluginV1Instance) ValidateAndSetConfig(config interface{}) error {
 	if c.configurer != nil {
 		return c.configurer.ValidateAndSetConfig(config)
@@ -92,7 +92,7 @@ func (c *PluginV1Instance) ValidateAndSetConfig(config interface{}) error {
 	return nil
 }
 
-// GetDisplay see papiv1.Displayer
+// GetDisplay see papiv1.Displayer.
 func (c *PluginV1Instance) GetDisplay(location *url.URL) string {
 	if c.displayer != nil {
 		return c.displayer.GetDisplay(location)
@@ -100,28 +100,28 @@ func (c *PluginV1Instance) GetDisplay(location *url.URL) string {
 	return ""
 }
 
-// SetMessageHandler see papiv1.Messenger
+// SetMessageHandler see papiv1.Messenger.
 func (c *PluginV1Instance) SetMessageHandler(h MessageHandler) {
 	if c.messenger != nil {
 		c.messenger.SetMessageHandler(&PluginV1MessageHandler{WrapperHandler: h})
 	}
 }
 
-// RegisterWebhook see papiv1.Webhooker
+// RegisterWebhook see papiv1.Webhooker.
 func (c *PluginV1Instance) RegisterWebhook(basePath string, mux *gin.RouterGroup) {
 	if c.webhooker != nil {
 		c.webhooker.RegisterWebhook(basePath, mux)
 	}
 }
 
-// SetStorageHandler see papiv1.Storager
+// SetStorageHandler see papiv1.Storager.
 func (c *PluginV1Instance) SetStorageHandler(handler StorageHandler) {
 	if c.storager != nil {
 		c.storager.SetStorageHandler(&PluginV1StorageHandler{WrapperHandler: handler})
 	}
 }
 
-// Supports returns a slice of capabilities the plugin instance provides
+// Supports returns a slice of capabilities the plugin instance provides.
 func (c *PluginV1Instance) Supports() Capabilities {
 	modules := Capabilities{}
 	if c.configurer != nil {
@@ -142,12 +142,12 @@ func (c *PluginV1Instance) Supports() Capabilities {
 	return modules
 }
 
-// PluginV1MessageHandler is an adapter for messenger plugin handler using v1 API
+// PluginV1MessageHandler is an adapter for messenger plugin handler using v1 API.
 type PluginV1MessageHandler struct {
 	WrapperHandler MessageHandler
 }
 
-// SendMessage implements papiv1.MessageHandler
+// SendMessage implements papiv1.MessageHandler.
 func (c *PluginV1MessageHandler) SendMessage(msg papiv1.Message) error {
 	return c.WrapperHandler.SendMessage(Message{
 		Message:  msg.Message,
@@ -157,27 +157,27 @@ func (c *PluginV1MessageHandler) SendMessage(msg papiv1.Message) error {
 	})
 }
 
-// Enable implements wrapper.Plugin
+// Enable implements wrapper.Plugin.
 func (c *PluginV1Instance) Enable() error {
 	return c.instance.Enable()
 }
 
-// Disable implements wrapper.Plugin
+// Disable implements wrapper.Plugin.
 func (c *PluginV1Instance) Disable() error {
 	return c.instance.Disable()
 }
 
-// PluginV1StorageHandler is a wrapper for v1 storage handler
+// PluginV1StorageHandler is a wrapper for v1 storage handler.
 type PluginV1StorageHandler struct {
 	WrapperHandler StorageHandler
 }
 
-// Save implements wrapper.Storager
+// Save implements wrapper.Storager.
 func (c *PluginV1StorageHandler) Save(b []byte) error {
 	return c.WrapperHandler.Save(b)
 }
 
-// Load implements wrapper.Storager
+// Load implements wrapper.Storager.
 func (c *PluginV1StorageHandler) Load() ([]byte, error) {
 	return c.WrapperHandler.Load()
 }

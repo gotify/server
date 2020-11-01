@@ -1,13 +1,13 @@
 package compat
 
-// Plugin is an abstraction of plugin handler
+// Plugin is an abstraction of plugin handler.
 type Plugin interface {
 	PluginInfo() Info
 	NewPluginInstance(ctx UserContext) PluginInstance
 	APIVersion() string
 }
 
-// Info is the plugin info
+// Info is the plugin info.
 type Info struct {
 	Version     string
 	Author      string
