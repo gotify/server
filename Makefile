@@ -85,7 +85,16 @@ build-docker-arm-7: require-version
 		-t gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -2) .
 	rm ${DOCKER_DIR}gotify-app
 
-build-docker: build-docker-amd64 build-docker-arm-7
+build-docker-arm64: require-version
+	cp ${BUILD_DIR}/gotify-linux-arm64 ./docker/gotify-app
+	cd ${DOCKER_DIR} && \
+		docker build -f Dockerfile.arm64 \
+		-t gotify/server-arm64:latest \
+		-t gotify/server-arm64:${VERSION} \
+		-t gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -2) .
+	rm ${DOCKER_DIR}gotify-app
+
+build-docker: build-docker-amd64 build-docker-arm-7 build-docker-arm64
 
 build-js:
 	(cd ui && yarn build)
