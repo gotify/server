@@ -25,6 +25,7 @@ jobs:
       - uses: golangci/golangci-lint-action@v2
         with:
           version: v1.31
+          args: --timeout=5m
       - run: go mod download
       - run: make download-tools
       - run: (cd ui && yarn)
