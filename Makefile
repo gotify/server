@@ -10,6 +10,7 @@ DOCKER_GO_BUILD=go build -mod=readonly -a -installsuffix cgo -ldflags "$$LD_FLAG
 
 test: test-coverage test-race test-js
 check: check-go check-swagger check-js
+check-ci: check-swagger check-js
 
 require-version:
 	if [ -n ${VERSION} ] && [[ $$VERSION == "v"* ]]; then echo "The version may not start with v" && exit 1; fi
