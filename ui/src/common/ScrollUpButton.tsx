@@ -9,18 +9,25 @@ class ScrollUpButton extends Component {
     };
     componentDidMount() {
         if (typeof window !== 'undefined') {
-            window.addEventListener('scroll', () => {
-                let currentScrollPos = window.pageYOffset;
-                if (currentScrollPos > 0) {
-                    this.setState({display: 'inherit'});
-                    this.setState({opacity: currentScrollPos / 500});
-                } else {
-                    this.setState({display: 'none'});
-                    this.setState({opacity: 0});
-                }
-            });
+            window.addEventListener('scroll', this.scrollHandler.bind(this));
         }
     }
+
+    componentWillUnmount() {
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('scroll', this.scrollHandler.bind(this));
+        }
+    }
+
+    scrollHandler() {
+        let currentScrollPos = window.pageYOffset;
+        if (currentScrollPos > 0) {
+            this.setState({display: 'inherit', opacity: Math.min(currentScrollPos / 500, 1)});
+        } else {
+            this.setState({display: 'none', opacity: 0});
+        }
+    }
+
     public render() {
         return (
             <Fab
@@ -30,7 +37,7 @@ class ScrollUpButton extends Component {
                     bottom: '30px',
                     right: '30px',
                     zIndex: 100000,
-                    display: `${this.state.display}`,
+                    display: this.state.display,
                     opacity: this.state.opacity,
                 }}
                 onClick={this.scrollUp}>
