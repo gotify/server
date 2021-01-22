@@ -12,7 +12,10 @@ import {Button, Hidden, IconButton, Typography} from '@material-ui/core';
 import {DrawerProps} from '@material-ui/core/Drawer/Drawer';
 import CloseIcon from '@material-ui/icons/Close';
 
-const styles = (theme: Theme): StyleRules<'drawerPaper' | 'toolbar' | 'link'> => ({
+const styles = (theme: Theme): StyleRules<'root' | 'drawerPaper' | 'toolbar' | 'link'> => ({
+    root: {
+        height: '100%',
+    },
     drawerPaper: {
         position: 'relative',
         width: 250,
@@ -26,7 +29,7 @@ const styles = (theme: Theme): StyleRules<'drawerPaper' | 'toolbar' | 'link'> =>
     },
 });
 
-type Styles = WithStyles<'drawerPaper' | 'toolbar' | 'link'>;
+type Styles = WithStyles<'root' | 'drawerPaper' | 'toolbar' | 'link'>;
 
 interface IProps {
     loggedIn: boolean;
@@ -74,7 +77,7 @@ class Navigation extends Component<
 
         return (
             <ResponsiveDrawer
-                classes={{paper: classes.drawerPaper}}
+                classes={{root: classes.root, paper: classes.drawerPaper}}
                 navOpen={navOpen}
                 setNavOpen={setNavOpen}
                 id="message-navigation">
