@@ -8,25 +8,21 @@ class ScrollUpButton extends Component {
         opacity: 0,
     };
     componentDidMount() {
-        if (typeof window !== 'undefined') {
-            window.addEventListener('scroll', this.scrollHandler.bind(this));
-        }
+        window.addEventListener('scroll', this.scrollHandler);
     }
 
     componentWillUnmount() {
-        if (typeof window !== 'undefined') {
-            window.removeEventListener('scroll', this.scrollHandler.bind(this));
-        }
+        window.removeEventListener('scroll', this.scrollHandler);
     }
 
-    scrollHandler() {
-        let currentScrollPos = window.pageYOffset;
-        if (currentScrollPos > 0) {
-            this.setState({display: 'inherit', opacity: Math.min(currentScrollPos / 500, 1)});
-        } else {
-            this.setState({display: 'none', opacity: 0});
+    scrollHandler = () => {
+        const currentScrollPos = window.pageYOffset;
+        const opacity = Math.min(currentScrollPos / 500, 1);
+        const nextState = {display: currentScrollPos > 0 ? 'inherit' : 'none', opacity};
+        if (this.state.display !== nextState.display || this.state.opacity !== nextState.opacity) {
+            this.setState(nextState);
         }
-    }
+    };
 
     public render() {
         return (
