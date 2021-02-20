@@ -48,6 +48,7 @@ jobs:
           echo "$DOCKER_PASS" | docker login --username "$DOCKER_USER" --password-stdin
           docker push gotify/server
           docker push gotify/server-arm7
+          docker push gotify/server-arm64
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
           DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
