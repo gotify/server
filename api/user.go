@@ -2,6 +2,8 @@ package api
 
 import (
 	"errors"
+	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
@@ -59,6 +61,7 @@ type UserAPI struct {
 	DB                 UserDatabase
 	PasswordStrength   int
 	UserChangeNotifier *UserChangeNotifier
+	Registration       bool
 }
 
 // GetUsers returns all the users
@@ -126,10 +129,13 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 	ctx.JSON(200, toExternalUser(user))
 }
 
-// CreateUser creates a user
+// CreateUser create a user.
 // swagger:operation POST /user user createUser
 //
 // Create a user.
+//
+// With enabled registration: non admin users can be created without authentication.
+// With disabled registrations: users can only be created by admin users.
 //
 // ---
 // consumes: [application/json]
@@ -167,6 +173,32 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
+
+		var requestedBy *model.User
+		uid := auth.TryGetUserID(ctx)
+		if uid != nil {
+			requestedBy, err = a.DB.GetUserByID(*uid)
+			if err != nil {
+				ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("could not get user: %s", err))
+				return
+			}
+		}
+
+		if requestedBy == nil || !requestedBy.Admin {
+			status := http.StatusUnauthorized
+			if requestedBy != nil {
+				status = http.StatusForbidden
+			}
+			if !a.Registration {
+				ctx.AbortWithError(status, errors.New("you are not allowed to access this api"))
+				return
+			}
+			if internal.Admin {
+				ctx.AbortWithError(status, errors.New("you are not allowed to create an admin user"))
+				return
+			}
+		}
+
 		if existingUser == nil {
 			if success := successOrAbort(ctx, 500, a.DB.CreateUser(internal)); !success {
 				return

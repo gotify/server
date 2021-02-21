@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/auth/password"
 	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
@@ -35,7 +36,9 @@ func (s *UserSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
+
 	s.db = testdb.NewDB(s.T())
+
 	s.notifier = new(UserChangeNotifier)
 	s.notifier.OnUserDeleted(func(uint) error {
 		s.notifiedDelete = true
@@ -164,15 +167,17 @@ func (s *UserSuite) Test_DeleteUserByID_NotifyFail() {
 }
 
 func (s *UserSuite) Test_CreateUser() {
+	s.loginAdmin()
+
 	assert.False(s.T(), s.notifiedAdd)
 	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "mylittlepony", "admin": true}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
 	s.a.CreateUser(s.ctx)
 
-	user := &model.UserExternal{ID: 1, Name: "tom", Admin: true}
-	test.BodyEquals(s.T(), user, s.recorder)
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	user := &model.UserExternal{ID: 2, Name: "tom", Admin: true}
+	test.BodyEquals(s.T(), user, s.recorder)
 
 	if created, err := s.db.GetUserByName("tom"); assert.NoError(s.T(), err) {
 		assert.NotNil(s.T(), created)
@@ -181,7 +186,88 @@ func (s *UserSuite) Test_CreateUser() {
 	assert.True(s.T(), s.notifiedAdd)
 }
 
+func (s *UserSuite) Test_CreateUser_ByNonAdmin() {
+	s.loginUser()
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "1", "admin": false}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateUser(s.ctx)
+
+	assert.Equal(s.T(), 403, s.recorder.Code)
+}
+
+func (s *UserSuite) Test_CreateUser_Register_ByNonAdmin() {
+	s.loginUser()
+	s.a.Registration = true
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "1", "admin": false}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateUser(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	if created, err := s.db.GetUserByName("tom"); assert.NoError(s.T(), err) {
+		assert.NotNil(s.T(), created)
+	}
+}
+
+func (s *UserSuite) Test_CreateUser_Register_Admin_ByNonAdmin() {
+	s.a.Registration = true
+	s.loginUser()
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "1", "admin": true}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateUser(s.ctx)
+
+	assert.Equal(s.T(), 403, s.recorder.Code)
+	s.db.AssertUsernameNotExist("tom")
+}
+
+func (s *UserSuite) Test_CreateUser_Anonymous() {
+	s.noLogin()
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "1", "admin": false}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateUser(s.ctx)
+
+	assert.Equal(s.T(), 401, s.recorder.Code)
+	s.db.AssertUsernameNotExist("tom")
+}
+
+func (s *UserSuite) Test_CreateUser_Register_Anonymous() {
+	s.a.Registration = true
+	s.noLogin()
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "1", "admin": false}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateUser(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	if created, err := s.db.GetUserByName("tom"); assert.NoError(s.T(), err) {
+		assert.NotNil(s.T(), created)
+	}
+}
+
+func (s *UserSuite) Test_CreateUser_Register_Admin_Anonymous() {
+	s.a.Registration = true
+	s.noLogin()
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "1", "admin": true}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateUser(s.ctx)
+
+	assert.Equal(s.T(), 401, s.recorder.Code)
+	s.db.AssertUsernameNotExist("tom")
+}
+
 func (s *UserSuite) Test_CreateUser_NotifyFail() {
+	s.loginAdmin()
+
 	s.notifier.OnUserAdded(func(id uint) error {
 		user, err := s.db.GetUserByID(id)
 		if err != nil {
@@ -201,6 +287,8 @@ func (s *UserSuite) Test_CreateUser_NotifyFail() {
 }
 
 func (s *UserSuite) Test_CreateUser_NoPassword() {
+	s.loginAdmin()
+
 	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "", "admin": true}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
@@ -210,6 +298,8 @@ func (s *UserSuite) Test_CreateUser_NoPassword() {
 }
 
 func (s *UserSuite) Test_CreateUser_NoName() {
+	s.loginAdmin()
+
 	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "", "pass": "asd", "admin": true}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
@@ -219,7 +309,8 @@ func (s *UserSuite) Test_CreateUser_NoName() {
 }
 
 func (s *UserSuite) Test_CreateUser_NameAlreadyExists() {
-	s.db.NewUserWithName(1, "tom")
+	s.loginAdmin()
+	s.db.NewUserWithName(2, "tom")
 
 	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "mylittlepony", "admin": true}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
@@ -331,6 +422,20 @@ func (s *UserSuite) Test_UpdatePassword_EmptyPassword() {
 	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), user)
 	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("old")))
+}
+
+func (s *UserSuite) loginAdmin() {
+	s.db.CreateUser(&model.User{ID: 1, Name: "admin", Admin: true})
+	auth.RegisterAuthentication(s.ctx, nil, 1, "")
+}
+
+func (s *UserSuite) loginUser() {
+	s.db.CreateUser(&model.User{ID: 1, Name: "user", Admin: false})
+	auth.RegisterAuthentication(s.ctx, nil, 1, "")
+}
+
+func (s *UserSuite) noLogin() {
+	auth.RegisterAuthentication(s.ctx, nil, 0, "")
 }
 
 func externalOf(user *model.User) *model.UserExternal {
