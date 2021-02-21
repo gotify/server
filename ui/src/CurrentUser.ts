@@ -42,6 +42,27 @@ export class CurrentUser {
         window.localStorage.setItem(tokenKey, token);
     };
 
+    public register = async (name: string, pass: string): Promise<boolean> =>
+        axios
+            .create()
+            .post(config.get('url') + 'user', {name, pass})
+            .then(() => {
+                this.snack('User Created. Logging in...');
+                this.login(name, pass);
+                return true;
+            })
+            .catch((error: AxiosError) => {
+                if (!error || !error.response) {
+                    this.snack('No network connection or server unavailable.');
+                    return false;
+                }
+                const {data} = error.response;
+                this.snack(
+                    `Register failed: ${data?.error ?? 'unknown'}: ${data?.errorDescription ?? ''}`
+                );
+                return false;
+            });
+
     public login = async (username: string, password: string) => {
         this.loggedIn = false;
         this.authenticating = true;

@@ -183,6 +183,13 @@ func (d *Database) AssertUserNotExist(id uint) {
 	}
 }
 
+// AssertUsernameNotExist asserts that the user does not exist.
+func (d *Database) AssertUsernameNotExist(name string) {
+	if user, err := d.GetUserByName(name); assert.NoError(d.t, err) {
+		assert.True(d.t, user == nil, "user %d must not exist", name)
+	}
+}
+
 // AssertClientNotExist asserts that the client does not exist.
 func (d *Database) AssertClientNotExist(id uint) {
 	if client, err := d.GetClientByID(id); assert.NoError(d.t, err) {
