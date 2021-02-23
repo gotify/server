@@ -38,7 +38,7 @@ check-js:
 	(cd ui && yarn testformat)
 
 download-tools:
-	GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger
+	go get -u github.com/go-swagger/go-swagger/cmd/swagger
 
 embed-static:
 	go run hack/packr/packr.go
