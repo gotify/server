@@ -10,9 +10,8 @@ export class UserStore extends BaseStore<IUser> {
         super();
     }
 
-    protected requestItems = (): Promise<IUser[]> => {
-        return axios.get<IUser[]>(`${config.get('url')}user`).then((response) => response.data);
-    };
+    protected requestItems = (): Promise<IUser[]> =>
+        axios.get<IUser[]>(`${config.get('url')}user`).then((response) => response.data);
 
     protected requestDelete(id: number): Promise<void> {
         return axios

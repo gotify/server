@@ -50,9 +50,8 @@ const themeMap: Record<ThemeKey, Theme> = {
     }),
 };
 
-const isThemeKey = (value: string | null): value is ThemeKey => {
-    return value === 'light' || value === 'dark';
-};
+const isThemeKey = (value: string | null): value is ThemeKey =>
+    value === 'light' || value === 'dark';
 
 @observer
 class Layout extends React.Component<

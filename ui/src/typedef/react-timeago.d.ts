@@ -5,5 +5,5 @@ declare module 'react-timeago' {
         date: string;
     }
 
-    export default class TimeAgo extends React.Component<ITimeAgoProps, any> {}
+    export default class TimeAgo extends React.Component<ITimeAgoProps, unknown> {}
 }

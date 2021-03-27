@@ -17,7 +17,7 @@ import Container from '../common/Container';
 import {inject, Stores} from '../inject';
 import {IPlugin} from '../types';
 
-interface IProps extends RouteComponentProps<{id: string}> {}
+type IProps = RouteComponentProps<{id: string}>;
 
 interface IState {
     displayText: string | null;
@@ -122,7 +122,7 @@ interface IPanelWrapperProps {
     icon?: React.ComponentType;
 }
 
-const PanelWrapper: React.SFC<IPanelWrapperProps> = ({
+const PanelWrapper: React.FC<IPanelWrapperProps> = ({
     name,
     description,
     refresh,
@@ -175,7 +175,7 @@ class ConfigurerPanel extends Component<IConfigurerPanelProps, {unsavedChanges: 
                         theme: 'material',
                         lineNumbers: true,
                     }}
-                    onChange={(instance, data, value) => {
+                    onChange={(_, _1, value) => {
                         let newConf: string | null = value;
                         if (value === this.props.initialConfig) {
                             newConf = null;
@@ -195,6 +195,7 @@ class ConfigurerPanel extends Component<IConfigurerPanelProps, {unsavedChanges: 
                     className="config-save"
                     onClick={() => {
                         const newConfig = this.state.unsavedChanges;
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         this.props.save(newConfig!).then(() => {
                             this.setState({unsavedChanges: null});
                         });
@@ -210,7 +211,7 @@ interface IDisplayerPanelProps {
     pluginInfo: IPlugin;
     displayText: string;
 }
-const DisplayerPanel: React.SFC<IDisplayerPanelProps> = ({pluginInfo, displayText}) => (
+const DisplayerPanel: React.FC<IDisplayerPanelProps> = ({displayText}) => (
     <Typography variant="body2">
         <ReactMarkDown source={displayText} />
     </Typography>

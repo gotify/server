@@ -23,8 +23,12 @@ interface IState {
 export default class UpdateDialog extends Component<IProps, IState> {
     public state = {name: '', description: ''};
 
-    public componentWillMount() {
-        this.setState({name: this.props.initialName, description: this.props.initialDescription});
+    constructor(props: IProps) {
+        super(props);
+        this.state = {
+            name: props.initialName,
+            description: props.initialDescription,
+        };
     }
 
     public render() {

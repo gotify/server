@@ -39,23 +39,21 @@ class Plugins extends Component<Stores<'pluginStore'>> {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {plugins.map((plugin: IPlugin) => {
-                                    return (
-                                        <Row
-                                            key={plugin.token}
-                                            id={plugin.id}
-                                            token={plugin.token}
-                                            name={plugin.name}
-                                            enabled={plugin.enabled}
-                                            fToggleStatus={() =>
-                                                this.props.pluginStore.changeEnabledState(
-                                                    plugin.id,
-                                                    !plugin.enabled
-                                                )
-                                            }
-                                        />
-                                    );
-                                })}
+                                {plugins.map((plugin: IPlugin) => (
+                                    <Row
+                                        key={plugin.token}
+                                        id={plugin.id}
+                                        token={plugin.token}
+                                        name={plugin.name}
+                                        enabled={plugin.enabled}
+                                        fToggleStatus={() =>
+                                            this.props.pluginStore.changeEnabledState(
+                                                plugin.id,
+                                                !plugin.enabled
+                                            )
+                                        }
+                                    />
+                                ))}
                             </TableBody>
                         </Table>
                     </Paper>

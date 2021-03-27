@@ -209,7 +209,7 @@ const ResponsiveButton: React.FC<{
     id?: string;
     onClick?: () => void;
     icon: React.ReactNode;
-}> = ({width, icon, children, label, ...rest}) => {
+}> = ({width, icon, label, ...rest}) => {
     if (width === 'xs' || width === 'sm') {
         return <IconButton {...rest}>{icon}</IconButton>;
     }

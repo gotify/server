@@ -12,7 +12,7 @@ import {observable} from 'mobx';
 import ReactInfinite from 'react-infinite';
 import {IMessage} from '../types';
 
-interface IProps extends RouteComponentProps<{id: string}> {}
+type IProps = RouteComponentProps<{id: string}>;
 
 interface IState {
     appId: number;
@@ -121,24 +121,22 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
     private deleteMessage = (message: IMessage) => () =>
         this.props.messagesStore.removeSingle(message);
 
-    private renderMessage = (message: IMessage) => {
-        return (
-            <Message
-                key={message.id}
-                height={(height: number) => {
-                    if (!this.heights[message.id]) {
-                        this.heights[message.id] = height;
-                    }
-                }}
-                fDelete={this.deleteMessage(message)}
-                title={message.title}
-                date={message.date}
-                content={message.message}
-                image={message.image}
-                extras={message.extras}
-            />
-        );
-    };
+    private renderMessage = (message: IMessage) => (
+        <Message
+            key={message.id}
+            height={(height: number) => {
+                if (!this.heights[message.id]) {
+                    this.heights[message.id] = height;
+                }
+            }}
+            fDelete={this.deleteMessage(message)}
+            title={message.title}
+            date={message.date}
+            content={message.message}
+            image={message.image}
+            extras={message.extras}
+        />
+    );
 
     private checkIfLoadMore() {
         const {appId} = this.state;

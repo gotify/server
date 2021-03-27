@@ -52,19 +52,17 @@ class Navigation extends Component<
         const userApps =
             apps.length === 0
                 ? null
-                : apps.map((app) => {
-                      return (
-                          <Link
-                              onClick={() => setNavOpen(false)}
-                              className={`${classes.link} item`}
-                              to={'/messages/' + app.id}
-                              key={app.id}>
-                              <ListItem button>
-                                  <ListItemText primary={app.name} />
-                              </ListItem>
-                          </Link>
-                      );
-                  });
+                : apps.map((app) => (
+                      <Link
+                          onClick={() => setNavOpen(false)}
+                          className={`${classes.link} item`}
+                          to={'/messages/' + app.id}
+                          key={app.id}>
+                          <ListItem button>
+                              <ListItemText primary={app.name} />
+                          </ListItem>
+                      </Link>
+                  ));
 
         const placeholderItems = [
             <ListItem button disabled key={-1}>
@@ -108,24 +106,22 @@ class Navigation extends Component<
 
 const ResponsiveDrawer: React.FC<
     DrawerProps & {navOpen: boolean; setNavOpen: (open: boolean) => void}
-> = ({navOpen, setNavOpen, children, ...rest}) => {
-    return (
-        <>
-            <Hidden smUp implementation="css">
-                <Drawer variant="temporary" open={navOpen} {...rest}>
-                    <IconButton onClick={() => setNavOpen(false)}>
-                        <CloseIcon />
-                    </IconButton>
-                    {children}
-                </Drawer>
-            </Hidden>
-            <Hidden xsDown implementation="css">
-                <Drawer variant="permanent" {...rest}>
-                    {children}
-                </Drawer>
-            </Hidden>
-        </>
-    );
-};
+> = ({navOpen, setNavOpen, children, ...rest}) => (
+    <>
+        <Hidden smUp implementation="css">
+            <Drawer variant="temporary" open={navOpen} {...rest}>
+                <IconButton onClick={() => setNavOpen(false)}>
+                    <CloseIcon />
+                </IconButton>
+                {children}
+            </Drawer>
+        </Hidden>
+        <Hidden xsDown implementation="css">
+            <Drawer variant="permanent" {...rest}>
+                {children}
+            </Drawer>
+        </Hidden>
+    </>
+);
 
 export default withStyles(styles, {withTheme: true})(inject('appStore')(Navigation));

@@ -49,13 +49,10 @@ const toggleEnabled = async (id: number) => {
     );
 };
 
-const pluginInfo = async (className: string) => {
-    return await innerText(page, `.plugin-info .${className} > span`);
-};
+const pluginInfo = async (className: string) =>
+    await innerText(page, `.plugin-info .${className} > span`);
 
-const getDisplayer = async () => {
-    return await innerText(page, '.displayer');
-};
+const getDisplayer = async () => await innerText(page, '.displayer');
 
 const hasReceivedMessage = async (title: RegExp, content: RegExp) => {
     await page.click('#message-navigation a');

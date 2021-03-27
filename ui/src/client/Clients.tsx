@@ -64,17 +64,15 @@ class Clients extends Component<Stores<'clientStore'>> {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {clients.map((client: IClient) => {
-                                    return (
-                                        <Row
-                                            key={client.id}
-                                            name={client.name}
-                                            value={client.token}
-                                            fEdit={() => (this.updateId = client.id)}
-                                            fDelete={() => (this.deleteId = client.id)}
-                                        />
-                                    );
-                                })}
+                                {clients.map((client: IClient) => (
+                                    <Row
+                                        key={client.id}
+                                        name={client.name}
+                                        value={client.token}
+                                        fEdit={() => (this.updateId = client.id)}
+                                        fDelete={() => (this.deleteId = client.id)}
+                                    />
+                                ))}
                             </TableBody>
                         </Table>
                     </Paper>

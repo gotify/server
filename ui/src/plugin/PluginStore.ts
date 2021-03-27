@@ -12,23 +12,16 @@ export class PluginStore extends BaseStore<IPlugin> {
         super();
     }
 
-    public requestConfig = (id: number): Promise<string> => {
-        return axios
-            .get(`${config.get('url')}plugin/${id}/config`)
-            .then((response) => response.data);
-    };
+    public requestConfig = (id: number): Promise<string> =>
+        axios.get(`${config.get('url')}plugin/${id}/config`).then((response) => response.data);
 
-    public requestDisplay = (id: number): Promise<string> => {
-        return axios
-            .get(`${config.get('url')}plugin/${id}/display`)
-            .then((response) => response.data);
-    };
+    public requestDisplay = (id: number): Promise<string> =>
+        axios.get(`${config.get('url')}plugin/${id}/display`).then((response) => response.data);
 
-    protected requestItems = (): Promise<IPlugin[]> => {
-        return axios.get<IPlugin[]>(`${config.get('url')}plugin`).then((response) => response.data);
-    };
+    protected requestItems = (): Promise<IPlugin[]> =>
+        axios.get<IPlugin[]>(`${config.get('url')}plugin`).then((response) => response.data);
 
-    protected requestDelete = (id: number): Promise<void> => {
+    protected requestDelete = (): Promise<void> => {
         this.snack('Cannot delete plugin');
         throw new Error('Cannot delete plugin');
     };

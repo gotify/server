@@ -28,7 +28,8 @@
     "noEmit": true,
     "module": "esnext",
     "resolveJsonModule": true,
-    "keyofStringsOnly": true
+    "keyofStringsOnly": true,
+    "noFallthroughCasesInSwitch": true
   },
   "exclude": [
     "node_modules",

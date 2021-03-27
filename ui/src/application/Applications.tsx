@@ -72,21 +72,19 @@ class Applications extends Component<Stores<'appStore'>> {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {apps.map((app: IApplication) => {
-                                    return (
-                                        <Row
-                                            key={app.id}
-                                            description={app.description}
-                                            image={app.image}
-                                            name={app.name}
-                                            value={app.token}
-                                            fUpload={() => this.uploadImage(app.id)}
-                                            fDelete={() => (this.deleteId = app.id)}
-                                            fEdit={() => (this.updateId = app.id)}
-                                            noDelete={app.internal}
-                                        />
-                                    );
-                                })}
+                                {apps.map((app: IApplication) => (
+                                    <Row
+                                        key={app.id}
+                                        description={app.description}
+                                        image={app.image}
+                                        name={app.name}
+                                        value={app.token}
+                                        fUpload={() => this.uploadImage(app.id)}
+                                        fDelete={() => (this.deleteId = app.id)}
+                                        fEdit={() => (this.updateId = app.id)}
+                                        noDelete={app.internal}
+                                    />
+                                ))}
                             </TableBody>
                         </Table>
                         <input
@@ -133,7 +131,7 @@ class Applications extends Component<Stores<'appStore'>> {
     };
 
     private onUploadImage = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files && e.target.files[0];
+        const file = e.target.files?.[0];
         if (!file) {
             return;
         }

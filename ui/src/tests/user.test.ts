@@ -39,28 +39,28 @@ describe('User', () => {
             name: string,
             password: string,
             isAdmin: boolean
-        ): (() => Promise<void>) => {
-            return async () => {
-                await page.click('#create-user');
-                await page.waitForSelector($dialog.selector());
-                await page.type($dialog.input('.name'), name);
-                await page.type($dialog.input('.password'), password);
-                if (isAdmin) {
-                    await page.click($dialog.input('.admin-rights'));
-                }
-                await page.click($dialog.button('.save-create'));
-                await waitToDisappear(page, $dialog.selector());
-            };
+        ): (() => Promise<void>) => async () => {
+            await page.click('#create-user');
+            await page.waitForSelector($dialog.selector());
+            await page.type($dialog.input('.name'), name);
+            await page.type($dialog.input('.password'), password);
+            if (isAdmin) {
+                await page.click($dialog.input('.admin-rights'));
+            }
+            await page.click($dialog.button('.save-create'));
+            await waitToDisappear(page, $dialog.selector());
         };
         it('nicories', createUser('nicories', '123', false));
         it('jmattheis', createUser('jmattheis', 'noice', true));
         it('dude', createUser('dude', '1', false));
     });
-    const hasUser = (name: string, isAdmin: boolean, row: number): (() => Promise<void>) => {
-        return async () => {
-            expect(await innerText(page, $table.cell(row, Col.Name))).toBe(name);
-            expect(await innerText(page, $table.cell(row, Col.Admin))).toBe(isAdmin ? 'Yes' : 'No');
-        };
+    const hasUser = (
+        name: string,
+        isAdmin: boolean,
+        row: number
+    ): (() => Promise<void>) => async () => {
+        expect(await innerText(page, $table.cell(row, Col.Name))).toBe(name);
+        expect(await innerText(page, $table.cell(row, Col.Admin))).toBe(isAdmin ? 'Yes' : 'No');
     };
 
     describe('has created users', () => {
@@ -131,10 +131,10 @@ describe('User', () => {
     it('does logout', async () => await auth.logout(page));
     it('can login with new password (admin)', async () =>
         await auth.login(page, 'admin', 'changed'));
-    it('does logout', async () => await auth.logout(page));
+    it('does logout admin', async () => await auth.logout(page));
 
     it('can login with nicolas', async () => await auth.login(page, 'nicolas', '123'));
-    it('does logout', async () => await auth.logout(page));
+    it('does logout nicolas', async () => await auth.logout(page));
     it('can login with jmattheis', async () => await auth.login(page, 'jmattheis', 'unicorn'));
-    it('does logout', async () => await auth.logout(page));
+    it('does logout jmattheis', async () => await auth.logout(page));
 });

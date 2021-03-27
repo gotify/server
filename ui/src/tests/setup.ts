@@ -82,8 +82,8 @@ const testFilePath = (): string => {
     return path.join(testBuildPath, filename);
 };
 
-const waitForGotify = (url: string): Promise<void> => {
-    return new Promise((resolve, err) => {
+const waitForGotify = (url: string): Promise<void> =>
+    new Promise((resolve, err) => {
         wait({resources: [url], timeout: 40000}, (error: string) => {
             if (error) {
                 console.log(error);
@@ -93,7 +93,6 @@ const waitForGotify = (url: string): Promise<void> => {
             }
         });
     });
-};
 
 const buildGoPlugin = (filename: string, pluginPath: string): Promise<void> => {
     process.stdout.write(`### Building Plugin ${pluginPath}\n`);

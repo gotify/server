@@ -44,11 +44,10 @@ describe('Messages', () => {
     it('has url', async () => {
         expect(page.url()).toContain('/');
     });
-    const createApp = (name: string) => {
-        return axios
+    const createApp = (name: string) =>
+        axios
             .post<IApplication>(`${gotify.url}/application`, {name}, axiosAuth)
             .then((resp) => resp.data.token);
-    };
     it('shows navigation', async () => {
         await page.waitForSelector(naviId);
     });
@@ -121,11 +120,10 @@ describe('Messages', () => {
     const backup2 = m('Backup done', 'Windows Server Backup finished (6.2GB).');
     const backup3 = m('Backup done', 'Gotify Backup finished (0.1MB).');
 
-    const createMessage = (msg: Partial<IMessage>, token: string) => {
-        return axios.post<IMessage>(`${gotify.url}/message`, msg, {
+    const createMessage = (msg: Partial<IMessage>, token: string) =>
+        axios.post<IMessage>(`${gotify.url}/message`, msg, {
             headers: {'X-Gotify-Key': token},
         });
-    };
 
     const expectMessages = async (toCheck: {
         all: Msg[];
