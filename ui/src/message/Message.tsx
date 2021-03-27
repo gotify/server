@@ -60,6 +60,10 @@ const styles = (theme: Theme) =>
             '& pre': {
                 overflow: 'auto',
             },
+            '& img': {
+                maxWidth: '100%',
+            },
+       
         },
     });
 
