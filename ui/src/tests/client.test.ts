@@ -21,24 +21,20 @@ enum Col {
     Delete = 4,
 }
 
-const hasClient = (name: string, row: number): (() => Promise<void>) => {
-    return async () => {
-        expect(await innerText(page, $table.cell(row, Col.Name))).toBe(name);
-    };
+const hasClient = (name: string, row: number): (() => Promise<void>) => async () => {
+    expect(await innerText(page, $table.cell(row, Col.Name))).toBe(name);
 };
 
-export const updateClient = (id: number, data: {name?: string}): (() => Promise<void>) => {
-    return async () => {
-        await page.click($table.cell(id, Col.Edit, '.edit'));
-        await page.waitForSelector($dialog.selector());
-        if (data.name) {
-            const nameSelector = $dialog.input('.name');
-            await clearField(page, nameSelector);
-            await page.type(nameSelector, data.name);
-        }
-        await page.click($dialog.button('.update'));
-        await waitToDisappear(page, $dialog.selector());
-    };
+const updateClient = (id: number, data: {name?: string}): (() => Promise<void>) => async () => {
+    await page.click($table.cell(id, Col.Edit, '.edit'));
+    await page.waitForSelector($dialog.selector());
+    if (data.name) {
+        const nameSelector = $dialog.input('.name');
+        await clearField(page, nameSelector);
+        await page.type(nameSelector, data.name);
+    }
+    await page.click($dialog.button('.update'));
+    await waitToDisappear(page, $dialog.selector());
 };
 
 const $table = selector.table('#client-table');
@@ -57,13 +53,11 @@ describe('Client', () => {
         expect(await count(page, $table.rows())).toBe(1);
     });
     describe('create clients', () => {
-        const createClient = (name: string): (() => Promise<void>) => {
-            return async () => {
-                await page.click('#create-client');
-                await page.waitForSelector($dialog.selector());
-                await page.type($dialog.input('.name'), name);
-                await page.click($dialog.button('.create'));
-            };
+        const createClient = (name: string): (() => Promise<void>) => async () => {
+            await page.click('#create-client');
+            await page.waitForSelector($dialog.selector());
+            await page.type($dialog.input('.name'), name);
+            await page.click($dialog.button('.create'));
         };
         it('phone', createClient('phone'));
         it('desktop app', createClient('desktop app'));

@@ -12,18 +12,16 @@ export class AppStore extends BaseStore<IApplication> {
         super();
     }
 
-    protected requestItems = (): Promise<IApplication[]> => {
-        return axios
+    protected requestItems = (): Promise<IApplication[]> =>
+        axios
             .get<IApplication[]>(`${config.get('url')}application`)
             .then((response) => response.data);
-    };
 
-    protected requestDelete = (id: number): Promise<void> => {
-        return axios.delete(`${config.get('url')}application/${id}`).then(() => {
+    protected requestDelete = (id: number): Promise<void> =>
+        axios.delete(`${config.get('url')}application/${id}`).then(() => {
             this.onDelete();
             return this.snack('Application deleted');
         });
-    };
 
     @action
     public uploadImage = async (id: number, file: Blob): Promise<void> => {

@@ -90,17 +90,15 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {users.map((user: IUser) => {
-                                    return (
-                                        <UserRow
-                                            key={user.id}
-                                            name={user.name}
-                                            admin={user.admin}
-                                            fDelete={() => (this.deleteId = user.id)}
-                                            fEdit={() => (this.editId = user.id)}
-                                        />
-                                    );
-                                })}
+                                {users.map((user: IUser) => (
+                                    <UserRow
+                                        key={user.id}
+                                        name={user.name}
+                                        admin={user.admin}
+                                        fDelete={() => (this.deleteId = user.id)}
+                                        fEdit={() => (this.editId = user.id)}
+                                    />
+                                ))}
                             </TableBody>
                         </Table>
                     </Paper>

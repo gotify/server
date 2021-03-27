@@ -50,7 +50,7 @@ export class MessagesStore {
         );
 
         state.messages.replace([...state.messages, ...pagedResult.messages]);
-        state.nextSince = pagedResult.paging.since || 0;
+        state.nextSince = pagedResult.paging.since ?? 0;
         state.hasMore = 'next' in pagedResult.paging;
         state.loaded = true;
         this.loading = false;
@@ -139,12 +139,10 @@ export class MessagesStore {
             .getItems()
             .reduce((all, app) => ({...all, [app.id]: app.image}), {});
 
-        return this.stateOf(appId, false).messages.map((message: IMessage) => {
-            return {
-                ...message,
-                image: appToImage[message.appid] || null,
-            };
-        });
+        return this.stateOf(appId, false).messages.map((message: IMessage) => ({
+            ...message,
+            image: appToImage[message.appid] || null,
+        }));
     };
 
     public get = createTransformer(this.getUnCached);

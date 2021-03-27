@@ -9,15 +9,13 @@ const styles = () => ({
 });
 
 interface IProps extends WithStyles<'paper'> {
-    style?: object;
+    style?: React.CSSProperties;
 }
 
-const Container: React.SFC<IProps> = ({classes, children, style}) => {
-    return (
-        <Paper elevation={6} className={classes.paper} style={style}>
-            {children}
-        </Paper>
-    );
-};
+const Container: React.FC<IProps> = ({classes, children, style}) => (
+    <Paper elevation={6} className={classes.paper} style={style}>
+        {children}
+    </Paper>
+);
 
 export default withStyles(styles)(Container);

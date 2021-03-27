@@ -38,7 +38,7 @@ export class WebSocketStore {
                     setTimeout(() => this.listen(callback), 30000);
                 })
                 .catch((error: AxiosError) => {
-                    if (error && error.response && error.response.status === 401) {
+                    if (error?.response?.status === 401) {
                         this.snack('Could not authenticate with client token, logging out.');
                     }
                 });
@@ -47,5 +47,5 @@ export class WebSocketStore {
         this.ws = ws;
     };
 
-    public close = () => this.ws && this.ws.close(1000, 'WebSocketStore#close');
+    public close = () => this.ws?.close(1000, 'WebSocketStore#close');
 }

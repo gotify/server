@@ -10,9 +10,8 @@ export class ClientStore extends BaseStore<IClient> {
         super();
     }
 
-    protected requestItems = (): Promise<IClient[]> => {
-        return axios.get<IClient[]>(`${config.get('url')}client`).then((response) => response.data);
-    };
+    protected requestItems = (): Promise<IClient[]> =>
+        axios.get<IClient[]>(`${config.get('url')}client`).then((response) => response.data);
 
     protected requestDelete(id: number): Promise<void> {
         return axios

@@ -38,9 +38,8 @@ export abstract class BaseStore<T extends HasID> implements IClearable {
         return item;
     };
 
-    public getByIDOrUndefined = (id: number): T | undefined => {
-        return this.items.find((hasId: HasID) => hasId.id === id);
-    };
+    public getByIDOrUndefined = (id: number): T | undefined =>
+        this.items.find((hasId: HasID) => hasId.id === id);
 
     public getItems = (): T[] => this.items;
 

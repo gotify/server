@@ -25,9 +25,9 @@ interface IState {
 
 export default class AddEditDialog extends Component<IProps, IState> {
     public state = {
-        name: '',
+        name: this.props.name ?? '',
         pass: '',
-        admin: false,
+        admin: this.props.admin ?? false,
     };
 
     public render() {
@@ -105,11 +105,6 @@ export default class AddEditDialog extends Component<IProps, IState> {
                 </DialogActions>
             </Dialog>
         );
-    }
-
-    public componentWillMount() {
-        const {name, admin} = this.props;
-        this.setState({...this.state, name: name || '', admin: admin || false});
     }
 
     private handleChange(propertyName: string, event: ChangeEvent<HTMLInputElement>) {
