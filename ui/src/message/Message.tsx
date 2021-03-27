@@ -63,7 +63,6 @@ const styles = (theme: Theme) =>
             '& img': {
                 maxWidth: '100%',
             },
-       
         },
     });
 
