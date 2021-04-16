@@ -19,7 +19,7 @@ require (
 	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/lib/pq v1.8.0 // indirect
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
+	github.com/mattn/go-sqlite3 v1.14.7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
