@@ -46,9 +46,9 @@ jobs:
           make build-docker
           docker image ls
           echo "$DOCKER_PASS" | docker login --username "$DOCKER_USER" --password-stdin
-          docker push gotify/server
-          docker push gotify/server-arm7
-          docker push gotify/server-arm64
+          docker push --all-tags gotify/server
+          docker push --all-tags gotify/server-arm7
+          docker push --all-tags gotify/server-arm64
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
           DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
