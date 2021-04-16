@@ -4,7 +4,7 @@ import 'typeface-roboto';
 import {initAxios} from './apiAuth';
 import * as config from './config';
 import Layout from './layout/Layout';
-import registerServiceWorker from './registerServiceWorker';
+import {unregister} from './registerServiceWorker';
 import {CurrentUser} from './CurrentUser';
 import {AppStore} from './application/AppStore';
 import {WebSocketStore} from './message/WebSocketStore';
@@ -83,5 +83,5 @@ const initStores = (): StoreMapping => {
         </InjectProvider>,
         document.getElementById('root')
     );
-    registerServiceWorker();
+    unregister();
 })();

@@ -16,7 +16,6 @@ func Register(r *gin.Engine) {
 	ui.GET("/", serveFile("index.html", "text/html"))
 	ui.GET("/index.html", serveFile("index.html", "text/html"))
 	ui.GET("/manifest.json", serveFile("manifest.json", "application/json"))
-	ui.GET("/service-worker.js", serveFile("service-worker.js", "text/javascript"))
 	ui.GET("/assets-manifest.json", serveFile("asserts-manifest.json", "application/json"))
 	ui.GET("/static/*any", gin.WrapH(http.FileServer(box)))
 }
