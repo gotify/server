@@ -7,7 +7,7 @@
   "dependencies": {
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "codemirror": "^5.57.0",
     "detect-browser": "^5.1.1",
     "js-base64": "^3.4.5",
