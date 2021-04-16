@@ -3,7 +3,7 @@ import {ElementHandle, JSHandle, Page} from 'puppeteer';
 export const innerText = async (page: ElementHandle | Page, selector: string): Promise<string> => {
     const element = await page.$(selector);
     const handle = await element!.getProperty('innerText');
-    const value = await handle.jsonValue();
+    const value = await handle!.jsonValue();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (value as any).toString().trim();
 };
