@@ -6,7 +6,7 @@ import React from 'react';
 import TimeAgo from 'react-timeago';
 import Container from '../common/Container';
 import * as config from '../config';
-import ReactMarkdown from 'react-markdown';
+import {Markdown} from '../common/Markdown';
 import {RenderMode, contentType} from './extras';
 import {IMessageExtras} from '../types';
 
@@ -86,7 +86,7 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
         const content = this.props.content;
         switch (contentType(this.props.extras)) {
             case RenderMode.Markdown:
-                return <ReactMarkdown source={content} escapeHtml={true} />;
+                return <Markdown>{content}</Markdown>;
             case RenderMode.Plain:
             default:
                 return content;
