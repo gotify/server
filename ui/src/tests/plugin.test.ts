@@ -170,6 +170,7 @@ describe('plugin', () => {
                     await toggleEnabled(1);
                 }
                 await inDetailPage(1, async () => {
+                    await page.waitForSelector('.displayer a');
                     const hook = await page.$eval('.displayer a', (el) => el.getAttribute('href'));
                     await axios.get(hook!);
                 });
