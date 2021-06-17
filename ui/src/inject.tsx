@@ -23,13 +23,15 @@ export interface StoreMapping {
 export type AllStores = Extract<keyof StoreMapping, string>;
 export type Stores<T extends AllStores> = Pick<StoreMapping, T>;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const inject = <I extends AllStores>(...stores: I[]) => <P extends {}>(
-    node: React.ComponentType<P>
-): React.ComponentType<Pick<P, Exclude<keyof P, I>>> =>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mobxInject(...stores)(node) as any;
+export const inject =
+    <I extends AllStores>(...stores: I[]) =>
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    <P extends {}>(
+        node: React.ComponentType<P>
+    ): React.ComponentType<Pick<P, Exclude<keyof P, I>>> =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mobxInject(...stores)(node) as any;
 
-export const InjectProvider: React.SFC<{stores: StoreMapping}> = ({children, stores}) => (
+export const InjectProvider: React.FC<{stores: StoreMapping}> = ({children, stores}) => (
     <Provider {...stores}>{children}</Provider>
 );

@@ -35,33 +35,29 @@ describe('User', () => {
         expect(await count(page, $table.rows())).toBe(1);
     });
     describe('create users', () => {
-        const createUser = (
-            name: string,
-            password: string,
-            isAdmin: boolean
-        ): (() => Promise<void>) => async () => {
-            await page.click('#create-user');
-            await page.waitForSelector($dialog.selector());
-            await page.type($dialog.input('.name'), name);
-            await page.type($dialog.input('.password'), password);
-            if (isAdmin) {
-                await page.click($dialog.input('.admin-rights'));
-            }
-            await page.click($dialog.button('.save-create'));
-            await waitToDisappear(page, $dialog.selector());
-        };
+        const createUser =
+            (name: string, password: string, isAdmin: boolean): (() => Promise<void>) =>
+            async () => {
+                await page.click('#create-user');
+                await page.waitForSelector($dialog.selector());
+                await page.type($dialog.input('.name'), name);
+                await page.type($dialog.input('.password'), password);
+                if (isAdmin) {
+                    await page.click($dialog.input('.admin-rights'));
+                }
+                await page.click($dialog.button('.save-create'));
+                await waitToDisappear(page, $dialog.selector());
+            };
         it('nicories', createUser('nicories', '123', false));
         it('jmattheis', createUser('jmattheis', 'noice', true));
         it('dude', createUser('dude', '1', false));
     });
-    const hasUser = (
-        name: string,
-        isAdmin: boolean,
-        row: number
-    ): (() => Promise<void>) => async () => {
-        expect(await innerText(page, $table.cell(row, Col.Name))).toBe(name);
-        expect(await innerText(page, $table.cell(row, Col.Admin))).toBe(isAdmin ? 'Yes' : 'No');
-    };
+    const hasUser =
+        (name: string, isAdmin: boolean, row: number): (() => Promise<void>) =>
+        async () => {
+            expect(await innerText(page, $table.cell(row, Col.Name))).toBe(name);
+            expect(await innerText(page, $table.cell(row, Col.Admin))).toBe(isAdmin ? 'Yes' : 'No');
+        };
 
     describe('has created users', () => {
         it('has four users', async () => {
