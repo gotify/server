@@ -3,7 +3,7 @@ module github.com/gotify/server/v2
 require (
 	github.com/fortytw2/leaktest v1.3.0
 	github.com/gin-contrib/cors v1.3.1
-	github.com/gin-contrib/gzip v0.0.2
+	github.com/gin-contrib/gzip v0.0.3
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/gobuffalo/envy v1.9.0 // indirect
@@ -15,7 +15,7 @@ require (
 	github.com/gotify/configor v1.0.2
 	github.com/gotify/location v0.0.0-20170722210143-03bc4ad20437
 	github.com/gotify/plugin-api v1.0.0
-	github.com/h2non/filetype v1.1.0
+	github.com/h2non/filetype v1.1.1
 	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/lib/pq v1.10.0 // indirect
@@ -26,13 +26,10 @@ require (
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/spf13/cobra v0.0.6 // indirect
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
-	golang.org/x/net v0.0.0-20200904194848-62affa334b73 // indirect
-	golang.org/x/sys v0.0.0-20201005172224-997123666555 // indirect
-	golang.org/x/text v0.3.3 // indirect
+	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	golang.org/x/tools v0.0.0-20200308013534-11ec41452d41 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 go 1.14
