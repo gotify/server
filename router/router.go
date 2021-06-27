@@ -28,6 +28,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	streamHandler := stream.New(time.Duration(conf.Server.Stream.PingPeriodSeconds)*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
 	authentication := auth.Auth{DB: db}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
+	unifiedPushHandler := api.UnifiedPushAPI{Notifier: streamHandler, DB: db}
 	healthHandler := api.HealthAPI{DB: db}
 	clientHandler := api.ClientAPI{
 		DB:            db,
@@ -99,7 +100,14 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		ctx.JSON(200, vInfo)
 	})
 
-	g.Group("/").Use(authentication.RequireApplicationToken()).POST("/message", messageHandler.CreateMessage)
+	appTokenAuth := g.Group("/")
+	{
+		appTokenAuth.Use(authentication.RequireApplicationToken())
+
+		appTokenAuth.POST("/message", messageHandler.CreateMessage)
+
+		appTokenAuth.POST("/UP", unifiedPushHandler.CreateMessage)
+	}
 
 	clientAuth := g.Group("")
 	{
