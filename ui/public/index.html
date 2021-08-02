@@ -35,5 +35,8 @@
     Gotify requires JavaScript.
 </noscript>
 <div id="root"></div>
+<% if (process.env.NODE_ENV === 'production') { %>
+    <script>window.config = %CONFIG%;</script>
+<% } %>
 </body>
 </html>

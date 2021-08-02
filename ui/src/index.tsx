@@ -16,9 +16,7 @@ import {ClientStore} from './client/ClientStore';
 import {PluginStore} from './plugin/PluginStore';
 import {registerReactions} from './reactions';
 
-const defaultDevConfig = {
-    url: 'http://localhost:3000/',
-};
+const devUrl = 'http://localhost:3000/';
 
 const {port, hostname, protocol, pathname} = window.location;
 const slashes = protocol.concat('//');
@@ -26,16 +24,7 @@ const path = pathname.endsWith('/') ? pathname : pathname.substring(0, pathname.
 const url = slashes.concat(port ? hostname.concat(':', port) : hostname) + path;
 const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
 
-const defaultProdConfig = {
-    url: urlWithSlash,
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-declare global {
-    interface Window {
-        config: config.IConfig;
-    }
-}
+const prodUrl = urlWithSlash;
 
 const initStores = (): StoreMapping => {
     const snackManager = new SnackManager();
@@ -62,9 +51,10 @@ const initStores = (): StoreMapping => {
 
 (function clientJS() {
     if (process.env.NODE_ENV === 'production') {
-        config.set(window.config || defaultProdConfig);
+        config.set('url', prodUrl);
     } else {
-        config.set(window.config || defaultDevConfig);
+        config.set('url', devUrl);
+        config.set('register', true);
     }
     const stores = initStores();
     initAxios(stores.currentUser, stores.snackManager.snack);

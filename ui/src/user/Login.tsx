@@ -7,14 +7,11 @@ import DefaultPage from '../common/DefaultPage';
 import {observable} from 'mobx';
 import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
+import * as config from '../config';
 import RegistrationDialog from './Register';
 
-type Props = Stores<'currentUser'> & {
-    showRegister: boolean;
-};
-
 @observer
-class Login extends Component<Props> {
+class Login extends Component<Stores<'currentUser'>> {
     @observable
     private username = '';
     @observable
@@ -75,7 +72,7 @@ class Login extends Component<Props> {
     };
 
     private registerButton = () => {
-        if (this.props.showRegister)
+        if (config.get('register'))
             return (
                 <Button
                     id="register"

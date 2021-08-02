@@ -1,6 +1,5 @@
 import {createMuiTheme, MuiThemeProvider, Theme, WithStyles, withStyles} from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import axios, {AxiosResponse} from 'axios';
 import * as React from 'react';
 import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
 import Header from './Header';
@@ -21,7 +20,6 @@ import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
 import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
-import {IVersion} from '../types';
 
 const styles = (theme: Theme) => ({
     content: {
@@ -57,31 +55,18 @@ const isThemeKey = (value: string | null): value is ThemeKey =>
 class Layout extends React.Component<
     WithStyles<'content'> & Stores<'currentUser' | 'snackManager'>
 > {
-    private static defaultVersion = '0.0.0';
-
     @observable
     private currentTheme: ThemeKey = 'dark';
     @observable
     private showSettings = false;
     @observable
-    private version = Layout.defaultVersion;
-    @observable
     private navOpen = false;
-    @observable
-    private showRegister = true; //TODO https://github.com/gotify/server/pull/394#discussion_r650559205
 
     private setNavOpen(open: boolean) {
         this.navOpen = open;
     }
 
     public componentDidMount() {
-        this.registration = true; //TODO https://github.com/gotify/server/pull/394#discussion_r650559205
-        if (this.version === Layout.defaultVersion) {
-            axios.get(config.get('url') + 'version').then((resp: AxiosResponse<IVersion>) => {
-                this.version = resp.data.version;
-            });
-        }
-
         const localStorageTheme = window.localStorage.getItem(localStorageThemeKey);
         if (isThemeKey(localStorageTheme)) {
             this.currentTheme = localStorageTheme;
@@ -91,7 +76,7 @@ class Layout extends React.Component<
     }
 
     public render() {
-        const {version, showSettings, currentTheme, showRegister} = this;
+        const {showSettings, currentTheme} = this;
         const {
             classes,
             currentUser: {
@@ -104,8 +89,8 @@ class Layout extends React.Component<
             },
         } = this.props;
         const theme = themeMap[currentTheme];
-        const loginRoute = () =>
-            loggedIn ? <Redirect to="/" /> : <Login showRegister={showRegister} />;
+        const loginRoute = () => (loggedIn ? <Redirect to="/" /> : <Login />);
+        const {version} = config.get('version');
         return (
             <MuiThemeProvider theme={theme}>
                 <HashRouter>
