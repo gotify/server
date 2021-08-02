@@ -60,6 +60,7 @@ rules:
   jest/expect-expect: off
   jest/no-jasmine-globals: off
   "@typescript-eslint/require-await": off
+  "@typescript-eslint/restrict-template-expressions": off
 
   "@typescript-eslint/array-type": [error, {default: array-simple}]
   "@typescript-eslint/await-thenable": error

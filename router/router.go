@@ -55,7 +55,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	userChangeNotifier.OnUserDeleted(pluginManager.RemoveUser)
 	userChangeNotifier.OnUserAdded(pluginManager.InitializeForUserID)
 
-	ui.Register(g)
+	ui.Register(g, *vInfo, conf.Registration)
 
 	g.GET("/health", healthHandler.Health)
 	g.GET("/swagger", docs.Serve)
