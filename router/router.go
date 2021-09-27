@@ -1,6 +1,8 @@
 package router
 
 import (
+	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -22,7 +24,7 @@ import (
 func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Configuration) (*gin.Engine, func()) {
 	g := gin.New()
 
-	g.Use(gin.Logger(), gin.Recovery(), error.Handler(), location.Default())
+	g.Use(gin.LoggerWithFormatter(logFormatter), gin.Recovery(), error.Handler(), location.Default())
 	g.NoRoute(error.NotFound())
 
 	streamHandler := stream.New(time.Duration(conf.Server.Stream.PingPeriodSeconds)*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
@@ -166,4 +168,29 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		authAdmin.POST("/:id", userHandler.UpdateUserByID)
 	}
 	return g, streamHandler.Close
+}
+
+var tokenRegexp = regexp.MustCompile("token=[^&]+")
+
+func logFormatter(param gin.LogFormatterParams) string {
+	var statusColor, methodColor, resetColor string
+	if param.IsOutputColor() {
+		statusColor = param.StatusCodeColor()
+		methodColor = param.MethodColor()
+		resetColor = param.ResetColor()
+	}
+
+	if param.Latency > time.Minute {
+		param.Latency = param.Latency - param.Latency%time.Second
+	}
+	path := tokenRegexp.ReplaceAllString(param.Path, "token=[masked]")
+	return fmt.Sprintf("[GIN] %v |%s %3d %s| %13v | %15s |%s %-7s %s %#v\n%s",
+		param.TimeStamp.Format("2006/01/02 - 15:04:05"),
+		statusColor, param.StatusCode, resetColor,
+		param.Latency,
+		param.ClientIP,
+		methodColor, param.Method, resetColor,
+		path,
+		param.ErrorMessage,
+	)
 }
