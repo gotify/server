@@ -75,9 +75,11 @@ build-docker-amd64: require-version
 		-t gotify/server:latest \
 		-t gotify/server:${VERSION} \
 		-t gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -2) \
+		-t gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -1) \
 		-t ghcr.io/gotify/server:latest \
 		-t ghcr.io/gotify/server:${VERSION} \
-		-t ghcr.io/gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -2) .
+		-t ghcr.io/gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -2) \
+		-t ghcr.io/gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -1) .
 	rm ${DOCKER_DIR}gotify-app
 
 build-docker-arm-7: require-version
@@ -87,9 +89,11 @@ build-docker-arm-7: require-version
 		-t gotify/server-arm7:latest \
 		-t gotify/server-arm7:${VERSION} \
 		-t gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -2) \
+		-t gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -1) \
 		-t ghcr.io/gotify/server-arm7:latest \
 		-t ghcr.io/gotify/server-arm7:${VERSION} \
-		-t ghcr.io/gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -2) .
+		-t ghcr.io/gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -2) \ 
+		-t ghcr.io/gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -1) .
 	rm ${DOCKER_DIR}gotify-app
 
 build-docker-arm64: require-version
@@ -99,9 +103,11 @@ build-docker-arm64: require-version
 		-t gotify/server-arm64:latest \
 		-t gotify/server-arm64:${VERSION} \
 		-t gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
+		-t gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -1) \
 		-t ghcr.io/gotify/server-arm64:latest \
 		-t ghcr.io/gotify/server-arm64:${VERSION} \
-		-t ghcr.io/gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -2) .
+		-t ghcr.io/gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
+		-t ghcr.io/gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -1) .
 	rm ${DOCKER_DIR}gotify-app
 
 build-docker: build-docker-amd64 build-docker-arm-7 build-docker-arm64
