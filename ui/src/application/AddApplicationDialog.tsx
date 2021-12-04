@@ -34,7 +34,8 @@ export default class AddDialog extends Component<IProps, IState> {
                 open={true}
                 onClose={fClose}
                 aria-labelledby="form-dialog-title"
-                id="app-dialog">
+                id="app-dialog"
+            >
                 <DialogTitle id="form-dialog-title">Create an application</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -69,7 +70,8 @@ export default class AddDialog extends Component<IProps, IState> {
                                 disabled={!submitEnabled}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="contained">
+                                variant="contained"
+                            >
                                 Create
                             </Button>
                         </div>

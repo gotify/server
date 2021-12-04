@@ -57,7 +57,8 @@ class Navigation extends Component<
                           onClick={() => setNavOpen(false)}
                           className={`${classes.link} item`}
                           to={'/messages/' + app.id}
-                          key={app.id}>
+                          key={app.id}
+                      >
                           <ListItem button>
                               <ListItemText primary={app.name} />
                           </ListItem>
@@ -78,7 +79,8 @@ class Navigation extends Component<
                 classes={{root: classes.root, paper: classes.drawerPaper}}
                 navOpen={navOpen}
                 setNavOpen={setNavOpen}
-                id="message-navigation">
+                id="message-navigation"
+            >
                 <div className={classes.toolbar} />
                 <Link className={classes.link} to="/" onClick={() => setNavOpen(false)}>
                     <ListItem button disabled={!loggedIn} className="all">
@@ -94,7 +96,8 @@ class Navigation extends Component<
                             onClick={() => {
                                 requestPermission();
                                 this.setState({showRequestNotification: false});
-                            }}>
+                            }}
+                        >
                             Enable Notifications
                         </Button>
                     ) : null}
