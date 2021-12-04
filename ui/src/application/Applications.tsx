@@ -53,11 +53,13 @@ class Applications extends Component<Stores<'appStore'>> {
                         id="create-app"
                         variant="contained"
                         color="primary"
-                        onClick={() => (this.createDialog = true)}>
+                        onClick={() => (this.createDialog = true)}
+                    >
                         Create Application
                     </Button>
                 }
-                maxWidth={1000}>
+                maxWidth={1000}
+            >
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="app-table">

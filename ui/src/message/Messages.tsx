@@ -70,7 +70,8 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                             disabled={!hasMessages}
                             color="primary"
                             onClick={() => messagesStore.refreshByApp(appId)}
-                            style={{marginRight: 5}}>
+                            style={{marginRight: 5}}
+                        >
                             Refresh
                         </Button>
                         <Button
@@ -78,18 +79,21 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                             variant="contained"
                             disabled={!hasMessages}
                             color="primary"
-                            onClick={() => messagesStore.removeByApp(appId)}>
+                            onClick={() => messagesStore.removeByApp(appId)}
+                        >
                             Delete All
                         </Button>
                     </div>
-                }>
+                }
+            >
                 {hasMessages ? (
                     <div style={{width: '100%'}} id="messages">
                         <ReactInfinite
                             key={appId}
                             useWindowAsScrollContainer
                             preloadBatchSize={window.innerHeight * 3}
-                            elementHeight={messages.map((m) => this.heights[m.id] || 1)}>
+                            elementHeight={messages.map((m) => this.heights[m.id] || 1)}
+                        >
                             {messages.map(this.renderMessage)}
                         </ReactInfinite>
 

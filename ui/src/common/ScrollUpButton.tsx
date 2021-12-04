@@ -36,7 +36,8 @@ class ScrollUpButton extends Component {
                     display: this.state.display,
                     opacity: this.state.opacity,
                 }}
-                onClick={this.scrollUp}>
+                onClick={this.scrollUp}
+            >
                 <KeyboardArrowUp />
             </Fab>
         );

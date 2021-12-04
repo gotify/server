@@ -16,7 +16,8 @@ export const ConnectionErrorBanner = ({height, retry, message}: ConnectionErrorB
             width: '100%',
             zIndex: 1300,
             position: 'relative',
-        }}>
+        }}
+    >
         <Typography align="center" variant="h6" style={{lineHeight: `${height}px`}}>
             {message}{' '}
             <Button variant="outlined" onClick={retry}>

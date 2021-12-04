@@ -50,7 +50,8 @@ class Login extends Component<Stores<'currentUser'>> {
                                 color="primary"
                                 disabled={!!this.props.currentUser.connectionErrorMessage}
                                 style={{marginTop: 15, marginBottom: 5}}
-                                onClick={this.login}>
+                                onClick={this.login}
+                            >
                                 Login
                             </Button>
                         </form>
@@ -78,7 +79,8 @@ class Login extends Component<Stores<'currentUser'>> {
                     id="register"
                     variant="contained"
                     color="primary"
-                    onClick={() => (this.registerDialog = true)}>
+                    onClick={() => (this.registerDialog = true)}
+                >
                     Register
                 </Button>
             );

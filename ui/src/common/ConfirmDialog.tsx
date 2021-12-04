@@ -23,7 +23,8 @@ export default function ConfirmDialog({title, text, fClose, fOnSubmit}: IProps) 
             open={true}
             onClose={fClose}
             aria-labelledby="form-dialog-title"
-            className="confirm-dialog">
+            className="confirm-dialog"
+        >
             <DialogTitle id="form-dialog-title">{title}</DialogTitle>
             <DialogContent>
                 <DialogContentText>{text}</DialogContentText>
@@ -37,7 +38,8 @@ export default function ConfirmDialog({title, text, fClose, fOnSubmit}: IProps) 
                     autoFocus
                     color="primary"
                     variant="contained"
-                    className="confirm">
+                    className="confirm"
+                >
                     Yes
                 </Button>
             </DialogActions>

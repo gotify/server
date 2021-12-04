@@ -28,7 +28,8 @@ export default class AddDialog extends Component<IProps, {name: string}> {
                 open={true}
                 onClose={fClose}
                 aria-labelledby="form-dialog-title"
-                id="client-dialog">
+                id="client-dialog"
+            >
                 <DialogTitle id="form-dialog-title">Create a client</DialogTitle>
                 <DialogContent>
                     <TextField
@@ -46,14 +47,16 @@ export default class AddDialog extends Component<IProps, {name: string}> {
                     <Button onClick={fClose}>Cancel</Button>
                     <Tooltip
                         placement={'bottom-start'}
-                        title={submitEnabled ? '' : 'name is required'}>
+                        title={submitEnabled ? '' : 'name is required'}
+                    >
                         <div>
                             <Button
                                 className="create"
                                 disabled={!submitEnabled}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="contained">
+                                variant="contained"
+                            >
                                 Create
                             </Button>
                         </div>
