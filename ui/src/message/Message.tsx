@@ -48,8 +48,10 @@ const styles = (theme: Theme) =>
         imageWrapper: {
             display: 'flex',
         },
-        content: {
+        plainContent: {
             whiteSpace: 'pre-wrap',
+        },
+        content: {
             wordBreak: 'break-all',
             '& p': {
                 margin: 0,
@@ -89,7 +91,7 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                 return <Markdown>{content}</Markdown>;
             case RenderMode.Plain:
             default:
-                return content;
+                return <span className={this.props.classes.plainContent}>{content}</span>;
         }
     };
 
