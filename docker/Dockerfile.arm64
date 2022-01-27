@@ -1,3 +1,6 @@
+# Note: Due to https://github.com/gotify/server/issues/350 this Dockerfile
+is more limited than the default. Notably, this issue prevents configuring
+a HEALTHCHECK directive.
 FROM arm64v8/debian
 WORKDIR /app
 ADD gotify-app /app/
