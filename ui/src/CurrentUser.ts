@@ -5,6 +5,7 @@ import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
 import {observable} from 'mobx';
 import {IClient, IUser} from './types';
+import {registerNotificationWorker, unregisterNotificationWorker} from './registerServiceWorker';
 
 const tokenKey = 'gotify-login-key';
 
@@ -78,12 +79,13 @@ export class CurrentUser {
                 headers: {Authorization: 'Basic ' + Base64.encode(username + ':' + password)},
             })
             .then((resp: AxiosResponse<IClient>) => {
-                this.snack(`A client named '${name}' was created for your session.`);
+                this.snack(`A client named '${name}' and a notification worker was created for your session.`);
                 this.setToken(resp.data.token);
                 this.tryAuthenticate()
                     .then(() => {
                         this.authenticating = false;
                         this.loggedIn = true;
+                        registerNotificationWorker(resp.data.token);
                     })
                     .catch(() => {
                         this.authenticating = false;
@@ -150,6 +152,7 @@ export class CurrentUser {
         window.localStorage.removeItem(tokenKey);
         this.tokenCache = null;
         this.loggedIn = false;
+        unregisterNotificationWorker();
     };
 
     public changePassword = (pass: string) => {
