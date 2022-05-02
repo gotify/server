@@ -61,7 +61,12 @@ const initStores = (): StoreMapping => {
 
     registerReactions(stores);
 
-    stores.currentUser.tryAuthenticate().catch(() => {});
+    stores.currentUser.tryAuthenticate().then(() => {
+        // always request notification permission when logged in
+        Notification.requestPermission()
+            .then(perm => console.log("Notification permissions " + perm))
+            .catch(console.error)
+    }).catch(() => {});
 
     window.onbeforeunload = () => {
         stores.wsStore.close();

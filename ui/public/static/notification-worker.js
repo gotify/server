@@ -27,7 +27,9 @@ self.addEventListener("activate", () => {
 
     ws.onmessage = function(event) {
         msgObj = JSON.parse(event.data)
-        self.registration.showNotification("WORKER: " + msgObj.message)
+        self.registration.showNotification("WORKER: " + msgObj.title, {
+            body: msgObj.message
+        })
     }
 
 })

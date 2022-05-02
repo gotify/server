@@ -14,13 +14,6 @@ export function registerNotificationWorker(key: string) {
         navigator.serviceWorker.register("static/notification-worker.js?key=" + key, {
             scope: "/static/notification-worker"
         })
-            .then((r) => {
-                // request notification permission
-                Notification.requestPermission()
-                    .then(perm => console.log("Notification permissions " + perm))
-                    .catch(console.error)
-                return r
-            })
             .catch(console.error)
     } else {
         console.error("Service workers are not supported in your browser!")
