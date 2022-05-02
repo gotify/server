@@ -4,7 +4,7 @@ import 'typeface-roboto';
 import {initAxios} from './apiAuth';
 import * as config from './config';
 import Layout from './layout/Layout';
-import {unregister} from './registerServiceWorker';
+import {registerNotificationWorker} from './registerServiceWorker';
 import {CurrentUser} from './CurrentUser';
 import {AppStore} from './application/AppStore';
 import {WebSocketStore} from './message/WebSocketStore';
@@ -66,6 +66,8 @@ const initStores = (): StoreMapping => {
         Notification.requestPermission()
             .then(perm => console.log("Notification permissions " + perm))
             .catch(console.error)
+        // reregister worker
+        registerNotificationWorker(stores.currentUser.token());
     }).catch(() => {});
 
     window.onbeforeunload = () => {
@@ -78,5 +80,5 @@ const initStores = (): StoreMapping => {
         </InjectProvider>,
         document.getElementById('root')
     );
-    unregister();
+    //unregister();
 })();
