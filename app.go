@@ -34,11 +34,11 @@ func main() {
 	conf := config.Get()
 
 	if conf.PluginsDir != "" {
-		if err := os.MkdirAll(conf.PluginsDir, 0755); err != nil {
+		if err := os.MkdirAll(conf.PluginsDir, 0o755); err != nil {
 			panic(err)
 		}
 	}
-	if err := os.MkdirAll(conf.UploadedImagesDir, 0755); err != nil {
+	if err := os.MkdirAll(conf.UploadedImagesDir, 0o755); err != nil {
 		panic(err)
 	}
 
