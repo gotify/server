@@ -1,3 +1,4 @@
+//go:build (linux || darwin) && !race
 // +build linux darwin
 // +build !race
 

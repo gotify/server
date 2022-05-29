@@ -31,13 +31,13 @@ func TestWithWd(t *testing.T) {
 		WithWd("non_exist", func(string) {})
 	})
 
-	assert.Nil(t, os.Mkdir(tmpDir.Path(), 0644))
+	assert.Nil(t, os.Mkdir(tmpDir.Path(), 0o644))
 	assert.Panics(t, func() {
 		WithWd(tmpDir.Path(), func(string) {})
 	})
 	assert.Nil(t, os.Remove(tmpDir.Path()))
 
-	assert.Nil(t, os.Mkdir(tmpDir.Path(), 0755))
+	assert.Nil(t, os.Mkdir(tmpDir.Path(), 0o755))
 	assert.Panics(t, func() {
 		WithWd(tmpDir.Path(), func(string) {
 			assert.Nil(t, os.RemoveAll(tmpDir.Path()))

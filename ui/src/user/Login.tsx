@@ -31,6 +31,7 @@ class Login extends Component<Stores<'currentUser'>> {
                                 className="name"
                                 label="Username"
                                 margin="dense"
+                                autoComplete="username"
                                 value={username}
                                 onChange={(e) => (this.username = e.target.value)}
                             />
@@ -39,6 +40,7 @@ class Login extends Component<Stores<'currentUser'>> {
                                 className="password"
                                 label="Password"
                                 margin="normal"
+                                autoComplete="current-password"
                                 value={password}
                                 onChange={(e) => (this.password = e.target.value)}
                             />
