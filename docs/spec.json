@@ -99,7 +99,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Application"
+              "$ref": "#/definitions/ApplicationParams"
             }
           }
         ],
@@ -162,7 +162,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Application"
+              "$ref": "#/definitions/ApplicationParams"
             }
           },
           {
@@ -1913,7 +1913,7 @@
         "id": {
           "description": "The application id.",
           "type": "integer",
-          "format": "int64",
+          "format": "uint64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 5
@@ -1948,6 +1948,29 @@
       },
       "x-go-package": "github.com/gotify/server/v2/model"
     },
+    "ApplicationParams": {
+      "description": "Params allowed to create or update Applications",
+      "type": "object",
+      "title": "Application Params Model",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "description": {
+          "description": "The description of the application.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Backup server for the interwebs"
+        },
+        "name": {
+          "description": "The application name. This is how the application should be displayed to the user.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Backup Server"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/api"
+    },
     "Client": {
       "description": "The Client holds information about a device which can receive notifications (and other stuff).",
       "type": "object",
@@ -1961,7 +1984,7 @@
         "id": {
           "description": "The client id.",
           "type": "integer",
-          "format": "int64",
+          "format": "uint64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 5
@@ -2052,7 +2075,7 @@
         "appid": {
           "description": "The application id that send this message.",
           "type": "integer",
-          "format": "int64",
+          "format": "uint64",
           "x-go-name": "ApplicationID",
           "readOnly": true,
           "example": 5
@@ -2084,7 +2107,7 @@
         "id": {
           "description": "The message id.",
           "type": "integer",
-          "format": "int64",
+          "format": "uint64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 25
@@ -2166,7 +2189,7 @@
         "since": {
           "description": "The ID of the last message returned in the current request. Use this as alternative to the next link.",
           "type": "integer",
-          "format": "int64",
+          "format": "uint64",
           "minimum": 0,
           "x-go-name": "Since",
           "readOnly": true,
@@ -2224,7 +2247,7 @@
         "id": {
           "description": "The plugin id.",
           "type": "integer",
-          "format": "int64",
+          "format": "uint64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 25
@@ -2285,7 +2308,7 @@
         "id": {
           "description": "The user id.",
           "type": "integer",
-          "format": "int64",
+          "format": "uint64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 25
@@ -2337,7 +2360,7 @@
         "id": {
           "description": "The user id.",
           "type": "integer",
-          "format": "int64",
+          "format": "uint64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 25
