@@ -112,7 +112,7 @@ func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInPar
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
-	s.withJson(&model.Application{
+	s.withJSON(&model.Application{
 		Name:        "name",
 		Description: "description",
 		ID:          333,
@@ -123,7 +123,7 @@ func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInPar
 
 	s.a.CreateApplication(s.ctx)
 
-	expectedJsonValue, _ := json.Marshal(&model.Application{
+	expectedJSONValue, _ := json.Marshal(&model.Application{
 		ID:          1,
 		Token:       firstApplicationToken,
 		UserID:      5,
@@ -134,7 +134,7 @@ func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInPar
 	})
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Equal(s.T(), string(expectedJsonValue), string(s.recorder.Body.Bytes()))
+	assert.Equal(s.T(), string(expectedJSONValue), s.recorder.Body.String())
 }
 
 func (s *ApplicationSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwner() {
@@ -535,7 +535,7 @@ func (s *ApplicationSuite) withFormData(formData string) {
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 }
 
-func (s *ApplicationSuite) withJson(value interface{}) {
+func (s *ApplicationSuite) withJSON(value interface{}) {
 	jsonVal, _ := json.Marshal(value)
 	s.ctx.Request = httptest.NewRequest("POST", "/application", bytes.NewBuffer(jsonVal))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
