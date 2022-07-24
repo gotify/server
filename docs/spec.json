@@ -99,7 +99,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Application"
+              "$ref": "#/definitions/ApplicationParams"
             }
           }
         ],
@@ -162,7 +162,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Application"
+              "$ref": "#/definitions/ApplicationParams"
             }
           },
           {
@@ -1947,6 +1947,29 @@
         }
       },
       "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "ApplicationParams": {
+      "description": "Params allowed to create or update Applications",
+      "type": "object",
+      "title": "Application Params Model",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "description": {
+          "description": "The description of the application.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Backup server for the interwebs"
+        },
+        "name": {
+          "description": "The application name. This is how the application should be displayed to the user.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Backup Server"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/api"
     },
     "Client": {
       "description": "The Client holds information about a device which can receive notifications (and other stuff).",

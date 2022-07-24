@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -105,6 +106,35 @@ func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() 
 	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
 		assert.Empty(s.T(), app)
 	}
+}
+
+func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInParams() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.withJSON(&model.Application{
+		Name:        "name",
+		Description: "description",
+		ID:          333,
+		Internal:    true,
+		Token:       "token",
+		Image:       "adfdf",
+	})
+
+	s.a.CreateApplication(s.ctx)
+
+	expectedJSONValue, _ := json.Marshal(&model.Application{
+		ID:          1,
+		Token:       firstApplicationToken,
+		UserID:      5,
+		Name:        "name",
+		Description: "description",
+		Internal:    false,
+		Image:       "static/defaultapp.png",
+	})
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), string(expectedJSONValue), s.recorder.Body.String())
 }
 
 func (s *ApplicationSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwner() {
@@ -503,6 +533,12 @@ func (s *ApplicationSuite) Test_UpdateApplication_WithoutPermission_expectNotFou
 func (s *ApplicationSuite) withFormData(formData string) {
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(formData))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+}
+
+func (s *ApplicationSuite) withJSON(value interface{}) {
+	jsonVal, _ := json.Marshal(value)
+	s.ctx.Request = httptest.NewRequest("POST", "/application", bytes.NewBuffer(jsonVal))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
 }
 
 // A modified version of https://stackoverflow.com/a/20397167/4244993 from Attila O.

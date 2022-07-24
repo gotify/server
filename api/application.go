@@ -29,6 +29,23 @@ type ApplicationAPI struct {
 	ImageDir string
 }
 
+// Application Params Model
+//
+// Params allowed to create or update Applications
+//
+// swagger:model ApplicationParams
+type ApplicationParams struct {
+	// The application name. This is how the application should be displayed to the user.
+	//
+	// required: true
+	// example: Backup Server
+	Name string `form:"name" query:"name" json:"name" binding:"required"`
+	// The description of the application.
+	//
+	// example: Backup server for the interwebs
+	Description string `form:"description" query:"description" json:"description"`
+}
+
 // CreateApplication creates an application and returns the access token.
 // swagger:operation POST /application application createApp
 //
@@ -44,7 +61,7 @@ type ApplicationAPI struct {
 //   description: the application to add
 //   required: true
 //   schema:
-//     $ref: "#/definitions/Application"
+//     $ref: "#/definitions/ApplicationParams"
 // responses:
 //   200:
 //     description: Ok
@@ -63,11 +80,16 @@ type ApplicationAPI struct {
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
-	app := model.Application{}
-	if err := ctx.Bind(&app); err == nil {
-		app.Token = auth.GenerateNotExistingToken(generateApplicationToken, a.applicationExists)
-		app.UserID = auth.GetUserID(ctx)
-		app.Internal = false
+	applicationParams := ApplicationParams{}
+	if err := ctx.Bind(&applicationParams); err == nil {
+		app := model.Application{
+			Name:        applicationParams.Name,
+			Description: applicationParams.Description,
+			Token:       auth.GenerateNotExistingToken(generateApplicationToken, a.applicationExists),
+			UserID:      auth.GetUserID(ctx),
+			Internal:    false,
+		}
+
 		if success := successOrAbort(ctx, 500, a.DB.CreateApplication(&app)); !success {
 			return
 		}
@@ -184,7 +206,7 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 //   description: the application to update
 //   required: true
 //   schema:
-//     $ref: "#/definitions/Application"
+//     $ref: "#/definitions/ApplicationParams"
 // - name: id
 //   in: path
 //   description: the application id
@@ -219,10 +241,10 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 			return
 		}
 		if app != nil && app.UserID == auth.GetUserID(ctx) {
-			newValues := &model.Application{}
-			if err := ctx.Bind(newValues); err == nil {
-				app.Description = newValues.Description
-				app.Name = newValues.Name
+			applicationParams := ApplicationParams{}
+			if err := ctx.Bind(&applicationParams); err == nil {
+				app.Description = applicationParams.Description
+				app.Name = applicationParams.Name
 
 				if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
 					return
