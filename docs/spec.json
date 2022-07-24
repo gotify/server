@@ -1913,7 +1913,7 @@
         "id": {
           "description": "The application id.",
           "type": "integer",
-          "format": "uint64",
+          "format": "int64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 5
@@ -1984,7 +1984,7 @@
         "id": {
           "description": "The client id.",
           "type": "integer",
-          "format": "uint64",
+          "format": "int64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 5
@@ -2075,7 +2075,7 @@
         "appid": {
           "description": "The application id that send this message.",
           "type": "integer",
-          "format": "uint64",
+          "format": "int64",
           "x-go-name": "ApplicationID",
           "readOnly": true,
           "example": 5
@@ -2107,7 +2107,7 @@
         "id": {
           "description": "The message id.",
           "type": "integer",
-          "format": "uint64",
+          "format": "int64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 25
@@ -2189,7 +2189,7 @@
         "since": {
           "description": "The ID of the last message returned in the current request. Use this as alternative to the next link.",
           "type": "integer",
-          "format": "uint64",
+          "format": "int64",
           "minimum": 0,
           "x-go-name": "Since",
           "readOnly": true,
@@ -2247,7 +2247,7 @@
         "id": {
           "description": "The plugin id.",
           "type": "integer",
-          "format": "uint64",
+          "format": "int64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 25
@@ -2308,7 +2308,7 @@
         "id": {
           "description": "The user id.",
           "type": "integer",
-          "format": "uint64",
+          "format": "int64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 25
@@ -2360,7 +2360,7 @@
         "id": {
           "description": "The user id.",
           "type": "integer",
-          "format": "uint64",
+          "format": "int64",
           "x-go-name": "ID",
           "readOnly": true,
           "example": 25
