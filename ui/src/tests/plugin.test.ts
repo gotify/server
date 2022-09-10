@@ -172,7 +172,7 @@ describe('plugin', () => {
                 await inDetailPage(1, async () => {
                     await page.waitForSelector('.displayer a');
                     const hook = await page.$eval('.displayer a', (el) => el.getAttribute('href'));
-                    await axios.get(hook!);
+                    await axios.get(hook);
                 });
             });
             it('has received message', async () => {
