@@ -1634,7 +1634,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UserWithPass"
+              "$ref": "#/definitions/CreateUserExternal"
             }
           }
         ],
@@ -1771,7 +1771,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UserWithPass"
+              "$ref": "#/definitions/UpdateUserExternal"
             }
           }
         ],
@@ -2001,6 +2001,37 @@
           "x-go-name": "Token",
           "readOnly": true,
           "example": "CWH0wZ5r0Mbac.r"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "CreateUserExternal": {
+      "description": "Used for user creation.",
+      "type": "object",
+      "title": "CreateUserExternal Model",
+      "required": [
+        "name",
+        "admin",
+        "pass"
+      ],
+      "properties": {
+        "admin": {
+          "description": "If the user is an administrator.",
+          "type": "boolean",
+          "x-go-name": "Admin",
+          "example": true
+        },
+        "name": {
+          "description": "The user name. For login.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "unicorn"
+        },
+        "pass": {
+          "description": "The user password. For login.",
+          "type": "string",
+          "x-go-name": "Pass",
+          "example": "nrocinu"
         }
       },
       "x-go-package": "github.com/gotify/server/v2/model"
@@ -2290,13 +2321,44 @@
       "x-go-name": "PluginConfExternal",
       "x-go-package": "github.com/gotify/server/v2/model"
     },
+    "UpdateUserExternal": {
+      "description": "Used for updating a user.",
+      "type": "object",
+      "title": "UpdateUserExternal Model",
+      "required": [
+        "name",
+        "admin"
+      ],
+      "properties": {
+        "admin": {
+          "description": "If the user is an administrator.",
+          "type": "boolean",
+          "x-go-name": "Admin",
+          "example": true
+        },
+        "name": {
+          "description": "The user name. For login.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "unicorn"
+        },
+        "pass": {
+          "description": "The user password. For login. Empty for using old password",
+          "type": "string",
+          "x-go-name": "Pass",
+          "example": "nrocinu"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
     "User": {
       "description": "The User holds information about permission and other stuff.",
       "type": "object",
       "title": "UserExternal Model",
       "required": [
         "id",
-        "name"
+        "name",
+        "admin"
       ],
       "properties": {
         "admin": {
@@ -2339,46 +2401,6 @@
         }
       },
       "x-go-name": "UserExternalPass",
-      "x-go-package": "github.com/gotify/server/v2/model"
-    },
-    "UserWithPass": {
-      "description": "The UserWithPass holds information about the credentials and other stuff.",
-      "type": "object",
-      "title": "UserExternalWithPass Model",
-      "required": [
-        "id",
-        "name",
-        "pass"
-      ],
-      "properties": {
-        "admin": {
-          "description": "If the user is an administrator.",
-          "type": "boolean",
-          "x-go-name": "Admin",
-          "example": true
-        },
-        "id": {
-          "description": "The user id.",
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "ID",
-          "readOnly": true,
-          "example": 25
-        },
-        "name": {
-          "description": "The user name. For login.",
-          "type": "string",
-          "x-go-name": "Name",
-          "example": "unicorn"
-        },
-        "pass": {
-          "description": "The user password. For login.",
-          "type": "string",
-          "x-go-name": "Pass",
-          "example": "nrocinu"
-        }
-      },
-      "x-go-name": "UserExternalWithPass",
       "x-go-package": "github.com/gotify/server/v2/model"
     },
     "VersionInfo": {
