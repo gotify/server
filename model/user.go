@@ -30,18 +30,54 @@ type UserExternal struct {
 	Name string `binding:"required" json:"name" query:"name" form:"name"`
 	// If the user is an administrator.
 	//
+	// required: true
 	// example: true
 	Admin bool `json:"admin" form:"admin" query:"admin"`
 }
 
-// UserExternalWithPass Model
+// CreateUserExternal Model
 //
-// The UserWithPass holds information about the credentials and other stuff.
+// Used for user creation.
 //
-// swagger:model UserWithPass
-type UserExternalWithPass struct {
-	UserExternal
-	UserExternalPass
+// swagger:model CreateUserExternal
+type CreateUserExternal struct {
+	// The user name. For login.
+	//
+	// required: true
+	// example: unicorn
+	Name string `binding:"required" json:"name" query:"name" form:"name"`
+	// If the user is an administrator.
+	//
+	// required: true
+	// example: true
+	Admin bool `json:"admin" form:"admin" query:"admin"`
+	// The user password. For login.
+	//
+	// required: true
+	// example: nrocinu
+	Pass string `json:"pass,omitempty" form:"pass" query:"pass" binding:"required"`
+}
+
+// UpdateUserExternal Model
+//
+// Used for updating a user.
+//
+// swagger:model UpdateUserExternal
+type UpdateUserExternal struct {
+	// The user name. For login.
+	//
+	// required: true
+	// example: unicorn
+	Name string `binding:"required" json:"name" query:"name" form:"name"`
+	// If the user is an administrator.
+	//
+	// required: true
+	// example: true
+	Admin bool `json:"admin" form:"admin" query:"admin"`
+	// The user password. For login. Empty for using old password
+	//
+	// example: nrocinu
+	Pass string `json:"pass,omitempty" form:"pass" query:"pass"`
 }
 
 // UserExternalPass Model
