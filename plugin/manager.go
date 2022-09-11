@@ -227,6 +227,8 @@ func (m *Manager) loadPlugins(directory string) error {
 	}
 	for _, f := range pluginFiles {
 		pluginPath := filepath.Join(directory, "./", f.Name())
+
+		fmt.Println("Loading plugin", pluginPath)
 		pRaw, err := plugin.Open(pluginPath)
 		if err != nil {
 			return pluginFileLoadError{f.Name(), err}
