@@ -42,8 +42,7 @@ class SnackBarHandler extends Component<Stores<'snackManager'>> {
                         key="close"
                         aria-label="Close"
                         color="inherit"
-                        onClick={this.closeCurrentSnack}
-                    >
+                        onClick={this.closeCurrentSnack}>
                         <Close />
                     </IconButton>
                 }

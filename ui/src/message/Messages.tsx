@@ -11,7 +11,7 @@ import {inject, Stores} from '../inject';
 import {observable} from 'mobx';
 import ReactInfinite from 'react-infinite';
 import {IMessage} from '../types';
-import ConfirmDialog from "../common/ConfirmDialog";
+import ConfirmDialog from '../common/ConfirmDialog';
 
 type IProps = RouteComponentProps<{id: string}>;
 
@@ -73,8 +73,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                             disabled={!hasMessages}
                             color="primary"
                             onClick={() => messagesStore.refreshByApp(appId)}
-                            style={{marginRight: 5}}
-                        >
+                            style={{marginRight: 5}}>
                             Refresh
                         </Button>
                         <Button
@@ -82,21 +81,20 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                             variant="contained"
                             disabled={!hasMessages}
                             color="primary"
-                            onClick={() => {this.deleteAll = true}}
-                        >
+                            onClick={() => {
+                                this.deleteAll = true;
+                            }}>
                             Delete All
                         </Button>
                     </div>
-                }
-            >
+                }>
                 {hasMessages ? (
                     <div style={{width: '100%'}} id="messages">
                         <ReactInfinite
                             key={appId}
                             useWindowAsScrollContainer
                             preloadBatchSize={window.innerHeight * 3}
-                            elementHeight={messages.map((m) => this.heights[m.id] || 1)}
-                        >
+                            elementHeight={messages.map((m) => this.heights[m.id] || 1)}>
                             {messages.map(this.renderMessage)}
                         </ReactInfinite>
 

@@ -31,8 +31,7 @@ class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
                 open={true}
                 onClose={fClose}
                 aria-labelledby="form-dialog-title"
-                id="changepw-dialog"
-            >
+                id="changepw-dialog">
                 <DialogTitle id="form-dialog-title">Change Password</DialogTitle>
                 <DialogContent>
                     <TextField
@@ -55,8 +54,7 @@ class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
                                 disabled={pass.length === 0}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="contained"
-                            >
+                                variant="contained">
                                 Change
                             </Button>
                         </div>
