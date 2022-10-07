@@ -11,6 +11,7 @@ import {inject, Stores} from '../inject';
 import {observable} from 'mobx';
 import ReactInfinite from 'react-infinite';
 import {IMessage} from '../types';
+import ConfirmDialog from "../common/ConfirmDialog";
 
 type IProps = RouteComponentProps<{id: string}>;
 
@@ -22,6 +23,8 @@ interface IState {
 class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, IState> {
     @observable
     private heights: Record<string, number> = {};
+    @observable
+    private deleteAll = false;
 
     private static appId(props: IProps) {
         if (props === undefined) {
@@ -79,7 +82,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                             variant="contained"
                             disabled={!hasMessages}
                             color="primary"
-                            onClick={() => messagesStore.removeByApp(appId)}
+                            onClick={() => {this.deleteAll = true}}
                         >
                             Delete All
                         </Button>
@@ -107,6 +110,15 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                     </div>
                 ) : (
                     this.label('No messages')
+                )}
+
+                {this.deleteAll && (
+                    <ConfirmDialog
+                        title="Confirm Delete"
+                        text={'Delete all messages?'}
+                        fClose={() => (this.deleteAll = false)}
+                        fOnSubmit={() => messagesStore.removeByApp(appId)}
+                    />
                 )}
             </DefaultPage>
         );
