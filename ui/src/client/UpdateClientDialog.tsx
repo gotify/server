@@ -41,8 +41,7 @@ export default class UpdateDialog extends Component<IProps, IState> {
                 open={true}
                 onClose={fClose}
                 aria-labelledby="form-dialog-title"
-                id="client-dialog"
-            >
+                id="client-dialog">
                 <DialogTitle id="form-dialog-title">Update a Client</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -69,8 +68,7 @@ export default class UpdateDialog extends Component<IProps, IState> {
                                 disabled={!submitEnabled}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="contained"
-                            >
+                                variant="contained">
                                 Update
                             </Button>
                         </div>

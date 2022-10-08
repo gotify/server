@@ -48,12 +48,10 @@ class Clients extends Component<Stores<'clientStore'>> {
                         id="create-client"
                         variant="contained"
                         color="primary"
-                        onClick={() => (this.showDialog = true)}
-                    >
+                        onClick={() => (this.showDialog = true)}>
                         Create Client
                     </Button>
-                }
-            >
+                }>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="client-table">

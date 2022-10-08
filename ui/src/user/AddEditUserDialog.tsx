@@ -44,8 +44,7 @@ export default class AddEditDialog extends Component<IProps, IState> {
                 open={true}
                 onClose={fClose}
                 aria-labelledby="form-dialog-title"
-                id="add-edit-user-dialog"
-            >
+                id="add-edit-user-dialog">
                 <DialogTitle id="form-dialog-title">
                     {isEdit ? 'Edit ' + this.props.name : 'Add a user'}
                 </DialogTitle>
@@ -91,16 +90,14 @@ export default class AddEditDialog extends Component<IProps, IState> {
                                     ? ''
                                     : 'password is required'
                                 : 'name is required'
-                        }
-                    >
+                        }>
                         <div>
                             <Button
                                 className="save-create"
                                 disabled={!passPresent || !namePresent}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="contained"
-                            >
+                                variant="contained">
                                 {isEdit ? 'Save' : 'Create'}
                             </Button>
                         </div>

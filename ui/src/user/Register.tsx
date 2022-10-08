@@ -41,8 +41,7 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                 open={true}
                 onClose={fClose}
                 aria-labelledby="form-dialog-title"
-                id="add-edit-user-dialog"
-            >
+                id="add-edit-user-dialog">
                 <DialogTitle id="form-dialog-title">Registration</DialogTitle>
                 <DialogContent>
                     <TextField
@@ -75,16 +74,14 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                                     ? ''
                                     : 'password is required'
                                 : 'name is required'
-                        }
-                    >
+                        }>
                         <div>
                             <Button
                                 className="save-create"
                                 disabled={!passPresent || !namePresent}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="contained"
-                            >
+                                variant="contained">
                                 Register
                             </Button>
                         </div>
