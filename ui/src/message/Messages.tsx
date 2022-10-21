@@ -149,6 +149,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
             content={message.message}
             image={message.image}
             extras={message.extras}
+            priority={message.priority}
         />
     );
 
