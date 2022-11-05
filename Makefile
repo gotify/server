@@ -110,7 +110,21 @@ build-docker-arm64: require-version
 		-t ghcr.io/gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -1) .
 	rm ${DOCKER_DIR}gotify-app
 
-build-docker: build-docker-amd64 build-docker-arm-7 build-docker-arm64
+build-docker-riscv64: require-version
+	cp ${BUILD_DIR}/gotify-linux-riscv64 ./docker/gotify-app
+	cd ${DOCKER_DIR} && \
+		docker build -f Dockerfile.riscv64 \
+		-t gotify/server-riscv64:latest \
+		-t gotify/server-riscv64:${VERSION} \
+		-t gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
+		-t gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -1) \
+		-t ghcr.io/gotify/server-riscv64:latest \
+		-t ghcr.io/gotify/server-riscv64:${VERSION} \
+		-t ghcr.io/gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
+		-t ghcr.io/gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -1) .
+	rm ${DOCKER_DIR}gotify-app
+
+build-docker: build-docker-amd64 build-docker-arm-7 build-docker-arm64 build-docker-riscv64
 
 build-js:
 	(cd ui && yarn build)
@@ -127,12 +141,15 @@ build-linux-arm-7:
 build-linux-arm64:
 	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-arm64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-arm64 ${DOCKER_WORKDIR}
 
+build-linux-riscv64:
+	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-riscv64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-riscv64 ${DOCKER_WORKDIR}
+
 build-windows-amd64:
 	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-windows-amd64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-windows-amd64.exe ${DOCKER_WORKDIR}
 
 build-windows-386:
 	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-windows-386 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-windows-386.exe ${DOCKER_WORKDIR}
 
-build: build-linux-arm-7 build-linux-amd64 build-linux-386 build-linux-arm64 build-windows-amd64 build-windows-386
+build: build-linux-arm-7 build-linux-amd64 build-linux-386 build-linux-arm64 build-linux-riscv64 build-windows-amd64 build-windows-386
 
 .PHONY: test-race test-coverage test check-go check-js verify-swagger check download-tools update-swagger package-zip build-docker build-js build

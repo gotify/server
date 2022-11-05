@@ -52,9 +52,11 @@ jobs:
           docker push --all-tags gotify/server
           docker push --all-tags gotify/server-arm7
           docker push --all-tags gotify/server-arm64
+          docker push --all-tags gotify/server-riscv64
           docker push --all-tags ghcr.io/gotify/server
           docker push --all-tags ghcr.io/gotify/server-arm7
           docker push --all-tags ghcr.io/gotify/server-arm64
+          docker push --all-tags ghcr.io/gotify/server-riscv64
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
           DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
