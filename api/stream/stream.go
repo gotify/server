@@ -105,7 +105,7 @@ func (a *API) register(client *client) {
 // ---
 // schema: ws, wss
 // produces: [application/json]
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok

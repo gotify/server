@@ -2,10 +2,11 @@ package auth
 
 import (
 	"errors"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth/password"
 	"github.com/gotify/server/v2/model"
-	"strings"
 )
 
 const (

@@ -11,19 +11,22 @@
   ],
   "swagger": "2.0",
   "info": {
-    "description": "This is the documentation of the Gotify REST-API.\n\n# Authentication\nIn Gotify there are two token types:\n__clientToken__: a client is something that receives message and manages stuff like creating new tokens or delete messages. (f.ex this token should be used for an android app)\n__appToken__: an application is something that sends messages (f.ex. this token should be used for a shell script)\n\nThe token can be either transmitted through a header named `X-Gotify-Key` or a query parameter named `token`.\nThere is also the possibility to authenticate through basic auth, this should only be used for creating a clientToken.\n\n\\---\n\nFound a bug or have some questions? [Create an issue on GitHub](https://github.com/gotify/server/issues)",
+    "description": "This is the documentation of the Gotify REST-API.\n\n# Authentication\nIn Gotify there are two token types:\n__clientToken__: a client is something that receives message and manages stuff like creating new tokens or delete messages. (f.ex this token should be used for an android app)\n__appToken__: an application is something that sends messages (f.ex. this token should be used for a shell script)\n\nThe token can be transmitted in a header named `X-Gotify-Key`, in a query parameter named `token` or\nthrough a header named `Authorization` with the value prefixed with `Bearer` (Ex. `Bearer randomtoken`).\nThere is also the possibility to authenticate through basic auth, this should only be used for creating a clientToken.\n\n\\---\n\nFound a bug or have some questions? [Create an issue on GitHub](https://github.com/gotify/server/issues)",
     "title": "Gotify REST-API.",
     "license": {
       "name": "MIT",
       "url": "https://github.com/gotify/server/blob/master/LICENSE"
     },
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   "host": "localhost",
   "paths": {
     "/application": {
       "get": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -71,6 +74,9 @@
       },
       "post": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -134,6 +140,9 @@
     "/application/{id}": {
       "put": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -210,6 +219,9 @@
       "delete": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -274,6 +286,9 @@
     "/application/{id}/image": {
       "post": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -356,6 +371,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -436,6 +454,9 @@
       "delete": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -498,6 +519,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -544,6 +568,9 @@
       },
       "post": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -607,6 +634,9 @@
     "/client/{id}": {
       "put": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -683,6 +713,9 @@
       "delete": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -748,6 +781,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -790,6 +826,9 @@
     "/current/user/password": {
       "post": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -877,6 +916,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -943,6 +985,9 @@
       "post": {
         "security": [
           {
+            "appTokenAuthorizationHeader": []
+          },
+          {
             "appTokenHeader": []
           },
           {
@@ -1002,6 +1047,9 @@
       "delete": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1041,6 +1089,9 @@
     "/message/{id}": {
       "delete": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1104,6 +1155,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1164,6 +1218,9 @@
     "/plugin/{id}/config": {
       "get": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1238,6 +1295,9 @@
       "post": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1309,6 +1369,9 @@
       "post": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1373,6 +1436,9 @@
     "/plugin/{id}/display": {
       "get": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1442,6 +1508,9 @@
       "post": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1507,6 +1576,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1562,6 +1634,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1605,6 +1680,9 @@
       },
       "post": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1669,6 +1747,9 @@
     "/user/{id}": {
       "get": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1735,6 +1816,9 @@
       },
       "post": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1810,6 +1894,9 @@
       },
       "delete": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -2435,6 +2522,12 @@
     }
   },
   "securityDefinitions": {
+    "appTokenAuthorizationHeader": {
+      "description": "Enter an application token with the `Bearer` prefix, e.g. `Bearer Axxxxxxxxxx`.",
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    },
     "appTokenHeader": {
       "type": "apiKey",
       "name": "X-Gotify-Key",
@@ -2447,6 +2540,12 @@
     },
     "basicAuth": {
       "type": "basic"
+    },
+    "clientTokenAuthorizationHeader": {
+      "description": "Enter a client token with the `Bearer` prefix, e.g. `Bearer Cxxxxxxxxxx`.",
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
     },
     "clientTokenHeader": {
       "type": "apiKey",

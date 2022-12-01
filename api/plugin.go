@@ -36,7 +36,7 @@ type PluginAPI struct {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -101,7 +101,7 @@ func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 //   required: true
 //   type: integer
 //   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -159,7 +159,7 @@ func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 //   required: true
 //   type: integer
 //   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -217,7 +217,7 @@ func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 //   required: true
 //   type: integer
 //   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -273,7 +273,7 @@ func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 //   required: true
 //   type: integer
 //   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -340,7 +340,7 @@ func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 //   required: true
 //   type: integer
 //   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok

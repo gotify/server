@@ -33,7 +33,7 @@ type ClientAPI struct {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: body
 //   in: body
@@ -98,7 +98,7 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
 // - name: body
 //   in: body
@@ -143,7 +143,7 @@ func (a *ClientAPI) CreateClient(ctx *gin.Context) {
 // ---
 // consumes: [application/json]
 // produces: [application/json]
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
@@ -183,7 +183,7 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 //   required: true
 //   type: integer
 //   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
 //   200:
 //     description: Ok
