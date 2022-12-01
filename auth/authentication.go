@@ -2,10 +2,10 @@ package auth
 
 import (
 	"errors"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth/password"
 	"github.com/gotify/server/v2/model"
+	"strings"
 )
 
 const (
@@ -82,7 +82,9 @@ func (a *Auth) RequireApplicationToken() gin.HandlerFunc {
 func (a *Auth) tokenFromQueryOrHeader(ctx *gin.Context) string {
 	if token := a.tokenFromQuery(ctx); token != "" {
 		return token
-	} else if token := a.tokenFromHeader(ctx); token != "" {
+	} else if token := a.tokenFromXGotifyHeader(ctx); token != "" {
+		return token
+	} else if token := a.tokenFromAuthorizationHeader(ctx); token != "" {
 		return token
 	}
 	return ""
@@ -92,8 +94,23 @@ func (a *Auth) tokenFromQuery(ctx *gin.Context) string {
 	return ctx.Request.URL.Query().Get("token")
 }
 
-func (a *Auth) tokenFromHeader(ctx *gin.Context) string {
+func (a *Auth) tokenFromXGotifyHeader(ctx *gin.Context) string {
 	return ctx.Request.Header.Get(headerName)
+}
+
+func (a *Auth) tokenFromAuthorizationHeader(ctx *gin.Context) string {
+	const prefix = "Bearer "
+
+	authHeader := ctx.Request.Header.Get("Authorization")
+	if authHeader == "" {
+		return ""
+	}
+
+	if len(authHeader) < len(prefix) || !strings.EqualFold(prefix, authHeader[:len(prefix)]) {
+		return ""
+	}
+
+	return authHeader[len(prefix):]
 }
 
 func (a *Auth) userFromBasicAuth(ctx *gin.Context) (*model.User, error) {
