@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gotify/server/v2/config"
@@ -75,7 +76,11 @@ func redirectToHTTPS(port string) http.HandlerFunc {
 func changePort(hostPort, port string) string {
 	host, _, err := net.SplitHostPort(hostPort)
 	if err != nil {
-		return hostPort
+		// There is no exported error.
+		if !strings.Contains(err.Error(), "missing port") {
+			return hostPort
+		}
+		host = hostPort
 	}
 	return net.JoinHostPort(host, port)
 }
