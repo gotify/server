@@ -24,10 +24,11 @@ jobs:
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-node_modules-
       - uses: actions/checkout@v2
-      - uses: golangci/golangci-lint-action@v2
+      - uses: golangci/golangci-lint-action@v3
         with:
           version: v1.45
           args: --timeout=5m
+          skip-cache: true
       - run: go mod download
       - run: make download-tools
       - run: (cd ui && yarn)
