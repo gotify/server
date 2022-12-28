@@ -398,6 +398,22 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithTextFile_expectBadRequest() {
 	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("file must be an image"))
 }
 
+func (s *ApplicationSuite) Test_UploadAppImage_WithHtmlFileHavingImageHeader() {
+	s.db.User(5).App(1)
+
+	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image-header-with.html")})
+	assert.Nil(s.T(), err)
+	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant", &buffer)
+	s.ctx.Request.Header.Set("Content-Type", cType)
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	s.a.UploadApplicationImage(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("invalid file extension"))
+}
+
 func (s *ApplicationSuite) Test_UploadAppImage_expectNotFound() {
 	s.db.User(5)
 

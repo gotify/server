@@ -329,6 +329,14 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 
 			ext := filepath.Ext(file.Filename)
 
+			switch ext {
+			case ".gif", ".png", ".jpg", ".jpeg":
+				// ok
+			default:
+				ctx.AbortWithError(400, errors.New("invalid file extension"))
+				return
+			}
+
 			name := generateNonExistingImageName(a.ImageDir, func() string {
 				return generateImageName() + ext
 			})
