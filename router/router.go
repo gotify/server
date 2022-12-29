@@ -2,6 +2,8 @@ package router
 
 import (
 	"fmt"
+	"net/http"
+	"path/filepath"
 	"regexp"
 	"time"
 
@@ -14,7 +16,7 @@ import (
 	"github.com/gotify/server/v2/config"
 	"github.com/gotify/server/v2/database"
 	"github.com/gotify/server/v2/docs"
-	"github.com/gotify/server/v2/error"
+	gerror "github.com/gotify/server/v2/error"
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/plugin"
 	"github.com/gotify/server/v2/ui"
@@ -24,8 +26,8 @@ import (
 func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Configuration) (*gin.Engine, func()) {
 	g := gin.New()
 
-	g.Use(gin.LoggerWithFormatter(logFormatter), gin.Recovery(), error.Handler(), location.Default())
-	g.NoRoute(error.NotFound())
+	g.Use(gin.LoggerWithFormatter(logFormatter), gin.Recovery(), gerror.Handler(), location.Default())
+	g.NoRoute(gerror.NotFound())
 
 	streamHandler := stream.New(time.Duration(conf.Server.Stream.PingPeriodSeconds)*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
 	authentication := auth.Auth{DB: db}
@@ -61,7 +63,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	g.GET("/health", healthHandler.Health)
 	g.GET("/swagger", docs.Serve)
-	g.Static("/image", conf.UploadedImagesDir)
+	g.StaticFS("/image", &onlyImageFS{inner: gin.Dir(conf.UploadedImagesDir, false)})
+
 	g.GET("/docs", docs.UI)
 
 	g.Use(func(ctx *gin.Context) {
@@ -193,4 +196,16 @@ func logFormatter(param gin.LogFormatterParams) string {
 		path,
 		param.ErrorMessage,
 	)
+}
+
+type onlyImageFS struct {
+	inner http.FileSystem
+}
+
+func (fs *onlyImageFS) Open(name string) (http.File, error) {
+	ext := filepath.Ext(name)
+	if !api.ValidApplicationImageExt(ext) {
+		return nil, fmt.Errorf("invalid file")
+	}
+	return fs.inner.Open(name)
 }
