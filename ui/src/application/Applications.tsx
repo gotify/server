@@ -1,4 +1,3 @@
-import Avatar from '@material-ui/core/Avatar';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper';
@@ -159,7 +158,7 @@ const Row: SFC<IRowProps> = observer(
         <TableRow>
             <TableCell padding="default">
                 <div style={{display: 'flex'}}>
-                    <Avatar src={config.get('url') + image} />
+                    <img src={config.get('url') + image} alt="app logo" width="40" height="40" />
                     <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
                     </IconButton>
