@@ -161,9 +161,8 @@ const Row: SFC<IRowProps> = observer(
                     <img
                         src={config.get('url') + image}
                         alt="app logo"
-                        width="70"
-                        height="70"
-                        className={classes.image}
+                        width="40"
+                        height="40"
                     />
                     <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
