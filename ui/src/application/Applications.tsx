@@ -159,7 +159,13 @@ const Row: SFC<IRowProps> = observer(
         <TableRow>
             <TableCell padding="default">
                 <div style={{display: 'flex'}}>
-                    <Avatar src={config.get('url') + image} />
+                    <img
+                        src={config.get('url') + image}
+                        alt="app logo"
+                        width="70"
+                        height="70"
+                        className={classes.image}
+                    />
                     <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
                     </IconButton>
