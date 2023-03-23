@@ -44,11 +44,15 @@ func (s *ClientSuite) BeforeTest(suiteName, testName string) {
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	withURL(s.ctx, "http", "example.com")
 	s.notified = false
-	s.a = &ClientAPI{DB: s.db, NotifyDeleted: s.notify}
+	s.a = &ClientAPI{DB: s.db, NotifyDeleted: s.notify, UpdateClients: s.updateClient}
 }
 
 func (s *ClientSuite) notify(uint, string) {
 	s.notified = true
+}
+
+func (s *ClientSuite) updateClient(id uint, mc *model.Client) error {
+	return nil
 }
 
 func (s *ClientSuite) AfterTest(suiteName, testName string) {
@@ -57,8 +61,8 @@ func (s *ClientSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *ClientSuite) Test_ensureClientHasCorrectJsonRepresentation() {
-	actual := &model.Client{ID: 1, UserID: 2, Token: "Casdasfgeeg", Name: "myclient"}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Casdasfgeeg","name":"myclient"}`)
+	actual := &model.Client{ID: 1, UserID: 2, Token: "Casdasfgeeg", Name: "myclient", MinPriority: 0}
+	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Casdasfgeeg","min_priority":0,"name":"myclient"}`)
 }
 
 func (s *ClientSuite) Test_CreateClient_mapAllParameters() {
@@ -69,7 +73,7 @@ func (s *ClientSuite) Test_CreateClient_mapAllParameters() {
 
 	s.a.CreateClient(s.ctx)
 
-	expected := &model.Client{ID: 1, Token: firstClientToken, UserID: 5, Name: "custom_name"}
+	expected := &model.Client{ID: 1, Token: firstClientToken, UserID: 5, Name: "custom_name", MinPriority: 0}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	if clients, err := s.db.GetClientsByUser(5); assert.NoError(s.T(), err) {
 		assert.Contains(s.T(), clients, expected)
@@ -181,10 +185,11 @@ func (s *ClientSuite) Test_UpdateClient_expectSuccess() {
 	s.a.UpdateClient(s.ctx)
 
 	expected := &model.Client{
-		ID:     1,
-		Token:  firstClientToken,
-		UserID: 5,
-		Name:   "firefox",
+		ID:          1,
+		Token:       firstClientToken,
+		UserID:      5,
+		Name:        "firefox",
+		MinPriority: 0,
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
