@@ -23,6 +23,7 @@ type ClientAPI struct {
 	DB            ClientDatabase
 	ImageDir      string
 	NotifyDeleted func(uint, string)
+	UpdateClients func(uint, *model.Client) error
 }
 
 // UpdateClient updates a client by its id.
@@ -78,10 +79,12 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 			newValues := &model.Client{}
 			if err := ctx.Bind(newValues); err == nil {
 				client.Name = newValues.Name
+				client.MinPriority = newValues.MinPriority
 
 				if success := successOrAbort(ctx, 500, a.DB.UpdateClient(client)); !success {
 					return
 				}
+				a.UpdateClients(id, client)
 				ctx.JSON(200, client)
 			}
 		} else {

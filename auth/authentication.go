@@ -140,7 +140,7 @@ func (a *Auth) requireToken(auth authenticate) gin.HandlerFunc {
 				ctx.AbortWithError(500, errors.New("an error occurred while authenticating user"))
 				return
 			} else if ok {
-				RegisterAuthentication(ctx, user, userID, token, minPriority)
+				RegisterAuthentication(ctx, user, userID, 0, token, minPriority)
 				ctx.Next()
 				return
 			} else if authenticated {
@@ -157,23 +157,23 @@ func (a *Auth) Optional() gin.HandlerFunc {
 		token := a.tokenFromQueryOrHeader(ctx)
 		user, err := a.userFromBasicAuth(ctx)
 		if err != nil {
-			RegisterAuthentication(ctx, nil, 0, "", -1)
+			RegisterAuthentication(ctx, nil, 0, 0, "", -1)
 			ctx.Next()
 			return
 		}
 
 		if user != nil {
-			RegisterAuthentication(ctx, user, user.ID, token, -1)
+			RegisterAuthentication(ctx, user, user.ID, 0, token, -1)
 			ctx.Next()
 			return
 		} else if token != "" {
 			if tokenClient, err := a.DB.GetClientByToken(token); err == nil && tokenClient != nil {
-				RegisterAuthentication(ctx, user, tokenClient.UserID, token, tokenClient.MinPriority)
+				RegisterAuthentication(ctx, user, tokenClient.UserID, tokenClient.ID, token, tokenClient.MinPriority)
 				ctx.Next()
 				return
 			}
 		}
-		RegisterAuthentication(ctx, nil, 0, "", -1)
+		RegisterAuthentication(ctx, nil, 0, 0, "", -1)
 		ctx.Next()
 	}
 }

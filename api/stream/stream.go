@@ -50,6 +50,21 @@ func (a *API) NotifyDeletedUser(userID uint) error {
 	return nil
 }
 
+// UpdateClients updates the client's settings, such as minPriority.
+func (a *API) UpdateClients(userID uint, mc *model.Client) error {
+	a.lock.Lock()
+	defer a.lock.Unlock()
+	if clients, ok := a.clients[userID]; ok {
+		for _, client := range clients {
+			if client.clientID == mc.ID {
+				client.minPriority = mc.MinPriority
+				break
+			}
+		}
+	}
+	return nil
+}
+
 // NotifyDeletedClient closes existing connections with the given token.
 func (a *API) NotifyDeletedClient(userID uint, token string) {
 	a.lock.Lock()
@@ -136,7 +151,7 @@ func (a *API) Handle(ctx *gin.Context) {
 		return
 	}
 
-	client := newClient(conn, auth.GetUserID(ctx), auth.GetTokenID(ctx), auth.GetMinPriority(ctx), a.remove)
+	client := newClient(conn, auth.GetUserID(ctx), auth.GetClientID(ctx), auth.GetTokenID(ctx), auth.GetMinPriority(ctx), a.remove)
 	a.register(client)
 	go client.startReading(a.pongTimeout)
 	go client.startWriteHandler(a.pingPeriod)

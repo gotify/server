@@ -26,15 +26,17 @@ type client struct {
 	write       chan *model.MessageExternal
 	userID      uint
 	token       string
+	clientID    uint
 	minPriority int
 	once        once
 }
 
-func newClient(conn *websocket.Conn, userID uint, token string, minPriority int, onClose func(*client)) *client {
+func newClient(conn *websocket.Conn, userID, clientID uint, token string, minPriority int, onClose func(*client)) *client {
 	return &client{
 		conn:        conn,
 		write:       make(chan *model.MessageExternal, 1),
 		userID:      userID,
+		clientID:    clientID,
 		token:       token,
 		onClose:     onClose,
 		minPriority: minPriority,
