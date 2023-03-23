@@ -72,7 +72,9 @@ func (a *API) Notify(userID uint, msg *model.MessageExternal) {
 	defer a.lock.RUnlock()
 	if clients, ok := a.clients[userID]; ok {
 		for _, c := range clients {
-			c.write <- msg
+			if msg.Priority >= c.minPriority {
+				c.write <- msg
+			}
 		}
 	}
 }
@@ -134,7 +136,7 @@ func (a *API) Handle(ctx *gin.Context) {
 		return
 	}
 
-	client := newClient(conn, auth.GetUserID(ctx), auth.GetTokenID(ctx), a.remove)
+	client := newClient(conn, auth.GetUserID(ctx), auth.GetTokenID(ctx), auth.GetMinPriority(ctx), a.remove)
 	a.register(client)
 	go client.startReading(a.pongTimeout)
 	go client.startWriteHandler(a.pingPeriod)

@@ -2076,6 +2076,13 @@
           "readOnly": true,
           "example": 5
         },
+        "min_priority": {
+          "description": "Minimum priority of messages for this client.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "MinPriority",
+          "example": 3
+        },
         "name": {
           "description": "The client name. This is how the client should be displayed to the user.",
           "type": "string",

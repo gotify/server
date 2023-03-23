@@ -27,56 +27,56 @@ type Auth struct {
 	DB Database
 }
 
-type authenticate func(tokenID string, user *model.User) (authenticated, success bool, userId uint, err error)
+type authenticate func(tokenID string, user *model.User) (authenticated, success bool, userId uint, minPriority int, err error)
 
 // RequireAdmin returns a gin middleware which requires a client token or basic authentication header to be supplied
 // with the request. Also the authenticated user must be an administrator.
 func (a *Auth) RequireAdmin() gin.HandlerFunc {
-	return a.requireToken(func(tokenID string, user *model.User) (bool, bool, uint, error) {
+	return a.requireToken(func(tokenID string, user *model.User) (bool, bool, uint, int, error) {
 		if user != nil {
-			return true, user.Admin, user.ID, nil
+			return true, user.Admin, user.ID, -1, nil
 		}
 		if token, err := a.DB.GetClientByToken(tokenID); err != nil {
-			return false, false, 0, err
+			return false, false, 0, -1, err
 		} else if token != nil {
 			user, err := a.DB.GetUserByID(token.UserID)
 			if err != nil {
-				return false, false, token.UserID, err
+				return false, false, token.UserID, -1, err
 			}
-			return true, user.Admin, token.UserID, nil
+			return true, user.Admin, token.UserID, token.MinPriority, nil
 		}
-		return false, false, 0, nil
+		return false, false, 0, -1, nil
 	})
 }
 
 // RequireClient returns a gin middleware which requires a client token or basic authentication header to be supplied
 // with the request.
 func (a *Auth) RequireClient() gin.HandlerFunc {
-	return a.requireToken(func(tokenID string, user *model.User) (bool, bool, uint, error) {
+	return a.requireToken(func(tokenID string, user *model.User) (bool, bool, uint, int, error) {
 		if user != nil {
-			return true, true, user.ID, nil
+			return true, true, user.ID, -1, nil
 		}
 		if token, err := a.DB.GetClientByToken(tokenID); err != nil {
-			return false, false, 0, err
+			return false, false, 0, -1, err
 		} else if token != nil {
-			return true, true, token.UserID, nil
+			return true, true, token.UserID, token.MinPriority, nil
 		}
-		return false, false, 0, nil
+		return false, false, 0, -1, nil
 	})
 }
 
 // RequireApplicationToken returns a gin middleware which requires an application token to be supplied with the request.
 func (a *Auth) RequireApplicationToken() gin.HandlerFunc {
-	return a.requireToken(func(tokenID string, user *model.User) (bool, bool, uint, error) {
+	return a.requireToken(func(tokenID string, user *model.User) (bool, bool, uint, int, error) {
 		if user != nil {
-			return true, false, 0, nil
+			return true, false, 0, -1, nil
 		}
 		if token, err := a.DB.GetApplicationByToken(tokenID); err != nil {
-			return false, false, 0, err
+			return false, false, 0, -1, err
 		} else if token != nil {
-			return true, true, token.UserID, nil
+			return true, true, token.UserID, -1, nil
 		}
-		return false, false, 0, nil
+		return false, false, 0, -1, nil
 	})
 }
 
@@ -135,12 +135,12 @@ func (a *Auth) requireToken(auth authenticate) gin.HandlerFunc {
 		}
 
 		if user != nil || token != "" {
-			authenticated, ok, userID, err := auth(token, user)
+			authenticated, ok, userID, minPriority, err := auth(token, user)
 			if err != nil {
 				ctx.AbortWithError(500, errors.New("an error occurred while authenticating user"))
 				return
 			} else if ok {
-				RegisterAuthentication(ctx, user, userID, token)
+				RegisterAuthentication(ctx, user, userID, token, minPriority)
 				ctx.Next()
 				return
 			} else if authenticated {
@@ -157,23 +157,23 @@ func (a *Auth) Optional() gin.HandlerFunc {
 		token := a.tokenFromQueryOrHeader(ctx)
 		user, err := a.userFromBasicAuth(ctx)
 		if err != nil {
-			RegisterAuthentication(ctx, nil, 0, "")
+			RegisterAuthentication(ctx, nil, 0, "", -1)
 			ctx.Next()
 			return
 		}
 
 		if user != nil {
-			RegisterAuthentication(ctx, user, user.ID, token)
+			RegisterAuthentication(ctx, user, user.ID, token, -1)
 			ctx.Next()
 			return
 		} else if token != "" {
 			if tokenClient, err := a.DB.GetClientByToken(token); err == nil && tokenClient != nil {
-				RegisterAuthentication(ctx, user, tokenClient.UserID, token)
+				RegisterAuthentication(ctx, user, tokenClient.UserID, token, tokenClient.MinPriority)
 				ctx.Next()
 				return
 			}
 		}
-		RegisterAuthentication(ctx, nil, 0, "")
+		RegisterAuthentication(ctx, nil, 0, "", -1)
 		ctx.Next()
 	}
 }

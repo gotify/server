@@ -24,4 +24,10 @@ type Client struct {
 	// required: true
 	// example: Android Phone
 	Name string `gorm:"type:text" form:"name" query:"name" json:"name" binding:"required"`
+	// Minimum priority of messages for this client.
+	//
+	// read only: false
+	// required: false
+	// example: 3
+	MinPriority int `gorm:"type:int" form:"min_priority" json:"min_priority"`
 }

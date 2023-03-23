@@ -6,10 +6,11 @@ import (
 )
 
 // RegisterAuthentication registers the user id, user and or token.
-func RegisterAuthentication(ctx *gin.Context, user *model.User, userID uint, tokenID string) {
+func RegisterAuthentication(ctx *gin.Context, user *model.User, userID uint, tokenID string, minPriority int) {
 	ctx.Set("user", user)
 	ctx.Set("userid", userID)
 	ctx.Set("tokenid", tokenID)
+	ctx.Set("min_priority", minPriority)
 }
 
 // GetUserID returns the user id which was previously registered by RegisterAuthentication.
@@ -38,4 +39,9 @@ func TryGetUserID(ctx *gin.Context) *uint {
 // GetTokenID returns the tokenID.
 func GetTokenID(ctx *gin.Context) string {
 	return ctx.MustGet("tokenid").(string)
+}
+
+// GetMinPriority returns the minimum priority for messages for this client
+func GetMinPriority(ctx *gin.Context) int {
+	return ctx.MustGet("min_priority").(int)
 }
