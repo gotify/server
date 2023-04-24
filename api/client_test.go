@@ -76,6 +76,21 @@ func (s *ClientSuite) Test_CreateClient_mapAllParameters() {
 	}
 }
 
+func (s *ClientSuite) Test_CreateClient_ignoresReadOnlyPropertiesInParams() {
+	s.db.User(5)
+	test.WithUser(s.ctx, 5)
+
+	s.withFormData("name=myclient&ID=45&Token=12341234&UserID=333")
+
+	s.a.CreateClient(s.ctx)
+	expected := &model.Client{ID: 1, UserID: 5, Token: firstClientToken, Name: "myclient"}
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	if clients, err := s.db.GetClientsByUser(5); assert.NoError(s.T(), err) {
+		assert.Contains(s.T(), clients, expected)
+	}
+}
+
 func (s *ClientSuite) Test_CreateClient_expectBadRequestOnEmptyName() {
 	s.db.User(5)
 
