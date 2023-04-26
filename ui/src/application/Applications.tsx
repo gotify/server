@@ -13,7 +13,7 @@ import React, {ChangeEvent, Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import Button from '@material-ui/core/Button';
-import ToggleVisibility from '../common/ToggleVisibility';
+import CopyableSecret from '../common/CopyableSecret';
 import AddApplicationDialog from './AddApplicationDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
@@ -166,7 +166,7 @@ const Row: SFC<IRowProps> = observer(
             </TableCell>
             <TableCell>{name}</TableCell>
             <TableCell>
-                <ToggleVisibility value={value} style={{display: 'flex', alignItems: 'center'}} />
+                <CopyableSecret value={value} style={{display: 'flex', alignItems: 'center'}} />
             </TableCell>
             <TableCell>{description}</TableCell>
             <TableCell align="right" padding="none">
