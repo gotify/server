@@ -599,7 +599,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Client"
+              "$ref": "#/definitions/ClientParams"
             }
           }
         ],
@@ -665,7 +665,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Client"
+              "$ref": "#/definitions/ClientParams"
             }
           },
           {
@@ -2091,6 +2091,23 @@
         }
       },
       "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "ClientParams": {
+      "description": "Params allowed to create or update Clients",
+      "type": "object",
+      "title": "Client Params Model",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "The client name",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "My Client"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/api"
     },
     "CreateUserExternal": {
       "description": "Used for user creation.",

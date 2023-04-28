@@ -25,6 +25,19 @@ type ClientAPI struct {
 	NotifyDeleted func(uint, string)
 }
 
+// Client Params Model
+//
+// Params allowed to create or update Clients
+//
+// swagger:model ClientParams
+type ClientParams struct {
+	// The client name
+	//
+	// required: true
+	// example: My Client
+	Name string `form:"name" query:"name" json:"name" binding:"required"`
+}
+
 // UpdateClient updates a client by its id.
 // swagger:operation PUT /client/{id} client updateClient
 //
@@ -40,7 +53,7 @@ type ClientAPI struct {
 //   description: the client to update
 //   required: true
 //   schema:
-//     $ref: "#/definitions/Client"
+//     $ref: "#/definitions/ClientParams"
 // - name: id
 //   in: path
 //   description: the client id
@@ -75,8 +88,8 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 			return
 		}
 		if client != nil && client.UserID == auth.GetUserID(ctx) {
-			newValues := &model.Client{}
-			if err := ctx.Bind(newValues); err == nil {
+			newValues := ClientParams{}
+			if err := ctx.Bind(&newValues); err == nil {
 				client.Name = newValues.Name
 
 				if success := successOrAbort(ctx, 500, a.DB.UpdateClient(client)); !success {
@@ -105,7 +118,7 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 //   description: the client to add
 //   required: true
 //   schema:
-//     $ref: "#/definitions/Client"
+//     $ref: "#/definitions/ClientParams"
 // responses:
 //   200:
 //     description: Ok
@@ -124,10 +137,14 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 //     schema:
 //         $ref: "#/definitions/Error"
 func (a *ClientAPI) CreateClient(ctx *gin.Context) {
-	client := model.Client{}
-	if err := ctx.Bind(&client); err == nil {
-		client.Token = auth.GenerateNotExistingToken(generateClientToken, a.clientExists)
-		client.UserID = auth.GetUserID(ctx)
+	clientParams := ClientParams{}
+	if err := ctx.Bind(&clientParams); err == nil {
+		client := model.Client{
+			Name:   clientParams.Name,
+			Token:  auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
+			UserID: auth.GetUserID(ctx),
+		}
+
 		if success := successOrAbort(ctx, 500, a.DB.CreateClient(&client)); !success {
 			return
 		}
