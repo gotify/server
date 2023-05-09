@@ -12,13 +12,13 @@ import React, {Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import Button from '@material-ui/core/Button';
-import ToggleVisibility from '../common/ToggleVisibility';
 import AddClientDialog from './AddClientDialog';
 import UpdateDialog from './UpdateClientDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
 import {IClient} from '../types';
+import CopyableSecret from '../common/CopyableSecret';
 
 @observer
 class Clients extends Component<Stores<'clientStore'>> {
@@ -114,7 +114,7 @@ const Row: SFC<IRowProps> = ({name, value, fEdit, fDelete}) => (
     <TableRow>
         <TableCell>{name}</TableCell>
         <TableCell>
-            <ToggleVisibility
+            <CopyableSecret
                 value={value}
                 style={{display: 'flex', alignItems: 'center', width: 200}}
             />
