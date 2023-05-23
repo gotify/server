@@ -176,6 +176,10 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 var tokenRegexp = regexp.MustCompile("token=[^&]+")
 
 func logFormatter(param gin.LogFormatterParams) string {
+	if param.ClientIP == "127.0.0.1" && param.Path == "/health" {
+		return ""
+	}
+
 	var statusColor, methodColor, resetColor string
 	if param.IsOutputColor() {
 		statusColor = param.StatusCodeColor()
