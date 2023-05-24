@@ -119,6 +119,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 			app.POST("/:id/image", applicationHandler.UploadApplicationImage)
 
+			app.DELETE("/:id/image", applicationHandler.RemoveApplicationImage)
+
 			app.PUT("/:id", applicationHandler.UpdateApplication)
 
 			app.DELETE("/:id", applicationHandler.DeleteApplication)
