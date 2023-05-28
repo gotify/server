@@ -358,6 +358,70 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 	})
 }
 
+// RemoveApplicationImage deletes an image of an application.
+// swagger:operation DELETE /application/{id}/image application removeAppImage
+//
+// Deletes an image of an application.
+//
+// ---
+// consumes: [application/json]
+// produces: [application/json]
+// parameters:
+// - name: id
+//   in: path
+//   description: the application id
+//   required: true
+//   type: integer
+//   format: int64
+// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+// responses:
+//   200:
+//     description: Ok
+//   400:
+//     description: Bad Request
+//     schema:
+//         $ref: "#/definitions/Error"
+//   401:
+//     description: Unauthorized
+//     schema:
+//         $ref: "#/definitions/Error"
+//   403:
+//     description: Forbidden
+//     schema:
+//         $ref: "#/definitions/Error"
+//   404:
+//     description: Not Found
+//     schema:
+//         $ref: "#/definitions/Error"
+//   500:
+//     description: Server Error
+//     schema:
+//         $ref: "#/definitions/Error"
+func (a *ApplicationAPI) RemoveApplicationImage(ctx *gin.Context) {
+	withID(ctx, "id", func(id uint) {
+		app, err := a.DB.GetApplicationByID(id)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if app != nil && app.UserID == auth.GetUserID(ctx) {
+			if app.Image == "" {
+				ctx.AbortWithError(400, fmt.Errorf("app with id %d does not have a customized image", id))
+				return
+			}
+
+			image := app.Image
+			app.Image = ""
+			if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
+				return
+			}
+			os.Remove(a.ImageDir + image)
+			ctx.JSON(200, withResolvedImage(app))
+		} else {
+			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
+		}
+	})
+}
+
 func withResolvedImage(app *model.Application) *model.Application {
 	if app.Image == "" {
 		app.Image = "static/defaultapp.png"
