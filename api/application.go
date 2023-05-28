@@ -409,11 +409,12 @@ func (a *ApplicationAPI) RemoveApplicationImage(ctx *gin.Context) {
 				return
 			}
 
+			image := app.Image
 			app.Image = ""
 			if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
 				return
 			}
-			os.Remove(a.ImageDir + app.Image)
+			os.Remove(a.ImageDir + image)
 			ctx.JSON(200, withResolvedImage(app))
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))

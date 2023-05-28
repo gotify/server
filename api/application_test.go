@@ -452,13 +452,17 @@ func (s *ApplicationSuite) Test_RemoveAppImage_noCustomizedImage() {
 func (s *ApplicationSuite) Test_RemoveAppImage_expectSuccess() {
 	s.db.User(5)
 
-	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: "existing.png"})
-	fakeImage(s.T(), "existing.png")
+	imageFile := "existing.png"
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: imageFile})
+	fakeImage(s.T(), imageFile)
 
 	test.WithUser(s.ctx, 5)
 	s.ctx.Request = httptest.NewRequest("DELETE", "/irrelevant", nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 	s.a.RemoveApplicationImage(s.ctx)
+
+	_, err := os.Stat(imageFile)
+	assert.True(s.T(), os.IsNotExist(err))
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 }
