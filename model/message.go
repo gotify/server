@@ -45,7 +45,7 @@ type MessageExternal struct {
 	// The priority of the message.
 	//
 	// example: 2
-	Priority int `form:"priority" query:"priority" json:"priority"`
+	Priority *int `form:"priority" query:"priority" json:"priority"`
 	// The extra data sent along the message.
 	//
 	// The extra fields are stored in a key-value scheme. Only accepted in CreateMessage requests with application/json content-type.

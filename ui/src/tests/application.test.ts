@@ -17,7 +17,7 @@ enum Col {
     Name = 2,
     Token = 3,
     Description = 4,
-    PriorityDefault = 5,
+    DefaultPriority = 5,
     EditUpdate = 6,
     EditDelete = 7,
 }

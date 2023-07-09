@@ -10,36 +10,36 @@ import React, {Component} from 'react';
 
 interface IProps {
     fClose: VoidFunction;
-    fOnSubmit: (name: string, description: string, priorityDefault: number) => void;
+    fOnSubmit: (name: string, description: string, defaultPriority: number) => void;
     initialName: string;
     initialDescription: string;
-    initialPriorityDefault: number;
+    initialDefaultPriority: number;
 }
 
 interface IState {
     name: string;
     description: string;
-    priorityDefault: number;
+    defaultPriority: number;
 }
 
 export default class UpdateDialog extends Component<IProps, IState> {
-    public state = {name: '', description: 'some', priorityDefault: 0};
+    public state = {name: '', description: 'some', defaultPriority: 0};
 
     constructor(props: IProps) {
         super(props);
         this.state = {
             name: props.initialName,
             description: props.initialDescription,
-            priorityDefault: props.initialPriorityDefault,
+            defaultPriority: props.initialDefaultPriority,
         };
     }
 
     public render() {
         const {fClose, fOnSubmit} = this.props;
-        const {name, description, priorityDefault} = this.state;
+        const {name, description, defaultPriority} = this.state;
         const submitEnabled = this.state.name.length !== 0;
         const submitAndClose = () => {
-            fOnSubmit(name, description, priorityDefault);
+            fOnSubmit(name, description, defaultPriority);
             fClose();
         };
         return (
@@ -74,13 +74,12 @@ export default class UpdateDialog extends Component<IProps, IState> {
                     />
                     <TextField
                         margin="dense"
-                        className="PriorityDefault"
-                        label="Priority Default"
-                        type="text"
-                        value={priorityDefault}
-                        onChange={this.handleChangeNumeric.bind(this, 'priorityDefault')}
+                        className="DefaultPriority"
+                        label="Default Priority"
+                        type="number"
+                        value={defaultPriority}
+                        onChange={this.handleChangeNumeric.bind(this, 'defaultPriority')}
                         fullWidth
-                        multiline
                     />
                 </DialogContent>
                 <DialogActions>

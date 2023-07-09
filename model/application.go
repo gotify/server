@@ -47,5 +47,5 @@ type Application struct {
 	//
 	// required: false
 	// example: 4
-	PriorityDefault int `gorm:"default:0" form:"priorityDefault" query:"priorityDefault" json:"priorityDefault"`
+	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`
 }

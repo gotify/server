@@ -70,7 +70,7 @@ func NewManager(db Database, directory string, mux *gin.RouterGroup, notifier No
 			internalMsg := &model.Message{
 				ApplicationID: message.Message.ApplicationID,
 				Title:         message.Message.Title,
-				Priority:      message.Message.Priority,
+				Priority:      *message.Message.Priority,
 				Date:          message.Message.Date,
 				Message:       message.Message.Message,
 			}

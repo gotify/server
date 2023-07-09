@@ -44,10 +44,10 @@ type ApplicationParams struct {
 	//
 	// example: Backup server for the interwebs
 	Description string `form:"description" query:"description" json:"description"`
-	// The description of the application.
+	// The message priority default for the application.
 	//
-	// example: Backup server for the interwebs
-	PriorityDefault int `form:"priorityDefault" query:"priorityDefault" json:"priorityDefault"`
+	// example: 5
+	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`
 }
 
 // CreateApplication creates an application and returns the access token.
@@ -89,7 +89,7 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 		app := model.Application{
 			Name:            applicationParams.Name,
 			Description:     applicationParams.Description,
-			PriorityDefault: applicationParams.PriorityDefault,
+			DefaultPriority: applicationParams.DefaultPriority,
 			Token:           auth.GenerateNotExistingToken(generateApplicationToken, a.applicationExists),
 			UserID:          auth.GetUserID(ctx),
 			Internal:        false,
@@ -250,7 +250,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 			if err := ctx.Bind(&applicationParams); err == nil {
 				app.Description = applicationParams.Description
 				app.Name = applicationParams.Name
-				app.PriorityDefault = applicationParams.PriorityDefault
+				app.DefaultPriority = applicationParams.DefaultPriority
 
 				if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
 					return

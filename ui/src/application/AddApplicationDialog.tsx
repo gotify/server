@@ -10,24 +10,24 @@ import React, {Component} from 'react';
 
 interface IProps {
     fClose: VoidFunction;
-    fOnSubmit: (name: string, description: string, priorityDefault: number) => void;
+    fOnSubmit: (name: string, description: string, defaultPriority: number) => void;
 }
 
 interface IState {
     name: string;
     description: string;
-    priorityDefault: number;
+    defaultPriority: number;
 }
 
 export default class AddDialog extends Component<IProps, IState> {
-    public state = {name: '', description: '', priorityDefault: 0};
+    public state = {name: '', description: '', defaultPriority: 0};
 
     public render() {
         const {fClose, fOnSubmit} = this.props;
-        const {name, description, priorityDefault} = this.state;
+        const {name, description, defaultPriority} = this.state;
         const submitEnabled = this.state.name.length !== 0;
         const submitAndClose = () => {
-            fOnSubmit(name, description, priorityDefault);
+            fOnSubmit(name, description, defaultPriority);
             fClose();
         };
         return (
@@ -62,12 +62,12 @@ export default class AddDialog extends Component<IProps, IState> {
                     />
                     <TextField
                         margin="dense"
-                        className="PriorityDefault"
-                        label="Priority Default"
-                        value={priorityDefault}
-                        onChange={this.handleChangeNumeric.bind(this, 'priorityDefault')}
+                        className="DefaultPriority"
+                        label="Default Priority"
+                        type="number"
+                        value={defaultPriority}
+                        onChange={this.handleChangeNumeric.bind(this, 'defaultPriority')}
                         fullWidth
-                        multiline
                     />
                 </DialogContent>
                 <DialogActions>

@@ -53,7 +53,7 @@ func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
 
 	actual := &model.PagedMessages{
 		Paging: model.Paging{Limit: 5, Since: 122, Size: 5, Next: "http://example.com/message?limit=5&since=122"},
-		Messages: []*model.MessageExternal{{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: 4, Extras: map[string]interface{}{
+		Messages: []*model.MessageExternal{{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: intPtr(4), Extras: map[string]interface{}{
 			"test::string": "string",
 			"test::array":  []interface{}{1, 2, 3},
 			"test::int":    1,
@@ -331,7 +331,7 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 
 	msgs, err := s.db.GetMessagesByApplication(7)
 	assert.NoError(s.T(), err)
-	expected := &model.MessageExternal{ID: 1, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: intPtr(1), Date: t}
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -345,7 +345,7 @@ func (s *MessageSuite) Test_CreateMessage_WithDefaultPriority() {
 	defer func() { timeNow = time.Now }()
 
 	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithTokenAndPriorityDefault(8, "app-token", 5)
+	s.db.User(4).AppWithTokenAndDefaultPriority(8, "app-token", 5)
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle", "message": "mymessage"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
@@ -353,7 +353,7 @@ func (s *MessageSuite) Test_CreateMessage_WithDefaultPriority() {
 
 	msgs, err := s.db.GetMessagesByApplication(8)
 	assert.NoError(s.T(), err)
-	expected := &model.MessageExternal{ID: 1, ApplicationID: 8, Title: "mytitle", Message: "mymessage", Priority: 5, Date: t}
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 8, Title: "mytitle", Message: "mymessage", Priority: intPtr(5), Date: t}
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -374,7 +374,7 @@ func (s *MessageSuite) Test_CreateMessage_WithTitle() {
 
 	msgs, err := s.db.GetMessagesByApplication(5)
 	assert.NoError(s.T(), err)
-	expected := &model.MessageExternal{ID: 1, ApplicationID: 5, Title: "mytitle", Message: "mymessage", Date: t}
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 5, Title: "mytitle", Message: "mymessage", Date: t, Priority: intPtr(0)}
 	assert.Len(s.T(), msgs, 1)
 	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -468,6 +468,7 @@ func (s *MessageSuite) Test_CreateMessage_WithExtras() {
 		Message:       "mymessage",
 		Title:         "msg with extras",
 		Date:          t,
+		Priority:      intPtr(0),
 		Extras: map[string]interface{}{
 			"gotify::test": map[string]interface{}{
 				"string": "test",
@@ -514,7 +515,7 @@ func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 
 	s.a.CreateMessage(s.ctx)
 
-	expected := &model.MessageExternal{ID: 1, ApplicationID: 2, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 2, Title: "mytitle", Message: "mymessage", Priority: intPtr(1), Date: t}
 
 	msgs, err := s.db.GetMessagesByApplication(2)
 	assert.NoError(s.T(), err)
@@ -537,7 +538,7 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 
 	s.a.CreateMessage(s.ctx)
 
-	expected := &model.MessageExternal{ID: 1, ApplicationID: 99, Title: "mytitle", Message: "mymessage", Priority: 1, Date: t}
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 99, Title: "mytitle", Message: "mymessage", Priority: intPtr(1), Date: t}
 	msgs, err := s.db.GetMessagesByApplication(99)
 	assert.NoError(s.T(), err)
 	assert.Len(s.T(), msgs, 1)
@@ -549,4 +550,8 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 func (s *MessageSuite) withURL(scheme, host, path, query string) {
 	s.ctx.Request.URL = &url.URL{Path: path, RawQuery: query}
 	s.ctx.Set("location", &url.URL{Scheme: scheme, Host: host})
+}
+
+func intPtr(x int) *int {
+	return &x
 }
