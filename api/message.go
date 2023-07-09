@@ -371,6 +371,9 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		if strings.TrimSpace(message.Title) == "" {
 			message.Title = application.Name
 		}
+		if message.Priority <= 0 {
+			message.Priority = application.PriorityDefault
+		}
 		message.Date = timeNow()
 		message.ID = 0
 		msgInternal := toInternalMessage(&message)

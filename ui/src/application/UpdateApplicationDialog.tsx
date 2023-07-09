@@ -10,33 +10,36 @@ import React, {Component} from 'react';
 
 interface IProps {
     fClose: VoidFunction;
-    fOnSubmit: (name: string, description: string) => void;
+    fOnSubmit: (name: string, description: string, priorityDefault: number) => void;
     initialName: string;
     initialDescription: string;
+    initialPriorityDefault: number;
 }
 
 interface IState {
     name: string;
     description: string;
+    priorityDefault: number;
 }
 
 export default class UpdateDialog extends Component<IProps, IState> {
-    public state = {name: '', description: ''};
+    public state = {name: '', description: 'some', priorityDefault: 0};
 
     constructor(props: IProps) {
         super(props);
         this.state = {
             name: props.initialName,
             description: props.initialDescription,
+            priorityDefault: props.initialPriorityDefault,
         };
     }
 
     public render() {
         const {fClose, fOnSubmit} = this.props;
-        const {name, description} = this.state;
+        const {name, description, priorityDefault} = this.state;
         const submitEnabled = this.state.name.length !== 0;
         const submitAndClose = () => {
-            fOnSubmit(name, description);
+            fOnSubmit(name, description, priorityDefault);
             fClose();
         };
         return (
@@ -69,6 +72,16 @@ export default class UpdateDialog extends Component<IProps, IState> {
                         fullWidth
                         multiline
                     />
+                    <TextField
+                        margin="dense"
+                        className="PriorityDefault"
+                        label="Priority Default"
+                        type="text"
+                        value={priorityDefault}
+                        onChange={this.handleChangeNumeric.bind(this, 'priorityDefault')}
+                        fullWidth
+                        multiline
+                    />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={fClose}>Cancel</Button>
@@ -93,5 +106,15 @@ export default class UpdateDialog extends Component<IProps, IState> {
         const state = this.state;
         state[propertyName] = event.target.value;
         this.setState(state);
+    }
+
+    private handleChangeNumeric(propertyName: string, event: React.ChangeEvent<HTMLInputElement>) {
+        const state = this.state;
+
+        const regex = /^[0-9\b]+$/;
+        if (event.target.value === "" || regex.test(event.target.value)) {
+            state[propertyName] = event.target.value;
+            this.setState(state);
+        }
     }
 }

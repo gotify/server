@@ -5,6 +5,7 @@ export interface IApplication {
     description: string;
     image: string;
     internal: boolean;
+    priorityDefault: number;
 }
 
 export interface IClient {

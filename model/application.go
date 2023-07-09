@@ -42,4 +42,10 @@ type Application struct {
 	// example: image/image.jpeg
 	Image    string            `gorm:"type:text" json:"image"`
 	Messages []MessageExternal `json:"-"`
+	// The priority default of a message for an application. If the sender does not provide a priority, then
+	// the message priority will be set to this value. Defaults to 0.
+	//
+	// required: false
+	// example: 4
+	PriorityDefault int `gorm:"default:0" form:"priorityDefault" query:"priorityDefault" json:"priorityDefault"`
 }
