@@ -158,7 +158,7 @@ interface IRowProps {
 }
 
 const Row: SFC<IRowProps> = observer(
-    ({ name, value, noDelete, description, defaultPriority, fDelete, fUpload, image, fEdit }) => (
+    ({name, value, noDelete, description, defaultPriority, fDelete, fUpload, image, fEdit}) => (
         <TableRow>
             <TableCell padding="default">
                 <div style={{display: 'flex'}}>

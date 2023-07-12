@@ -111,7 +111,7 @@ export default class UpdateDialog extends Component<IProps, IState> {
         const state = this.state;
 
         const regex = /^[0-9\b]+$/;
-        if (event.target.value === "" || regex.test(event.target.value)) {
+        if (event.target.value === '' || regex.test(event.target.value)) {
             state[propertyName] = event.target.value;
             this.setState(state);
         }
