@@ -40,9 +40,6 @@ check-js:
 download-tools:
 	go install github.com/go-swagger/go-swagger/cmd/swagger@v0.26.1
 
-embed-static:
-	go run hack/packr/packr.go
-
 update-swagger:
 	swagger generate spec --scan-models -o docs/spec.json
 	sed -i 's/"uint64"/"int64"/g' docs/spec.json
