@@ -1,7 +1,7 @@
 package docs
 
 import (
-	"embed"
+	_ "embed"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -9,7 +9,7 @@ import (
 )
 
 //go:embed spec.json
-var box embed.FS
+var spec string
 
 // Serve serves the documentation.
 func Serve(ctx *gin.Context) {
@@ -17,13 +17,9 @@ func Serve(ctx *gin.Context) {
 	if basePathFromQuery := ctx.Query("base"); basePathFromQuery != "" {
 		base = basePathFromQuery
 	}
-	ctx.Writer.WriteString(get(base))
+	ctx.Writer.WriteString(getSwaggerJSON(base))
 }
 
-func get(base string) string {
-	spec, err := box.ReadFile("spec.json")
-	if err != nil {
-		panic(err)
-	}
-	return strings.Replace(string(spec), "localhost", base, 1)
+func getSwaggerJSON(base string) string {
+	return strings.Replace(spec, "localhost", base, 1)
 }

@@ -3,6 +3,7 @@ package ui
 import (
 	"embed"
 	"encoding/json"
+	"io/fs"
 	"net/http"
 	"strings"
 
@@ -19,16 +20,6 @@ type uiConfig struct {
 	Version  model.VersionInfo `json:"version"`
 }
 
-type AddPrefix struct {
-	Prefix       string
-	InnerHandler http.Handler
-}
-
-func (a *AddPrefix) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	r.URL.Path = a.Prefix + r.URL.Path
-	a.InnerHandler.ServeHTTP(w, r)
-}
-
 // Register registers the ui on the root path.
 func Register(r *gin.Engine, version model.VersionInfo, register bool) {
 	uiConfigBytes, err := json.Marshal(uiConfig{Version: version, Register: register})
@@ -42,10 +33,12 @@ func Register(r *gin.Engine, version model.VersionInfo, register bool) {
 	ui.GET("/index.html", serveFile("index.html", "text/html", noop))
 	ui.GET("/manifest.json", serveFile("manifest.json", "application/json", noop))
 	ui.GET("/asset-manifest.json", serveFile("asset-manifest.json", "application/json", noop))
-	ui.GET("/static/*any", gin.WrapH(&AddPrefix{
-		Prefix:       "/build",
-		InnerHandler: http.FileServer(http.FS(box)),
-	}))
+
+	subBox, err := fs.Sub(box, "build")
+	if err != nil {
+		panic(err)
+	}
+	ui.GET("/static/*any", gin.WrapH(http.FileServer(http.FS(subBox))))
 }
 
 func noop(s string) string {
