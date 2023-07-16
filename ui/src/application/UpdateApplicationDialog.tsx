@@ -24,7 +24,7 @@ interface IState {
 }
 
 export default class UpdateDialog extends Component<IProps, IState> {
-    public state = {name: '', description: 'some', defaultPriority: 0};
+    public state = {name: '', description: '', defaultPriority: 0};
 
     constructor(props: IProps) {
         super(props);
