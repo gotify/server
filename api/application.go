@@ -44,7 +44,7 @@ type ApplicationParams struct {
 	//
 	// example: Backup server for the interwebs
 	Description string `form:"description" query:"description" json:"description"`
-	// The message priority default for the application.
+	// The default priority of messages sent by this application. Defaults to 0.
 	//
 	// example: 5
 	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`

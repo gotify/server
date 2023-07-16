@@ -2064,7 +2064,7 @@
       ],
       "properties": {
         "defaultPriority": {
-          "description": "The priority default of a message for an application. If the sender does not provide a priority, then\nthe message priority will be set to this value. Defaults to 0.",
+          "description": "The default priority of messages sent by this application. Defaults to 0.",
           "type": "integer",
           "format": "int64",
           "x-go-name": "DefaultPriority",
@@ -2123,7 +2123,7 @@
       ],
       "properties": {
         "defaultPriority": {
-          "description": "The message priority default for the application.",
+          "description": "The default priority of messages sent by this application. Defaults to 0.",
           "type": "integer",
           "format": "int64",
           "x-go-name": "DefaultPriority",
