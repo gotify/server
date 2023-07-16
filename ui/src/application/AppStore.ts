@@ -44,7 +44,7 @@ export class AppStore extends BaseStore<IApplication> {
         await axios.put(`${config.get('url')}application/${id}`, {
             name,
             description,
-            defaultPriority: Number(defaultPriority),
+            defaultPriority,
         });
         await this.refresh();
         this.snack('Application updated');
@@ -59,7 +59,7 @@ export class AppStore extends BaseStore<IApplication> {
         await axios.post(`${config.get('url')}application`, {
             name,
             description,
-            defaultPriority: Number(defaultPriority),
+            defaultPriority,
         });
         await this.refresh();
         this.snack('Application created');

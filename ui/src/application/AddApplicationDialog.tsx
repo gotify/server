@@ -6,6 +6,7 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
+import {NumberField} from '../common/NumberField';
 import React, {Component} from 'react';
 
 interface IProps {
@@ -60,13 +61,12 @@ export default class AddDialog extends Component<IProps, IState> {
                         fullWidth
                         multiline
                     />
-                    <TextField
+                    <NumberField
                         margin="dense"
-                        className="DefaultPriority"
+                        className="priority"
                         label="Default Priority"
-                        type="number"
                         value={defaultPriority}
-                        onChange={this.handleChangeNumeric.bind(this, 'defaultPriority')}
+                        onChange={(value) => this.setState({defaultPriority: value})}
                         fullWidth
                     />
                 </DialogContent>
@@ -93,15 +93,5 @@ export default class AddDialog extends Component<IProps, IState> {
         const state = this.state;
         state[propertyName] = event.target.value;
         this.setState(state);
-    }
-
-    private handleChangeNumeric(propertyName: string, event: React.ChangeEvent<HTMLInputElement>) {
-        const state = this.state;
-
-        const regex = /^[0-9\b]+$/;
-        if (event.target.value === '' || regex.test(event.target.value)) {
-            state[propertyName] = event.target.value;
-            this.setState(state);
-        }
     }
 }
