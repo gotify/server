@@ -127,6 +127,7 @@ func (s *DatabaseSuite) Test_Apps() {
 	userBuilder.InternalAppWithTokenAndName(10, "test-tokeni-2", "app name")
 	userBuilder.AppWithToken(11, "test-token-3")
 	userBuilder.InternalAppWithToken(12, "test-tokeni-3")
+	userBuilder.AppWithTokenAndDefaultPriority(13, "test-tokeni-4", 4)
 
 	s.db.AssertAppExist(1)
 	s.db.AssertAppExist(2)
@@ -140,6 +141,7 @@ func (s *DatabaseSuite) Test_Apps() {
 	s.db.AssertAppExist(10)
 	s.db.AssertAppExist(11)
 	s.db.AssertAppExist(12)
+	s.db.AssertAppExist(13)
 
 	s.db.DeleteApplicationByID(2)
 

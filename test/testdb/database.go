@@ -138,6 +138,13 @@ func (ab *AppClientBuilder) newAppWithTokenAndName(id uint, token, name string, 
 	return application
 }
 
+// AppWithTokenAndDefaultPriority creates an application with a token and defaultPriority and returns a message builder.
+func (ab *AppClientBuilder) AppWithTokenAndDefaultPriority(id uint, token string, defaultPriority int) *MessageBuilder {
+	application := &model.Application{ID: id, UserID: ab.userID, Token: token, DefaultPriority: defaultPriority}
+	ab.db.CreateApplication(application)
+	return &MessageBuilder{db: ab.db, appID: id}
+}
+
 // Client creates a client and returns itself.
 func (ab *AppClientBuilder) Client(id uint) *AppClientBuilder {
 	return ab.ClientWithToken(id, "client"+fmt.Sprint(id))

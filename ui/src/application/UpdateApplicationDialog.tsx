@@ -6,37 +6,41 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
+import {NumberField} from '../common/NumberField';
 import React, {Component} from 'react';
 
 interface IProps {
     fClose: VoidFunction;
-    fOnSubmit: (name: string, description: string) => void;
+    fOnSubmit: (name: string, description: string, defaultPriority: number) => void;
     initialName: string;
     initialDescription: string;
+    initialDefaultPriority: number;
 }
 
 interface IState {
     name: string;
     description: string;
+    defaultPriority: number;
 }
 
 export default class UpdateDialog extends Component<IProps, IState> {
-    public state = {name: '', description: ''};
+    public state = {name: '', description: '', defaultPriority: 0};
 
     constructor(props: IProps) {
         super(props);
         this.state = {
             name: props.initialName,
             description: props.initialDescription,
+            defaultPriority: props.initialDefaultPriority,
         };
     }
 
     public render() {
         const {fClose, fOnSubmit} = this.props;
-        const {name, description} = this.state;
+        const {name, description, defaultPriority} = this.state;
         const submitEnabled = this.state.name.length !== 0;
         const submitAndClose = () => {
-            fOnSubmit(name, description);
+            fOnSubmit(name, description, defaultPriority);
             fClose();
         };
         return (
@@ -68,6 +72,14 @@ export default class UpdateDialog extends Component<IProps, IState> {
                         onChange={this.handleChange.bind(this, 'description')}
                         fullWidth
                         multiline
+                    />
+                    <NumberField
+                        margin="dense"
+                        className="priority"
+                        label="Default Priority"
+                        value={defaultPriority}
+                        onChange={(value) => this.setState({defaultPriority: value})}
+                        fullWidth
                     />
                 </DialogContent>
                 <DialogActions>

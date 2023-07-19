@@ -35,15 +35,32 @@ export class AppStore extends BaseStore<IApplication> {
     };
 
     @action
-    public update = async (id: number, name: string, description: string): Promise<void> => {
-        await axios.put(`${config.get('url')}application/${id}`, {name, description});
+    public update = async (
+        id: number,
+        name: string,
+        description: string,
+        defaultPriority: number
+    ): Promise<void> => {
+        await axios.put(`${config.get('url')}application/${id}`, {
+            name,
+            description,
+            defaultPriority,
+        });
         await this.refresh();
         this.snack('Application updated');
     };
 
     @action
-    public create = async (name: string, description: string): Promise<void> => {
-        await axios.post(`${config.get('url')}application`, {name, description});
+    public create = async (
+        name: string,
+        description: string,
+        defaultPriority: number
+    ): Promise<void> => {
+        await axios.post(`${config.get('url')}application`, {
+            name,
+            description,
+            defaultPriority,
+        });
         await this.refresh();
         this.snack('Application created');
     };

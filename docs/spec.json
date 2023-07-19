@@ -2063,6 +2063,13 @@
         "image"
       ],
       "properties": {
+        "defaultPriority": {
+          "description": "The default priority of messages sent by this application. Defaults to 0.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DefaultPriority",
+          "example": 4
+        },
         "description": {
           "description": "The description of the application.",
           "type": "string",
@@ -2115,6 +2122,13 @@
         "name"
       ],
       "properties": {
+        "defaultPriority": {
+          "description": "The default priority of messages sent by this application. Defaults to 0.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DefaultPriority",
+          "example": 5
+        },
         "description": {
           "description": "The description of the application.",
           "type": "string",
@@ -2326,7 +2340,7 @@
           "example": "**Backup** was successfully finished."
         },
         "priority": {
-          "description": "The priority of the message.",
+          "description": "The priority of the message. If unset, then the default priority of the\napplication will be used.",
           "type": "integer",
           "format": "int64",
           "x-go-name": "Priority",

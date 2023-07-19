@@ -66,6 +66,7 @@ class Applications extends Component<Stores<'appStore'>> {
                                     <TableCell>Name</TableCell>
                                     <TableCell>Token</TableCell>
                                     <TableCell>Description</TableCell>
+                                    <TableCell>Priority</TableCell>
                                     <TableCell />
                                     <TableCell />
                                 </TableRow>
@@ -75,6 +76,7 @@ class Applications extends Component<Stores<'appStore'>> {
                                     <Row
                                         key={app.id}
                                         description={app.description}
+                                        defaultPriority={app.defaultPriority}
                                         image={app.image}
                                         name={app.name}
                                         value={app.token}
@@ -103,11 +105,12 @@ class Applications extends Component<Stores<'appStore'>> {
                 {updateId !== false && (
                     <UpdateDialog
                         fClose={() => (this.updateId = false)}
-                        fOnSubmit={(name, description) =>
-                            appStore.update(updateId, name, description)
+                        fOnSubmit={(name, description, defaultPriority) =>
+                            appStore.update(updateId, name, description, defaultPriority)
                         }
                         initialDescription={appStore.getByID(updateId).description}
                         initialName={appStore.getByID(updateId).name}
+                        initialDefaultPriority={appStore.getByID(updateId).defaultPriority}
                     />
                 )}
                 {deleteId !== false && (
@@ -147,6 +150,7 @@ interface IRowProps {
     value: string;
     noDelete: boolean;
     description: string;
+    defaultPriority: number;
     fUpload: VoidFunction;
     image: string;
     fDelete: VoidFunction;
@@ -154,7 +158,7 @@ interface IRowProps {
 }
 
 const Row: SFC<IRowProps> = observer(
-    ({name, value, noDelete, description, fDelete, fUpload, image, fEdit}) => (
+    ({name, value, noDelete, description, defaultPriority, fDelete, fUpload, image, fEdit}) => (
         <TableRow>
             <TableCell padding="default">
                 <div style={{display: 'flex'}}>
@@ -169,6 +173,7 @@ const Row: SFC<IRowProps> = observer(
                 <CopyableSecret value={value} style={{display: 'flex', alignItems: 'center'}} />
             </TableCell>
             <TableCell>{description}</TableCell>
+            <TableCell>{defaultPriority}</TableCell>
             <TableCell align="right" padding="none">
                 <IconButton onClick={fEdit} className="edit">
                     <Edit />

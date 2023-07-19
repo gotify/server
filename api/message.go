@@ -371,6 +371,11 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		if strings.TrimSpace(message.Title) == "" {
 			message.Title = application.Name
 		}
+
+		if message.Priority == nil {
+			message.Priority = &application.DefaultPriority
+		}
+
 		message.Date = timeNow()
 		message.ID = 0
 		msgInternal := toInternalMessage(&message)
@@ -388,9 +393,12 @@ func toInternalMessage(msg *model.MessageExternal) *model.Message {
 		ApplicationID: msg.ApplicationID,
 		Message:       msg.Message,
 		Title:         msg.Title,
-		Priority:      msg.Priority,
 		Date:          msg.Date,
 	}
+	if msg.Priority != nil {
+		res.Priority = *msg.Priority
+	}
+
 	if msg.Extras != nil {
 		res.Extras, _ = json.Marshal(msg.Extras)
 	}
@@ -403,7 +411,7 @@ func toExternalMessage(msg *model.Message) *model.MessageExternal {
 		ApplicationID: msg.ApplicationID,
 		Message:       msg.Message,
 		Title:         msg.Title,
-		Priority:      msg.Priority,
+		Priority:      &msg.Priority,
 		Date:          msg.Date,
 	}
 	if len(msg.Extras) != 0 {
