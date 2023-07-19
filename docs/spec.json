@@ -2340,7 +2340,7 @@
           "example": "**Backup** was successfully finished."
         },
         "priority": {
-          "description": "The priority of the message.",
+          "description": "The priority of the message. If unset, then the default priority of the\napplication will be used.",
           "type": "integer",
           "format": "int64",
           "x-go-name": "Priority",
