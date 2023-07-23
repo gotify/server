@@ -21,6 +21,7 @@ import {inject, Stores} from '../inject';
 import * as config from '../config';
 import UpdateDialog from './UpdateApplicationDialog';
 import {IApplication} from '../types';
+import {LastUsedCell} from '../common/LastUsedCell';
 
 @observer
 class Applications extends Component<Stores<'appStore'>> {
@@ -67,6 +68,7 @@ class Applications extends Component<Stores<'appStore'>> {
                                     <TableCell>Token</TableCell>
                                     <TableCell>Description</TableCell>
                                     <TableCell>Priority</TableCell>
+                                    <TableCell>Last Used</TableCell>
                                     <TableCell />
                                     <TableCell />
                                 </TableRow>
@@ -80,6 +82,7 @@ class Applications extends Component<Stores<'appStore'>> {
                                         image={app.image}
                                         name={app.name}
                                         value={app.token}
+                                        lastUsed={app.lastUsed}
                                         fUpload={() => this.uploadImage(app.id)}
                                         fDelete={() => (this.deleteId = app.id)}
                                         fEdit={() => (this.updateId = app.id)}
@@ -151,6 +154,7 @@ interface IRowProps {
     noDelete: boolean;
     description: string;
     defaultPriority: number;
+    lastUsed: string | null;
     fUpload: VoidFunction;
     image: string;
     fDelete: VoidFunction;
@@ -158,7 +162,18 @@ interface IRowProps {
 }
 
 const Row: SFC<IRowProps> = observer(
-    ({name, value, noDelete, description, defaultPriority, fDelete, fUpload, image, fEdit}) => (
+    ({
+        name,
+        value,
+        noDelete,
+        description,
+        defaultPriority,
+        lastUsed,
+        fDelete,
+        fUpload,
+        image,
+        fEdit,
+    }) => (
         <TableRow>
             <TableCell padding="default">
                 <div style={{display: 'flex'}}>
@@ -174,6 +189,9 @@ const Row: SFC<IRowProps> = observer(
             </TableCell>
             <TableCell>{description}</TableCell>
             <TableCell>{defaultPriority}</TableCell>
+            <TableCell>
+                <LastUsedCell lastUsed={lastUsed} />
+            </TableCell>
             <TableCell align="right" padding="none">
                 <IconButton onClick={fEdit} className="edit">
                     <Edit />

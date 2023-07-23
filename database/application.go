@@ -1,6 +1,8 @@
 package database
 
 import (
+	"time"
+
 	"github.com/gotify/server/v2/model"
 	"github.com/jinzhu/gorm"
 )
@@ -55,4 +57,9 @@ func (d *GormDatabase) GetApplicationsByUser(userID uint) ([]*model.Application,
 // UpdateApplication updates an application.
 func (d *GormDatabase) UpdateApplication(app *model.Application) error {
 	return d.DB.Save(app).Error
+}
+
+// UpdateApplicationTokenLastUsed updates the last used time of the application token.
+func (d *GormDatabase) UpdateApplicationTokenLastUsed(token string, t *time.Time) error {
+	return d.DB.Model(&model.Application{}).Where("token = ?", token).Update("last_used", t).Error
 }

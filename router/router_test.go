@@ -38,6 +38,7 @@ func (s *IntegrationSuite) BeforeTest(string, string) {
 	var err error
 	s.db = testdb.NewDBWithDefaultUser(s.T())
 	assert.Nil(s.T(), err)
+
 	g, closable := Create(s.db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
 		&config.Configuration{PassStrength: 5},

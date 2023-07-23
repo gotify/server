@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -320,6 +321,39 @@ func TestDeleteUser(t *testing.T) {
 	expectMessage(&model.MessageExternal{ID: 5, Message: "there"}, userThree...)
 
 	api.Close()
+}
+
+func TestCollectConnectedClientTokens(t *testing.T) {
+	mode.Set(mode.TestDev)
+
+	defer leaktest.Check(t)()
+	userIDs := []uint{1, 1, 1, 2, 2}
+	tokens := []string{"1-1", "1-2", "1-2", "2-1", "2-2"}
+	i := 0
+	server, api := bootTestServer(func(context *gin.Context) {
+		auth.RegisterAuthentication(context, nil, userIDs[i], tokens[i])
+		i++
+	})
+	defer server.Close()
+
+	wsURL := wsURL(server.URL)
+	userOneConnOne := testClient(t, wsURL)
+	defer userOneConnOne.conn.Close()
+	userOneConnTwo := testClient(t, wsURL)
+	defer userOneConnTwo.conn.Close()
+	userOneConnThree := testClient(t, wsURL)
+	defer userOneConnThree.conn.Close()
+	ret := api.CollectConnectedClientTokens()
+	sort.Strings(ret)
+	assert.Equal(t, []string{"1-1", "1-2"}, ret)
+
+	userTwoConnOne := testClient(t, wsURL)
+	defer userTwoConnOne.conn.Close()
+	userTwoConnTwo := testClient(t, wsURL)
+	defer userTwoConnTwo.conn.Close()
+	ret = api.CollectConnectedClientTokens()
+	sort.Strings(ret)
+	assert.Equal(t, []string{"1-1", "1-2", "2-1", "2-2"}, ret)
 }
 
 func TestMultipleClients(t *testing.T) {
