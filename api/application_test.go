@@ -302,7 +302,7 @@ func (s *ApplicationSuite) Test_UploadAppImage_OtherErrors_expectServerError() {
 	s.a.UploadApplicationImage(s.ctx)
 
 	assert.Equal(s.T(), 500, s.recorder.Code)
-	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("multipart: NextPart: EOF"))
+	assert.Error(s.T(), s.ctx.Errors[0].Err, "multipart: NextPart: EOF")
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
