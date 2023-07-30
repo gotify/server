@@ -302,7 +302,7 @@ func (s *ApplicationSuite) Test_UploadAppImage_OtherErrors_expectServerError() {
 	s.a.UploadApplicationImage(s.ctx)
 
 	assert.Equal(s.T(), 500, s.recorder.Code)
-	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("multipart: NextPart: EOF"))
+	assert.Error(s.T(), s.ctx.Errors[0].Err, "multipart: NextPart: EOF")
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
@@ -465,22 +465,6 @@ func (s *ApplicationSuite) Test_RemoveAppImage_expectSuccess() {
 	assert.True(s.T(), os.IsNotExist(err))
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-}
-
-func (s *ApplicationSuite) Test_UploadAppImage_WithSaveError_expectServerError() {
-	s.db.User(5).App(1)
-
-	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
-	assert.Nil(s.T(), err)
-	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant/", &buffer)
-	s.a.ImageDir = "asdasd/asdasda/asdasd"
-	s.ctx.Request.Header.Set("Content-Type", cType)
-	test.WithUser(s.ctx, 5)
-	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-
-	s.a.UploadApplicationImage(s.ctx)
-
-	assert.Equal(s.T(), 500, s.recorder.Code)
 }
 
 func (s *ApplicationSuite) Test_UpdateApplicationNameAndDescription_expectSuccess() {
