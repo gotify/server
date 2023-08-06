@@ -1,6 +1,8 @@
 package database
 
 import (
+	"time"
+
 	"github.com/gotify/server/v2/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -42,6 +44,13 @@ func (s *DatabaseSuite) TestClient() {
 	s.db.UpdateClient(updateClient)
 	if updatedClient, err := s.db.GetClientByID(client.ID); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), updateClient, updatedClient)
+	}
+
+	lastUsed := time.Now().Add(-time.Hour)
+	s.db.UpdateClientTokensLastUsed([]string{client.Token}, &lastUsed)
+	newClient, err = s.db.GetClientByID(client.ID)
+	if assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), lastUsed.Unix(), newClient.LastUsed.Unix())
 	}
 
 	s.db.DeleteClientByID(client.ID)

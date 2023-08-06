@@ -58,7 +58,7 @@ func (s *ClientSuite) AfterTest(suiteName, testName string) {
 
 func (s *ClientSuite) Test_ensureClientHasCorrectJsonRepresentation() {
 	actual := &model.Client{ID: 1, UserID: 2, Token: "Casdasfgeeg", Name: "myclient"}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Casdasfgeeg","name":"myclient"}`)
+	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Casdasfgeeg","name":"myclient","lastUsed":null}`)
 }
 
 func (s *ClientSuite) Test_CreateClient_mapAllParameters() {

@@ -1,6 +1,8 @@
 package database
 
 import (
+	"time"
+
 	"github.com/gotify/server/v2/model"
 	"github.com/jinzhu/gorm"
 )
@@ -54,4 +56,9 @@ func (d *GormDatabase) DeleteClientByID(id uint) error {
 // UpdateClient updates a client.
 func (d *GormDatabase) UpdateClient(client *model.Client) error {
 	return d.DB.Save(client).Error
+}
+
+// UpdateClientTokensLastUsed updates the last used timestamp of clients.
+func (d *GormDatabase) UpdateClientTokensLastUsed(tokens []string, t *time.Time) error {
+	return d.DB.Model(&model.Client{}).Where("token IN (?)", tokens).Update("last_used", t).Error
 }

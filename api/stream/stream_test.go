@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -56,8 +57,8 @@ func TestWriteMessageFails(t *testing.T) {
 	wsURL := wsURL(server.URL)
 	user := testClient(t, wsURL)
 
-	// the server may take some time to register the client
-	time.Sleep(100 * time.Millisecond)
+	waitForConnectedClients(api, 1)
+
 	clients := clients(api, 1)
 	assert.NotEmpty(t, clients)
 
@@ -86,13 +87,13 @@ func TestWritePingFails(t *testing.T) {
 	user := testClient(t, wsURL)
 	defer user.conn.Close()
 
-	// the server may take some time to register the client
-	time.Sleep(100 * time.Millisecond)
+	waitForConnectedClients(api, 1)
+
 	clients := clients(api, 1)
 
 	assert.NotEmpty(t, clients)
 
-	time.Sleep(api.pingPeriod) // waiting for ping
+	time.Sleep(api.pingPeriod + (50 * time.Millisecond)) // waiting for ping
 
 	api.Notify(1, &model.MessageExternal{Message: "HI"})
 	user.expectNoMessage()
@@ -147,8 +148,8 @@ func TestCloseClientOnNotReading(t *testing.T) {
 	assert.Nil(t, err)
 	defer ws.Close()
 
-	// the server may take some time to register the client
-	time.Sleep(100 * time.Millisecond)
+	waitForConnectedClients(api, 1)
+
 	assert.NotEmpty(t, clients(api, 1))
 
 	time.Sleep(api.pingPeriod + api.pongTimeout)
@@ -167,8 +168,9 @@ func TestMessageDirectlyAfterConnect(t *testing.T) {
 
 	user := testClient(t, wsURL)
 	defer user.conn.Close()
-	// the server may take some time to register the client
-	time.Sleep(100 * time.Millisecond)
+
+	waitForConnectedClients(api, 1)
+
 	api.Notify(1, &model.MessageExternal{Message: "msg"})
 	user.expectMessage(&model.MessageExternal{Message: "msg"})
 }
@@ -184,8 +186,9 @@ func TestDeleteClientShouldCloseConnection(t *testing.T) {
 
 	user := testClient(t, wsURL)
 	defer user.conn.Close()
-	// the server may take some time to register the client
-	time.Sleep(100 * time.Millisecond)
+
+	waitForConnectedClients(api, 1)
+
 	api.Notify(1, &model.MessageExternal{Message: "msg"})
 	user.expectMessage(&model.MessageExternal{Message: "msg"})
 
@@ -230,8 +233,7 @@ func TestDeleteMultipleClients(t *testing.T) {
 	defer userThreeAndroid.conn.Close()
 	userThree := []*testingClient{userThreeAndroid}
 
-	// the server may take some time to register the client
-	time.Sleep(100 * time.Millisecond)
+	waitForConnectedClients(api, len(userOne)+len(userTwo)+len(userThree))
 
 	api.Notify(1, &model.MessageExternal{ID: 4, Message: "there"})
 	expectMessage(&model.MessageExternal{ID: 4, Message: "there"}, userOne...)
@@ -294,8 +296,7 @@ func TestDeleteUser(t *testing.T) {
 	defer userThreeAndroid.conn.Close()
 	userThree := []*testingClient{userThreeAndroid}
 
-	// the server may take some time to register the client
-	time.Sleep(100 * time.Millisecond)
+	waitForConnectedClients(api, len(userOne)+len(userTwo)+len(userThree))
 
 	api.Notify(1, &model.MessageExternal{ID: 4, Message: "there"})
 	expectMessage(&model.MessageExternal{ID: 4, Message: "there"}, userOne...)
@@ -320,6 +321,43 @@ func TestDeleteUser(t *testing.T) {
 	expectMessage(&model.MessageExternal{ID: 5, Message: "there"}, userThree...)
 
 	api.Close()
+}
+
+func TestCollectConnectedClientTokens(t *testing.T) {
+	mode.Set(mode.TestDev)
+
+	defer leaktest.Check(t)()
+	userIDs := []uint{1, 1, 1, 2, 2}
+	tokens := []string{"1-1", "1-2", "1-2", "2-1", "2-2"}
+	i := 0
+	server, api := bootTestServer(func(context *gin.Context) {
+		auth.RegisterAuthentication(context, nil, userIDs[i], tokens[i])
+		i++
+	})
+	defer server.Close()
+
+	wsURL := wsURL(server.URL)
+	userOneConnOne := testClient(t, wsURL)
+	defer userOneConnOne.conn.Close()
+	userOneConnTwo := testClient(t, wsURL)
+	defer userOneConnTwo.conn.Close()
+	userOneConnThree := testClient(t, wsURL)
+	defer userOneConnThree.conn.Close()
+	waitForConnectedClients(api, 3)
+
+	ret := api.CollectConnectedClientTokens()
+	sort.Strings(ret)
+	assert.Equal(t, []string{"1-1", "1-2"}, ret)
+
+	userTwoConnOne := testClient(t, wsURL)
+	defer userTwoConnOne.conn.Close()
+	userTwoConnTwo := testClient(t, wsURL)
+	defer userTwoConnTwo.conn.Close()
+	waitForConnectedClients(api, 5)
+
+	ret = api.CollectConnectedClientTokens()
+	sort.Strings(ret)
+	assert.Equal(t, []string{"1-1", "1-2", "2-1", "2-2"}, ret)
 }
 
 func TestMultipleClients(t *testing.T) {
@@ -354,8 +392,7 @@ func TestMultipleClients(t *testing.T) {
 	defer userThreeAndroid.conn.Close()
 	userThree := []*testingClient{userThreeAndroid}
 
-	// the server may take some time to register the client
-	time.Sleep(100 * time.Millisecond)
+	waitForConnectedClients(api, len(userOne)+len(userTwo)+len(userThree))
 
 	// there should not be messages at the beginning
 	expectNoMessage(userOne...)
@@ -474,6 +511,17 @@ func clients(api *API, user uint) []*client {
 	return api.clients[user]
 }
 
+func countClients(a *API) int {
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+
+	var i int
+	for _, clients := range a.clients {
+		i += len(clients)
+	}
+	return i
+}
+
 func testClient(t *testing.T, url string) *testingClient {
 	client := createClient(t, url)
 	startReading(client)
@@ -558,5 +606,15 @@ func wsURL(httpURL string) string {
 func staticUserID() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		auth.RegisterAuthentication(context, nil, 1, "customtoken")
+	}
+}
+
+func waitForConnectedClients(api *API, count int) {
+	for i := 0; i < 10; i++ {
+		if countClients(api) == count {
+			// ok
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 }

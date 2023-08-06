@@ -37,6 +37,19 @@ func New(pingPeriod, pongTimeout time.Duration, allowedWebSocketOrigins []string
 	}
 }
 
+// CollectConnectedClientTokens returns all tokens of the connected clients.
+func (a *API) CollectConnectedClientTokens() []string {
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+	var clients []string
+	for _, cs := range a.clients {
+		for _, c := range cs {
+			clients = append(clients, c.token)
+		}
+	}
+	return uniq(clients)
+}
+
 // NotifyDeletedUser closes existing connections for the given user.
 func (a *API) NotifyDeletedUser(userID uint) error {
 	a.lock.Lock()
@@ -153,6 +166,18 @@ func (a *API) Close() {
 	for k := range a.clients {
 		delete(a.clients, k)
 	}
+}
+
+func uniq[T comparable](s []T) []T {
+	m := make(map[T]struct{})
+	for _, v := range s {
+		m[v] = struct{}{}
+	}
+	var r []T
+	for k := range m {
+		r = append(r, k)
+	}
+	return r
 }
 
 func isAllowedOrigin(r *http.Request, allowedOrigins []*regexp.Regexp) bool {

@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth/password"
@@ -20,6 +21,8 @@ type Database interface {
 	GetPluginConfByToken(token string) (*model.PluginConf, error)
 	GetUserByName(name string) (*model.User, error)
 	GetUserByID(id uint) (*model.User, error)
+	UpdateClientTokensLastUsed(tokens []string, t *time.Time) error
+	UpdateApplicationTokenLastUsed(token string, t *time.Time) error
 }
 
 // Auth is the provider for authentication middleware.
@@ -56,10 +59,16 @@ func (a *Auth) RequireClient() gin.HandlerFunc {
 		if user != nil {
 			return true, true, user.ID, nil
 		}
-		if token, err := a.DB.GetClientByToken(tokenID); err != nil {
+		if client, err := a.DB.GetClientByToken(tokenID); err != nil {
 			return false, false, 0, err
-		} else if token != nil {
-			return true, true, token.UserID, nil
+		} else if client != nil {
+			now := time.Now()
+			if client.LastUsed == nil || client.LastUsed.Add(5*time.Minute).Before(now) {
+				if err := a.DB.UpdateClientTokensLastUsed([]string{tokenID}, &now); err != nil {
+					return false, false, 0, err
+				}
+			}
+			return true, true, client.UserID, nil
 		}
 		return false, false, 0, nil
 	})
@@ -71,10 +80,16 @@ func (a *Auth) RequireApplicationToken() gin.HandlerFunc {
 		if user != nil {
 			return true, false, 0, nil
 		}
-		if token, err := a.DB.GetApplicationByToken(tokenID); err != nil {
+		if app, err := a.DB.GetApplicationByToken(tokenID); err != nil {
 			return false, false, 0, err
-		} else if token != nil {
-			return true, true, token.UserID, nil
+		} else if app != nil {
+			now := time.Now()
+			if app.LastUsed == nil || app.LastUsed.Add(5*time.Minute).Before(now) {
+				if err := a.DB.UpdateApplicationTokenLastUsed(tokenID, &now); err != nil {
+					return false, false, 0, err
+				}
+			}
+			return true, true, app.UserID, nil
 		}
 		return false, false, 0, nil
 	})

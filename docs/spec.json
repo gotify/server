@@ -2098,6 +2098,14 @@
           "readOnly": true,
           "example": false
         },
+        "lastUsed": {
+          "description": "The last time the application token was used.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastUsed",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
+        },
         "name": {
           "description": "The application name. This is how the application should be displayed to the user.",
           "type": "string",
@@ -2161,6 +2169,14 @@
           "x-go-name": "ID",
           "readOnly": true,
           "example": 5
+        },
+        "lastUsed": {
+          "description": "The last time the client token was used.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastUsed",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
         },
         "name": {
           "description": "The client name. This is how the client should be displayed to the user.",
