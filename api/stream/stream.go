@@ -115,31 +115,31 @@ func (a *API) register(client *client) {
 //
 // Websocket, return newly created messages.
 //
-// ---
-// schema: ws, wss
-// produces: [application/json]
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/Message"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   500:
-//     description: Server Error
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	schema: ws, wss
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/Message"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *API) Handle(ctx *gin.Context) {
 	conn, err := a.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {

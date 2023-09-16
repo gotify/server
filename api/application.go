@@ -31,7 +31,7 @@ type ApplicationAPI struct {
 
 // Application Params Model
 //
-// Params allowed to create or update Applications
+// Params allowed to create or update Applications.
 //
 // swagger:model ApplicationParams
 type ApplicationParams struct {
@@ -55,34 +55,34 @@ type ApplicationParams struct {
 //
 // Create an application.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// parameters:
-// - name: body
-//   in: body
-//   description: the application to add
-//   required: true
-//   schema:
-//     $ref: "#/definitions/ApplicationParams"
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/Application"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: body
+//	  in: body
+//	  description: the application to add
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/ApplicationParams"
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/Application"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 	applicationParams := ApplicationParams{}
 	if err := ctx.Bind(&applicationParams); err == nil {
@@ -107,25 +107,25 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 //
 // Return all applications.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//       type: array
-//       items:
-//         $ref: "#/definitions/Application"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	      type: array
+//	      items:
+//	        $ref: "#/definitions/Application"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	apps, err := a.DB.GetApplicationsByUser(userID)
@@ -143,36 +143,36 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 //
 // Delete an application.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// parameters:
-// - name: id
-//   in: path
-//   description: the application id
-//   required: true
-//   type: integer
-//   format: int64
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the application id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		app, err := a.DB.GetApplicationByID(id)
@@ -201,44 +201,44 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 //
 // Update an application.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// parameters:
-// - name: body
-//   in: body
-//   description: the application to update
-//   required: true
-//   schema:
-//     $ref: "#/definitions/ApplicationParams"
-// - name: id
-//   in: path
-//   description: the application id
-//   required: true
-//   type: integer
-//   format: int64
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/Application"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: body
+//	  in: body
+//	  description: the application to update
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/ApplicationParams"
+//	- name: id
+//	  in: path
+//	  description: the application id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/Application"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		app, err := a.DB.GetApplicationByID(id)
@@ -268,48 +268,48 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 //
 // Upload an image for an application.
 //
-// ---
-// consumes:
-// - multipart/form-data
-// produces: [application/json]
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// parameters:
-// - name: file
-//   in: formData
-//   description: the application image
-//   required: true
-//   type: file
-// - name: id
-//   in: path
-//   description: the application id
-//   required: true
-//   type: integer
-//   format: int64
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/Application"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
-//   500:
-//     description: Server Error
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes:
+//	- multipart/form-data
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: file
+//	  in: formData
+//	  description: the application image
+//	  required: true
+//	  type: file
+//	- name: id
+//	  in: path
+//	  description: the application id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/Application"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		app, err := a.DB.GetApplicationByID(id)
@@ -369,40 +369,40 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 //
 // Deletes an image of an application.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// parameters:
-// - name: id
-//   in: path
-//   description: the application id
-//   required: true
-//   type: integer
-//   format: int64
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
-//   500:
-//     description: Server Error
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the application id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ApplicationAPI) RemoveApplicationImage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		app, err := a.DB.GetApplicationByID(id)

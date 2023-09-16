@@ -50,42 +50,42 @@ type pagingParams struct {
 //
 // Return all messages.
 //
-// ---
-// produces: [application/json]
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// parameters:
-// - name: limit
-//   in: query
-//   description: the maximal amount of messages to return
-//   required: false
-//   maximum: 200
-//   minimum: 1
-//   default: 100
-//   type: integer
-// - name: since
-//   in: query
-//   description: return all messages with an ID less than this value
-//   minimum: 0
-//   required: false
-//   type: integer
-//   format: int64
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/PagedMessages"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: limit
+//	  in: query
+//	  description: the maximal amount of messages to return
+//	  required: false
+//	  maximum: 200
+//	  minimum: 1
+//	  default: 100
+//	  type: integer
+//	- name: since
+//	  in: query
+//	  description: return all messages with an ID less than this value
+//	  minimum: 0
+//	  required: false
+//	  type: integer
+//	  format: int64
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/PagedMessages"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *MessageAPI) GetMessages(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	withPaging(ctx, func(params *pagingParams) {
@@ -131,52 +131,52 @@ func withPaging(ctx *gin.Context, f func(pagingParams *pagingParams)) {
 //
 // Return all messages from a specific application.
 //
-// ---
-// produces: [application/json]
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// parameters:
-// - name: id
-//   in: path
-//   description: the application id
-//   required: true
-//   type: integer
-//   format: int64
-// - name: limit
-//   in: query
-//   description: the maximal amount of messages to return
-//   required: false
-//   maximum: 200
-//   minimum: 1
-//   default: 100
-//   type: integer
-// - name: since
-//   in: query
-//   description: return all messages with an ID less than this value
-//   minimum: 0
-//   required: false
-//   type: integer
-//   format: int64
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/PagedMessages"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the application id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	- name: limit
+//	  in: query
+//	  description: the maximal amount of messages to return
+//	  required: false
+//	  maximum: 200
+//	  minimum: 1
+//	  default: 100
+//	  type: integer
+//	- name: since
+//	  in: query
+//	  description: return all messages with an ID less than this value
+//	  minimum: 0
+//	  required: false
+//	  type: integer
+//	  format: int64
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/PagedMessages"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		withPaging(ctx, func(params *pagingParams) {
@@ -203,20 +203,20 @@ func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 //
 // Delete all messages.
 //
-// ---
-// produces: [application/json]
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	successOrAbort(ctx, 500, a.DB.DeleteMessagesByUser(userID))
@@ -227,35 +227,35 @@ func (a *MessageAPI) DeleteMessages(ctx *gin.Context) {
 //
 // Delete all messages from a specific application.
 //
-// ---
-// produces: [application/json]
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// parameters:
-// - name: id
-//   in: path
-//   description: the application id
-//   required: true
-//   type: integer
-//   format: int64
-// responses:
-//   200:
-//     description: Ok
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the application id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	responses:
+//	  200:
+//	    description: Ok
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		application, err := a.DB.GetApplicationByID(id)
@@ -275,35 +275,35 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 //
 // Deletes a message with an id.
 //
-// ---
-// produces: [application/json]
-// security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// parameters:
-// - name: id
-//   in: path
-//   description: the message id
-//   required: true
-//   type: integer
-//   format: int64
-// responses:
-//   200:
-//     description: Ok
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the message id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	responses:
+//	  200:
+//	    description: Ok
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		msg, err := a.DB.GetMessageByID(id)
@@ -332,34 +332,35 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 // Create a message.
 //
 // __NOTE__: This API ONLY accepts an application token as authentication.
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// security: [appTokenAuthorizationHeader: [], appTokenHeader: [], appTokenQuery: []]
-// parameters:
-// - name: body
-//   in: body
-//   description: the message to add
-//   required: true
-//   schema:
-//     $ref: "#/definitions/Message"
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//       $ref: "#/definitions/Message"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [appTokenAuthorizationHeader: [], appTokenHeader: [], appTokenQuery: []]
+//	parameters:
+//	- name: body
+//	  in: body
+//	  description: the message to add
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/Message"
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	      $ref: "#/definitions/Message"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	message := model.MessageExternal{}
 	if err := ctx.Bind(&message); err == nil {
