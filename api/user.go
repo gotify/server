@@ -452,19 +452,6 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 	})
 }
 
-func (a *UserAPI) toInternalUser(response *model.UserExternal, newPass string, pw []byte) *model.User {
-	user := &model.User{
-		Name:  response.Name,
-		Admin: response.Admin,
-	}
-	if newPass != "" {
-		user.Pass = password.CreatePassword(newPass, a.PasswordStrength)
-	} else {
-		user.Pass = pw
-	}
-	return user
-}
-
 func toExternalUser(internal *model.User) *model.UserExternal {
 	return &model.UserExternal{
 		Name:  internal.Name,
