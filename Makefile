@@ -9,7 +9,7 @@ DOCKER_RUN=docker run --rm -v "$$PWD/.:${DOCKER_WORKDIR}" -v "`go env GOPATH`/pk
 DOCKER_GO_BUILD=go build -mod=readonly -a -installsuffix cgo -ldflags "$$LD_FLAGS"
 NODE_OPTIONS=$(shell if node --help | grep -q -- "--openssl-legacy-provider"; then echo --openssl-legacy-provider; fi)
 
-test: test-coverage test-race test-js
+test: test-coverage test-js
 check: check-go check-swagger check-js
 check-ci: check-swagger check-js
 
@@ -17,11 +17,8 @@ require-version:
 	if [ -n ${VERSION} ] && [[ $$VERSION == "v"* ]]; then echo "The version may not start with v" && exit 1; fi
 	if [ -z ${VERSION} ]; then echo "Need to set VERSION" && exit 1; fi;
 
-test-race:
-	go test -race ./...
-
 test-coverage:
-	go test -coverprofile=coverage.txt -covermode=atomic ./...
+	go test --race -coverprofile=coverage.txt -covermode=atomic ./...
 
 format:
 	goimports -w $(shell find . -type f -name '*.go' -not -path "./vendor/*")
