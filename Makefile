@@ -7,6 +7,7 @@ DOCKER_BUILD_IMAGE=gotify/build
 DOCKER_WORKDIR=/proj
 DOCKER_RUN=docker run --rm -v "$$PWD/.:${DOCKER_WORKDIR}" -v "`go env GOPATH`/pkg/mod/.:/go/pkg/mod:ro" -w ${DOCKER_WORKDIR}
 DOCKER_GO_BUILD=go build -mod=readonly -a -installsuffix cgo -ldflags "$$LD_FLAGS"
+NODE_OPTIONS=$(shell if node --help | grep -q -- "--openssl-legacy-provider"; then echo --openssl-legacy-provider; fi)
 
 test: test-coverage test-race test-js
 check: check-go check-swagger check-js
@@ -124,7 +125,7 @@ build-docker-riscv64: require-version
 build-docker: build-docker-amd64 build-docker-arm-7 build-docker-arm64 build-docker-riscv64
 
 build-js:
-	(cd ui && yarn build)
+	(cd ui && NODE_OPTIONS="${NODE_OPTIONS}" yarn build)
 
 build-linux-amd64:
 	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-amd64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-amd64 ${DOCKER_WORKDIR}
