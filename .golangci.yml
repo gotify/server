@@ -7,7 +7,6 @@ linters:
     enable:
         - asciicheck
         - deadcode
-        - depguard
         - exportloopref
         - godot
         - gofmt
