@@ -6,8 +6,6 @@ run:
 linters:
     enable:
         - asciicheck
-        - deadcode
-        - depguard
         - exportloopref
         - godot
         - gofmt
@@ -23,12 +21,10 @@ linters:
         - nolintlint
         - sqlclosecheck
         - staticcheck
-        - structcheck
         - stylecheck
         - typecheck
         - unconvert
         - unused
-        - varcheck
         - whitespace
     disable:
         - goerr113

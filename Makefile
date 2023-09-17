@@ -7,8 +7,9 @@ DOCKER_BUILD_IMAGE=gotify/build
 DOCKER_WORKDIR=/proj
 DOCKER_RUN=docker run --rm -v "$$PWD/.:${DOCKER_WORKDIR}" -v "`go env GOPATH`/pkg/mod/.:/go/pkg/mod:ro" -w ${DOCKER_WORKDIR}
 DOCKER_GO_BUILD=go build -mod=readonly -a -installsuffix cgo -ldflags "$$LD_FLAGS"
+NODE_OPTIONS=$(shell if node --help | grep -q -- "--openssl-legacy-provider"; then echo --openssl-legacy-provider; fi)
 
-test: test-coverage test-race test-js
+test: test-coverage test-js
 check: check-go check-swagger check-js
 check-ci: check-swagger check-js
 
@@ -16,11 +17,8 @@ require-version:
 	if [ -n ${VERSION} ] && [[ $$VERSION == "v"* ]]; then echo "The version may not start with v" && exit 1; fi
 	if [ -z ${VERSION} ]; then echo "Need to set VERSION" && exit 1; fi;
 
-test-race:
-	go test -race ./...
-
 test-coverage:
-	go test -coverprofile=coverage.txt -covermode=atomic ./...
+	go test --race -coverprofile=coverage.txt -covermode=atomic ./...
 
 format:
 	goimports -w $(shell find . -type f -name '*.go' -not -path "./vendor/*")
@@ -38,7 +36,7 @@ check-js:
 	(cd ui && yarn testformat)
 
 download-tools:
-	go install github.com/go-swagger/go-swagger/cmd/swagger@v0.26.1
+	go install github.com/go-swagger/go-swagger/cmd/swagger@v0.30.5
 
 update-swagger:
 	swagger generate spec --scan-models -o docs/spec.json
@@ -124,7 +122,7 @@ build-docker-riscv64: require-version
 build-docker: build-docker-amd64 build-docker-arm-7 build-docker-arm64 build-docker-riscv64
 
 build-js:
-	(cd ui && yarn build)
+	(cd ui && NODE_OPTIONS="${NODE_OPTIONS}" yarn build)
 
 build-linux-amd64:
 	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-amd64 ${DOCKER_GO_BUILD} -o ${BUILD_DIR}/gotify-linux-amd64 ${DOCKER_WORKDIR}

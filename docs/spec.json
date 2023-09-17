@@ -2123,7 +2123,7 @@
       "x-go-package": "github.com/gotify/server/v2/model"
     },
     "ApplicationParams": {
-      "description": "Params allowed to create or update Applications",
+      "description": "Params allowed to create or update Applications.",
       "type": "object",
       "title": "Application Params Model",
       "required": [
@@ -2195,7 +2195,7 @@
       "x-go-package": "github.com/gotify/server/v2/model"
     },
     "ClientParams": {
-      "description": "Params allowed to create or update Clients",
+      "description": "Params allowed to create or update Clients.",
       "type": "object",
       "title": "Client Params Model",
       "required": [
@@ -2328,9 +2328,7 @@
         "extras": {
           "description": "The extra data sent along the message.\n\nThe extra fields are stored in a key-value scheme. Only accepted in CreateMessage requests with application/json content-type.\n\nThe keys should be in the following format: \u0026lt;top-namespace\u0026gt;::[\u0026lt;sub-namespace\u0026gt;::]\u0026lt;action\u0026gt;\n\nThese namespaces are reserved and might be used in the official clients: gotify android ios web server client. Do not use them for other purposes.",
           "type": "object",
-          "additionalProperties": {
-            "type": "object"
-          },
+          "additionalProperties": {},
           "x-go-name": "Extras",
           "example": {
             "home::appliances::lighting::on": {
@@ -2373,7 +2371,7 @@
       "x-go-package": "github.com/gotify/server/v2/model"
     },
     "PagedMessages": {
-      "description": "Wrapper for the paging and the messages",
+      "description": "Wrapper for the paging and the messages.",
       "type": "object",
       "title": "PagedMessages Model",
       "required": [
