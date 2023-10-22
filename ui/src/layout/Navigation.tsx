@@ -1,14 +1,21 @@
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
 import {StyleRules, Theme, WithStyles, withStyles} from '@material-ui/core/styles';
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
 import {mayAllowPermission, requestPermission} from '../snack/browserNotification';
-import {Button, Hidden, IconButton, Typography} from '@material-ui/core';
+import {
+    Button,
+    Hidden,
+    IconButton,
+    Typography,
+    ListItem,
+    ListItemText,
+    ListItemAvatar,
+    Avatar,
+} from '@material-ui/core';
 import {DrawerProps} from '@material-ui/core/Drawer/Drawer';
 import CloseIcon from '@material-ui/icons/Close';
 
@@ -59,6 +66,13 @@ class Navigation extends Component<
                           to={'/messages/' + app.id}
                           key={app.id}>
                           <ListItem button>
+                              <ListItemAvatar style={{minWidth: 42}}>
+                                  <Avatar
+                                      style={{width: 32, height: 32}}
+                                      src={app.image}
+                                      variant="square"
+                                  />
+                              </ListItemAvatar>
                               <ListItemText primary={app.name} />
                           </ListItem>
                       </Link>
