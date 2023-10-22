@@ -66,8 +66,12 @@ class Navigation extends Component<
                           to={'/messages/' + app.id}
                           key={app.id}>
                           <ListItem button>
-                              <ListItemAvatar>
-                                  <Avatar src={app.image} variant="square" />
+                              <ListItemAvatar style={{minWidth: 42}}>
+                                  <Avatar
+                                      style={{width: 32, height: 32}}
+                                      src={app.image}
+                                      variant="square"
+                                  />
                               </ListItemAvatar>
                               <ListItemText primary={app.name} />
                           </ListItem>
