@@ -196,7 +196,7 @@ func isAllowedOrigin(r *http.Request, allowedOrigins []*regexp.Regexp) bool {
 	}
 
 	for _, allowedOrigin := range allowedOrigins {
-		if allowedOrigin.Match([]byte(strings.ToLower(u.Hostname()))) {
+		if allowedOrigin.MatchString(strings.ToLower(u.Hostname())) {
 			return true
 		}
 	}

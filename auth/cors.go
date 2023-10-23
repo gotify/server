@@ -29,7 +29,7 @@ func CorsConfig(conf *config.Configuration) cors.Config {
 		corsConf.AllowHeaders = conf.Server.Cors.AllowHeaders
 		corsConf.AllowOriginFunc = func(origin string) bool {
 			for _, compiledOrigin := range compiledOrigins {
-				if compiledOrigin.Match([]byte(strings.ToLower(origin))) {
+				if compiledOrigin.MatchString(strings.ToLower(origin)) {
 					return true
 				}
 			}
