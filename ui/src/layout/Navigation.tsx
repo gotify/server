@@ -54,7 +54,7 @@ class Navigation extends Component<
     public render() {
         const {classes, loggedIn, appStore, navOpen, setNavOpen} = this.props;
         const {showRequestNotification} = this.state;
-        const apps = appStore.getItems();
+        const apps = appStore.getItems().slice().sort((a,b) => a.name.localeCompare(b.name));
 
         const userApps =
             apps.length === 0
