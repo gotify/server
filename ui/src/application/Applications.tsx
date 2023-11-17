@@ -1,4 +1,4 @@
-import Grid from '@material-ui/core/Grid';
+aimport Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
@@ -9,6 +9,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Delete from '@material-ui/icons/Delete';
 import Edit from '@material-ui/icons/Edit';
 import CloudUpload from '@material-ui/icons/CloudUpload';
+import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 import React, {ChangeEvent, Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
@@ -84,6 +85,7 @@ class Applications extends Component<Stores<'appStore'>> {
                                         value={app.token}
                                         lastUsed={app.lastUsed}
                                         fUpload={() => this.uploadImage(app.id)}
+                                        fDeleteImage={() => this.deleteImage(app.id)}
                                         fDelete={() => (this.deleteId = app.id)}
                                         fEdit={() => (this.updateId = app.id)}
                                         noDelete={app.internal}
@@ -146,6 +148,14 @@ class Applications extends Component<Stores<'appStore'>> {
             alert('Uploaded file must be of type png, jpeg or gif.');
         }
     };
+    
+    private deleteImage = (id: number) => {
+        console.log("delete for " + id)
+        //this.uploadId = id;
+        //if (this.upload) {
+            //this.upload.click();
+        //}
+    };
 }
 
 interface IRowProps {
@@ -156,6 +166,7 @@ interface IRowProps {
     defaultPriority: number;
     lastUsed: string | null;
     fUpload: VoidFunction;
+    fDeleteImage: VoidFunction;
     image: string;
     fDelete: VoidFunction;
     fEdit: VoidFunction;
@@ -171,6 +182,7 @@ const Row: SFC<IRowProps> = observer(
         lastUsed,
         fDelete,
         fUpload,
+        fDeleteImage,
         image,
         fEdit,
     }) => (
@@ -180,6 +192,9 @@ const Row: SFC<IRowProps> = observer(
                     <img src={config.get('url') + image} alt="app logo" width="40" height="40" />
                     <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
+                    </IconButton>
+                    <IconButton onClick={fDeleteImage} style={{height: 40}}>
+                        <HighlightOffIcon />
                     </IconButton>
                 </div>
             </TableCell>
