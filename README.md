@@ -46,7 +46,7 @@ We wanted a simple server for sending and receiving messages (in real time per W
 [<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" width="150"/>][fdroid]
 
 <sub>(Google Play and the Google Play logo are trademarks of Google LLC.)</sub>
-
+* guid to use Gotify on Proxmox and iPhone [Proxmox notifications](https://homelab.casaursus.net/proxmox-notifications/)
 ---
 
 **[Documentation](https://gotify.net/docs)**
