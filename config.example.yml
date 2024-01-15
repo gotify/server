@@ -3,13 +3,13 @@
 
 server:
   keepaliveperiodseconds: 0 # 0 = use Go default (15s); -1 = disable keepalive; set the interval in which keepalive packets will be sent. Only change this value if you know what you are doing.
-  listenaddr: "" # the address to bind on, leave empty to bind on all addresses
+  listenaddr: "" # the address to bind on, leave empty to bind on all addresses. Prefix with "unix:" to create a unix socket. Example: "unix:/tmp/gotify.sock".
   port: 80 # the port the HTTP server will listen on
 
   ssl:
     enabled: false # if https should be enabled
     redirecttohttps: true # redirect to https if site is accessed by http
-    listenaddr: "" # the address to bind on, leave empty to bind on all addresses
+    listenaddr: "" # the address to bind on, leave empty to bind on all addresses. Prefix with "unix:" to create a unix socket. Example: "unix:/tmp/gotify.sock".
     port: 443 # the https port
     certfile: # the cert file (leave empty when using letsencrypt)
     certkey: # the cert key (leave empty when using letsencrypt)
