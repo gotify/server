@@ -23,6 +23,10 @@ server:
 
   responseheaders: # response headers are added to every response (default: none)
 #    X-Custom-Header: "custom value"
+#
+  trustedproxies: # IPs or IP ranges of trusted proxies. Used to obtain the remote ip via the X-Forwarded-For header. (configure 127.0.0.1 to trust sockets)
+#   - 127.0.0.1/32
+#   - ::1
 
   cors: # Sets cors headers only when needed and provides support for multiple allowed origins. Overrides Access-Control-* Headers in response headers.
     alloworigins:
