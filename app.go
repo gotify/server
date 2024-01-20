@@ -51,5 +51,8 @@ func main() {
 	engine, closeable := router.Create(db, vInfo, conf)
 	defer closeable()
 
-	runner.Run(engine, conf)
+	if err := runner.Run(engine, conf); err != nil {
+		fmt.Println("Server error: ", err)
+		os.Exit(1)
+	}
 }
