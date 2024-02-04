@@ -27,10 +27,8 @@ import (
 func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Configuration) (*gin.Engine, func()) {
 	g := gin.New()
 
-	if conf.Server.TrustedProxies != nil {
-		g.SetTrustedProxies(conf.Server.TrustedProxies)
-		g.ForwardedByClientIP = true
-	}
+	g.SetTrustedProxies(conf.Server.TrustedProxies)
+	g.ForwardedByClientIP = true
 
 	g.Use(func(ctx *gin.Context) {
 		// Map sockets "@" to 127.0.0.1, because gin-gonic can only trust IPs.
