@@ -27,6 +27,17 @@ import (
 func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Configuration) (*gin.Engine, func()) {
 	g := gin.New()
 
+	g.RemoteIPHeaders = []string{"X-Forwarded-For"}
+	g.SetTrustedProxies(conf.Server.TrustedProxies)
+	g.ForwardedByClientIP = true
+
+	g.Use(func(ctx *gin.Context) {
+		// Map sockets "@" to 127.0.0.1, because gin-gonic can only trust IPs.
+		if ctx.Request.RemoteAddr == "@" {
+			ctx.Request.RemoteAddr = "127.0.0.1:65535"
+		}
+	})
+
 	g.Use(gin.LoggerWithFormatter(logFormatter), gin.Recovery(), gerror.Handler(), location.Default())
 	g.NoRoute(gerror.NotFound())
 

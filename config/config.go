@@ -39,6 +39,8 @@ type Configuration struct {
 			AllowMethods []string
 			AllowHeaders []string
 		}
+
+		TrustedProxies []string
 	}
 	Database struct {
 		Dialect    string `default:"sqlite3"`
