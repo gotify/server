@@ -70,7 +70,6 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                         <Button
                             id="refresh-all"
                             variant="contained"
-                            disabled={!hasMessages}
                             color="primary"
                             onClick={() => messagesStore.refreshByApp(appId)}
                             style={{marginRight: 5}}>
