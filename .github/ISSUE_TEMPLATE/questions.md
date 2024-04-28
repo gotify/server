@@ -16,7 +16,7 @@ Community chat - https://matrix.to/#/#gotify:matrix.org
 **Have you read the documentation?**
 - [ ] Yes, but it does not include related information regarding my question.
 - [ ] Yes, but the steps described in the documentation do not work on my machine.
-- [ ] Yes, but I am having difficulty understanding it and wants clarification.
+- [ ] Yes, but I am having difficulty understanding it and want clarification.
 
 **You are setting up gotify in**
 - [ ] Docker
