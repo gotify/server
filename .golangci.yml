@@ -6,32 +6,25 @@ run:
 linters:
     enable:
         - asciicheck
-        - deadcode
-        - depguard
         - exportloopref
-        - gci
         - godot
         - gofmt
         - gofumpt
         - goimports
-        - golint
         - gomodguard
         - goprintffuncname
         - gosimple
         - govet
         - ineffassign
-        - interfacer
         - misspell
         - nakedret
         - nolintlint
         - sqlclosecheck
         - staticcheck
-        - structcheck
         - stylecheck
         - typecheck
         - unconvert
         - unused
-        - varcheck
         - whitespace
     disable:
         - goerr113

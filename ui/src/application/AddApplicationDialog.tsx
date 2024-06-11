@@ -6,27 +6,29 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
+import {NumberField} from '../common/NumberField';
 import React, {Component} from 'react';
 
 interface IProps {
     fClose: VoidFunction;
-    fOnSubmit: (name: string, description: string) => void;
+    fOnSubmit: (name: string, description: string, defaultPriority: number) => void;
 }
 
 interface IState {
     name: string;
     description: string;
+    defaultPriority: number;
 }
 
 export default class AddDialog extends Component<IProps, IState> {
-    public state = {name: '', description: ''};
+    public state = {name: '', description: '', defaultPriority: 0};
 
     public render() {
         const {fClose, fOnSubmit} = this.props;
-        const {name, description} = this.state;
+        const {name, description, defaultPriority} = this.state;
         const submitEnabled = this.state.name.length !== 0;
         const submitAndClose = () => {
-            fOnSubmit(name, description);
+            fOnSubmit(name, description, defaultPriority);
             fClose();
         };
         return (
@@ -34,8 +36,7 @@ export default class AddDialog extends Component<IProps, IState> {
                 open={true}
                 onClose={fClose}
                 aria-labelledby="form-dialog-title"
-                id="app-dialog"
-            >
+                id="app-dialog">
                 <DialogTitle id="form-dialog-title">Create an application</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -60,6 +61,14 @@ export default class AddDialog extends Component<IProps, IState> {
                         fullWidth
                         multiline
                     />
+                    <NumberField
+                        margin="dense"
+                        className="priority"
+                        label="Default Priority"
+                        value={defaultPriority}
+                        onChange={(value) => this.setState({defaultPriority: value})}
+                        fullWidth
+                    />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={fClose}>Cancel</Button>
@@ -70,8 +79,7 @@ export default class AddDialog extends Component<IProps, IState> {
                                 disabled={!submitEnabled}
                                 onClick={submitAndClose}
                                 color="primary"
-                                variant="contained"
-                            >
+                                variant="contained">
                                 Create
                             </Button>
                         </div>

@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // Application Model
 //
 // The Application holds information about an app which can send notifications.
@@ -42,4 +44,14 @@ type Application struct {
 	// example: image/image.jpeg
 	Image    string            `gorm:"type:text" json:"image"`
 	Messages []MessageExternal `json:"-"`
+	// The default priority of messages sent by this application. Defaults to 0.
+	//
+	// required: false
+	// example: 4
+	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`
+	// The last time the application token was used.
+	//
+	// read only: true
+	// example: 2019-01-01T00:00:00Z
+	LastUsed *time.Time `json:"lastUsed"`
 }

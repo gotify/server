@@ -3,7 +3,7 @@ import {ElementHandle, JSHandle, Page} from 'puppeteer';
 export const innerText = async (page: ElementHandle | Page, selector: string): Promise<string> => {
     const element = await page.$(selector);
     const handle = await element!.getProperty('innerText');
-    const value = await handle!.jsonValue();
+    const value = await handle.jsonValue();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (value as any).toString().trim();
 };
@@ -13,9 +13,11 @@ export const clickByText = async (page: Page, selector: string, text: string): P
     text = text.toLowerCase();
     await page.evaluate(
         (_selector, _text) => {
-            Array.from(document.querySelectorAll(_selector))
-                .filter((element) => element.textContent.toLowerCase().trim() === _text)[0]
-                .click();
+            (
+                Array.from(document.querySelectorAll(_selector)).filter(
+                    (element) => element.textContent?.toLowerCase().trim() === _text
+                )[0] as HTMLButtonElement
+            ).click();
         },
         selector,
         text

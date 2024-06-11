@@ -12,13 +12,14 @@ import React, {Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import Button from '@material-ui/core/Button';
-import ToggleVisibility from '../common/ToggleVisibility';
 import AddClientDialog from './AddClientDialog';
 import UpdateDialog from './UpdateClientDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
 import {IClient} from '../types';
+import CopyableSecret from '../common/CopyableSecret';
+import {LastUsedCell} from '../common/LastUsedCell';
 
 @observer
 class Clients extends Component<Stores<'clientStore'>> {
@@ -48,12 +49,10 @@ class Clients extends Component<Stores<'clientStore'>> {
                         id="create-client"
                         variant="contained"
                         color="primary"
-                        onClick={() => (this.showDialog = true)}
-                    >
+                        onClick={() => (this.showDialog = true)}>
                         Create Client
                     </Button>
-                }
-            >
+                }>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="client-table">
@@ -61,6 +60,7 @@ class Clients extends Component<Stores<'clientStore'>> {
                                 <TableRow style={{textAlign: 'center'}}>
                                     <TableCell>Name</TableCell>
                                     <TableCell style={{width: 200}}>Token</TableCell>
+                                    <TableCell>Last Used</TableCell>
                                     <TableCell />
                                     <TableCell />
                                 </TableRow>
@@ -71,6 +71,7 @@ class Clients extends Component<Stores<'clientStore'>> {
                                         key={client.id}
                                         name={client.name}
                                         value={client.token}
+                                        lastUsed={client.lastUsed}
                                         fEdit={() => (this.updateId = client.id)}
                                         fDelete={() => (this.deleteId = client.id)}
                                     />
@@ -108,18 +109,22 @@ class Clients extends Component<Stores<'clientStore'>> {
 interface IRowProps {
     name: string;
     value: string;
+    lastUsed: string | null;
     fEdit: VoidFunction;
     fDelete: VoidFunction;
 }
 
-const Row: SFC<IRowProps> = ({name, value, fEdit, fDelete}) => (
+const Row: SFC<IRowProps> = ({name, value, lastUsed, fEdit, fDelete}) => (
     <TableRow>
         <TableCell>{name}</TableCell>
         <TableCell>
-            <ToggleVisibility
+            <CopyableSecret
                 value={value}
-                style={{display: 'flex', alignItems: 'center', width: 200}}
+                style={{display: 'flex', alignItems: 'center', width: 250}}
             />
+        </TableCell>
+        <TableCell>
+            <LastUsedCell lastUsed={lastUsed} />
         </TableCell>
         <TableCell align="right" padding="none">
             <IconButton onClick={fEdit} className="edit">

@@ -37,6 +37,19 @@ func New(pingPeriod, pongTimeout time.Duration, allowedWebSocketOrigins []string
 	}
 }
 
+// CollectConnectedClientTokens returns all tokens of the connected clients.
+func (a *API) CollectConnectedClientTokens() []string {
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+	var clients []string
+	for _, cs := range a.clients {
+		for _, c := range cs {
+			clients = append(clients, c.token)
+		}
+	}
+	return uniq(clients)
+}
+
 // NotifyDeletedUser closes existing connections for the given user.
 func (a *API) NotifyDeletedUser(userID uint) error {
 	a.lock.Lock()
@@ -102,31 +115,31 @@ func (a *API) register(client *client) {
 //
 // Websocket, return newly created messages.
 //
-// ---
-// schema: ws, wss
-// produces: [application/json]
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/Message"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   500:
-//     description: Server Error
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	schema: ws, wss
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/Message"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *API) Handle(ctx *gin.Context) {
 	conn, err := a.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
@@ -155,6 +168,18 @@ func (a *API) Close() {
 	}
 }
 
+func uniq[T comparable](s []T) []T {
+	m := make(map[T]struct{})
+	for _, v := range s {
+		m[v] = struct{}{}
+	}
+	var r []T
+	for k := range m {
+		r = append(r, k)
+	}
+	return r
+}
+
 func isAllowedOrigin(r *http.Request, allowedOrigins []*regexp.Regexp) bool {
 	origin := r.Header.Get("origin")
 	if origin == "" {
@@ -171,7 +196,7 @@ func isAllowedOrigin(r *http.Request, allowedOrigins []*regexp.Regexp) bool {
 	}
 
 	for _, allowedOrigin := range allowedOrigins {
-		if allowedOrigin.Match([]byte(strings.ToLower(u.Hostname()))) {
+		if allowedOrigin.MatchString(strings.ToLower(u.Hostname())) {
 			return true
 		}
 	}

@@ -25,49 +25,62 @@ type ClientAPI struct {
 	NotifyDeleted func(uint, string)
 }
 
+// Client Params Model
+//
+// Params allowed to create or update Clients.
+//
+// swagger:model ClientParams
+type ClientParams struct {
+	// The client name
+	//
+	// required: true
+	// example: My Client
+	Name string `form:"name" query:"name" json:"name" binding:"required"`
+}
+
 // UpdateClient updates a client by its id.
 // swagger:operation PUT /client/{id} client updateClient
 //
 // Update a client.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// parameters:
-// - name: body
-//   in: body
-//   description: the client to update
-//   required: true
-//   schema:
-//     $ref: "#/definitions/Client"
-// - name: id
-//   in: path
-//   description: the client id
-//   required: true
-//   type: integer
-//   format: int64
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/Client"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: body
+//	  in: body
+//	  description: the client to update
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/ClientParams"
+//	- name: id
+//	  in: path
+//	  description: the client id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/Client"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		client, err := a.DB.GetClientByID(id)
@@ -75,8 +88,8 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 			return
 		}
 		if client != nil && client.UserID == auth.GetUserID(ctx) {
-			newValues := &model.Client{}
-			if err := ctx.Bind(newValues); err == nil {
+			newValues := ClientParams{}
+			if err := ctx.Bind(&newValues); err == nil {
 				client.Name = newValues.Name
 
 				if success := successOrAbort(ctx, 500, a.DB.UpdateClient(client)); !success {
@@ -95,39 +108,43 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 //
 // Create a client.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// parameters:
-// - name: body
-//   in: body
-//   description: the client to add
-//   required: true
-//   schema:
-//     $ref: "#/definitions/Client"
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/Client"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: body
+//	  in: body
+//	  description: the client to add
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/ClientParams"
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/Client"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ClientAPI) CreateClient(ctx *gin.Context) {
-	client := model.Client{}
-	if err := ctx.Bind(&client); err == nil {
-		client.Token = auth.GenerateNotExistingToken(generateClientToken, a.clientExists)
-		client.UserID = auth.GetUserID(ctx)
+	clientParams := ClientParams{}
+	if err := ctx.Bind(&clientParams); err == nil {
+		client := model.Client{
+			Name:   clientParams.Name,
+			Token:  auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
+			UserID: auth.GetUserID(ctx),
+		}
+
 		if success := successOrAbort(ctx, 500, a.DB.CreateClient(&client)); !success {
 			return
 		}
@@ -140,25 +157,25 @@ func (a *ClientAPI) CreateClient(ctx *gin.Context) {
 //
 // Return all clients.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//       type: array
-//       items:
-//         $ref: "#/definitions/Client"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	      type: array
+//	      items:
+//	        $ref: "#/definitions/Client"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ClientAPI) GetClients(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	clients, err := a.DB.GetClientsByUser(userID)
@@ -173,36 +190,36 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 //
 // Delete a client.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// parameters:
-// - name: id
-//   in: path
-//   description: the client id
-//   required: true
-//   type: integer
-//   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the client id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ClientAPI) DeleteClient(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		client, err := a.DB.GetClientByID(id)

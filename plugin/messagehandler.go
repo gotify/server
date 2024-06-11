@@ -26,7 +26,7 @@ func (c redirectToChannel) SendMessage(msg compat.Message) error {
 			ApplicationID: c.ApplicationID,
 			Message:       msg.Message,
 			Title:         msg.Title,
-			Priority:      msg.Priority,
+			Priority:      &msg.Priority,
 			Date:          time.Now(),
 			Extras:        msg.Extras,
 		},

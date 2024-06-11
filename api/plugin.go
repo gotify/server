@@ -33,33 +33,33 @@ type PluginAPI struct {
 //
 // Return all plugins.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//       type: array
-//       items:
-//         $ref: "#/definitions/PluginConf"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
-//   500:
-//     description: Internal Server Error
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	      type: array
+//	      items:
+//	        $ref: "#/definitions/PluginConf"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Internal Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	plugins, err := c.DB.GetPluginConfByUser(userID)
@@ -91,36 +91,36 @@ func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 //
 // Enable a plugin.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// parameters:
-// - name: id
-//   in: path
-//   description: the plugin id
-//   required: true
-//   type: integer
-//   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
-//   500:
-//     description: Internal Server Error
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the plugin id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Internal Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
@@ -149,36 +149,36 @@ func (c *PluginAPI) EnablePlugin(ctx *gin.Context) {
 //
 // Disable a plugin.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// parameters:
-// - name: id
-//   in: path
-//   description: the plugin id
-//   required: true
-//   type: integer
-//   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
-//   500:
-//     description: Internal Server Error
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the plugin id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Internal Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
@@ -207,38 +207,38 @@ func (c *PluginAPI) DisablePlugin(ctx *gin.Context) {
 //
 // Get display info for a Displayer plugin.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/json]
-// parameters:
-// - name: id
-//   in: path
-//   description: the plugin id
-//   required: true
-//   type: integer
-//   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//       type: string
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
-//   500:
-//     description: Internal Server Error
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the plugin id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	      type: string
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Internal Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
@@ -263,43 +263,43 @@ func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 //
 // Get YAML configuration for Configurer plugin.
 //
-// ---
-// consumes: [application/json]
-// produces: [application/x-yaml]
-// parameters:
-// - name: id
-//   in: path
-//   description: the plugin id
-//   required: true
-//   type: integer
-//   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//     schema:
-//         type: object
-//         description: plugin configuration
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
-//   500:
-//     description: Internal Server Error
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/json]
+//	produces: [application/x-yaml]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the plugin id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        type: object
+//	        description: plugin configuration
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Internal Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)
@@ -330,40 +330,40 @@ func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 //
 // Update YAML configuration for Configurer plugin.
 //
-// ---
-// consumes: [application/x-yaml]
-// produces: [application/json]
-// parameters:
-// - name: id
-//   in: path
-//   description: the plugin id
-//   required: true
-//   type: integer
-//   format: int64
-// security: [clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
-// responses:
-//   200:
-//     description: Ok
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
-//   500:
-//     description: Internal Server Error
-//     schema:
-//         $ref: "#/definitions/Error"
+//	---
+//	consumes: [application/x-yaml]
+//	produces: [application/json]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the plugin id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  200:
+//	    description: Ok
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Internal Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		conf, err := c.DB.GetPluginConfByID(id)

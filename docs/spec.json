@@ -11,19 +11,22 @@
   ],
   "swagger": "2.0",
   "info": {
-    "description": "This is the documentation of the Gotify REST-API.\n\n# Authentication\nIn Gotify there are two token types:\n__clientToken__: a client is something that receives message and manages stuff like creating new tokens or delete messages. (f.ex this token should be used for an android app)\n__appToken__: an application is something that sends messages (f.ex. this token should be used for a shell script)\n\nThe token can be either transmitted through a header named `X-Gotify-Key` or a query parameter named `token`.\nThere is also the possibility to authenticate through basic auth, this should only be used for creating a clientToken.\n\n\\---\n\nFound a bug or have some questions? [Create an issue on GitHub](https://github.com/gotify/server/issues)",
+    "description": "This is the documentation of the Gotify REST-API.\n\n# Authentication\nIn Gotify there are two token types:\n__clientToken__: a client is something that receives message and manages stuff like creating new tokens or delete messages. (f.ex this token should be used for an android app)\n__appToken__: an application is something that sends messages (f.ex. this token should be used for a shell script)\n\nThe token can be transmitted in a header named `X-Gotify-Key`, in a query parameter named `token` or\nthrough a header named `Authorization` with the value prefixed with `Bearer` (Ex. `Bearer randomtoken`).\nThere is also the possibility to authenticate through basic auth, this should only be used for creating a clientToken.\n\n\\---\n\nFound a bug or have some questions? [Create an issue on GitHub](https://github.com/gotify/server/issues)",
     "title": "Gotify REST-API.",
     "license": {
       "name": "MIT",
       "url": "https://github.com/gotify/server/blob/master/LICENSE"
     },
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   "host": "localhost",
   "paths": {
     "/application": {
       "get": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -72,6 +75,9 @@
       "post": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -99,7 +105,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Application"
+              "$ref": "#/definitions/ApplicationParams"
             }
           }
         ],
@@ -135,6 +141,9 @@
       "put": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -162,7 +171,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Application"
+              "$ref": "#/definitions/ApplicationParams"
             }
           },
           {
@@ -209,6 +218,9 @@
       },
       "delete": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -274,6 +286,9 @@
     "/application/{id}/image": {
       "post": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -350,11 +365,86 @@
             }
           }
         }
+      },
+      "delete": {
+        "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "application"
+        ],
+        "summary": "Deletes an image of an application.",
+        "operationId": "removeAppImage",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "the application id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
       }
     },
     "/application/{id}/message": {
       "get": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -436,6 +526,9 @@
       "delete": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -498,6 +591,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -545,6 +641,9 @@
       "post": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -572,7 +671,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Client"
+              "$ref": "#/definitions/ClientParams"
             }
           }
         ],
@@ -608,6 +707,9 @@
       "put": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -635,7 +737,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Client"
+              "$ref": "#/definitions/ClientParams"
             }
           },
           {
@@ -682,6 +784,9 @@
       },
       "delete": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -748,6 +853,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -790,6 +898,9 @@
     "/current/user/password": {
       "post": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -877,6 +988,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -943,6 +1057,9 @@
       "post": {
         "security": [
           {
+            "appTokenAuthorizationHeader": []
+          },
+          {
             "appTokenHeader": []
           },
           {
@@ -1002,6 +1119,9 @@
       "delete": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1041,6 +1161,9 @@
     "/message/{id}": {
       "delete": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1104,6 +1227,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1164,6 +1290,9 @@
     "/plugin/{id}/config": {
       "get": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1238,6 +1367,9 @@
       "post": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1309,6 +1441,9 @@
       "post": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1373,6 +1508,9 @@
     "/plugin/{id}/display": {
       "get": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1442,6 +1580,9 @@
       "post": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1507,6 +1648,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1562,6 +1706,9 @@
       "get": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1606,6 +1753,9 @@
       "post": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1634,7 +1784,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UserWithPass"
+              "$ref": "#/definitions/CreateUserExternal"
             }
           }
         ],
@@ -1669,6 +1819,9 @@
     "/user/{id}": {
       "get": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1736,6 +1889,9 @@
       "post": {
         "security": [
           {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
             "clientTokenHeader": []
           },
           {
@@ -1771,7 +1927,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UserWithPass"
+              "$ref": "#/definitions/UpdateUserExternal"
             }
           }
         ],
@@ -1810,6 +1966,9 @@
       },
       "delete": {
         "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
           {
             "clientTokenHeader": []
           },
@@ -1904,6 +2063,13 @@
         "image"
       ],
       "properties": {
+        "defaultPriority": {
+          "description": "The default priority of messages sent by this application. Defaults to 0.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DefaultPriority",
+          "example": 4
+        },
         "description": {
           "description": "The description of the application.",
           "type": "string",
@@ -1932,6 +2098,14 @@
           "readOnly": true,
           "example": false
         },
+        "lastUsed": {
+          "description": "The last time the application token was used.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastUsed",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
+        },
         "name": {
           "description": "The application name. This is how the application should be displayed to the user.",
           "type": "string",
@@ -1947,6 +2121,36 @@
         }
       },
       "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "ApplicationParams": {
+      "description": "Params allowed to create or update Applications.",
+      "type": "object",
+      "title": "Application Params Model",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "defaultPriority": {
+          "description": "The default priority of messages sent by this application. Defaults to 0.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DefaultPriority",
+          "example": 5
+        },
+        "description": {
+          "description": "The description of the application.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Backup server for the interwebs"
+        },
+        "name": {
+          "description": "The application name. This is how the application should be displayed to the user.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Backup Server"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/api"
     },
     "Client": {
       "description": "The Client holds information about a device which can receive notifications (and other stuff).",
@@ -1966,6 +2170,14 @@
           "readOnly": true,
           "example": 5
         },
+        "lastUsed": {
+          "description": "The last time the client token was used.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "LastUsed",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
+        },
         "name": {
           "description": "The client name. This is how the client should be displayed to the user.",
           "type": "string",
@@ -1978,6 +2190,54 @@
           "x-go-name": "Token",
           "readOnly": true,
           "example": "CWH0wZ5r0Mbac.r"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "ClientParams": {
+      "description": "Params allowed to create or update Clients.",
+      "type": "object",
+      "title": "Client Params Model",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "The client name",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "My Client"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/api"
+    },
+    "CreateUserExternal": {
+      "description": "Used for user creation.",
+      "type": "object",
+      "title": "CreateUserExternal Model",
+      "required": [
+        "name",
+        "admin",
+        "pass"
+      ],
+      "properties": {
+        "admin": {
+          "description": "If the user is an administrator.",
+          "type": "boolean",
+          "x-go-name": "Admin",
+          "example": true
+        },
+        "name": {
+          "description": "The user name. For login.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "unicorn"
+        },
+        "pass": {
+          "description": "The user password. For login.",
+          "type": "string",
+          "x-go-name": "Pass",
+          "example": "nrocinu"
         }
       },
       "x-go-package": "github.com/gotify/server/v2/model"
@@ -2068,9 +2328,7 @@
         "extras": {
           "description": "The extra data sent along the message.\n\nThe extra fields are stored in a key-value scheme. Only accepted in CreateMessage requests with application/json content-type.\n\nThe keys should be in the following format: \u0026lt;top-namespace\u0026gt;::[\u0026lt;sub-namespace\u0026gt;::]\u0026lt;action\u0026gt;\n\nThese namespaces are reserved and might be used in the official clients: gotify android ios web server client. Do not use them for other purposes.",
           "type": "object",
-          "additionalProperties": {
-            "type": "object"
-          },
+          "additionalProperties": {},
           "x-go-name": "Extras",
           "example": {
             "home::appliances::lighting::on": {
@@ -2096,7 +2354,7 @@
           "example": "**Backup** was successfully finished."
         },
         "priority": {
-          "description": "The priority of the message.",
+          "description": "The priority of the message. If unset, then the default priority of the\napplication will be used.",
           "type": "integer",
           "format": "int64",
           "x-go-name": "Priority",
@@ -2113,7 +2371,7 @@
       "x-go-package": "github.com/gotify/server/v2/model"
     },
     "PagedMessages": {
-      "description": "Wrapper for the paging and the messages",
+      "description": "Wrapper for the paging and the messages.",
       "type": "object",
       "title": "PagedMessages Model",
       "required": [
@@ -2267,13 +2525,44 @@
       "x-go-name": "PluginConfExternal",
       "x-go-package": "github.com/gotify/server/v2/model"
     },
+    "UpdateUserExternal": {
+      "description": "Used for updating a user.",
+      "type": "object",
+      "title": "UpdateUserExternal Model",
+      "required": [
+        "name",
+        "admin"
+      ],
+      "properties": {
+        "admin": {
+          "description": "If the user is an administrator.",
+          "type": "boolean",
+          "x-go-name": "Admin",
+          "example": true
+        },
+        "name": {
+          "description": "The user name. For login.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "unicorn"
+        },
+        "pass": {
+          "description": "The user password. For login. Empty for using old password",
+          "type": "string",
+          "x-go-name": "Pass",
+          "example": "nrocinu"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
     "User": {
       "description": "The User holds information about permission and other stuff.",
       "type": "object",
       "title": "UserExternal Model",
       "required": [
         "id",
-        "name"
+        "name",
+        "admin"
       ],
       "properties": {
         "admin": {
@@ -2318,46 +2607,6 @@
       "x-go-name": "UserExternalPass",
       "x-go-package": "github.com/gotify/server/v2/model"
     },
-    "UserWithPass": {
-      "description": "The UserWithPass holds information about the credentials and other stuff.",
-      "type": "object",
-      "title": "UserExternalWithPass Model",
-      "required": [
-        "id",
-        "name",
-        "pass"
-      ],
-      "properties": {
-        "admin": {
-          "description": "If the user is an administrator.",
-          "type": "boolean",
-          "x-go-name": "Admin",
-          "example": true
-        },
-        "id": {
-          "description": "The user id.",
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "ID",
-          "readOnly": true,
-          "example": 25
-        },
-        "name": {
-          "description": "The user name. For login.",
-          "type": "string",
-          "x-go-name": "Name",
-          "example": "unicorn"
-        },
-        "pass": {
-          "description": "The user password. For login.",
-          "type": "string",
-          "x-go-name": "Pass",
-          "example": "nrocinu"
-        }
-      },
-      "x-go-name": "UserExternalWithPass",
-      "x-go-package": "github.com/gotify/server/v2/model"
-    },
     "VersionInfo": {
       "description": "VersionInfo Model",
       "type": "object",
@@ -2390,6 +2639,12 @@
     }
   },
   "securityDefinitions": {
+    "appTokenAuthorizationHeader": {
+      "description": "Enter an application token with the `Bearer` prefix, e.g. `Bearer Axxxxxxxxxx`.",
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    },
     "appTokenHeader": {
       "type": "apiKey",
       "name": "X-Gotify-Key",
@@ -2402,6 +2657,12 @@
     },
     "basicAuth": {
       "type": "basic"
+    },
+    "clientTokenAuthorizationHeader": {
+      "description": "Enter a client token with the `Bearer` prefix, e.g. `Bearer Cxxxxxxxxxx`.",
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
     },
     "clientTokenHeader": {
       "type": "apiKey",

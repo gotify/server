@@ -7,10 +7,10 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.16.x
+          go-version: 1.21.x
       - uses: actions/setup-node@v1
         with:
-          node-version: '16'
+          node-version: '20'
       - uses: actions/cache@v2
         with:
           path: ~/go/pkg/mod
@@ -24,15 +24,15 @@ jobs:
           key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-node_modules-
       - uses: actions/checkout@v2
-      - uses: golangci/golangci-lint-action@v2
-        with:
-          version: v1.31
-          args: --timeout=5m
-      - run: go mod download
-      - run: make download-tools
       - run: (cd ui && yarn)
       - run: make build-js
-      - run: make embed-static
+      - uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.55
+          args: --timeout=5m
+          skip-cache: true
+      - run: go mod download
+      - run: make download-tools
       - run: make test
       - run: make check-ci
       - uses: codecov/codecov-action@v1
@@ -52,9 +52,11 @@ jobs:
           docker push --all-tags gotify/server
           docker push --all-tags gotify/server-arm7
           docker push --all-tags gotify/server-arm64
+          docker push --all-tags gotify/server-riscv64
           docker push --all-tags ghcr.io/gotify/server
           docker push --all-tags ghcr.io/gotify/server-arm7
           docker push --all-tags ghcr.io/gotify/server-arm64
+          docker push --all-tags ghcr.io/gotify/server-riscv64
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
           DOCKER_PASS: ${{ secrets.DOCKER_PASS }}

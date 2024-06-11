@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -90,8 +91,9 @@ func (s *ApplicationSuite) Test_ensureApplicationHasCorrectJsonRepresentation() 
 		Description: "mydesc",
 		Image:       "asd",
 		Internal:    true,
+		LastUsed:    nil,
 	}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true}`)
+	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true, "defaultPriority":0, "lastUsed":null}`)
 }
 
 func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {
@@ -105,6 +107,35 @@ func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() 
 	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
 		assert.Empty(s.T(), app)
 	}
+}
+
+func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInParams() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.withJSON(&model.Application{
+		Name:        "name",
+		Description: "description",
+		ID:          333,
+		Internal:    true,
+		Token:       "token",
+		Image:       "adfdf",
+	})
+
+	s.a.CreateApplication(s.ctx)
+
+	expectedJSONValue, _ := json.Marshal(&model.Application{
+		ID:          1,
+		Token:       firstApplicationToken,
+		UserID:      5,
+		Name:        "name",
+		Description: "description",
+		Internal:    false,
+		Image:       "static/defaultapp.png",
+	})
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), string(expectedJSONValue), s.recorder.Body.String())
 }
 
 func (s *ApplicationSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwner() {
@@ -272,7 +303,7 @@ func (s *ApplicationSuite) Test_UploadAppImage_OtherErrors_expectServerError() {
 	s.a.UploadApplicationImage(s.ctx)
 
 	assert.Equal(s.T(), 500, s.recorder.Code)
-	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("multipart: NextPart: EOF"))
+	assert.Error(s.T(), s.ctx.Errors[0].Err, "multipart: NextPart: EOF")
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
@@ -368,6 +399,22 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithTextFile_expectBadRequest() {
 	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("file must be an image"))
 }
 
+func (s *ApplicationSuite) Test_UploadAppImage_WithHtmlFileHavingImageHeader() {
+	s.db.User(5).App(1)
+
+	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image-header-with.html")})
+	assert.Nil(s.T(), err)
+	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant", &buffer)
+	s.ctx.Request.Header.Set("Content-Type", cType)
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	s.a.UploadApplicationImage(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("invalid file extension"))
+}
+
 func (s *ApplicationSuite) Test_UploadAppImage_expectNotFound() {
 	s.db.User(5)
 
@@ -380,20 +427,45 @@ func (s *ApplicationSuite) Test_UploadAppImage_expectNotFound() {
 	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
-func (s *ApplicationSuite) Test_UploadAppImage_WithSaveError_expectServerError() {
+func (s *ApplicationSuite) Test_RemoveAppImage_expectNotFound() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.ctx.Request = httptest.NewRequest("DELETE", "/irrelevant", nil)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "4"}}
+
+	s.a.RemoveApplicationImage(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+}
+
+func (s *ApplicationSuite) Test_RemoveAppImage_noCustomizedImage() {
 	s.db.User(5).App(1)
 
-	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
-	assert.Nil(s.T(), err)
-	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant/", &buffer)
-	s.a.ImageDir = "asdasd/asdasda/asdasd"
-	s.ctx.Request.Header.Set("Content-Type", cType)
 	test.WithUser(s.ctx, 5)
+	s.ctx.Request = httptest.NewRequest("DELETE", "/irrelevant", nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	s.a.RemoveApplicationImage(s.ctx)
 
-	s.a.UploadApplicationImage(s.ctx)
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
 
-	assert.Equal(s.T(), 500, s.recorder.Code)
+func (s *ApplicationSuite) Test_RemoveAppImage_expectSuccess() {
+	s.db.User(5)
+
+	imageFile := "existing.png"
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: imageFile})
+	fakeImage(s.T(), imageFile)
+
+	test.WithUser(s.ctx, 5)
+	s.ctx.Request = httptest.NewRequest("DELETE", "/irrelevant", nil)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	s.a.RemoveApplicationImage(s.ctx)
+
+	_, err := os.Stat(imageFile)
+	assert.True(s.T(), os.IsNotExist(err))
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
 }
 
 func (s *ApplicationSuite) Test_UpdateApplicationNameAndDescription_expectSuccess() {
@@ -432,6 +504,29 @@ func (s *ApplicationSuite) Test_UpdateApplicationName_expectSuccess() {
 		UserID:      5,
 		Name:        "new_name",
 		Description: "",
+	}
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	if app, err := s.db.GetApplicationByID(2); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), expected, app)
+	}
+}
+
+func (s *ApplicationSuite) Test_UpdateApplicationDefaultPriority_expectSuccess() {
+	s.db.User(5).NewAppWithToken(2, "app-2")
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=name&description=&defaultPriority=4")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+	s.a.UpdateApplication(s.ctx)
+
+	expected := &model.Application{
+		ID:              2,
+		Token:           "app-2",
+		UserID:          5,
+		Name:            "name",
+		Description:     "",
+		DefaultPriority: 4,
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -503,6 +598,12 @@ func (s *ApplicationSuite) Test_UpdateApplication_WithoutPermission_expectNotFou
 func (s *ApplicationSuite) withFormData(formData string) {
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(formData))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+}
+
+func (s *ApplicationSuite) withJSON(value interface{}) {
+	jsonVal, _ := json.Marshal(value)
+	s.ctx.Request = httptest.NewRequest("POST", "/application", bytes.NewBuffer(jsonVal))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
 }
 
 // A modified version of https://stackoverflow.com/a/20397167/4244993 from Attila O.

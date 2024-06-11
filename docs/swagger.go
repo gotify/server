@@ -1,14 +1,15 @@
 package docs
 
 import (
+	_ "embed"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gobuffalo/packr/v2"
 	"github.com/gotify/location"
 )
 
-var box = packr.New("docs", "./")
+//go:embed spec.json
+var spec string
 
 // Serve serves the documentation.
 func Serve(ctx *gin.Context) {
@@ -16,13 +17,9 @@ func Serve(ctx *gin.Context) {
 	if basePathFromQuery := ctx.Query("base"); basePathFromQuery != "" {
 		base = basePathFromQuery
 	}
-	ctx.Writer.WriteString(get(base))
+	ctx.Writer.WriteString(getSwaggerJSON(base))
 }
 
-func get(base string) string {
-	spec, err := box.FindString("spec.json")
-	if err != nil {
-		panic(err)
-	}
+func getSwaggerJSON(base string) string {
 	return strings.Replace(spec, "localhost", base, 1)
 }

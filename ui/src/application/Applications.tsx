@@ -1,4 +1,3 @@
-import Avatar from '@material-ui/core/Avatar';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper';
@@ -14,7 +13,7 @@ import React, {ChangeEvent, Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import Button from '@material-ui/core/Button';
-import ToggleVisibility from '../common/ToggleVisibility';
+import CopyableSecret from '../common/CopyableSecret';
 import AddApplicationDialog from './AddApplicationDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
@@ -22,6 +21,7 @@ import {inject, Stores} from '../inject';
 import * as config from '../config';
 import UpdateDialog from './UpdateApplicationDialog';
 import {IApplication} from '../types';
+import {LastUsedCell} from '../common/LastUsedCell';
 
 @observer
 class Applications extends Component<Stores<'appStore'>> {
@@ -53,13 +53,11 @@ class Applications extends Component<Stores<'appStore'>> {
                         id="create-app"
                         variant="contained"
                         color="primary"
-                        onClick={() => (this.createDialog = true)}
-                    >
+                        onClick={() => (this.createDialog = true)}>
                         Create Application
                     </Button>
                 }
-                maxWidth={1000}
-            >
+                maxWidth={1000}>
                 <Grid item xs={12}>
                     <Paper elevation={6}>
                         <Table id="app-table">
@@ -69,6 +67,8 @@ class Applications extends Component<Stores<'appStore'>> {
                                     <TableCell>Name</TableCell>
                                     <TableCell>Token</TableCell>
                                     <TableCell>Description</TableCell>
+                                    <TableCell>Priority</TableCell>
+                                    <TableCell>Last Used</TableCell>
                                     <TableCell />
                                     <TableCell />
                                 </TableRow>
@@ -78,9 +78,11 @@ class Applications extends Component<Stores<'appStore'>> {
                                     <Row
                                         key={app.id}
                                         description={app.description}
+                                        defaultPriority={app.defaultPriority}
                                         image={app.image}
                                         name={app.name}
                                         value={app.token}
+                                        lastUsed={app.lastUsed}
                                         fUpload={() => this.uploadImage(app.id)}
                                         fDelete={() => (this.deleteId = app.id)}
                                         fEdit={() => (this.updateId = app.id)}
@@ -106,11 +108,12 @@ class Applications extends Component<Stores<'appStore'>> {
                 {updateId !== false && (
                     <UpdateDialog
                         fClose={() => (this.updateId = false)}
-                        fOnSubmit={(name, description) =>
-                            appStore.update(updateId, name, description)
+                        fOnSubmit={(name, description, defaultPriority) =>
+                            appStore.update(updateId, name, description, defaultPriority)
                         }
                         initialDescription={appStore.getByID(updateId).description}
                         initialName={appStore.getByID(updateId).name}
+                        initialDefaultPriority={appStore.getByID(updateId).defaultPriority}
                     />
                 )}
                 {deleteId !== false && (
@@ -150,6 +153,8 @@ interface IRowProps {
     value: string;
     noDelete: boolean;
     description: string;
+    defaultPriority: number;
+    lastUsed: string | null;
     fUpload: VoidFunction;
     image: string;
     fDelete: VoidFunction;
@@ -157,11 +162,22 @@ interface IRowProps {
 }
 
 const Row: SFC<IRowProps> = observer(
-    ({name, value, noDelete, description, fDelete, fUpload, image, fEdit}) => (
+    ({
+        name,
+        value,
+        noDelete,
+        description,
+        defaultPriority,
+        lastUsed,
+        fDelete,
+        fUpload,
+        image,
+        fEdit,
+    }) => (
         <TableRow>
             <TableCell padding="default">
                 <div style={{display: 'flex'}}>
-                    <Avatar src={config.get('url') + image} />
+                    <img src={config.get('url') + image} alt="app logo" width="40" height="40" />
                     <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
                     </IconButton>
@@ -169,9 +185,13 @@ const Row: SFC<IRowProps> = observer(
             </TableCell>
             <TableCell>{name}</TableCell>
             <TableCell>
-                <ToggleVisibility value={value} style={{display: 'flex', alignItems: 'center'}} />
+                <CopyableSecret value={value} style={{display: 'flex', alignItems: 'center'}} />
             </TableCell>
             <TableCell>{description}</TableCell>
+            <TableCell>{defaultPriority}</TableCell>
+            <TableCell>
+                <LastUsedCell lastUsed={lastUsed} />
+            </TableCell>
             <TableCell align="right" padding="none">
                 <IconButton onClick={fEdit} className="edit">
                     <Edit />

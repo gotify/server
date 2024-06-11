@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // Client Model
 //
 // The Client holds information about a device which can receive notifications (and other stuff).
@@ -24,4 +26,9 @@ type Client struct {
 	// required: true
 	// example: Android Phone
 	Name string `gorm:"type:text" form:"name" query:"name" json:"name" binding:"required"`
+	// The last time the client token was used.
+	//
+	// read only: true
+	// example: 2019-01-01T00:00:00Z
+	LastUsed *time.Time `json:"lastUsed"`
 }

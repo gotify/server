@@ -1,6 +1,8 @@
 package database
 
 import (
+	"time"
+
 	"github.com/gotify/server/v2/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -39,6 +41,14 @@ func (s *DatabaseSuite) TestApplication() {
 	if assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), app, newApp)
 	}
+
+	lastUsed := time.Now().Add(-time.Hour)
+	s.db.UpdateApplicationTokenLastUsed(app.Token, &lastUsed)
+	newApp, err = s.db.GetApplicationByID(app.ID)
+	if assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), lastUsed.Unix(), newApp.LastUsed.Unix())
+	}
+	app.LastUsed = &lastUsed
 
 	newApp.Image = "asdasd"
 	assert.NoError(s.T(), s.db.UpdateApplication(newApp))

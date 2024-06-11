@@ -37,7 +37,7 @@ type Paging struct {
 
 // PagedMessages Model
 //
-// Wrapper for the paging and the messages
+// Wrapper for the paging and the messages.
 //
 // swagger:model PagedMessages
 type PagedMessages struct {

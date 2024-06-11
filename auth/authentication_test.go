@@ -1,5 +1,3 @@
-// +build !race
-
 package auth
 
 import (
@@ -103,16 +101,6 @@ func (s *AuthenticationSuite) TestHeaderApiKeyToken() {
 	s.assertHeaderRequest("X-Gotify-Key", "ergerogerg", s.auth.RequireClient, 401)
 	s.assertHeaderRequest("X-Gotify-Key", "ergerogerg", s.auth.RequireAdmin, 401)
 
-	// no authentication schema
-	s.assertHeaderRequest("Authorization", "ergerogerg", s.auth.RequireApplicationToken, 401)
-	s.assertHeaderRequest("Authorization", "ergerogerg", s.auth.RequireClient, 401)
-	s.assertHeaderRequest("Authorization", "ergerogerg", s.auth.RequireAdmin, 401)
-
-	// wrong authentication schema
-	s.assertHeaderRequest("Authorization", "ApiKeyx clienttoken", s.auth.RequireApplicationToken, 401)
-	s.assertHeaderRequest("Authorization", "ApiKeyx clienttoken", s.auth.RequireClient, 401)
-	s.assertHeaderRequest("Authorization", "ApiKeyx clienttoken", s.auth.RequireAdmin, 401)
-
 	// not existing key
 	s.assertHeaderRequest("X-Gotify-Keyx", "clienttoken", s.auth.RequireApplicationToken, 401)
 	s.assertHeaderRequest("X-Gotify-Keyx", "clienttoken", s.auth.RequireClient, 401)
@@ -133,6 +121,39 @@ func (s *AuthenticationSuite) TestHeaderApiKeyToken() {
 	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_admin", s.auth.RequireApplicationToken, 401)
 	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_admin", s.auth.RequireClient, 200)
 	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_admin", s.auth.RequireAdmin, 200)
+}
+
+func (s *AuthenticationSuite) TestAuthorizationHeaderApiKeyToken() {
+	// not existing token
+	s.assertHeaderRequest("Authorization", "Bearer ergerogerg", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("Authorization", "Bearer ergerogerg", s.auth.RequireClient, 401)
+	s.assertHeaderRequest("Authorization", "Bearer ergerogerg", s.auth.RequireAdmin, 401)
+
+	// no authentication schema
+	s.assertHeaderRequest("Authorization", "ergerogerg", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("Authorization", "ergerogerg", s.auth.RequireClient, 401)
+	s.assertHeaderRequest("Authorization", "ergerogerg", s.auth.RequireAdmin, 401)
+
+	// wrong authentication schema
+	s.assertHeaderRequest("Authorization", "ApiKeyx clienttoken", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("Authorization", "ApiKeyx clienttoken", s.auth.RequireClient, 401)
+	s.assertHeaderRequest("Authorization", "ApiKeyx clienttoken", s.auth.RequireAdmin, 401)
+
+	// Authorization Bearer apptoken
+	s.assertHeaderRequest("Authorization", "Bearer apptoken", s.auth.RequireApplicationToken, 200)
+	s.assertHeaderRequest("Authorization", "Bearer apptoken", s.auth.RequireClient, 401)
+	s.assertHeaderRequest("Authorization", "Bearer apptoken", s.auth.RequireAdmin, 401)
+	s.assertHeaderRequest("Authorization", "Bearer apptoken_admin", s.auth.RequireApplicationToken, 200)
+	s.assertHeaderRequest("Authorization", "Bearer apptoken_admin", s.auth.RequireClient, 401)
+	s.assertHeaderRequest("Authorization", "Bearer apptoken_admin", s.auth.RequireAdmin, 401)
+
+	// Authorization Bearer clienttoken
+	s.assertHeaderRequest("Authorization", "Bearer clienttoken", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("Authorization", "Bearer clienttoken", s.auth.RequireClient, 200)
+	s.assertHeaderRequest("Authorization", "Bearer clienttoken", s.auth.RequireAdmin, 403)
+	s.assertHeaderRequest("Authorization", "bearer clienttoken_admin", s.auth.RequireApplicationToken, 401)
+	s.assertHeaderRequest("Authorization", "bearer clienttoken_admin", s.auth.RequireClient, 200)
+	s.assertHeaderRequest("Authorization", "bearer clienttoken_admin", s.auth.RequireAdmin, 200)
 }
 
 func (s *AuthenticationSuite) TestBasicAuth() {

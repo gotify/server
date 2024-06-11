@@ -8,15 +8,9 @@ import (
 	"github.com/gotify/server/v2/auth/password"
 	"github.com/gotify/server/v2/model"
 	"github.com/jinzhu/gorm"
-
-	// enable the mysql dialect.
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-
-	// enable the postgres dialect.
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-
-	// enable the sqlite3 dialect.
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/mysql"    // enable the mysql dialect.
+	_ "github.com/jinzhu/gorm/dialects/postgres" // enable the postgres dialect.
+	_ "github.com/jinzhu/gorm/dialects/sqlite"   // enable the sqlite3 dialect.
 )
 
 var mkdirAll = os.MkdirAll
@@ -95,7 +89,7 @@ func prepareBlobColumn(dialect string, db *gorm.DB) error {
 func createDirectoryIfSqlite(dialect, connection string) {
 	if dialect == "sqlite3" {
 		if _, err := os.Stat(filepath.Dir(connection)); os.IsNotExist(err) {
-			if err := mkdirAll(filepath.Dir(connection), 0777); err != nil {
+			if err := mkdirAll(filepath.Dir(connection), 0o777); err != nil {
 				panic(err)
 			}
 		}

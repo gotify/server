@@ -219,6 +219,8 @@ describe('Messages', () => {
     it('deletes all linux messages', async () => {
         await navigate('Linux');
         await page.click('#delete-all');
+        await page.waitForSelector(selector.$confirmDialog.selector());
+        await page.click(selector.$confirmDialog.button('.confirm'));
         await page.waitForSelector('#delete-all:disabled');
         await expectMessages({
             all: [windows3, backup1, windows1],
@@ -250,6 +252,9 @@ describe('Messages', () => {
     it('deletes all messages', async () => {
         await navigate('All Messages');
         await page.click('#delete-all');
+        await page.waitForSelector(selector.$confirmDialog.selector());
+        await page.click(selector.$confirmDialog.button('.confirm'));
+        await page.waitForSelector('#delete-all:disabled');
         await expectMessages({
             all: [],
             windows: [],
@@ -269,6 +274,8 @@ describe('Messages', () => {
     it('deletes all backup messages and navigates to all messages', async () => {
         await navigate('Backup');
         await page.click('#delete-all');
+        await page.waitForSelector(selector.$confirmDialog.selector());
+        await page.click(selector.$confirmDialog.button('.confirm'));
         await page.waitForSelector('#delete-all:disabled');
         await navigate('All Messages');
         await createMessage(backup3, backupServerToken);

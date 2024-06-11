@@ -5,12 +5,15 @@ export interface IApplication {
     description: string;
     image: string;
     internal: boolean;
+    defaultPriority: number;
+    lastUsed: string | null;
 }
 
 export interface IClient {
     id: number;
     token: string;
     name: string;
+    lastUsed: string | null;
 }
 
 export interface IPlugin {

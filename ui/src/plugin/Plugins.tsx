@@ -10,7 +10,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Settings from '@material-ui/icons/Settings';
 import {Switch, Button} from '@material-ui/core';
 import DefaultPage from '../common/DefaultPage';
-import ToggleVisibility from '../common/ToggleVisibility';
+import CopyableSecret from '../common/CopyableSecret';
 import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
 import {IPlugin} from '../types';
@@ -84,7 +84,7 @@ const Row: SFC<IRowProps> = observer(({name, id, token, enabled, fToggleStatus})
         </TableCell>
         <TableCell>{name}</TableCell>
         <TableCell>
-            <ToggleVisibility value={token} style={{display: 'flex', alignItems: 'center'}} />
+            <CopyableSecret value={token} style={{display: 'flex', alignItems: 'center'}} />
         </TableCell>
         <TableCell align="right" padding="none">
             <Link to={'/plugins/' + id}>

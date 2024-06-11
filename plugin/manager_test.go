@@ -1,5 +1,5 @@
+//go:build linux || darwin
 // +build linux darwin
-// +build !race
 
 package plugin
 

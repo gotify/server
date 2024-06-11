@@ -1,5 +1,3 @@
-// +build !race
-
 package password
 
 import (

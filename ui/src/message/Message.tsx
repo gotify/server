@@ -73,10 +73,21 @@ interface IProps {
     image?: string;
     date: string;
     content: string;
+    priority: number;
     fDelete: VoidFunction;
     extras?: IMessageExtras;
     height: (height: number) => void;
 }
+
+const priorityColor = (priority: number) => {
+    if (priority >= 4 && priority <= 7) {
+        return 'rgba(230, 126, 34, 0.7)';
+    } else if (priority > 7) {
+        return '#e74c3c';
+    } else {
+        return 'transparent';
+    }
+};
 
 class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
     private node: HTMLDivElement | null = null;
@@ -96,11 +107,17 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
     };
 
     public render(): React.ReactNode {
-        const {fDelete, classes, title, date, image} = this.props;
+        const {fDelete, classes, title, date, image, priority} = this.props;
 
         return (
             <div className={`${classes.wrapperPadding} message`} ref={(ref) => (this.node = ref)}>
-                <Container style={{display: 'flex'}}>
+                <Container
+                    style={{
+                        display: 'flex',
+                        borderLeftColor: priorityColor(priority),
+                        borderLeftWidth: 6,
+                        borderLeftStyle: 'solid',
+                    }}>
                     <div className={classes.imageWrapper}>
                         {image !== null ? (
                             <img
