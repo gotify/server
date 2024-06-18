@@ -87,7 +87,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                         </Button>
                     </div>
                 }>
-                { messagesStore.isLoading(appId) ? ( 
+                { !messagesStore.loaded(appId) ? (
                     <LoadingSpinner />
                 ) : hasMessages ? (
                     <div style={{width: '100%'}} id="messages">

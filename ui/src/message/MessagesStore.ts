@@ -13,12 +13,13 @@ interface MessagesState {
     hasMore: boolean;
     nextSince: number;
     loaded: boolean;
-    isLoading: boolean,
 }
 
 export class MessagesStore {
     @observable
     private state: Record<string, MessagesState> = {};
+
+    private loading = false;
 
     public constructor(
         private readonly appStore: BaseStore<IApplication>,
@@ -34,17 +35,17 @@ export class MessagesStore {
         return this.state[appId] || this.emptyState();
     };
 
-    public isLoading = (appId: number) => this.stateOf(appId, /*create*/ false).isLoading
+    public loaded = (appId: number) => this.stateOf(appId, /*create*/ false).loaded;
 
     public canLoadMore = (appId: number) => this.stateOf(appId, /*create*/ false).hasMore;
 
     @action
     public loadMore = async (appId: number) => {
         const state = this.stateOf(appId);
-        if (!state.hasMore || state.isLoading) {
+        if (!state.hasMore || this.loading) {
             return Promise.resolve();
         }
-        state.isLoading = true;
+        this.loading = true;
 
         const pagedResult = await this.fetchMessages(appId, state.nextSince).then(
             (resp) => resp.data
@@ -54,7 +55,7 @@ export class MessagesStore {
         state.nextSince = pagedResult.paging.since ?? 0;
         state.hasMore = 'next' in pagedResult.paging;
         state.loaded = true;
-        state.isLoading = false;
+        this.loading = false;
         return Promise.resolve();
     };
 
@@ -160,6 +161,5 @@ export class MessagesStore {
         hasMore: true,
         nextSince: 0,
         loaded: false,
-        isLoading: false,
     });
 }
