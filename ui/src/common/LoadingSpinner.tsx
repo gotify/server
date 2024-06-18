@@ -7,7 +7,7 @@ export default function LoadingSpinner() {
     return (
         <DefaultPage title="" maxWidth={250}>
             <Grid item xs={12} style={{textAlign: 'center'}}>
-                <CircularProgress size={150} />
+                <CircularProgress size={40} />
             </Grid>
         </DefaultPage>
     );
