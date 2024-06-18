@@ -1,4 +1,3 @@
-import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import React, {Component} from 'react';
@@ -12,6 +11,7 @@ import {observable} from 'mobx';
 import ReactInfinite from 'react-infinite';
 import {IMessage} from '../types';
 import ConfirmDialog from '../common/ConfirmDialog';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 type IProps = RouteComponentProps<{id: string}>;
 
@@ -87,7 +87,9 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                         </Button>
                     </div>
                 }>
-                {hasMessages ? (
+                { messagesStore.isLoading(appId) ? ( 
+                    <LoadingSpinner />
+                ) : hasMessages ? (
                     <div style={{width: '100%'}} id="messages">
                         <ReactInfinite
                             key={appId}
@@ -98,9 +100,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                         </ReactInfinite>
 
                         {hasMore ? (
-                            <Grid item xs={12} style={{textAlign: 'center'}}>
-                                <CircularProgress size={100} />
-                            </Grid>
+                            <LoadingSpinner />
                         ) : (
                             this.label("You've reached the end")
                         )}
