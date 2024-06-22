@@ -87,7 +87,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                         </Button>
                     </div>
                 }>
-                { !messagesStore.loaded(appId) ? (
+                {!messagesStore.loaded(appId) ? (
                     <LoadingSpinner />
                 ) : hasMessages ? (
                     <div style={{width: '100%'}} id="messages">
@@ -99,11 +99,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                             {messages.map(this.renderMessage)}
                         </ReactInfinite>
 
-                        {hasMore ? (
-                            <LoadingSpinner />
-                        ) : (
-                            this.label("You've reached the end")
-                        )}
+                        {hasMore ? <LoadingSpinner /> : this.label("You've reached the end")}
                     </div>
                 ) : (
                     this.label('No messages')
