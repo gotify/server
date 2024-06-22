@@ -35,6 +35,8 @@ export class MessagesStore {
         return this.state[appId] || this.emptyState();
     };
 
+    public loaded = (appId: number) => this.stateOf(appId, /*create*/ false).loaded;
+
     public canLoadMore = (appId: number) => this.stateOf(appId, /*create*/ false).hasMore;
 
     @action
