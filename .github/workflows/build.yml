@@ -5,28 +5,16 @@ jobs:
   gotify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.21.x
-      - uses: actions/setup-node@v1
+          go-version: 1.22.x
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ui/node_modules
-          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-node_modules-
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: (cd ui && yarn)
       - run: make build-js
-      - uses: golangci/golangci-lint-action@v3
+      - uses: golangci/golangci-lint-action@v5
         with:
           version: v1.55
           args: --timeout=5m
@@ -35,7 +23,9 @@ jobs:
       - run: make download-tools
       - run: make test
       - run: make check-ci
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
       - if: startsWith(github.ref, 'refs/tags/v')
         run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
       - if: startsWith(github.ref, 'refs/tags/v')
