@@ -26,11 +26,14 @@ func Register(r *gin.Engine, version model.VersionInfo, register bool) {
 	if err != nil {
 		panic(err)
 	}
-	ui := r.Group("/", gzip.Gzip(gzip.DefaultCompression))
-	ui.GET("/", serveFile("index.html", "text/html", func(content string) string {
+
+	replaceConfig := func(content string) string {
 		return strings.Replace(content, "%CONFIG%", string(uiConfigBytes), 1)
-	}))
-	ui.GET("/index.html", serveFile("index.html", "text/html", noop))
+	}
+
+	ui := r.Group("/", gzip.Gzip(gzip.DefaultCompression))
+	ui.GET("/", serveFile("index.html", "text/html", replaceConfig))
+	ui.GET("/index.html", serveFile("index.html", "text/html", replaceConfig))
 	ui.GET("/manifest.json", serveFile("manifest.json", "application/json", noop))
 	ui.GET("/asset-manifest.json", serveFile("asset-manifest.json", "application/json", noop))
 
