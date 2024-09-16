@@ -4,7 +4,7 @@
     </a>
 </p>
 
-<h1 align="center">gotify/server</h1>
+<h1 align="center">መለከት(Meleket)</h1>
 
 <p align="center">
     <a href="https://github.com/gotify/server/actions?query=workflow%3Abuild">
