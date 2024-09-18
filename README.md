@@ -30,6 +30,14 @@
 ## Intro
 We wanted a simple server for sending and receiving messages (in real time per WebSocket). For this, not many open source projects existed and most of the existing ones were abandoned. Also, a requirement was that it can be self-hosted. We know there are many free and commercial push services out there.
 
+## Self-Hosting Gotify
+
+### Elestio
+
+You can deploy Gotify on Elestio using one-click deployment. Elestio supports Gotify by providing revenue share so go ahead and click below to deploy and use Gotify.
+
+[![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.png)](https://elest.io/open-source/gotify)
+
 ## Features
 
 <img alt="Gotify UI screenshot" src="ui.png" align="right" width="500px"/>
