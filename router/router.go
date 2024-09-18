@@ -104,7 +104,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	ui.Register(g, *vInfo, conf.Registration)
 
-	g.GET("/health", healthHandler.Health)
+	g.Match([]string{"GET", "HEAD"}, "/health", healthHandler.Health)
 	g.GET("/swagger", docs.Serve)
 	g.StaticFS("/image", &onlyImageFS{inner: gin.Dir(conf.UploadedImagesDir, false)})
 
