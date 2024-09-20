@@ -75,7 +75,6 @@ func (c *EchoPlugin) Disable() error {
 func (c *EchoPlugin) RegisterWebhook(baseURL string, g *gin.RouterGroup) {
 	c.basePath = baseURL
 	g.GET("/echo", func(ctx *gin.Context) {
-
 		storage, _ := c.storageHandler.Load()
 		conf := new(Storage)
 		json.Unmarshal(storage, conf)

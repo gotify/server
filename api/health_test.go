@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -9,8 +10,18 @@ import (
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/test"
 	"github.com/gotify/server/v2/test/testdb"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
+
+func testConsistentHead(t *testing.T, head, get http.Header) {
+	// The server SHOULD send the same header fields in response to a HEAD request as it would have sent if the request method had been GET.
+	// However, a server MAY omit header fields for which a value is determined only while generating the content.
+	assert.Empty(t, head.Get("Content-Length"), "Content-Length should be empty")
+	assert.Equal(t, get.Get("Content-Type"), head.Get("Content-Type"), "Content-Type should be the same")
+	assert.Equal(t, get.Get("Transfer-Encoding"), head.Get("Transfer-Encoding"), "Transfer-Encoding should be the same")
+	assert.Equal(t, get.Get("Connection"), head.Get("Connection"), "Connection should be the same")
+}
 
 func TestHealthSuite(t *testing.T) {
 	suite.Run(t, new(HealthSuite))
@@ -38,12 +49,43 @@ func (s *HealthSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *HealthSuite) TestHealthSuccess() {
+	head, err := http.NewRequest("HEAD", "/health", nil)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+	s.ctx.Request = head
 	s.a.Health(s.ctx)
+	headHeaders := s.recorder.Header().Clone()
+
+	request, err := http.NewRequest("GET", "/health", nil)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+	s.ctx.Request = request
+	s.a.Health(s.ctx)
+
+	testConsistentHead(s.T(), headHeaders, s.recorder.Header())
 	test.BodyEquals(s.T(), model.Health{Health: model.StatusGreen, Database: model.StatusGreen}, s.recorder)
 }
 
 func (s *HealthSuite) TestDatabaseFailure() {
 	s.db.Close()
+
+	head, err := http.NewRequest("HEAD", "/health", nil)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+	s.ctx.Request = head
 	s.a.Health(s.ctx)
+	headHeaders := s.recorder.Header().Clone()
+
+	request, err := http.NewRequest("GET", "/health", nil)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+	s.ctx.Request = request
+	s.a.Health(s.ctx)
+
+	testConsistentHead(s.T(), headHeaders, s.recorder.Header())
 	test.BodyEquals(s.T(), model.Health{Health: model.StatusOrange, Database: model.StatusRed}, s.recorder)
 }
