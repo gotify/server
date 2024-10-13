@@ -30,6 +30,12 @@ export default defineConfig({
                 secure: false,
                 rewrite: (p) => p.replace(/^\/api/, ''),
             },
+            '/api/stream': {
+                target: 'ws://localhost:3000/',
+                ws: true,
+                rewrite: (p) => p.replace(/^\/api/, ''),
+                rewriteWsOrigin: true,
+            }
         },
         cors: false,
     },
@@ -41,7 +47,14 @@ export default defineConfig({
                 secure: false,
                 rewrite: (p) => p.replace(/^\/api/, ''),
             },
+            '/api/stream': {
+                target: 'ws://localhost:3000/',
+                ws: true,
+                rewrite: (p) => p.replace(/^\/api/, ''),
+                rewriteWsOrigin: true,
+            }
         },
         cors: false,
     },
+
 });

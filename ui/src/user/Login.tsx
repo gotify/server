@@ -24,6 +24,16 @@ class Login extends Component<Stores<'currentUser'>> {
         makeObservable(this);
     }
 
+    @action
+    private setUsername = (value: string) => {
+        this.username = value;
+    };
+
+    @action
+    private setPassword = (value: string) => {
+        this.password = value;
+    };
+
     public render() {
         const {username, password, registerDialog} = this;
         return (
@@ -32,23 +42,23 @@ class Login extends Component<Stores<'currentUser'>> {
                     <Container>
                         <form onSubmit={this.preventDefault} id="login-form">
                             <TextField
+                                variant="standard"
                                 autoFocus
                                 className="name"
                                 label="Username"
                                 margin="dense"
                                 autoComplete="username"
                                 value={username}
-                                onChange={(e) => (this.username = e.target.value)}
-                            />
+                                onChange={(e) => this.setUsername(e.target.value)} />
                             <TextField
+                                variant="standard"
                                 type="password"
                                 className="password"
                                 label="Password"
                                 margin="normal"
                                 autoComplete="current-password"
                                 value={password}
-                                onChange={(e) => (this.password = e.target.value)}
-                            />
+                                onChange={(e) => this.setPassword(e.target.value)} />
                             <Button
                                 type="submit"
                                 variant="contained"
@@ -65,13 +75,18 @@ class Login extends Component<Stores<'currentUser'>> {
                 </Grid>
                 {registerDialog && (
                     <RegistrationDialog
-                        fClose={() => (this.registerDialog = false)}
+                        fClose={() => this.setRegisterDialog(false)}
                         fOnSubmit={this.props.currentUser.register}
                     />
                 )}
             </DefaultPage>
         );
     }
+
+    @action
+    private setRegisterDialog = (open: boolean) => {
+        this.registerDialog = open;
+    };
 
     @action
     private login = (e: React.MouseEvent<HTMLButtonElement>) => {

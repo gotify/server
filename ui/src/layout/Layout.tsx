@@ -2,7 +2,7 @@ import { MuiThemeProvider, Theme, WithStyles, withStyles} from '@material-ui/cor
 import { createTheme } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import * as React from 'react';
-import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
+import { HashRouter, Redirect, Route, Switch } from 'react-router-dom';
 import Header from './Header';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Navigation from './Navigation';
@@ -17,10 +17,10 @@ import PluginDetailView from '../plugin/PluginDetailView';
 import Login from '../user/Login';
 import Messages from '../message/Messages';
 import Users from '../user/Users';
-import {observer} from 'mobx-react';
+import { observer } from 'mobx-react';
 import { makeObservable, observable } from 'mobx';
-import {inject, Stores} from '../inject';
-import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
+import { inject, Stores } from '../inject';
+import { ConnectionErrorBanner } from '../common/ConnectionErrorBanner';
 
 const styles = (theme: Theme) => ({
     content: {
@@ -68,10 +68,12 @@ class Layout extends React.Component<
         makeObservable(this);
     }
 
+    @action
     private setNavOpen(open: boolean) {
         this.navOpen = open;
     }
 
+    @action
     public componentDidMount() {
         const localStorageTheme = window.localStorage.getItem(localStorageThemeKey);
         if (isThemeKey(localStorageTheme)) {
@@ -81,6 +83,7 @@ class Layout extends React.Component<
         }
     }
 
+    @action
     public render() {
         const {showSettings, currentTheme} = this;
         const {
@@ -88,7 +91,7 @@ class Layout extends React.Component<
             currentUser: {
                 loggedIn,
                 authenticating,
-                user: {name, admin},
+                user: { name, admin },
                 logout,
                 tryReconnect,
                 connectionErrorMessage,
@@ -96,7 +99,7 @@ class Layout extends React.Component<
         } = this.props;
         const theme = themeMap[currentTheme];
         const loginRoute = () => (loggedIn ? <Redirect to="/" /> : <Login />);
-        const {version} = config.get('version');
+        const { version } = config.get('version');
         return (
             <MuiThemeProvider theme={theme}>
                 <HashRouter>
@@ -166,6 +169,7 @@ class Layout extends React.Component<
         );
     }
 
+    @action
     private toggleTheme() {
         this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
         localStorage.setItem(localStorageThemeKey, this.currentTheme);
