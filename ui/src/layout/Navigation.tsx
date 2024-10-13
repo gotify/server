@@ -1,11 +1,12 @@
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import {StyleRules, Theme, WithStyles, withStyles} from '@material-ui/core/styles';
+import { makeObservable } from 'mobx';
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import {observer} from 'mobx-react';
-import {inject, Stores} from '../inject';
-import {mayAllowPermission, requestPermission} from '../snack/browserNotification';
+import {inject, Stores } from '../inject';
+import { mayAllowPermission, requestPermission } from '../snack/browserNotification';
 import {
     Button,
     Hidden,
@@ -16,7 +17,7 @@ import {
     ListItemAvatar,
     Avatar,
 } from '@material-ui/core';
-import {DrawerProps} from '@material-ui/core/Drawer/Drawer';
+import { DrawerProps } from '@material-ui/core/Drawer/Drawer';
 import CloseIcon from '@material-ui/icons/Close';
 
 const styles = (theme: Theme): StyleRules<'root' | 'drawerPaper' | 'toolbar' | 'link'> => ({
@@ -47,9 +48,14 @@ interface IProps {
 @observer
 class Navigation extends Component<
     IProps & Styles & Stores<'appStore'>,
-    {showRequestNotification: boolean}
+    { showRequestNotification: boolean }
 > {
-    public state = {showRequestNotification: mayAllowPermission()};
+    public state = { showRequestNotification: mayAllowPermission() };
+
+    constructor(props: any) {
+        super(props);
+        makeObservable(this);
+    }
 
     public render() {
         const {classes, loggedIn, appStore, navOpen, setNavOpen} = this.props;

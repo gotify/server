@@ -1,3 +1,4 @@
+import { makeObservable } from 'mobx';
 import React, {Component, SFC} from 'react';
 import {Link} from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
@@ -12,12 +13,17 @@ import {Switch, Button} from '@material-ui/core';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
 import {observer} from 'mobx-react';
-import {inject, Stores} from '../inject';
-import {IPlugin} from '../types';
+import {inject, Stores } from '../inject';
+import { IPlugin } from '../types';
 
 @observer
 class Plugins extends Component<Stores<'pluginStore'>> {
     public componentDidMount = () => this.props.pluginStore.refresh();
+
+    constructor(props: any) {
+        super(props);
+        makeObservable(this);
+    }
 
     public render() {
         const {

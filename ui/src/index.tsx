@@ -16,7 +16,7 @@ import {ClientStore} from './client/ClientStore';
 import {PluginStore} from './plugin/PluginStore';
 import {registerReactions} from './reactions';
 
-const devUrl = 'http://localhost:3000/';
+const devUrl = '/api/';
 
 const {port, hostname, protocol, pathname} = window.location;
 const slashes = protocol.concat('//');
@@ -49,8 +49,8 @@ const initStores = (): StoreMapping => {
     };
 };
 
-(function clientJS() {
-    if (process.env.NODE_ENV === 'production') {
+const clientJS = () => {
+    if (import.meta.env.MODE === 'production') {
         config.set('url', prodUrl);
     } else {
         config.set('url', devUrl);
@@ -74,4 +74,8 @@ const initStores = (): StoreMapping => {
         document.getElementById('root')
     );
     unregister();
-})();
+};
+
+if (!new class { x: any }().hasOwnProperty('x')) throw new Error('Transpiler is not configured correctly');
+
+clientJS();

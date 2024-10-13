@@ -1,13 +1,14 @@
 import {BaseStore} from '../common/BaseStore';
 import axios from 'axios';
 import * as config from '../config';
-import {action} from 'mobx';
+import { action, makeObservable } from 'mobx';
 import {SnackReporter} from '../snack/SnackManager';
 import {IClient} from '../types';
 
 export class ClientStore extends BaseStore<IClient> {
     public constructor(private readonly snack: SnackReporter) {
         super();
+        makeObservable(this);
     }
 
     protected requestItems = (): Promise<IClient[]> =>

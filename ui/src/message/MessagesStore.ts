@@ -1,5 +1,5 @@
 import {BaseStore} from '../common/BaseStore';
-import {action, IObservableArray, observable, reaction} from 'mobx';
+import { action, IObservableArray, makeObservable, observable, reaction } from 'mobx';
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
 import {createTransformer} from 'mobx-utils';
@@ -25,6 +25,7 @@ export class MessagesStore {
         private readonly appStore: BaseStore<IApplication>,
         private readonly snack: SnackReporter
     ) {
+        makeObservable(this);
         reaction(() => appStore.getItems(), this.createEmptyStatesForApps);
     }
 

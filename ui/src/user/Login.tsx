@@ -4,9 +4,9 @@ import TextField from '@material-ui/core/TextField';
 import React, {Component, FormEvent} from 'react';
 import Container from '../common/Container';
 import DefaultPage from '../common/DefaultPage';
-import {observable} from 'mobx';
+import { action, makeObservable, observable } from 'mobx';
 import {observer} from 'mobx-react';
-import {inject, Stores} from '../inject';
+import {inject, Stores } from '../inject';
 import * as config from '../config';
 import RegistrationDialog from './Register';
 
@@ -18,6 +18,11 @@ class Login extends Component<Stores<'currentUser'>> {
     private password = '';
     @observable
     private registerDialog = false;
+
+    constructor(props: any) {
+        super(props);
+        makeObservable(this);
+    }
 
     public render() {
         const {username, password, registerDialog} = this;
@@ -68,11 +73,13 @@ class Login extends Component<Stores<'currentUser'>> {
         );
     }
 
+    @action
     private login = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         this.props.currentUser.login(this.username, this.password);
     };
 
+    @action
     private registerButton = () => {
         if (config.get('register'))
             return (

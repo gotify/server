@@ -2,9 +2,9 @@ import IconButton from '@material-ui/core/IconButton';
 import Snackbar from '@material-ui/core/Snackbar';
 import Close from '@material-ui/icons/Close';
 import React, {Component} from 'react';
-import {observable, reaction} from 'mobx';
-import {observer} from 'mobx-react';
-import {inject, Stores} from '../inject';
+import { observable, reaction, toJS, action } from 'mobx';
+import { observer } from 'mobx-react';
+import { inject, Stores } from '../inject';
 
 @observer
 class SnackBarHandler extends Component<Stores<'snackManager'>> {
@@ -15,16 +15,26 @@ class SnackBarHandler extends Component<Stores<'snackManager'>> {
     private open = false;
     @observable
     private openWhen = 0;
+    @observable
+    private snackManager: any = null;
 
     private dispose: () => void = () => {};
 
-    public componentDidMount = () =>
-        (this.dispose = reaction(() => this.props.snackManager.counter, this.onNewSnack));
+    public componentDidMount = () => {
+        this.snackManager = this.props.snackManager;
+
+        this.dispose = reaction(
+            () => toJS(this.snackManager.counter),
+            this.onNewSnack
+        );
+    }
 
     public componentWillUnmount = () => this.dispose();
 
     public render() {
-        const {message: current, hasNext} = this.props.snackManager;
+        if (!this.snackManager) return null;
+
+        const {message: current, hasNext} = this.snackManager;
         const duration = hasNext()
             ? SnackBarHandler.MIN_VISIBLE_SNACK_TIME_IN_MS
             : SnackBarHandler.MAX_VISIBLE_SNACK_TIME_IN_MS;
@@ -35,7 +45,7 @@ class SnackBarHandler extends Component<Stores<'snackManager'>> {
                 open={this.open}
                 autoHideDuration={duration}
                 onClose={this.closeCurrentSnack}
-                onExited={this.openNextSnack}
+                TransitionProps={{ onExited: this.openNextSnack }}
                 message={<span id="message-id">{current}</span>}
                 action={
                     <IconButton
@@ -50,6 +60,7 @@ class SnackBarHandler extends Component<Stores<'snackManager'>> {
         );
     }
 
+    @action
     private onNewSnack = () => {
         const {open, openWhen} = this;
 
@@ -69,14 +80,16 @@ class SnackBarHandler extends Component<Stores<'snackManager'>> {
         }
     };
 
+    @action
     private openNextSnack = () => {
-        if (this.props.snackManager.hasNext()) {
+        if (this.snackManager?.hasNext()) {
             this.open = true;
             this.openWhen = Date.now();
-            this.props.snackManager.next();
+            this.snackManager.next();
         }
     };
 
+    @action
     private closeCurrentSnack = () => (this.open = false);
 }
 

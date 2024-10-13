@@ -3,7 +3,7 @@ import * as config from './config';
 import {Base64} from 'js-base64';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
-import {observable} from 'mobx';
+import { makeObservable, observable } from 'mobx';
 import {IClient, IUser} from './types';
 
 const tokenKey = 'gotify-login-key';
@@ -21,7 +21,9 @@ export class CurrentUser {
     @observable
     public connectionErrorMessage: string | null = null;
 
-    public constructor(private readonly snack: SnackReporter) {}
+    public constructor(private readonly snack: SnackReporter) {
+        makeObservable(this);
+    }
 
     public token = (): string => {
         if (this.tokenCache !== null) {

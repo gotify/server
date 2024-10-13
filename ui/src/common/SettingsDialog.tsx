@@ -6,7 +6,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import React, {Component} from 'react';
-import {observable} from 'mobx';
+import { makeObservable, observable } from 'mobx';
 import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
 
@@ -18,6 +18,11 @@ interface IProps {
 class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
     @observable
     private pass = '';
+
+    constructor(props: any) {
+        super(props);
+        makeObservable(this);
+    }
 
     public render() {
         const {pass} = this;

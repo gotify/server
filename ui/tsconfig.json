@@ -1,46 +1,56 @@
 {
-  "compilerOptions": {
-    "baseUrl": "src",
-    "outDir": "build/dist",
-    "target": "es5",
-    "lib": [
-      "es6",
-      "dom"
+    "compilerOptions": {
+        "target": "es5",
+        "useDefineForClassFields": true,
+        "lib": [
+            "es6",
+            "DOM",
+            "ES2020",
+        ],
+        "sourceMap": true,
+        "allowJs": true,
+        "jsx": "react",
+        "moduleResolution": "node",
+        "rootDir": "src",
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "noUnusedLocals": true,
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "strict": true,
+        "isolatedModules": true,
+        "noEmit": true,
+
+        "module": "esnext",
+        "resolveJsonModule": true,
+        "keyofStringsOnly": true,
+        "noFallthroughCasesInSwitch": true,
+
+        /* Vite */
+        "allowImportingTsExtensions": true,
+        "noUnusedParameters": true,
+        /* Linting */
+        "types": [
+            "vite/client"
+        ]
+    },
+    "exclude": [
+        "node_modules",
+        "build",
+        "scripts",
+        "acceptance-tests",
+        "webpack",
+        "jest",
+        "src/setupTests.ts"
     ],
-    "sourceMap": true,
-    "allowJs": true,
-    "jsx": "react",
-    "moduleResolution": "node",
-    "rootDir": "src",
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true,
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "strict": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "module": "esnext",
-    "resolveJsonModule": true,
-    "keyofStringsOnly": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "exclude": [
-    "node_modules",
-    "build",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "src/setupTests.ts"
-  ],
-  "include": [
-    "src"
-  ]
+    "include": [
+        "src",
+        "vite-env.d.ts"
+    ]
 }

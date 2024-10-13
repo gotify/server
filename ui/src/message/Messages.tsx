@@ -6,14 +6,14 @@ import DefaultPage from '../common/DefaultPage';
 import Button from '@material-ui/core/Button';
 import Message from './Message';
 import {observer} from 'mobx-react';
-import {inject, Stores} from '../inject';
-import {observable} from 'mobx';
+import {inject, Stores } from '../inject';
+import { makeObservable, observable } from 'mobx';
 import ReactInfinite from 'react-infinite';
-import {IMessage} from '../types';
+import { IMessage } from '../types';
 import ConfirmDialog from '../common/ConfirmDialog';
 import LoadingSpinner from '../common/LoadingSpinner';
 
-type IProps = RouteComponentProps<{id: string}>;
+type IProps = RouteComponentProps<{ id: string }>;
 
 interface IState {
     appId: number;
@@ -25,6 +25,11 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
     private heights: Record<string, number> = {};
     @observable
     private deleteAll = false;
+
+    constructor(props: any) {
+        super(props);
+        makeObservable(this);
+    }
 
     private static appId(props: IProps) {
         if (props === undefined) {

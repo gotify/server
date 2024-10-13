@@ -1,4 +1,4 @@
-import {action, observable} from 'mobx';
+import { action, makeObservable, observable } from 'mobx';
 
 export interface SnackReporter {
     (message: string): void;
@@ -11,6 +11,10 @@ export class SnackManager {
     public message: string | null = null;
     @observable
     public counter = 0;
+
+    constructor() {
+        makeObservable(this);
+    }
 
     @action
     public next = (): void => {

@@ -15,7 +15,7 @@ import Button from '@material-ui/core/Button';
 import AddClientDialog from './AddClientDialog';
 import UpdateDialog from './UpdateClientDialog';
 import {observer} from 'mobx-react';
-import {observable} from 'mobx';
+import { makeObservable, observable } from 'mobx';
 import {inject, Stores} from '../inject';
 import {IClient} from '../types';
 import CopyableSecret from '../common/CopyableSecret';
@@ -29,6 +29,11 @@ class Clients extends Component<Stores<'clientStore'>> {
     private deleteId: false | number = false;
     @observable
     private updateId: false | number = false;
+
+    constructor(props: any) {
+        super(props);
+        makeObservable(this);
+    }
 
     public componentDidMount = () => this.props.clientStore.refresh();
 

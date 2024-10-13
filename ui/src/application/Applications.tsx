@@ -16,7 +16,7 @@ import Button from '@material-ui/core/Button';
 import CopyableSecret from '../common/CopyableSecret';
 import AddApplicationDialog from './AddApplicationDialog';
 import {observer} from 'mobx-react';
-import {observable} from 'mobx';
+import { makeObservable, observable } from 'mobx';
 import {inject, Stores} from '../inject';
 import * as config from '../config';
 import UpdateDialog from './UpdateApplicationDialog';
@@ -34,6 +34,11 @@ class Applications extends Component<Stores<'appStore'>> {
 
     private uploadId = -1;
     private upload: HTMLInputElement | null = null;
+
+    constructor(props: any) {
+        super(props);
+        makeObservable(this);
+    }
 
     public componentDidMount = () => this.props.appStore.refresh();
 

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="theme-color" content="#3f51b5">
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <title>Gotify</title>
 
     <link rel="apple-touch-icon-precomposed" sizes="57x57" href="static/apple-touch-icon-57x57.png" />
@@ -35,8 +35,6 @@
     Gotify requires JavaScript.
 </noscript>
 <div id="root"></div>
-<% if (process.env.NODE_ENV === 'production') { %>
-    <script>window.config = %CONFIG%;</script>
-<% } %>
+<script type="module" src="/src/index.tsx"></script>
 </body>
 </html>

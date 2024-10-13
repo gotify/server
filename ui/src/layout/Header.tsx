@@ -13,6 +13,7 @@ import GitHubIcon from '@material-ui/icons/GitHub';
 import MenuIcon from '@material-ui/icons/Menu';
 import Apps from '@material-ui/icons/Apps';
 import SupervisorAccount from '@material-ui/icons/SupervisorAccount';
+import { makeObservable } from 'mobx';
 import React, {Component, CSSProperties} from 'react';
 import {Link} from 'react-router-dom';
 import {observer} from 'mobx-react';
@@ -79,6 +80,10 @@ interface IProps extends Styles {
 
 @observer
 class Header extends Component<IProps> {
+    constructor(props: any) {
+        super(props);
+        makeObservable(this);
+    }
     public render() {
         const {
             classes,

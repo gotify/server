@@ -1,4 +1,5 @@
-import {createMuiTheme, MuiThemeProvider, Theme, WithStyles, withStyles} from '@material-ui/core';
+import { MuiThemeProvider, Theme, WithStyles, withStyles} from '@material-ui/core';
+import { createTheme } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import * as React from 'react';
 import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
@@ -17,7 +18,7 @@ import Login from '../user/Login';
 import Messages from '../message/Messages';
 import Users from '../user/Users';
 import {observer} from 'mobx-react';
-import {observable} from 'mobx';
+import { makeObservable, observable } from 'mobx';
 import {inject, Stores} from '../inject';
 import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
 
@@ -36,12 +37,12 @@ const styles = (theme: Theme) => ({
 const localStorageThemeKey = 'gotify-theme';
 type ThemeKey = 'dark' | 'light';
 const themeMap: Record<ThemeKey, Theme> = {
-    light: createMuiTheme({
+    light: createTheme({
         palette: {
             type: 'light',
         },
     }),
-    dark: createMuiTheme({
+    dark: createTheme({
         palette: {
             type: 'dark',
         },
@@ -61,6 +62,11 @@ class Layout extends React.Component<
     private showSettings = false;
     @observable
     private navOpen = false;
+
+    constructor(props: any) {
+        super(props);
+        makeObservable(this);
+    }
 
     private setNavOpen(open: boolean) {
         this.navOpen = open;
