@@ -3,7 +3,7 @@ import * as config from './config';
 import {Base64} from 'js-base64';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
-import { makeObservable, observable } from 'mobx';
+import { makeObservable, observable, action } from 'mobx';
 import {IClient, IUser} from './types';
 
 const tokenKey = 'gotify-login-key';
@@ -15,7 +15,7 @@ export class CurrentUser {
     @observable
     public loggedIn = false;
     @observable
-    public authenticating = true;
+    public authenticating = false;
     @observable
     public user: IUser = {name: 'unknown', admin: false, id: -1};
     @observable
@@ -23,6 +23,14 @@ export class CurrentUser {
 
     public constructor(private readonly snack: SnackReporter) {
         makeObservable(this);
+    }
+
+    @action
+    private setLoggedIn = (value: boolean) => { this.loggedIn = value; }
+
+    @action
+    private setConnectionErrorMessage(message: string | null): void {
+        this.connectionErrorMessage = message;
     }
 
     public token = (): string => {
@@ -65,8 +73,9 @@ export class CurrentUser {
                 return false;
             });
 
+    @action
     public login = async (username: string, password: string) => {
-        this.loggedIn = false;
+        this.setLoggedIn(false);
         this.authenticating = true;
         const browser = detect();
         const name = (browser && browser.name + ' ' + browser.version) || 'unknown browser';
@@ -82,11 +91,17 @@ export class CurrentUser {
             .then((resp: AxiosResponse<IClient>) => {
                 this.snack(`A client named '${name}' was created for your session.`);
                 this.setToken(resp.data.token);
-                this.tryAuthenticate().catch(() => {
-                    console.log(
-                        'create client succeeded, but authenticated with given token failed'
-                    );
-                });
+                this.tryAuthenticate()
+                    .then(() => {
+                        this.authenticating = false;
+                        this.setLoggedIn(true);
+                    })
+                    .catch(() => {
+                        this.authenticating = false;
+                        console.log(
+                            'create client succeeded, but authenticated with given token failed'
+                        );
+                    });
             })
             .catch(() => {
                 this.authenticating = false;
@@ -94,9 +109,9 @@ export class CurrentUser {
             });
     };
 
+    @action
     public tryAuthenticate = async (): Promise<AxiosResponse<IUser>> => {
         if (this.token() === '') {
-            this.authenticating = false;
             return Promise.reject();
         }
 
@@ -107,14 +122,12 @@ export class CurrentUser {
                 .get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': this.token()}})
                 .then((passThrough) => {
                     this.user = passThrough.data;
-                    this.loggedIn = true;
-                    this.authenticating = false;
-                    this.connectionErrorMessage = null;
+                    this.setLoggedIn(true);
+                    this.setConnectionErrorMessage(null);
                     this.reconnectTime = 7500;
                     return passThrough;
                 })
                 .catch((error: AxiosError) => {
-                    this.authenticating = false;
                     if (!error || !error.response) {
                         this.connectionError('No network connection or server unavailable.');
                         return Promise.reject(error);
@@ -127,7 +140,7 @@ export class CurrentUser {
                         return Promise.reject(error);
                     }
 
-                    this.connectionErrorMessage = null;
+                    this.setConnectionErrorMessage(null);
 
                     if (error.response.status >= 400 && error.response.status < 500) {
                         this.logout();
@@ -137,6 +150,7 @@ export class CurrentUser {
         );
     };
 
+    @action
     public logout = async () => {
         await axios
             .get(config.get('url') + 'client')
@@ -148,7 +162,7 @@ export class CurrentUser {
             .catch(() => Promise.resolve());
         window.localStorage.removeItem(tokenKey);
         this.tokenCache = null;
-        this.loggedIn = false;
+        this.setLoggedIn(false);
     };
 
     public changePassword = (pass: string) => {
@@ -165,6 +179,7 @@ export class CurrentUser {
         });
     };
 
+    @action
     private readonly connectionError = (message: string) => {
         this.connectionErrorMessage = message;
         if (this.reconnectTimeoutId !== null) {

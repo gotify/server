@@ -15,7 +15,7 @@ import DefaultPage from '../common/DefaultPage';
 import Button from '@material-ui/core/Button';
 import AddEditDialog from './AddEditUserDialog';
 import {observer} from 'mobx-react';
-import {observable} from 'mobx';
+import { action, observable } from 'mobx';
 import {inject, Stores} from '../inject';
 import {IUser} from '../types';
 
@@ -57,6 +57,21 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
     @observable
     private editId: number | false = false;
 
+    @action
+    private setCreateDialog(dialog: boolean) {
+        this.createDialog = dialog;
+    }
+
+    @action
+    private setDeleteId(id: number | false) {
+        this.deleteId = id;
+    }
+
+    @action
+    private setEditId(id: number | false) {
+        this.editId = id;
+    }
+
     public componentDidMount = () => this.props.userStore.refresh();
 
     public render() {
@@ -75,7 +90,7 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
                         id="create-user"
                         variant="contained"
                         color="primary"
-                        onClick={() => (this.createDialog = true)}>
+                        onClick={() => (this.setCreateDialog(true))}>
                         Create User
                     </Button>
                 }>
@@ -95,8 +110,8 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
                                         key={user.id}
                                         name={user.name}
                                         admin={user.admin}
-                                        fDelete={() => (this.deleteId = user.id)}
-                                        fEdit={() => (this.editId = user.id)}
+                                        fDelete={() => (this.setDeleteId(user.id))}
+                                        fEdit={() => (this.setEditId(user.id))}
                                     />
                                 ))}
                             </TableBody>
@@ -105,13 +120,13 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
                 </Grid>
                 {createDialog && (
                     <AddEditDialog
-                        fClose={() => (this.createDialog = false)}
+                        fClose={() => (this.setCreateDialog(false))}
                         fOnSubmit={userStore.create}
                     />
                 )}
                 {editId !== false && (
                     <AddEditDialog
-                        fClose={() => (this.editId = false)}
+                        fClose={() => (this.setEditId(false))}
                         fOnSubmit={userStore.update.bind(this, editId)}
                         name={userStore.getByID(editId).name}
                         admin={userStore.getByID(editId).admin}
@@ -122,7 +137,7 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
                     <ConfirmDialog
                         title="Confirm Delete"
                         text={'Delete ' + userStore.getByID(deleteId).name + '?'}
-                        fClose={() => (this.deleteId = false)}
+                        fClose={() => (this.setDeleteId(false))}
                         fOnSubmit={() => userStore.remove(deleteId)}
                     />
                 )}

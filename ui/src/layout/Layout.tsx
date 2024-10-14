@@ -18,7 +18,7 @@ import Login from '../user/Login';
 import Messages from '../message/Messages';
 import Users from '../user/Users';
 import { observer } from 'mobx-react';
-import { makeObservable, observable } from 'mobx';
+import { makeObservable, observable, action } from 'mobx';
 import { inject, Stores } from '../inject';
 import { ConnectionErrorBanner } from '../common/ConnectionErrorBanner';
 
@@ -84,6 +84,11 @@ class Layout extends React.Component<
     }
 
     @action
+    private setShowSettings(show: boolean) {
+        this.showSettings = show;
+    }
+
+    @action
     public render() {
         const {showSettings, currentTheme} = this;
         const {
@@ -120,7 +125,7 @@ class Layout extends React.Component<
                                 version={version}
                                 loggedIn={loggedIn}
                                 toggleTheme={this.toggleTheme.bind(this)}
-                                showSettings={() => (this.showSettings = true)}
+                                showSettings={() => (this.setShowSettings(true))}
                                 logout={logout}
                                 setNavOpen={this.setNavOpen.bind(this)}
                             />
@@ -158,7 +163,7 @@ class Layout extends React.Component<
                                 </main>
                             </div>
                             {showSettings && (
-                                <SettingsDialog fClose={() => (this.showSettings = false)} />
+                                <SettingsDialog fClose={() => (this.setShowSettings(false))} />
                             )}
                             <ScrollUpButton />
                             <SnackBarHandler />

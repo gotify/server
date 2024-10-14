@@ -20,6 +20,7 @@ class SnackBarHandler extends Component<Stores<'snackManager'>> {
 
     private dispose: () => void = () => {};
 
+    @action
     public componentDidMount = () => {
         this.snackManager = this.props.snackManager;
 

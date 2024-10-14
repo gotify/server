@@ -29,6 +29,7 @@ export class MessagesStore {
         reaction(() => appStore.getItems(), this.createEmptyStatesForApps);
     }
 
+    @action
     private stateOf = (appId: number, create = true) => {
         if (!this.state[appId] && create) {
             this.state[appId] = this.emptyState();
@@ -157,6 +158,7 @@ export class MessagesStore {
         this.clearCache();
     };
 
+    @action
     private emptyState = (): MessagesState => ({
         messages: observable.array(),
         hasMore: true,

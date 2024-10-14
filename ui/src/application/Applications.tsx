@@ -16,7 +16,7 @@ import Button from '@material-ui/core/Button';
 import CopyableSecret from '../common/CopyableSecret';
 import AddApplicationDialog from './AddApplicationDialog';
 import {observer} from 'mobx-react';
-import { makeObservable, observable } from 'mobx';
+import { action, makeObservable, observable } from 'mobx';
 import {inject, Stores} from '../inject';
 import * as config from '../config';
 import UpdateDialog from './UpdateApplicationDialog';
@@ -40,6 +40,21 @@ class Applications extends Component<Stores<'appStore'>> {
         makeObservable(this);
     }
 
+    @action
+    private setDeleteId(id: number | false) {
+        this.deleteId = id;
+    }
+
+    @action
+    private setUpdateId(id: number | false) {
+        this.updateId = id;
+    }
+
+    @action
+    private setCreateDialog(dialog: boolean) {
+        this.createDialog = dialog;
+    }
+
     public componentDidMount = () => this.props.appStore.refresh();
 
     public render() {
@@ -58,7 +73,7 @@ class Applications extends Component<Stores<'appStore'>> {
                         id="create-app"
                         variant="contained"
                         color="primary"
-                        onClick={() => (this.createDialog = true)}>
+                        onClick={() => (this.setCreateDialog(true))}>
                         Create Application
                     </Button>
                 }
@@ -89,8 +104,8 @@ class Applications extends Component<Stores<'appStore'>> {
                                         value={app.token}
                                         lastUsed={app.lastUsed}
                                         fUpload={() => this.uploadImage(app.id)}
-                                        fDelete={() => (this.deleteId = app.id)}
-                                        fEdit={() => (this.updateId = app.id)}
+                                        fDelete={() => (this.setDeleteId(app.id))}
+                                        fEdit={() => (this.setUpdateId(app.id))}
                                         noDelete={app.internal}
                                     />
                                 ))}
@@ -106,13 +121,13 @@ class Applications extends Component<Stores<'appStore'>> {
                 </Grid>
                 {createDialog && (
                     <AddApplicationDialog
-                        fClose={() => (this.createDialog = false)}
+                        fClose={() => (this.setCreateDialog(false))}
                         fOnSubmit={appStore.create}
                     />
                 )}
                 {updateId !== false && (
                     <UpdateDialog
-                        fClose={() => (this.updateId = false)}
+                        fClose={() => (this.setUpdateId(false))}
                         fOnSubmit={(name, description, defaultPriority) =>
                             appStore.update(updateId, name, description, defaultPriority)
                         }
@@ -125,7 +140,7 @@ class Applications extends Component<Stores<'appStore'>> {
                     <ConfirmDialog
                         title="Confirm Delete"
                         text={'Delete ' + appStore.getByID(deleteId).name + '?'}
-                        fClose={() => (this.deleteId = false)}
+                        fClose={() => (this.setDeleteId(false))}
                         fOnSubmit={() => appStore.remove(deleteId)}
                     />
                 )}

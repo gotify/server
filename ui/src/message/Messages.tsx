@@ -7,7 +7,7 @@ import Button from '@material-ui/core/Button';
 import Message from './Message';
 import {observer} from 'mobx-react';
 import {inject, Stores } from '../inject';
-import { makeObservable, observable } from 'mobx';
+import { action, makeObservable, observable } from 'mobx';
 import ReactInfinite from 'react-infinite';
 import { IMessage } from '../types';
 import ConfirmDialog from '../common/ConfirmDialog';
@@ -29,6 +29,16 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
     constructor(props: any) {
         super(props);
         makeObservable(this);
+    }
+
+    @action
+    private setHeight(id: string, height: number) {
+        this.heights[id] = height;
+    }
+
+    @action
+    private setDeleteAll(deleteAll: boolean) {
+        this.deleteAll = deleteAll;
     }
 
     private static appId(props: IProps) {
@@ -86,7 +96,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                             disabled={!hasMessages}
                             color="primary"
                             onClick={() => {
-                                this.deleteAll = true;
+                                this.setDeleteAll(true);
                             }}>
                             Delete All
                         </Button>
@@ -114,7 +124,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
                     <ConfirmDialog
                         title="Confirm Delete"
                         text={'Delete all messages?'}
-                        fClose={() => (this.deleteAll = false)}
+                        fClose={() => (this.setDeleteAll(false))}
                         fOnSubmit={() => messagesStore.removeByApp(appId)}
                     />
                 )}
@@ -140,7 +150,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
             key={message.id}
             height={(height: number) => {
                 if (!this.heights[message.id]) {
-                    this.heights[message.id] = height;
+                    this.setHeight(message.id, height);
                 }
             }}
             fDelete={this.deleteMessage(message)}
