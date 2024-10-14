@@ -1,11 +1,51 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { writeFileSync } from 'fs';
+import { resolve } from 'path';
+import type { OutputBundle, OutputChunk } from 'rollup';
 
 export default defineConfig({
     build: {
         outDir: 'build',
         emptyOutDir: true,
         sourcemap: true,
+        rollupOptions: {
+            plugins: [
+                {
+                    name: 'generate-asset-manifest',
+                    generateBundle(_, bundle: OutputBundle) {
+                        const files: Record<string, string> = {};
+                        const entrypoints: string[] = [];
+                        let entrypointCss: string = "";
+
+                        for (const [ , value ] of Object.entries(bundle)) {
+                            const fileName = value.fileName.split('/').pop() || '';
+                            const [ baseFileName, ...extParts ] = fileName.split('.');
+                            const extension = extParts.pop();
+                            const cleanBaseFileName = baseFileName.replace(/-[\w-]{8}$/, '');
+
+                            if ((value as OutputChunk).isEntry) {
+                                entrypoints.push(value.fileName);
+                                entrypointCss = `${cleanBaseFileName}.css`;
+                            }
+
+                            files[`${cleanBaseFileName}.${extension}`] = value.fileName;
+                        }
+
+                        if (entrypointCss in files) {
+                            entrypoints.push(files[entrypointCss]);
+                        }
+
+                        const manifest = {
+                            files,
+                            entrypoints,
+                        };
+
+                        writeFileSync(resolve(__dirname, 'build/asset-manifest.json'), JSON.stringify(manifest, null, 2));
+                    }
+                }
+            ]
+        }
     },
     plugins: [
         react({
