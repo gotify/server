@@ -1,0 +1,23 @@
+name: Bump Go Version
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: '0 5 * * *'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  try-bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Bump Go Version
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Open a PR if not up to date
+        run: ci/bump-go.sh
