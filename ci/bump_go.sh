@@ -6,11 +6,13 @@ PR_LABEL="bump-go"
 
 set -e
 
+# Check if the working directory is clean
 if [ ! -z "$(git status -s -uall)" ]; then
     echo "Working directory is not clean" 2>&1
     exit 1
 fi
 
+# Create the bump-go branch if it doesn't exist
 git show-ref --verify --quiet refs/heads/bump-go || git branch -c $REF_BRANCH bump-go
 
 # The version in the GO_VERSION file
@@ -25,8 +27,10 @@ echo "Installed version: $latest_version"
 bump_candidate_version=$(git show bump-go:GO_VERSION 2>/dev/null || echo "")
 echo "Bump candidate version: $bump_candidate_version"
 
+# Lookup number of existing PRs
 existing_prs=$(gh pr list --state open --base $REF_BRANCH --label "$PR_LABEL" --json "number" | jq -r 'map(.number) | .[]')
 
+# Check if the version is up to date
 if [ "$current_version" == "$latest_version" ]; then
     echo "Go is up to date"
     exit 0
@@ -49,20 +53,27 @@ if [ -z "$GITHUB_TOKEN" ]; then
         echo "gh pr edit $first_id --title \"$PR_KEYWORD Bump Go to $latest_version\""
     fi
 else
+
+    # Write the new version to the file
     git checkout bump-go && git merge --ff-only $REF_BRANCH
     echo "$latest_version" > GO_VERSION
     git add GO_VERSION
+
+    # Commit the changes
     if git diff --quiet --cached; then
         echo "No changes to commit"
     else
         git commit -m "$PR_KEYWORD Bump Go to $latest_version"
     fi
+    
     git push origin bump-go
+
     if [ -z "$existing_prs" ]; then
-        gh pr create --base $REF_BRANCH --head bump-go --title "$PR_KEYWORD Bump Go to $latest_version" --label "$PR_LABEL" \
+        gh pr create --base $REF_BRANCH --head bump-go \
+            --title "$PR_KEYWORD Bump Go to $latest_version" --label "$PR_LABEL" \
             --body "This PR was automatically created by the bump-go action."
     else
-        first_id=$(echo "$existing_prs" | head -n 1)
+        first_id=$(echo "$existing_prs" | sort -nr | head -n 1)
         gh pr edit $first_id --title "$PR_KEYWORD Bump Go to $latest_version"
     fi
 fi
