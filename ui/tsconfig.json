@@ -1,41 +1,42 @@
 {
     "compilerOptions": {
-        "target": "es5",
+        "target": "ES2020",
         "useDefineForClassFields": true,
         "lib": [
-            "es6",
-            "DOM",
             "ES2020",
+            "DOM"
         ],
-        "sourceMap": true,
+        "module": "ESNext",
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+
         "allowJs": true,
-        "jsx": "react",
-        "moduleResolution": "node",
         "rootDir": "src",
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true,
+
+        "keyofStringsOnly": true,
+
+        /* Bundler mode */
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react",
+
+        /* Linting */
+        "strict": true,
+        "strictNullChecks": true,
         "forceConsistentCasingInFileNames": true,
+        "noUnusedParameters": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "noImplicitAny": true,
-        "strictNullChecks": true,
-        "suppressImplicitAnyIndexErrors": true,
         "noUnusedLocals": true,
-        "allowSyntheticDefaultImports": true,
-        "experimentalDecorators": true,
-        "skipLibCheck": true,
-        "esModuleInterop": true,
-        "strict": true,
-        "isolatedModules": true,
-        "noEmit": true,
-
-        "module": "esnext",
-        "resolveJsonModule": true,
-        "keyofStringsOnly": true,
+        "suppressImplicitAnyIndexErrors": true,
         "noFallthroughCasesInSwitch": true,
 
-        /* Vite */
-        "allowImportingTsExtensions": true,
-        "noUnusedParameters": true,
-        /* Linting */
         "types": [
             "vite/client"
         ]

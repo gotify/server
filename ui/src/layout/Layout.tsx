@@ -69,9 +69,14 @@ class Layout extends React.Component<
     }
 
     @action
-    private setNavOpen(open: boolean) {
+    private setNavOpen = (open: boolean) => {
         this.navOpen = open;
-    }
+    };
+
+    @action
+    private setShowSettings = (show: boolean) => {
+        this.showSettings = show;
+    };
 
     @action
     public componentDidMount() {
@@ -81,11 +86,6 @@ class Layout extends React.Component<
         } else {
             window.localStorage.setItem(localStorageThemeKey, this.currentTheme);
         }
-    }
-
-    @action
-    private setShowSettings(show: boolean) {
-        this.showSettings = show;
     }
 
     @action

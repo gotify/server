@@ -34,6 +34,11 @@ class Login extends Component<Stores<'currentUser'>> {
         this.password = value;
     };
 
+    @action
+    private setRegisterDialog = (open: boolean) => {
+        this.registerDialog = open;
+    };
+
     public render() {
         const {username, password, registerDialog} = this;
         return (
@@ -82,11 +87,6 @@ class Login extends Component<Stores<'currentUser'>> {
             </DefaultPage>
         );
     }
-
-    @action
-    private setRegisterDialog = (open: boolean) => {
-        this.registerDialog = open;
-    };
 
     @action
     private login = (e: React.MouseEvent<HTMLButtonElement>) => {

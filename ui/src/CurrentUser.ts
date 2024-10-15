@@ -26,12 +26,14 @@ export class CurrentUser {
     }
 
     @action
-    private setLoggedIn = (value: boolean) => { this.loggedIn = value; }
+    private setLoggedIn = (value: boolean) => {
+        this.loggedIn = value;
+    };
 
     @action
-    private setConnectionErrorMessage(message: string | null): void {
+    private setConnectionErrorMessage = (message: string | null): void => {
         this.connectionErrorMessage = message;
-    }
+    };
 
     public token = (): string => {
         if (this.tokenCache !== null) {

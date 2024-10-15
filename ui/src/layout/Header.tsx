@@ -84,6 +84,7 @@ class Header extends Component<IProps> {
         super(props);
         makeObservable(this);
     }
+
     public render() {
         const {
             classes,

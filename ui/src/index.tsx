@@ -16,6 +16,7 @@ import {ClientStore} from './client/ClientStore';
 import {PluginStore} from './plugin/PluginStore';
 import {registerReactions} from './reactions';
 
+// the development server of vite will proxy this to the backend
 const devUrl = '/api/';
 
 const {port, hostname, protocol, pathname} = window.location;

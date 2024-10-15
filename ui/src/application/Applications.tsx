@@ -41,19 +41,19 @@ class Applications extends Component<Stores<'appStore'>> {
     }
 
     @action
-    private setDeleteId(id: number | false) {
+    private setDeleteId = (id: number | false) => {
         this.deleteId = id;
-    }
+    };
 
     @action
-    private setUpdateId(id: number | false) {
+    private setUpdateId = (id: number | false) => {
         this.updateId = id;
-    }
+    };
 
     @action
-    private setCreateDialog(dialog: boolean) {
+    private setCreateDialog = (dialog: boolean) => {
         this.createDialog = dialog;
-    }
+    };
 
     public componentDidMount = () => this.props.appStore.refresh();
 

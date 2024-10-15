@@ -58,19 +58,19 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
     private editId: number | false = false;
 
     @action
-    private setCreateDialog(dialog: boolean) {
+    private setCreateDialog = (dialog: boolean) => {
         this.createDialog = dialog;
-    }
+    };
 
     @action
-    private setDeleteId(id: number | false) {
+    private setDeleteId = (id: number | false) => {
         this.deleteId = id;
-    }
+    };
 
     @action
-    private setEditId(id: number | false) {
+    private setEditId = (id: number | false) => {
         this.editId = id;
-    }
+    };
 
     public componentDidMount = () => this.props.userStore.refresh();
 
