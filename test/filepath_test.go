@@ -32,9 +32,11 @@ func TestWithWd(t *testing.T) {
 	})
 
 	assert.Nil(t, os.Mkdir(tmpDir.Path(), 0o644))
-	assert.Panics(t, func() {
-		WithWd(tmpDir.Path(), func(string) {})
-	})
+	if os.Getuid() != 0 { // root is not subject to this check
+		assert.Panics(t, func() {
+			WithWd(tmpDir.Path(), func(string) {})
+		})
+	}
 	assert.Nil(t, os.Remove(tmpDir.Path()))
 
 	assert.Nil(t, os.Mkdir(tmpDir.Path(), 0o755))

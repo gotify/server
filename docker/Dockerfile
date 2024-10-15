@@ -1,4 +1,4 @@
-ARG DEBIAN=stable
+ARG DEBIAN=stable-slim
 
 # --- JS Builder ---
 
@@ -38,6 +38,7 @@ RUN if [ "$BUILD_JS" = "1" ]; then \
 FROM debian:${DEBIAN} AS builder
 
 ARG BUILD_JS=1
+ARG RUN_TESTS=1
 ARG GO_BUILD_FLAGS=-mod=readonly -a -installsuffix cgo
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -63,12 +64,13 @@ RUN cd /src/gotify && \
     echo "Using Go version: $GIMME_GO_VERSION" && \
     gimme ${GIMME_GO_VERSION} && \
     mkdir -p /target/app && \
-    bash -c ". ~/.gimme/envs/go${GIMME_GO_VERSION}.env && go build ${GO_BUILD_FLAGS} -o /target/app/gotify-app"
+    bash -c ". ~/.gimme/envs/go${GIMME_GO_VERSION}.env && go test -v ./... && go build ${GO_BUILD_FLAGS} -o /target/app/gotify-app"
 
-FROM debian:${DEBIAN}-slim
+FROM debian:${DEBIAN}
 
-# build-time configurable port
+# build-time configurables
 ARG GOTIFY_SERVER_EXPOSE=80
+ARG GOTIFY_UID=0
 ENV GOTIFY_SERVER_PORT=$GOTIFY_SERVER_EXPOSE
 
 WORKDIR /app
@@ -76,8 +78,14 @@ WORKDIR /app
 RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -yq --no-install-recommends \
     tzdata \
     curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    if [ "$GOTIFY_UID" != "0" ]; then \
+    useradd -u $GOTIFY_UID -r gotify && \
+    chown gotify:gotify /app; \
+    fi
+
+USER $GOTIFY_UID
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s CMD curl --fail http://localhost:$GOTIFY_SERVER_PORT/health || exit 1
 EXPOSE $GOTIFY_SERVER_EXPOSE
