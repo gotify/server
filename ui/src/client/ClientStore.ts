@@ -11,6 +11,7 @@ export class ClientStore extends BaseStore<IClient> {
         makeObservable(this);
     }
 
+    @action
     protected requestItems = (): Promise<IClient[]> =>
         axios.get<IClient[]>(`${config.get('url')}client`).then((response) => response.data);
 

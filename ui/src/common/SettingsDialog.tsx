@@ -33,7 +33,7 @@ class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
         this.setPass(this.pass);
         const {fClose, currentUser} = this.props;
         const submitAndClose = () => {
-            currentUser.changePassword(pass);
+            currentUser.changePassword(this.pass);
             fClose();
         };
         return (
@@ -50,18 +50,18 @@ class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
                         margin="dense"
                         type="password"
                         label="New Password *"
-                        value={pass}
+                        value={this.pass}
                         onChange={(e) => (this.setPass(e.target.value))}
                         fullWidth
                     />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={fClose}>Cancel</Button>
-                    <Tooltip title={pass.length !== 0 ? '' : 'Password is required'}>
+                    <Tooltip title={this.pass.length !== 0 ? '' : 'Password is required'}>
                         <div>
                             <Button
                                 className="change"
-                                disabled={pass.length === 0}
+                                disabled={this.pass.length === 0}
                                 onClick={submitAndClose}
                                 color="primary"
                                 variant="contained">
