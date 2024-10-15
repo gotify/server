@@ -6,6 +6,11 @@ PR_LABEL="bump-go"
 
 set -e
 
+if [ ! -z "$(git status -s -uall)" ]; then
+    echo "Working directory is not clean" 2>&1
+    exit 1
+fi
+
 git show-ref --verify --quiet refs/heads/bump-go || git branch -c $REF_BRANCH bump-go
 
 # The version in the GO_VERSION file
@@ -20,7 +25,7 @@ echo "Installed version: $latest_version"
 bump_candidate_version=$(git show bump-go:GO_VERSION 2>/dev/null || echo "")
 echo "Bump candidate version: $bump_candidate_version"
 
-existing_prs=$(gh pr list --state open --base main --label "$PR_KEYWORD" --json "number" | jq -r 'map(.number) | .[]')
+existing_prs=$(gh pr list --state open --base $REF_BRANCH --label "$PR_LABEL" --json "number" | jq -r 'map(.number) | .[]')
 
 if [ "$current_version" == "$latest_version" ]; then
     echo "Go is up to date"
