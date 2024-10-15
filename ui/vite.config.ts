@@ -7,6 +7,7 @@ import type { OutputBundle, OutputChunk } from 'rollup';
 export default defineConfig({
     build: {
         outDir: 'build',
+        assetsDir: 'static',
         emptyOutDir: true,
         sourcemap: true,
         rollupOptions: {

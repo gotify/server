@@ -1,5 +1,6 @@
 // todo before all tests jest start puppeteer
 import {Page} from 'puppeteer';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {newTest, GotifyTest} from './setup';
 import {clickByText, count, innerText, waitForCount, waitForExists} from './utils';
 import * as auth from './authentication';

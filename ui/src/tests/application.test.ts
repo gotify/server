@@ -1,4 +1,5 @@
 import {Page} from 'puppeteer';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {newTest, GotifyTest} from './setup';
 import {count, innerText, waitForExists, waitToDisappear, clearField} from './utils';
 import * as auth from './authentication';
