@@ -1,10 +1,12 @@
 ARG DEBIAN=stable-slim
+# supprress warnung about invalid variable expansion
+ARG GO_VERSION=PLEASE_PROVIDE_GO_VERSION
 
 # --- JS Builder ---
 
-FROM debian:${DEBIAN} AS js-builder
+FROM --platform=${BUILDPLATFORM} debian:${DEBIAN} AS js-builder
 
-ARG BUILD_JS=1
+ARG BUILD_JS=0
 ARG NODE_OPTIONS
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -35,21 +37,15 @@ RUN if [ "$BUILD_JS" = "1" ]; then \
 
 # --- Go Builder ---
 
-FROM debian:${DEBIAN} AS builder
+FROM --platform=${BUILDPLATFORM} gotify/build:${GO_VERSION}-${TARGETPLATFORM/\//-} AS builder
 
-ARG BUILD_JS=1
-ARG RUN_TESTS=1
+ARG BUILD_JS=0
+ARG RUN_TESTS=0
 ARG GO_BUILD_FLAGS=-mod=readonly -a -installsuffix cgo
 ENV DEBIAN_FRONTEND=noninteractive
 
-ADD https://raw.githubusercontent.com/travis-ci/gimme/master/gimme /usr/local/bin/gimme 
-
-RUN chmod +x /usr/local/bin/gimme # compatiblity
-
 RUN apt-get update && apt-get install -yq --no-install-recommends \
-    build-essential \
     ca-certificates \
-    curl \
     git
 
 COPY . /src/gotify
@@ -60,11 +56,9 @@ RUN if [ "$BUILD_JS" = "1" ]; then \
     fi
 
 RUN cd /src/gotify && \
-    read -r GIMME_GO_VERSION < GO_VERSION && \
-    echo "Using Go version: $GIMME_GO_VERSION" && \
-    gimme ${GIMME_GO_VERSION} && \
     mkdir -p /target/app && \
-    bash -c ". ~/.gimme/envs/go${GIMME_GO_VERSION}.env && go test -v ./... && go build ${GO_BUILD_FLAGS} -o /target/app/gotify-app"
+    [ "$RUN_TESTS" = "1" ] && go test -v ./... || true && \
+    go build ${GO_BUILD_FLAGS} -o /target/app/gotify-app
 
 FROM debian:${DEBIAN}
 

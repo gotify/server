@@ -63,19 +63,33 @@ package-zip: extract-licenses
        zip -ur $$BUILD.zip ${LICENSE_DIR}; \
     done
 
-build-docker-amd64: require-version
-	cp ${BUILD_DIR}/gotify-linux-amd64 ./docker/gotify-app
-	cd ${DOCKER_DIR} && \
-		docker build \
+build-docker-multiarch: require-version
+	docker buildx build --sbom=true \
 		-t gotify/server:latest \
 		-t gotify/server:${VERSION} \
 		-t gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -2) \
 		-t gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -1) \
-		-t ghcr.io/gotify/server:latest \
+	    -t ghcr.io/gotify/server:latest \
 		-t ghcr.io/gotify/server:${VERSION} \
 		-t ghcr.io/gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -2) \
-		-t ghcr.io/gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -1) .
-	rm ${DOCKER_DIR}gotify-app
+		-t ghcr.io/gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -1) \
+		-t gotify/server-arm64:latest \
+		-t gotify/server-arm64:${VERSION} \
+		-t gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
+		-t gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -1) \
+		-t ghcr.io/gotify/server-arm64:latest \
+		-t ghcr.io/gotify/server-arm64:${VERSION} \
+		-t ghcr.io/gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
+		-t ghcr.io/gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -1) \
+		--build-arg GO_VERSION=$(shell cat GO_VERSION) \
+		--platform linux/amd64,linux/arm64,linux/386 \
+		-f docker/Dockerfile .
+
+build-docker-amd64: build-docker-multiarch
+
+build-docker-i386: build-docker-multiarch
+
+build-docker-arm64: build-docker-multiarch
 
 build-docker-arm-7: require-version
 	cp ${BUILD_DIR}/gotify-linux-arm-7 ./docker/gotify-app
@@ -89,20 +103,6 @@ build-docker-arm-7: require-version
 		-t ghcr.io/gotify/server-arm7:${VERSION} \
 		-t ghcr.io/gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -2) \
 		-t ghcr.io/gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -1) .
-	rm ${DOCKER_DIR}gotify-app
-
-build-docker-arm64: require-version
-	cp ${BUILD_DIR}/gotify-linux-arm64 ./docker/gotify-app
-	cd ${DOCKER_DIR} && \
-		docker build -f Dockerfile.arm64 \
-		-t gotify/server-arm64:latest \
-		-t gotify/server-arm64:${VERSION} \
-		-t gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
-		-t gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -1) \
-		-t ghcr.io/gotify/server-arm64:latest \
-		-t ghcr.io/gotify/server-arm64:${VERSION} \
-		-t ghcr.io/gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
-		-t ghcr.io/gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -1) .
 	rm ${DOCKER_DIR}gotify-app
 
 build-docker-riscv64: require-version
@@ -119,7 +119,7 @@ build-docker-riscv64: require-version
 		-t ghcr.io/gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -1) .
 	rm ${DOCKER_DIR}gotify-app
 
-build-docker: build-docker-amd64 build-docker-arm-7 build-docker-arm64 build-docker-riscv64
+build-docker: build-docker-multiarch build-docker-arm-7 build-docker-riscv64
 
 build-js:
 	(cd ui && NODE_OPTIONS="${NODE_OPTIONS}" yarn build)
