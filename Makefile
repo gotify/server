@@ -66,6 +66,7 @@ package-zip: extract-licenses
 
 build-docker-multiarch: require-version
 	docker buildx build --sbom=true --provenance=true \
+		$(if $(DOCKER_BUILD_PUSH),--push) \
 		-t gotify/server:latest \
 		-t gotify/server:${VERSION} \
 		-t gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -2) \

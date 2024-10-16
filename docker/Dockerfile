@@ -10,7 +10,7 @@ ARG __TARGETPLATFORM_DASHES=${TARGETPLATFORM/\//-}
 ARG __TARGETPLATFORM_GO_NOTATION=${__TARGETPLATFORM_DASHES/arm\/v7/arm-7}
 # Set the unstable tag if the target platform is not stable
 ARG __TARGETPLATFORM_IS_STABLE=${TARGETPLATFORM/linux\/riscv64/}
-ARG __DEBIAN_HAS_STABLE_TAG=${__TARGETPLATFORM_IS_STABLE/?*/${DEBIAN}} # if the last variable is not empty, set it to the debian stable tag
+ARG __DEBIAN_HAS_STABLE_TAG=${__TARGETPLATFORM_IS_STABLE/?*/${DEBIAN_STABLE_ARCH}} # if the last variable is not empty, set it to the debian stable tag
 ARG DEBIAN=${__DEBIAN_HAS_STABLE_TAG:-${DEBIAN_EXPERIMENTAL_ARCH}} # else set it to the debian experimental tag
 
 # --- JS Builder ---
