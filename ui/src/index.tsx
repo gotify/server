@@ -1,5 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import "./init";
+
 import 'typeface-roboto';
 import {initAxios} from './apiAuth';
 import * as config from './config';
