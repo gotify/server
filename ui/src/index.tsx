@@ -1,22 +1,17 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import "./init";
+import './init';
 
-import 'typeface-roboto';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
 import {initAxios} from './apiAuth';
+import App from './App.tsx';
 import * as config from './config';
-import Layout from './layout/Layout';
 import {unregister} from './registerServiceWorker';
-import {CurrentUser} from './CurrentUser';
-import {AppStore} from './application/AppStore';
-import {WebSocketStore} from './message/WebSocketStore';
-import {SnackManager} from './snack/SnackManager';
-import {InjectProvider, StoreMapping} from './inject';
-import {UserStore} from './user/UserStore';
-import {MessagesStore} from './message/MessagesStore';
-import {ClientStore} from './client/ClientStore';
-import {PluginStore} from './plugin/PluginStore';
-import {registerReactions} from './reactions';
+import {tryAuthenticate} from './store/auth-actions.ts';
+import {loadStoredTheme} from './store/ui-actions.ts';
+
+import {Provider, } from 'react-redux';
+import store from './store/index';
 
 // the development server of vite will proxy this to the backend
 const devUrl = '/api/';
@@ -29,56 +24,30 @@ const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
 
 const prodUrl = urlWithSlash;
 
-const initStores = (): StoreMapping => {
-    const snackManager = new SnackManager();
-    const appStore = new AppStore(snackManager.snack);
-    const userStore = new UserStore(snackManager.snack);
-    const messagesStore = new MessagesStore(appStore, snackManager.snack);
-    const currentUser = new CurrentUser(snackManager.snack);
-    const clientStore = new ClientStore(snackManager.snack);
-    const wsStore = new WebSocketStore(snackManager.snack, currentUser);
-    const pluginStore = new PluginStore(snackManager.snack);
-    appStore.onDelete = () => messagesStore.clearAll();
-
-    return {
-        appStore,
-        snackManager,
-        userStore,
-        messagesStore,
-        currentUser,
-        clientStore,
-        wsStore,
-        pluginStore,
-    };
-};
-
 const clientJS = () => {
+
     if (import.meta.env.MODE === 'production') {
         config.set('url', prodUrl);
     } else {
         config.set('url', devUrl);
         config.set('register', true);
     }
-    const stores = initStores();
-    initAxios(stores.currentUser, stores.snackManager.snack);
 
-    registerReactions(stores);
+    store.dispatch(loadStoredTheme());
+    store.dispatch(tryAuthenticate());
 
-    stores.currentUser.tryAuthenticate().catch(() => {});
+    initAxios();
 
-    window.onbeforeunload = () => {
-        stores.wsStore.close();
-    };
-
-    ReactDOM.render(
-        <InjectProvider stores={stores}>
-            <Layout />
-        </InjectProvider>,
-        document.getElementById('root')
+    const root = ReactDOM.createRoot(document.getElementById('root')!);
+    root.render(
+        // TODO: enable strict mode again
+        // <React.StrictMode>
+            <Provider store={store}>
+                <App />
+            </Provider>
+        // </React.StrictMode>
     );
     unregister();
 };
-
-if (!new class { x: any }().hasOwnProperty('x')) throw new Error('Transpiler is not configured correctly');
 
 clientJS();

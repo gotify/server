@@ -1,172 +1,155 @@
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Delete from '@material-ui/icons/Delete';
-import Edit from '@material-ui/icons/Edit';
-import CloudUpload from '@material-ui/icons/CloudUpload';
-import React, {ChangeEvent, Component, SFC} from 'react';
+import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
+import Grid from '@mui/material/Grid2';
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Delete from '@mui/icons-material/Delete';
+import Edit from '@mui/icons-material/Edit';
+import CloudUpload from '@mui/icons-material/CloudUpload';
+import Button from '@mui/material/Button';
+
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
-import Button from '@material-ui/core/Button';
 import CopyableSecret from '../common/CopyableSecret';
+import {useAppDispatch, useAppSelector} from '../store';
+import {fetchApps, uploadImage, deleteApp, updateApp, createApp} from '../store/app-actions.ts';
 import AddApplicationDialog from './AddApplicationDialog';
-import {observer} from 'mobx-react';
-import { action, makeObservable, observable } from 'mobx';
-import {inject, Stores} from '../inject';
 import * as config from '../config';
 import UpdateDialog from './UpdateApplicationDialog';
 import {IApplication} from '../types';
 import {LastUsedCell} from '../common/LastUsedCell';
 
-@observer
-class Applications extends Component<Stores<'appStore'>> {
-    @observable
-    private deleteId: number | false = false;
-    @observable
-    private updateId: number | false = false;
-    @observable
-    private createDialog = false;
+const Applications = () => {
+    const dispatch = useAppDispatch();
+    const apps = useAppSelector((state) => state.app.items);
+    const [toDeleteApp, setToDeleteApp] = useState<IApplication | null>();
+    const [toUpdateApp, setToUpdateApp] = useState<IApplication | null>();
+    const [createDialog, setCreateDialog] = useState<boolean>(false);
 
-    private uploadId = -1;
-    private upload: HTMLInputElement | null = null;
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    let uploadId = -1;
+    // select app from global state
 
-    constructor(props: any) {
-        super(props);
-        makeObservable(this);
-    }
+    // load applications from server
+    useEffect(() => {
+        dispatch(fetchApps());
+    }, [dispatch]);
 
-    @action
-    private setDeleteId = (id: number | false) => {
-        this.deleteId = id;
-    };
-
-    @action
-    private setUpdateId = (id: number | false) => {
-        this.updateId = id;
-    };
-
-    @action
-    private setCreateDialog = (dialog: boolean) => {
-        this.createDialog = dialog;
-    };
-
-    public componentDidMount = () => this.props.appStore.refresh();
-
-    public render() {
-        const {
-            createDialog,
-            deleteId,
-            updateId,
-            props: {appStore},
-        } = this;
-        const apps = appStore.getItems();
-        return (
-            <DefaultPage
-                title="Applications"
-                rightControl={
-                    <Button
-                        id="create-app"
-                        variant="contained"
-                        color="primary"
-                        onClick={() => (this.setCreateDialog(true))}>
-                        Create Application
-                    </Button>
-                }
-                maxWidth={1000}>
-                <Grid item xs={12}>
-                    <Paper elevation={6} style={{overflowX: 'auto'}}>
-                        <Table id="app-table">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell padding="checkbox" style={{width: 80}} />
-                                    <TableCell>Name</TableCell>
-                                    <TableCell>Token</TableCell>
-                                    <TableCell>Description</TableCell>
-                                    <TableCell>Priority</TableCell>
-                                    <TableCell>Last Used</TableCell>
-                                    <TableCell />
-                                    <TableCell />
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {apps.map((app: IApplication) => (
-                                    <Row
-                                        key={app.id}
-                                        description={app.description}
-                                        defaultPriority={app.defaultPriority}
-                                        image={app.image}
-                                        name={app.name}
-                                        value={app.token}
-                                        lastUsed={app.lastUsed}
-                                        fUpload={() => this.uploadImage(app.id)}
-                                        fDelete={() => (this.setDeleteId(app.id))}
-                                        fEdit={() => (this.setUpdateId(app.id))}
-                                        noDelete={app.internal}
-                                    />
-                                ))}
-                            </TableBody>
-                        </Table>
-                        <input
-                            ref={(upload) => (this.upload = upload)}
-                            type="file"
-                            style={{display: 'none'}}
-                            onChange={this.onUploadImage}
-                        />
-                    </Paper>
-                </Grid>
-                {createDialog && (
-                    <AddApplicationDialog
-                        fClose={() => (this.setCreateDialog(false))}
-                        fOnSubmit={appStore.create}
-                    />
-                )}
-                {updateId !== false && (
-                    <UpdateDialog
-                        fClose={() => (this.setUpdateId(false))}
-                        fOnSubmit={(name, description, defaultPriority) =>
-                            appStore.update(updateId, name, description, defaultPriority)
-                        }
-                        initialDescription={appStore.getByID(updateId).description}
-                        initialName={appStore.getByID(updateId).name}
-                        initialDefaultPriority={appStore.getByID(updateId).defaultPriority}
-                    />
-                )}
-                {deleteId !== false && (
-                    <ConfirmDialog
-                        title="Confirm Delete"
-                        text={'Delete ' + appStore.getByID(deleteId).name + '?'}
-                        fClose={() => (this.setDeleteId(false))}
-                        fOnSubmit={() => appStore.remove(deleteId)}
-                    />
-                )}
-            </DefaultPage>
-        );
-    }
-
-    private uploadImage = (id: number) => {
-        this.uploadId = id;
-        if (this.upload) {
-            this.upload.click();
+    const handleImageUploadClick = (id: number) => {
+        uploadId = id;
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
         }
     };
 
-    private onUploadImage = (e: ChangeEvent<HTMLInputElement>) => {
+    const onUploadImage = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) {
             return;
         }
         if (['image/png', 'image/jpeg', 'image/gif'].indexOf(file.type) !== -1) {
-            this.props.appStore.uploadImage(this.uploadId, file);
+            dispatch(uploadImage(uploadId, file));
         } else {
             alert('Uploaded file must be of type png, jpeg or gif.');
         }
     };
-}
+
+    const handleCreateApp = async (name: string, description: string, defaultPriority: number) => {
+        await dispatch(createApp(name, description, defaultPriority));
+    };
+
+    const handleUpdateApp = async (name: string, description: string, defaultPriority: number) => {
+        await dispatch(updateApp(toUpdateApp!.id, name, description, defaultPriority));
+    };
+
+    const handleDeleteApp = async () => {
+        await dispatch(deleteApp(toDeleteApp!.id));
+    }
+
+    return (
+        <DefaultPage
+            title="Applications"
+            rightControl={
+                <Button
+                    id="create-app"
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setCreateDialog(true)}>
+                    Create Application
+                </Button>
+            }
+            maxWidth={1000}>
+            <Grid size={12}>
+                    <Paper elevation={6} style={{overflowX: 'auto'}}>
+                    <Table id="app-table">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell padding="checkbox" style={{width: 80}} />
+                                <TableCell>Name</TableCell>
+                                <TableCell>Token</TableCell>
+                                <TableCell>Description</TableCell>
+                                <TableCell>Priority</TableCell>
+                                <TableCell>Last Used</TableCell>
+                                <TableCell />
+                                <TableCell />
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {apps.map((app: IApplication) => (
+                                <Row
+                                    key={app.id}
+                                    description={app.description}
+                                    defaultPriority={app.defaultPriority}
+                                    image={app.image}
+                                    name={app.name}
+                                    value={app.token}
+                                    lastUsed={app.lastUsed}
+                                    fUpload={() => handleImageUploadClick(app.id)}
+                                    fDelete={() => setToDeleteApp(app)}
+                                    fEdit={() => setToUpdateApp(app)}
+                                    noDelete={app.internal}
+                                />
+                            ))}
+                        </TableBody>
+                    </Table>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        style={{display: 'none'}}
+                        onChange={onUploadImage}
+                    />
+                </Paper>
+            </Grid>
+            {createDialog && (
+                <AddApplicationDialog
+                    fClose={() => setCreateDialog(false)}
+                    fOnSubmit={handleCreateApp}
+                />
+            )}
+            {toUpdateApp != null && (
+                <UpdateDialog
+                    fClose={() => setToUpdateApp(null)}
+                    fOnSubmit={handleUpdateApp}
+                    initialDescription={toUpdateApp?.description}
+                    initialName={toUpdateApp?.name}
+                    initialDefaultPriority={toUpdateApp?.defaultPriority}
+                />
+            )}
+            {toDeleteApp != null && (
+                <ConfirmDialog
+                    title="Confirm Delete"
+                    text={'Delete ' + deleteApp.name + '?'}
+                    fClose={() => setToDeleteApp(null)}
+                    fOnSubmit={handleDeleteApp}
+                />
+            )}
+        </DefaultPage>
+    );
+};
 
 interface IRowProps {
     name: string;
@@ -181,21 +164,21 @@ interface IRowProps {
     fEdit: VoidFunction;
 }
 
-const Row: SFC<IRowProps> = observer(
-    ({
-        name,
-        value,
-        noDelete,
-        description,
-        defaultPriority,
-        lastUsed,
-        fDelete,
-        fUpload,
-        image,
-        fEdit,
-    }) => (
+const Row = ({
+    name,
+    value,
+    noDelete,
+    description,
+    defaultPriority,
+    lastUsed,
+    fDelete,
+    fUpload,
+    image,
+    fEdit,
+}: IRowProps) => {
+    return (
         <TableRow>
-            <TableCell padding="default">
+            <TableCell padding="normal">
                 <div style={{display: 'flex'}}>
                     <img src={config.get('url') + image} alt="app logo" width="40" height="40" />
                     <IconButton onClick={fUpload} style={{height: 40}}>
@@ -223,7 +206,7 @@ const Row: SFC<IRowProps> = observer(
                 </IconButton>
             </TableCell>
         </TableRow>
-    )
-);
+    );
+};
 
-export default inject('appStore')(Applications);
+export default Applications;

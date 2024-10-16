@@ -1,4 +1,4 @@
-import { action, makeObservable, observable } from 'mobx';
+import { action, observable } from 'mobx';
 
 interface HasID {
     id: number;
@@ -18,10 +18,6 @@ export abstract class BaseStore<T extends HasID> implements IClearable {
     protected abstract requestItems(): Promise<T[]>;
 
     protected abstract requestDelete(id: number): Promise<void>;
-
-    constructor() {
-        makeObservable(this);
-    }
 
     @action
     public remove = async (id: number): Promise<void> => {
