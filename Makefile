@@ -7,6 +7,7 @@ DOCKER_BUILD_IMAGE=gotify/build
 DOCKER_WORKDIR=/proj
 DOCKER_RUN=docker run --rm -v "$$PWD/.:${DOCKER_WORKDIR}" -v "`go env GOPATH`/pkg/mod/.:/go/pkg/mod:ro" -w ${DOCKER_WORKDIR}
 DOCKER_GO_BUILD=go build -mod=readonly -a -installsuffix cgo -ldflags "$$LD_FLAGS"
+DOCKER_TEST_LEVEL ?= 1 # should be unnecessary but good for a last-line of defense
 NODE_OPTIONS=$(shell if node --help | grep -q -- "--openssl-legacy-provider"; then echo --openssl-legacy-provider; fi)
 
 test: test-coverage test-js
@@ -64,7 +65,8 @@ package-zip: extract-licenses
     done
 
 build-docker-multiarch: require-version
-	docker buildx build --sbom=true \
+	docker buildx build --sbom=true --provenance=true \
+		--output type=local,dest=container-out \
 		-t gotify/server:latest \
 		-t gotify/server:${VERSION} \
 		-t gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -2) \
@@ -81,20 +83,6 @@ build-docker-multiarch: require-version
 		-t ghcr.io/gotify/server-arm64:${VERSION} \
 		-t ghcr.io/gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
 		-t ghcr.io/gotify/server-arm64:$(shell echo $(VERSION) | cut -d '.' -f -1) \
-		--build-arg GO_VERSION=$(shell cat GO_VERSION) \
-		--platform linux/amd64,linux/arm64,linux/386 \
-		-f docker/Dockerfile .
-
-build-docker-amd64: build-docker-multiarch
-
-build-docker-i386: build-docker-multiarch
-
-build-docker-arm64: build-docker-multiarch
-
-build-docker-arm-7: require-version
-	cp ${BUILD_DIR}/gotify-linux-arm-7 ./docker/gotify-app
-	cd ${DOCKER_DIR} && \
-		docker build -f Dockerfile.armv7 \
 		-t gotify/server-arm7:latest \
 		-t gotify/server-arm7:${VERSION} \
 		-t gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -2) \
@@ -102,13 +90,7 @@ build-docker-arm-7: require-version
 		-t ghcr.io/gotify/server-arm7:latest \
 		-t ghcr.io/gotify/server-arm7:${VERSION} \
 		-t ghcr.io/gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -2) \
-		-t ghcr.io/gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -1) .
-	rm ${DOCKER_DIR}gotify-app
-
-build-docker-riscv64: require-version
-	cp ${BUILD_DIR}/gotify-linux-riscv64 ./docker/gotify-app
-	cd ${DOCKER_DIR} && \
-		docker build -f Dockerfile.riscv64 \
+		-t ghcr.io/gotify/server-arm7:$(shell echo $(VERSION) | cut -d '.' -f -1) \
 		-t gotify/server-riscv64:latest \
 		-t gotify/server-riscv64:${VERSION} \
 		-t gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
@@ -116,10 +98,20 @@ build-docker-riscv64: require-version
 		-t ghcr.io/gotify/server-riscv64:latest \
 		-t ghcr.io/gotify/server-riscv64:${VERSION} \
 		-t ghcr.io/gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
-		-t ghcr.io/gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -1) .
-	rm ${DOCKER_DIR}gotify-app
+		-t ghcr.io/gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -1) \
+		--build-arg RUN_TESTS=$(DOCKER_TEST_LEVEL) \
+		--build-arg GO_VERSION=$(shell cat GO_VERSION) \
+		--platform linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/riscv64 \
+		-f docker/Dockerfile .
 
-build-docker: build-docker-multiarch build-docker-arm-7 build-docker-riscv64
+# Backwards compatibility
+build-docker-amd64: build-docker-multiarch
+build-docker-i386: build-docker-multiarch
+build-docker-arm64: build-docker-multiarch
+build-docker-arm-7: build-docker-multiarch
+build-docker-riscv64: build-docker-multiarch
+
+build-docker: build-docker-multiarch
 
 build-js:
 	(cd ui && NODE_OPTIONS="${NODE_OPTIONS}" yarn build)

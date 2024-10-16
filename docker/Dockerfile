@@ -1,6 +1,17 @@
-ARG DEBIAN=stable-slim
-# supprress warnung about invalid variable expansion
+ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
+ARG DEBIAN_STABLE_ARCH=stable-slim
+ARG DEBIAN_EXPERIMENTAL_ARCH=sid-slim
+# suppress warnung about invalid variable expansion
 ARG GO_VERSION=PLEASE_PROVIDE_GO_VERSION
+
+# Hack to normalize platform to match the chosed build image
+# Get the gotify/build image tag
+ARG __TARGETPLATFORM_DASHES=${TARGETPLATFORM/\//-}
+ARG __TARGETPLATFORM_GO_NOTATION=${__TARGETPLATFORM_DASHES/arm\/v7/arm-7}
+# Set the unstable tag if the target platform is not stable
+ARG __TARGETPLATFORM_IS_STABLE=${TARGETPLATFORM/linux\/riscv64/}
+ARG __DEBIAN_HAS_STABLE_TAG=${__TARGETPLATFORM_IS_STABLE/?*/${DEBIAN}} # if the last variable is not empty, set it to the debian stable tag
+ARG DEBIAN=${__DEBIAN_HAS_STABLE_TAG:-${DEBIAN_EXPERIMENTAL_ARCH}} # else set it to the debian experimental tag
 
 # --- JS Builder ---
 
@@ -37,10 +48,12 @@ RUN if [ "$BUILD_JS" = "1" ]; then \
 
 # --- Go Builder ---
 
-FROM --platform=${BUILDPLATFORM} gotify/build:${GO_VERSION}-${TARGETPLATFORM/\//-} AS builder
+FROM --platform=${BUILDPLATFORM} gotify/build:${GO_VERSION}-${__TARGETPLATFORM_GO_NOTATION} AS builder
 
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
 ARG BUILD_JS=0
-ARG RUN_TESTS=0
+ARG RUN_TESTS=0 # 0=never, 1=native only
 ARG GO_BUILD_FLAGS=-mod=readonly -a -installsuffix cgo
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -57,7 +70,9 @@ RUN if [ "$BUILD_JS" = "1" ]; then \
 
 RUN cd /src/gotify && \
     mkdir -p /target/app && \
-    [ "$RUN_TESTS" = "1" ] && go test -v ./... || true && \
+    if [ "$RUN_TESTS" = "1" ] && [ "$BUILDPLATFORM" = "$TARGETPLATFORM" ]; then \
+    go test -v ./...; \
+    fi && \
     go build ${GO_BUILD_FLAGS} -o /target/app/gotify-app
 
 FROM debian:${DEBIAN}
