@@ -54,7 +54,7 @@ export default class UpdateDialog extends Component<IProps, IState> {
                         className="name"
                         label="Name *"
                         type="text"
-                        value={name}
+                        defaultValue={name}
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth
                     />

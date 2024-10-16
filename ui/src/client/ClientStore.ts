@@ -1,7 +1,7 @@
 import {BaseStore} from '../common/BaseStore';
 import axios from 'axios';
 import * as config from '../config';
-import {action} from 'mobx';
+import { action } from 'mobx';
 import {SnackReporter} from '../snack/SnackManager';
 import {IClient} from '../types';
 

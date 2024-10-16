@@ -15,7 +15,7 @@ import Button from '@material-ui/core/Button';
 import AddClientDialog from './AddClientDialog';
 import UpdateDialog from './UpdateClientDialog';
 import {observer} from 'mobx-react';
-import {observable} from 'mobx';
+import { action, observable } from 'mobx';
 import {inject, Stores} from '../inject';
 import {IClient} from '../types';
 import CopyableSecret from '../common/CopyableSecret';

@@ -1,6 +1,7 @@
 import * as os from 'os';
 import {Page} from 'puppeteer';
 import axios from 'axios';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import * as auth from './authentication';
 import * as selector from './selector';

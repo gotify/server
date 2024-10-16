@@ -3,7 +3,7 @@ import * as config from './config';
 import {Base64} from 'js-base64';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
-import {observable} from 'mobx';
+import { observable, action, runInAction } from 'mobx';
 import {IClient, IUser} from './types';
 
 const tokenKey = 'gotify-login-key';
@@ -78,19 +78,23 @@ export class CurrentUser {
                 headers: {Authorization: 'Basic ' + Base64.encode(username + ':' + password)},
             })
             .then((resp: AxiosResponse<IClient>) => {
-                this.snack(`A client named '${name}' was created for your session.`);
-                this.setToken(resp.data.token);
-                this.tryAuthenticate()
-                    .then(() => {
-                        this.authenticating = false;
-                        this.loggedIn = true;
-                    })
-                    .catch(() => {
-                        this.authenticating = false;
-                        console.log(
-                            'create client succeeded, but authenticated with given token failed'
-                        );
-                    });
+                runInAction(() => {
+                    this.snack(`A client named '${name}' was created for your session.`);
+                    this.setToken(resp.data.token);
+                    this.tryAuthenticate()
+                        .then(() => {
+                            runInAction(() => {
+                                this.authenticating = false;
+                                this.loggedIn = true;
+                            })
+                        })
+                        .catch(() => {
+                            this.authenticating = false;
+                            console.log(
+                                'create client succeeded, but authenticated with given token failed'
+                            );
+                        });
+                })
             })
             .catch(() => {
                 this.authenticating = false;
@@ -108,7 +112,7 @@ export class CurrentUser {
                 .create()
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 .get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': this.token()}})
-                .then((passThrough) => {
+                .then((passThrough: { data: IUser; }) => {
                     this.user = passThrough.data;
                     this.loggedIn = true;
                     this.connectionErrorMessage = null;

@@ -16,7 +16,7 @@ import Button from '@material-ui/core/Button';
 import CopyableSecret from '../common/CopyableSecret';
 import AddApplicationDialog from './AddApplicationDialog';
 import {observer} from 'mobx-react';
-import {observable} from 'mobx';
+import { action, observable } from 'mobx';
 import {inject, Stores} from '../inject';
 import * as config from '../config';
 import UpdateDialog from './UpdateApplicationDialog';

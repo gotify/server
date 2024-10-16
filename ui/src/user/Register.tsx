@@ -50,7 +50,7 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                         className="name"
                         label="Name *"
                         type="email"
-                        value={name}
+                        defaultValue={name}
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth
                     />
@@ -58,7 +58,7 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                         margin="dense"
                         className="password"
                         type="password"
-                        value={pass}
+                        defaultValue={pass}
                         fullWidth
                         label="Pass *"
                         onChange={this.handleChange.bind(this, 'pass')}
