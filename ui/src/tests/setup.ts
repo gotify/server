@@ -65,7 +65,7 @@ const testPluginDir = (): {dir: string; generator: () => string} => {
     const dirName = 'gotifyplugin_' + random;
     const dir = path.join(testBuildPath, dirName);
     if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, 0o755);
+        fs.mkdirSync(dir, {recursive: true, mode: 0o755});
     }
     return {
         dir,
@@ -105,7 +105,7 @@ const buildGoExecutable = (filename: string): Promise<void> => {
     const envGotify = process.env.GOTIFY_EXE;
     if (envGotify) {
         if (!fs.existsSync(testBuildPath)) {
-            fs.mkdirSync(testBuildPath);
+            fs.mkdirSync(testBuildPath, {recursive: true});
         }
         fs.copyFileSync(envGotify, filename);
         process.stdout.write(`### Copying ${envGotify} to ${filename}\n`);
