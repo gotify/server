@@ -1,147 +1,149 @@
-import Divider from '@material-ui/core/Divider';
-import Drawer from '@material-ui/core/Drawer';
-import {StyleRules, Theme, WithStyles, withStyles} from '@material-ui/core/styles';
-import { makeObservable } from 'mobx';
-import React, {Component} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
-import {observer} from 'mobx-react';
-import {inject, Stores } from '../inject';
-import { mayAllowPermission, requestPermission } from '../snack/browserNotification';
+import Divider from '@mui/material/Divider';
+import Drawer from '@mui/material/Drawer';
+import {makeStyles} from 'tss-react/mui';
+import {mayAllowPermission, requestPermission} from '../snack/browserNotification';
 import {
     Button,
-    Hidden,
     IconButton,
     Typography,
-    ListItem,
+    ListItemButton,
     ListItemText,
     ListItemAvatar,
     Avatar,
-} from '@material-ui/core';
-import { DrawerProps } from '@material-ui/core/Drawer/Drawer';
-import CloseIcon from '@material-ui/icons/Close';
+    Box,
+} from '@mui/material';
+import {DrawerProps} from '@mui/material/Drawer/Drawer';
+import CloseIcon from '@mui/icons-material/Close';
+import {useAppDispatch, useAppSelector} from '../store';
+import {fetchApps} from '../store/app-actions.ts';
+import {appActions} from '../store/app-slice.ts';
+import {uiActions} from '../store/ui-slice.ts';
+import * as config from '../config';
 
-const styles = (theme: Theme): StyleRules<'root' | 'drawerPaper' | 'toolbar' | 'link'> => ({
-    root: {
-        height: '100%',
-    },
-    drawerPaper: {
-        position: 'relative',
-        width: 250,
-        minHeight: '100%',
-        height: '100vh',
-    },
-    toolbar: theme.mixins.toolbar,
-    link: {
-        color: 'inherit',
-        textDecoration: 'none',
-    },
+const useStyles = makeStyles()(() => {
+    return {
+        root: {
+            height: '100%',
+        },
+        drawerPaper: {
+            position: 'relative',
+            width: 250,
+            minHeight: '100%',
+            height: '100vh',
+        },
+        // toolbar: theme.mixins.toolbar,
+        link: {
+            color: 'inherit',
+            textDecoration: 'none',
+        },
+    };
 });
 
-type Styles = WithStyles<'root' | 'drawerPaper' | 'toolbar' | 'link'>;
+const Navigation = () => {
+    const [showRequestNotification, setShowRequestNotification] = useState(mayAllowPermission());
+    const apps = useAppSelector((state) => state.app.items);
+    const {classes} = useStyles();
+    const dispatch = useAppDispatch();
+    const loggedIn = useAppSelector((state) => state.auth.loggedIn);
 
-interface IProps {
-    loggedIn: boolean;
-    navOpen: boolean;
-    setNavOpen: (open: boolean) => void;
-}
+    useEffect(() => {
+        if (loggedIn) {
+            dispatch(fetchApps());
+        }
+    }, [dispatch, loggedIn]);
 
-@observer
-class Navigation extends Component<
-    IProps & Styles & Stores<'appStore'>,
-    { showRequestNotification: boolean }
-> {
-    public state = { showRequestNotification: mayAllowPermission() };
+    const userApps =
+        apps.length === 0
+            ? null
+            : apps.map((app) => (
+                  <Link
+                      onClick={() => {
+                          dispatch(uiActions.setNavOpen(false));
+                          // TODO: make sure we can select the app 'All Messages', does not work yet
+                          dispatch(appActions.select(app));
+                      }}
+                      className={`${classes.link} item`}
+                      to={'/messages/' + app.id}
+                      key={app.id}>
+                      <ListItemButton>
+                          <ListItemAvatar style={{minWidth: 42}}>
+                              <Avatar
+                                  style={{width: 32, height: 32}}
+                                  src={config.get('url') + app.image}
+                                  variant="square"
+                              />
+                          </ListItemAvatar>
+                          <ListItemText primary={app.name} />
+                      </ListItemButton>
+                  </Link>
+              ));
 
-    constructor(props: any) {
-        super(props);
-        makeObservable(this);
-    }
+    const placeholderItems = [
+        <ListItemButton disabled key={-1}>
+            <ListItemText primary="Some Server" />
+        </ListItemButton>,
+        <ListItemButton disabled key={-2}>
+            <ListItemText primary="A Raspberry PI" />
+        </ListItemButton>,
+    ];
+    return (
+        <ResponsiveDrawer
+            classes={{root: classes.root, paper: classes.drawerPaper}}
+            id="message-navigation">
+            {/*<div className={classes.toolbar} />*/}
+            <div className="toolbar" />
+            <Link
+                className={classes.link}
+                to="/"
+                onClick={() => {
+                    dispatch(uiActions.setNavOpen(false));
+                    dispatch(appActions.select(null));
+                }}>
+                <ListItemButton disabled={!loggedIn} className="all">
+                    <ListItemText primary="All Messages" />
+                </ListItemButton>
+            </Link>
+            <Divider />
+            <div>{loggedIn ? userApps : placeholderItems}</div>
+            <Divider />
+            <Typography align="center" style={{marginTop: 10}}>
+                {showRequestNotification ? (
+                    <Button
+                        onClick={() => {
+                            requestPermission();
+                            setShowRequestNotification(false);
+                        }}>
+                        Enable Notifications
+                    </Button>
+                ) : null}
+            </Typography>
+        </ResponsiveDrawer>
+    );
+};
 
-    public render() {
-        const {classes, loggedIn, appStore, navOpen, setNavOpen} = this.props;
-        const {showRequestNotification} = this.state;
-        const apps = appStore.getItems();
+const ResponsiveDrawer: React.FC<DrawerProps & {}> = ({children, ...rest}) => {
+    const dispatch = useAppDispatch();
+    const navOpen = useAppSelector((state) => state.ui.navOpen);
 
-        const userApps =
-            apps.length === 0
-                ? null
-                : apps.map((app) => (
-                      <Link
-                          onClick={() => setNavOpen(false)}
-                          className={`${classes.link} item`}
-                          to={'/messages/' + app.id}
-                          key={app.id}>
-                          <ListItem button>
-                              <ListItemAvatar style={{minWidth: 42}}>
-                                  <Avatar
-                                      style={{width: 32, height: 32}}
-                                      src={app.image}
-                                      variant="square"
-                                  />
-                              </ListItemAvatar>
-                              <ListItemText primary={app.name} />
-                          </ListItem>
-                      </Link>
-                  ));
+    return (
+        <>
+            <Box sx={{display: {xs: 'block', sm: 'none'}}}>
+                <Drawer variant="temporary" open={navOpen} {...rest}>
+                    <IconButton onClick={() => dispatch(uiActions.setNavOpen(false))}>
+                        <CloseIcon />
+                    </IconButton>
+                    {children}
+                </Drawer>
+            </Box>
+            <Box sx={{display: {xs: 'none', sm: 'block'}}}>
+                <Drawer variant="permanent" {...rest}>
+                    {children}
+                </Drawer>
+            </Box>
+        </>
+    );
+};
 
-        const placeholderItems = [
-            <ListItem button disabled key={-1}>
-                <ListItemText primary="Some Server" />
-            </ListItem>,
-            <ListItem button disabled key={-2}>
-                <ListItemText primary="A Raspberry PI" />
-            </ListItem>,
-        ];
-
-        return (
-            <ResponsiveDrawer
-                classes={{root: classes.root, paper: classes.drawerPaper}}
-                navOpen={navOpen}
-                setNavOpen={setNavOpen}
-                id="message-navigation">
-                <div className={classes.toolbar} />
-                <Link className={classes.link} to="/" onClick={() => setNavOpen(false)}>
-                    <ListItem button disabled={!loggedIn} className="all">
-                        <ListItemText primary="All Messages" />
-                    </ListItem>
-                </Link>
-                <Divider />
-                <div>{loggedIn ? userApps : placeholderItems}</div>
-                <Divider />
-                <Typography align="center" style={{marginTop: 10}}>
-                    {showRequestNotification ? (
-                        <Button
-                            onClick={() => {
-                                requestPermission();
-                                this.setState({showRequestNotification: false});
-                            }}>
-                            Enable Notifications
-                        </Button>
-                    ) : null}
-                </Typography>
-            </ResponsiveDrawer>
-        );
-    }
-}
-
-const ResponsiveDrawer: React.FC<
-    DrawerProps & {navOpen: boolean; setNavOpen: (open: boolean) => void}
-> = ({navOpen, setNavOpen, children, ...rest}) => (
-    <>
-        <Hidden smUp implementation="css">
-            <Drawer variant="temporary" open={navOpen} {...rest}>
-                <IconButton onClick={() => setNavOpen(false)}>
-                    <CloseIcon />
-                </IconButton>
-                {children}
-            </Drawer>
-        </Hidden>
-        <Hidden xsDown implementation="css">
-            <Drawer variant="permanent" {...rest}>
-                {children}
-            </Drawer>
-        </Hidden>
-    </>
-);
-
-export default withStyles(styles, {withTheme: true})(inject('appStore')(Navigation));
+export default Navigation;

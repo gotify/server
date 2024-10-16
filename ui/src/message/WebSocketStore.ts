@@ -1,7 +1,5 @@
-import {SnackReporter} from '../snack/SnackManager';
-import {CurrentUser} from '../CurrentUser';
+import {getAuthToken} from '../common/Auth.ts';
 import * as config from '../config';
-import {AxiosError} from 'axios';
 import {IMessage} from '../types';
 
 export class WebSocketStore {
@@ -9,18 +7,16 @@ export class WebSocketStore {
     private ws: WebSocket | null = null;
 
     public constructor(
-        private readonly snack: SnackReporter,
-        private readonly currentUser: CurrentUser
     ) {}
 
     public listen = (callback: (msg: IMessage) => void) => {
-        if (!this.currentUser.token() || this.wsActive) {
+        if (!getAuthToken() || this.wsActive) {
             return;
         }
         this.wsActive = true;
 
-        const wsUrl = config.get('url').replace('http', 'ws').replace('https', 'wss');
-        const ws = new WebSocket(wsUrl + 'stream?token=' + this.currentUser.token());
+        const wsUrl = config.get('url').replace('http', 'ws');
+        const ws = new WebSocket(wsUrl + 'stream?token=' + getAuthToken());
 
         ws.onerror = (e) => {
             this.wsActive = false;
@@ -31,17 +27,17 @@ export class WebSocketStore {
 
         ws.onclose = () => {
             this.wsActive = false;
-            this.currentUser
-                .tryAuthenticate()
-                .then(() => {
-                    this.snack('WebSocket connection closed, trying again in 30 seconds.');
-                    setTimeout(() => this.listen(callback), 30000);
-                })
-                .catch((error: AxiosError) => {
-                    if (error?.response?.status === 401) {
-                        this.snack('Could not authenticate with client token, logging out.');
-                    }
-                });
+            // this.currentUser
+            //     .tryAuthenticate()
+            //     .then(() => {
+            //         this.snack('WebSocket connection closed, trying again in 30 seconds.');
+            //         setTimeout(() => this.listen(callback), 30000);
+            //     })
+            //     .catch((error: AxiosError) => {
+            //         if (error?.response?.status === 401) {
+            //             this.snack('Could not authenticate with client token, logging out.');
+            //         }
+            //     });
         };
 
         this.ws = ws;

@@ -1,73 +1,64 @@
-import { makeObservable } from 'mobx';
-import React, {Component, SFC} from 'react';
+import React, {useEffect} from 'react';
 import {Link} from 'react-router-dom';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Settings from '@material-ui/icons/Settings';
-import {Switch, Button} from '@material-ui/core';
+import Grid from '@mui/material/Grid2';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Settings from '@mui/icons-material/Settings';
+import {Switch, Button} from '@mui/material';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
-import {observer} from 'mobx-react';
-import {inject, Stores } from '../inject';
-import { IPlugin } from '../types';
+import {useAppDispatch, useAppSelector} from '../store';
+import {changePluginEnableState, fetchPlugins} from '../store/plugin-actions.ts';
+import {IPlugin} from '../types';
 
-@observer
-class Plugins extends Component<Stores<'pluginStore'>> {
-    public componentDidMount = () => this.props.pluginStore.refresh();
+const Plugins = () => {
+    const dispatch = useAppDispatch();
+    const plugins = useAppSelector((state) => state.plugin.items);
 
-    constructor(props: any) {
-        super(props);
-        makeObservable(this);
-    }
+    useEffect(() => {
+        dispatch(fetchPlugins());
+    }, [dispatch]);
 
-    public render() {
-        const {
-            props: {pluginStore},
-        } = this;
-        const plugins = pluginStore.getItems();
-        return (
-            <DefaultPage title="Plugins" maxWidth={1000}>
-                <Grid item xs={12}>
+    return (
+        <DefaultPage title="Plugins" maxWidth={1000}>
+            <Grid size={12}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
-                        <Table id="plugin-table">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>ID</TableCell>
-                                    <TableCell>Enabled</TableCell>
-                                    <TableCell>Name</TableCell>
-                                    <TableCell>Token</TableCell>
-                                    <TableCell>Details</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {plugins.map((plugin: IPlugin) => (
-                                    <Row
-                                        key={plugin.token}
-                                        id={plugin.id}
-                                        token={plugin.token}
-                                        name={plugin.name}
-                                        enabled={plugin.enabled}
-                                        fToggleStatus={() =>
-                                            this.props.pluginStore.changeEnabledState(
-                                                plugin.id,
-                                                !plugin.enabled
-                                            )
-                                        }
-                                    />
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Paper>
-                </Grid>
-            </DefaultPage>
-        );
-    }
-}
+                    <Table id="plugin-table">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>ID</TableCell>
+                                <TableCell>Enabled</TableCell>
+                                <TableCell>Name</TableCell>
+                                <TableCell>Token</TableCell>
+                                <TableCell>Details</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {plugins.map((plugin: IPlugin) => (
+                                <Row
+                                    key={plugin.token}
+                                    id={plugin.id}
+                                    token={plugin.token}
+                                    name={plugin.name}
+                                    enabled={plugin.enabled}
+                                    fToggleStatus={() =>
+                                        dispatch(
+                                            changePluginEnableState(plugin.id, !plugin.enabled)
+                                        )
+                                    }
+                                />
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Paper>
+            </Grid>
+        </DefaultPage>
+    );
+};
 
 interface IRowProps {
     id: number;
@@ -77,7 +68,7 @@ interface IRowProps {
     fToggleStatus: VoidFunction;
 }
 
-const Row: SFC<IRowProps> = observer(({name, id, token, enabled, fToggleStatus}) => (
+const Row = ({name, id, token, enabled, fToggleStatus}: IRowProps) => (
     <TableRow>
         <TableCell>{id}</TableCell>
         <TableCell>
@@ -100,6 +91,6 @@ const Row: SFC<IRowProps> = observer(({name, id, token, enabled, fToggleStatus})
             </Link>
         </TableCell>
     </TableRow>
-));
+);
 
-export default inject('pluginStore')(Plugins);
+export default Plugins;

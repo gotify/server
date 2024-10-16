@@ -1,45 +1,125 @@
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import React, {Component} from 'react';
-import {RouteComponentProps} from 'react-router';
+import Grid from '@mui/material/Grid2';
+import Typography from '@mui/material/Typography';
+import React, {useEffect, useState} from 'react';
+import {useParams} from 'react-router';
 import DefaultPage from '../common/DefaultPage';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
+import {useAppDispatch, useAppSelector} from '../store';
+import {getAppName} from '../store/app-actions.ts';
+import {fetchMessages, removeMessagesByApp, removeSingleMessage} from '../store/message-actions.ts';
 import Message from './Message';
-import {observer} from 'mobx-react';
-import {inject, Stores } from '../inject';
-import { action, makeObservable, observable } from 'mobx';
-import ReactInfinite from 'react-infinite';
-import { IMessage } from '../types';
 import ConfirmDialog from '../common/ConfirmDialog';
 import LoadingSpinner from '../common/LoadingSpinner';
 
-type IProps = RouteComponentProps<{ id: string }>;
+const Messages = () => {
+    const dispatch = useAppDispatch();
+    const {id} = useParams();
+    const appId = id !== undefined ? parseInt(id as string) : -1;
 
-interface IState {
-    appId: number;
-}
+    const [ toDeleteAll, setToDeleteAll ] = useState<boolean>(false);
 
+    const heights: Record<string, number> = {};
+
+    const selectedApp = useAppSelector((state) => state.app.items.find(app => app.id === appId));
+    const apps = useAppSelector((state) => state.app.items);
+    const messages = useAppSelector((state) => state.message.items);
+    const hasMore = useAppSelector((state) => state.message.hasMore);
+    const name = dispatch(getAppName(appId));
+    const messagesLoaded = useAppSelector((state) => state.message.loaded);
+    const hasMessages = messages.length !== 0;
+
+    useEffect(() => {
+        dispatch(fetchMessages(appId));
+    }, [ dispatch, appId ]);
+
+    const label = (text: string) => (
+        <Grid size={12}>
+            <Typography variant="caption" component="div" gutterBottom align="center">
+                {text}
+            </Typography>
+        </Grid>
+    );
+
+    return (
+        <DefaultPage
+            title={name}
+            rightControl={
+                <div>
+                    <Button
+                        id="refresh-all"
+                        variant="contained"
+                        color="primary"
+                        onClick={() => dispatch(fetchMessages(appId))}
+                        style={{marginRight: 5}}>
+                        Refresh
+                    </Button>
+                    <Button
+                        id="delete-all"
+                        variant="contained"
+                        disabled={!hasMessages}
+                        color="primary"
+                        onClick={() => {
+                            setToDeleteAll(true);
+                        }}>
+                        Delete All
+                    </Button>
+                </div>
+            }>
+            {!messagesLoaded ? (
+                <LoadingSpinner />
+            ) : hasMessages ? (
+                <div style={{width: '100%'}} id="messages">
+                    {/* TODO: maybe replace ReactInfitite with react-window, which is also documented here: https://mui.com/material-ui/react-list/#virtualized-list */}
+                    {/*<ReactInfinite*/}
+                    {/*    key={appId}*/}
+                    {/*    useWindowAsScrollContainer*/}
+                    {/*    preloadBatchSize={window.innerHeight * 3}*/}
+                    {/*    elementHeight={messages.map((m) => heights[m.id] || 1)}>*/}
+                    {/*    {messages.map(renderMessage)}*/}
+                    {/*</ReactInfinite>*/}
+                    {messages.map((message) => (
+                            <Message
+                                key={message.id}
+                                height={(height: number) => {
+                                    if (!heights[message.id]) {
+                                        heights[message.id] = height;
+                                    }
+                                }}
+                                fDelete={() => dispatch(removeSingleMessage(message))}
+                                title={message.title}
+                                date={message.date}
+                                content={message.message}
+                                image={apps.find(app => app.id == message.appid)?.image}
+                                extras={message.extras}
+                                priority={message.priority}
+                            />
+                        ),
+                    )}
+
+                    {hasMore ? <LoadingSpinner /> : label('You\'ve reached the end')}
+                </div>
+            ) : (
+                label('No messages')
+            )}
+
+            {toDeleteAll && (
+                <ConfirmDialog
+                    title="Confirm Delete"
+                    text={'Delete all messages?'}
+                    fClose={() => setToDeleteAll(false)}
+                    fOnSubmit={() => dispatch(removeMessagesByApp(selectedApp))}
+                />
+            )}
+        </DefaultPage>
+    );
+};
+/*
 @observer
-class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, IState> {
+class Messages_old extends Component<IProps & Stores<'messagesStore' | 'appStore'>, IState> {
     @observable
     private heights: Record<string, number> = {};
     @observable
     private deleteAll = false;
-
-    constructor(props: any) {
-        super(props);
-        makeObservable(this);
-    }
-
-    @action
-    private setHeight(id: string, height: number) {
-        this.heights[id] = height;
-    }
-
-    @action
-    private setDeleteAll(deleteAll: boolean) {
-        this.deleteAll = deleteAll;
-    }
 
     private static appId(props: IProps) {
         if (props === undefined) {
@@ -69,69 +149,6 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
         this.updateAll();
     }
 
-    public render() {
-        const {appId} = this.state;
-        const {messagesStore, appStore} = this.props;
-        const messages = messagesStore.get(appId);
-        const hasMore = messagesStore.canLoadMore(appId);
-        const name = appStore.getName(appId);
-        const hasMessages = messages.length !== 0;
-
-        return (
-            <DefaultPage
-                title={name}
-                rightControl={
-                    <div>
-                        <Button
-                            id="refresh-all"
-                            variant="contained"
-                            color="primary"
-                            onClick={() => messagesStore.refreshByApp(appId)}
-                            style={{marginRight: 5}}>
-                            Refresh
-                        </Button>
-                        <Button
-                            id="delete-all"
-                            variant="contained"
-                            disabled={!hasMessages}
-                            color="primary"
-                            onClick={() => {
-                                this.setDeleteAll(true);
-                            }}>
-                            Delete All
-                        </Button>
-                    </div>
-                }>
-                {!messagesStore.loaded(appId) ? (
-                    <LoadingSpinner />
-                ) : hasMessages ? (
-                    <div style={{width: '100%'}} id="messages">
-                        <ReactInfinite
-                            key={appId}
-                            useWindowAsScrollContainer
-                            preloadBatchSize={window.innerHeight * 3}
-                            elementHeight={messages.map((m) => this.heights[m.id] || 1)}>
-                            {messages.map(this.renderMessage)}
-                        </ReactInfinite>
-
-                        {hasMore ? <LoadingSpinner /> : this.label("You've reached the end")}
-                    </div>
-                ) : (
-                    this.label('No messages')
-                )}
-
-                {this.deleteAll && (
-                    <ConfirmDialog
-                        title="Confirm Delete"
-                        text={'Delete all messages?'}
-                        fClose={() => (this.setDeleteAll(false))}
-                        fOnSubmit={() => messagesStore.removeByApp(appId)}
-                    />
-                )}
-            </DefaultPage>
-        );
-    }
-
     private updateAllWithProps = (props: IProps & Stores<'messagesStore'>) => {
         const appId = Messages.appId(props);
         this.setState({appId});
@@ -142,26 +159,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
 
     private updateAll = () => this.updateAllWithProps(this.props);
 
-    private deleteMessage = (message: IMessage) => () =>
-        this.props.messagesStore.removeSingle(message);
 
-    private renderMessage = (message: IMessage) => (
-        <Message
-            key={message.id}
-            height={(height: number) => {
-                if (!this.heights[message.id]) {
-                    this.setHeight(message.id, height);
-                }
-            }}
-            fDelete={this.deleteMessage(message)}
-            title={message.title}
-            date={message.date}
-            content={message.message}
-            image={message.image}
-            extras={message.extras}
-            priority={message.priority}
-        />
-    );
 
     private checkIfLoadMore() {
         const {appId} = this.state;
@@ -170,14 +168,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
             this.props.messagesStore.loadMore(appId).then(() => (this.isLoadingMore = false));
         }
     }
-
-    private label = (text: string) => (
-        <Grid item xs={12}>
-            <Typography variant="caption" component="div" gutterBottom align="center">
-                {text}
-            </Typography>
-        </Grid>
-    );
 }
+*/
 
-export default inject('messagesStore', 'appStore')(Messages);
+export default Messages;

@@ -1,27 +1,29 @@
-import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
-import {createStyles, Theme, WithStyles, withStyles} from '@material-ui/core/styles';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import Chat from '@material-ui/icons/Chat';
-import DevicesOther from '@material-ui/icons/DevicesOther';
-import ExitToApp from '@material-ui/icons/ExitToApp';
-import Highlight from '@material-ui/icons/Highlight';
-import GitHubIcon from '@material-ui/icons/GitHub';
-import MenuIcon from '@material-ui/icons/Menu';
-import Apps from '@material-ui/icons/Apps';
-import SupervisorAccount from '@material-ui/icons/SupervisorAccount';
-import { makeObservable } from 'mobx';
-import React, {Component, CSSProperties} from 'react';
+import AppBar from '@mui/material/AppBar';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import Chat from '@mui/icons-material/Chat';
+import DevicesOther from '@mui/icons-material/DevicesOther';
+import ExitToApp from '@mui/icons-material/ExitToApp';
+import Highlight from '@mui/icons-material/Highlight';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import MenuIcon from '@mui/icons-material/Menu';
+import Apps from '@mui/icons-material/Apps';
+import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
+import React, {CSSProperties} from 'react';
+import {useNavigate} from 'react-router';
 import {Link} from 'react-router-dom';
-import {observer} from 'mobx-react';
-import {Hidden, PropTypes, withWidth} from '@material-ui/core';
-import {Breakpoint} from '@material-ui/core/styles/createBreakpoints';
+import {SxProps, useMediaQuery, useTheme} from '@mui/material';
+import {makeStyles} from 'tss-react/mui';
+import {useAppDispatch, useAppSelector} from '../store';
+import {logout} from '../store/auth-actions.ts';
+import {uiActions} from '../store/ui-slice.ts';
+import {toggleTheme} from '../store/ui-actions.ts';
 
-const styles = (theme: Theme) =>
-    createStyles({
+const useStyles = makeStyles()((theme) => {
+    return {
         appBar: {
             zIndex: theme.zIndex.drawer + 1,
             [theme.breakpoints.down('xs')]: {
@@ -61,162 +63,124 @@ const styles = (theme: Theme) =>
             color: 'inherit',
             textDecoration: 'none',
         },
-    });
+    };
+});
 
-type Styles = WithStyles<'link' | 'menuButtons' | 'toolbar' | 'titleName' | 'title' | 'appBar'>;
-
-interface IProps extends Styles {
-    loggedIn: boolean;
-    name: string;
-    admin: boolean;
+interface IProps {
     version: string;
-    toggleTheme: VoidFunction;
-    showSettings: VoidFunction;
-    logout: VoidFunction;
     style: CSSProperties;
-    width: Breakpoint;
-    setNavOpen: (open: boolean) => void;
 }
 
-@observer
-class Header extends Component<IProps> {
-    constructor(props: any) {
-        super(props);
-        makeObservable(this);
-    }
+const Header = ({version, style}: IProps) => {
+    const theme = useTheme();
+    const {classes} = useStyles();
+    const dispatch = useAppDispatch();
 
-    public render() {
-        const {
-            classes,
-            version,
-            name,
-            loggedIn,
-            admin,
-            toggleTheme,
-            logout,
-            style,
-            setNavOpen,
-            width,
-        } = this.props;
+    const loggedIn = useAppSelector((state) => state.auth.loggedIn);
 
-        const position = width === 'xs' ? 'sticky' : 'fixed';
-
-        return (
-            <AppBar position={position} style={style} className={classes.appBar}>
-                <Toolbar className={classes.toolbar}>
-                    <div className={classes.title}>
-                        <Link to="/" className={classes.link}>
-                            <Typography variant="h5" className={classes.titleName} color="inherit">
-                                Gotify
-                            </Typography>
-                        </Link>
-                        <a
-                            href={'https://github.com/gotify/server/releases/tag/v' + version}
-                            className={classes.link}>
-                            <Typography variant="button" color="inherit">
-                                @{version}
-                            </Typography>
-                        </a>
-                    </div>
-                    {loggedIn && this.renderButtons(name, admin, logout, width, setNavOpen)}
-                    <div>
-                        <IconButton onClick={toggleTheme} color="inherit">
-                            <Highlight />
-                        </IconButton>
-
-                        <a
-                            href="https://github.com/gotify/server"
-                            className={classes.link}
-                            target="_blank"
-                            rel="noopener noreferrer">
-                            <IconButton color="inherit">
-                                <GitHubIcon />
-                            </IconButton>
-                        </a>
-                    </div>
-                </Toolbar>
-            </AppBar>
-        );
-    }
-
-    private renderButtons(
-        name: string,
-        admin: boolean,
-        logout: VoidFunction,
-        width: Breakpoint,
-        setNavOpen: (open: boolean) => void
-    ) {
-        const {classes, showSettings} = this.props;
-        return (
-            <div className={classes.menuButtons}>
-                <Hidden smUp implementation="css">
-                    <ResponsiveButton
-                        icon={<MenuIcon />}
-                        onClick={() => setNavOpen(true)}
-                        label="menu"
-                        width={width}
-                        color="inherit"
-                    />
-                </Hidden>
-                {admin && (
-                    <Link className={classes.link} to="/users" id="navigate-users">
-                        <ResponsiveButton
-                            icon={<SupervisorAccount />}
-                            label="users"
-                            width={width}
-                            color="inherit"
-                        />
+    return (
+        <AppBar
+            position={theme.breakpoints.down('sm') ? 'sticky' : 'fixed'}
+            style={style}
+            className={classes.appBar}>
+            <Toolbar className={classes.toolbar}>
+                <div className={classes.title}>
+                    <Link to="/" className={classes.link}>
+                        <Typography variant="h5" className={classes.titleName} color="inherit">
+                            Gotify
+                        </Typography>
                     </Link>
-                )}
-                <Link className={classes.link} to="/applications" id="navigate-apps">
-                    <ResponsiveButton icon={<Chat />} label="apps" width={width} color="inherit" />
+                    <a
+                        href={'https://github.com/gotify/server/releases/tag/v' + version}
+                        className={classes.link}>
+                        <Typography variant="button" color="inherit">
+                            @{version}
+                        </Typography>
+                    </a>
+                </div>
+                {loggedIn && <RenderButtons />}
+                <div>
+                    <IconButton onClick={() => dispatch(toggleTheme())} color="inherit">
+                        <Highlight />
+                    </IconButton>
+
+                    <a
+                        href="https://github.com/gotify/server"
+                        className={classes.link}
+                        target="_blank"
+                        rel="noopener noreferrer">
+                        <IconButton color="inherit">
+                            <GitHubIcon />
+                        </IconButton>
+                    </a>
+                </div>
+            </Toolbar>
+        </AppBar>
+    );
+};
+
+const RenderButtons = () => {
+    const dispatch = useAppDispatch();
+    const {classes} = useStyles();
+    const navigate = useNavigate();
+    const admin = useAppSelector((state) => state.auth.user.admin);
+    const name = useAppSelector((state) => state.auth.user.name);
+
+    return (
+        <div className={classes.menuButtons}>
+            <ResponsiveButton
+                sx={{display: {xl: 'none', xs: 'block'}}}
+                icon={<MenuIcon />}
+                onClick={() => dispatch(uiActions.setNavOpen(true))}
+                label="menu"
+                color="inherit"
+            />
+            {admin && (
+                <Link className={classes.link} to="/users" id="navigate-users">
+                    <ResponsiveButton icon={<SupervisorAccount />} label="users" color="inherit" />
                 </Link>
-                <Link className={classes.link} to="/clients" id="navigate-clients">
-                    <ResponsiveButton
-                        icon={<DevicesOther />}
-                        label="clients"
-                        width={width}
-                        color="inherit"
-                    />
-                </Link>
-                <Link className={classes.link} to="/plugins" id="navigate-plugins">
-                    <ResponsiveButton
-                        icon={<Apps />}
-                        label="plugins"
-                        width={width}
-                        color="inherit"
-                    />
-                </Link>
-                <ResponsiveButton
-                    icon={<AccountCircle />}
-                    label={name}
-                    onClick={showSettings}
-                    id="changepw"
-                    width={width}
-                    color="inherit"
-                />
-                <ResponsiveButton
-                    icon={<ExitToApp />}
-                    label="Logout"
-                    onClick={logout}
-                    id="logout"
-                    width={width}
-                    color="inherit"
-                />
-            </div>
-        );
-    }
-}
+            )}
+            <Link className={classes.link} to="/applications" id="navigate-apps">
+                <ResponsiveButton icon={<Chat />} label="apps" color="inherit" />
+            </Link>
+            <Link className={classes.link} to="/clients" id="navigate-clients">
+                <ResponsiveButton icon={<DevicesOther />} label="clients" color="inherit" />
+            </Link>
+            <Link className={classes.link} to="/plugins" id="navigate-plugins">
+                <ResponsiveButton icon={<Apps />} label="plugins" color="inherit" />
+            </Link>
+            <ResponsiveButton
+                icon={<AccountCircle />}
+                label={name}
+                onClick={() => dispatch(uiActions.setShowSettings(true))}
+                color="inherit"
+            />
+            <ResponsiveButton
+                icon={<ExitToApp />}
+                label="Logout"
+                id="logout"
+                onClick={() => {
+                    dispatch(logout())
+                        .then(() => navigate('/login'))
+                }}
+                color="inherit"
+            />
+        </div>
+    );
+};
 
 const ResponsiveButton: React.FC<{
-    width: Breakpoint;
-    color: PropTypes.Color;
+    color: any;
     label: string;
     id?: string;
     onClick?: () => void;
     icon: React.ReactNode;
-}> = ({width, icon, label, ...rest}) => {
-    if (width === 'xs' || width === 'sm') {
+    sx?: SxProps;
+}> = ({icon, label, ...rest}) => {
+    const theme = useTheme();
+    const smallerMd = useMediaQuery(theme.breakpoints.down('md'));
+
+    if (smallerMd) {
         return <IconButton {...rest}>{icon}</IconButton>;
     }
     return (
@@ -226,4 +190,4 @@ const ResponsiveButton: React.FC<{
     );
 };
 
-export default withWidth()(withStyles(styles, {withTheme: true})(Header));
+export default Header;
