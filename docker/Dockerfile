@@ -15,21 +15,14 @@ ARG DEBIAN=${__DEBIAN_HAS_STABLE_TAG:-${DEBIAN_EXPERIMENTAL_ARCH}} # else set it
 
 # --- JS Builder ---
 
-FROM --platform=${BUILDPLATFORM} debian:${DEBIAN} AS js-builder
+FROM --platform=${BUILDPLATFORM} node:23 AS js-builder
 
 ARG BUILD_JS=0
 ARG NODE_OPTIONS
-ENV DEBIAN_FRONTEND=noninteractive
 
 COPY . /src/gotify
 
 RUN if [ "$BUILD_JS" = "1" ]; then \
-    apt-get update && apt-get install -yq --no-install-recommends \
-    curl \
-    git \
-    nodejs \
-    npm && \
-    \
     NODE_OPTIONS_DEFAULT=$(if node --help | grep -q -- "--openssl-legacy-provider"; then echo --openssl-legacy-provider; fi) && \
     export NODE_OPTIONS=${NODE_OPTIONS:-$NODE_OPTIONS_DEFAULT} && \
     echo "Using NODE_OPTIONS=$NODE_OPTIONS" && \
