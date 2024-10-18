@@ -54,7 +54,7 @@ ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG BUILD_JS=0
 ARG RUN_TESTS=0 # 0=never, 1=native only
-ARG GO_BUILD_FLAGS=-mod=readonly -a -installsuffix cgo
+ARG LD_FLAGS=""
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -yq --no-install-recommends \
@@ -73,13 +73,12 @@ RUN cd /src/gotify && \
     if [ "$RUN_TESTS" = "1" ] && [ "$BUILDPLATFORM" = "$TARGETPLATFORM" ]; then \
     go test -v ./...; \
     fi && \
-    go build ${GO_BUILD_FLAGS} -o /target/app/gotify-app
+    LD_FLAGS=${LD_FLAGS} make OUTPUT=/target/gotify-app _build_within_docker
 
 FROM debian:${DEBIAN}
 
 # build-time configurables
 ARG GOTIFY_SERVER_EXPOSE=80
-ARG GOTIFY_UID=0
 ENV GOTIFY_SERVER_PORT=$GOTIFY_SERVER_EXPOSE
 
 WORKDIR /app
@@ -88,13 +87,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -
     tzdata \
     curl \
     ca-certificates && \
-    rm -rf /var/lib/apt/lists/* && \
-    if [ "$GOTIFY_UID" != "0" ]; then \
-    useradd -u $GOTIFY_UID -r gotify && \
-    chown gotify:gotify /app; \
-    fi
-
-USER $GOTIFY_UID
+    rm -rf /var/lib/apt/lists/*
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s CMD curl --fail http://localhost:$GOTIFY_SERVER_PORT/health || exit 1
 EXPOSE $GOTIFY_SERVER_EXPOSE
