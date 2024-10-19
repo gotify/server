@@ -105,13 +105,6 @@ build-docker-multiarch: require-version
 		--platform linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/riscv64 \
 		-f docker/Dockerfile .
 
-# Backwards compatibility
-build-docker-amd64: build-docker-multiarch
-build-docker-i386: build-docker-multiarch
-build-docker-arm64: build-docker-multiarch
-build-docker-arm-7: build-docker-multiarch
-build-docker-riscv64: build-docker-multiarch
-
 build-docker: build-docker-multiarch
 
 _build_within_docker: OUTPUT = gotify-app
