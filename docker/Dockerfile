@@ -13,25 +13,15 @@ ARG __TARGETPLATFORM_GO_NOTATION=${__TARGETPLATFORM_DASHES/arm\/v7/arm-7}
 FROM --platform=${BUILDPLATFORM} node:23 AS js-builder
 
 ARG BUILD_JS=0
-ARG NODE_OPTIONS
 
-COPY . /src/gotify
+COPY ./Makefile /src/gotify/Makefile
+COPY ./ui /src/gotify/ui
 
 RUN if [ "$BUILD_JS" = "1" ]; then \
-    NODE_OPTIONS_DEFAULT=$(if node --help | grep -q -- "--openssl-legacy-provider"; then echo --openssl-legacy-provider; fi) && \
-    export NODE_OPTIONS=${NODE_OPTIONS:-$NODE_OPTIONS_DEFAULT} && \
-    echo "Using NODE_OPTIONS=$NODE_OPTIONS" && \
-    cd /src/gotify/ui && \
-    \
-    npm install -g yarn && \
-    \
-    yarn install && \
-    yarn build && \
-    \
-    cp -r /src/gotify/ui/build /target; \
-    \
+    (cd /src/gotify/ui && yarn install) && \
+    (cd /src/gotify && make build-js) \
     else \
-    mkdir -p /target; \
+    mkdir -p /src/gotify/ui/build; \
     fi
 
 # --- Go Builder ---
@@ -50,14 +40,13 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     git
 
 COPY . /src/gotify
-COPY --from=js-builder /target /ui-build
+COPY --from=js-builder /src/gotify/ui/build /ui-build
 
 RUN if [ "$BUILD_JS" = "1" ]; then \
     cp -r --update /ui-build /src/gotify/ui/build; \
     fi
 
 RUN cd /src/gotify && \
-    mkdir -p /target/app && \
     if [ "$RUN_TESTS" = "1" ] && [ "$BUILDPLATFORM" = "$TARGETPLATFORM" ]; then \
     go test -v ./...; \
     fi && \
