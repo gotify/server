@@ -1,5 +1,5 @@
 ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
-# suppress warnung about invalid variable expansion
+# Suppress warning about invalid variable expansion
 ARG GO_VERSION=PLEASE_PROVIDE_GO_VERSION
 ARG DEBIAN=sid-slim
 
@@ -54,7 +54,7 @@ RUN cd /src/gotify && \
 
 FROM debian:${DEBIAN}
 
-# build-time configurables
+# Build-time configurables
 ARG GOTIFY_SERVER_EXPOSE=80
 ENV GOTIFY_SERVER_PORT=$GOTIFY_SERVER_EXPOSE
 
