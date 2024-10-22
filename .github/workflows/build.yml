@@ -31,27 +31,32 @@ jobs:
       - if: startsWith(github.ref, 'refs/tags/v')
         run: |
           export LD_FLAGS="-w -s -X main.Version=$VERSION -X main.BuildDate=$(date "+%F-%T") -X main.Commit=$(git rev-parse --verify HEAD) -X main.Mode=prod"
+          echo "LD_FLAGS=$LD_FLAGS" >> $GITHUB_ENV
+          
           make build
           sudo chown -R $UID build
           make package-zip
           ls -lath build
-          make build-docker
-          docker image ls
-          echo "$DOCKER_PASS" | docker login --username "$DOCKER_USER" --password-stdin
-          echo "$DOCKER_GHCR_PASS" | docker login ghcr.io --username "$DOCKER_GHCR_USER" --password-stdin
-          docker push --all-tags gotify/server
-          docker push --all-tags gotify/server-arm7
-          docker push --all-tags gotify/server-arm64
-          docker push --all-tags gotify/server-riscv64
-          docker push --all-tags ghcr.io/gotify/server
-          docker push --all-tags ghcr.io/gotify/server-arm7
-          docker push --all-tags ghcr.io/gotify/server-arm64
-          docker push --all-tags ghcr.io/gotify/server-riscv64
-        env:
-          DOCKER_USER: ${{ secrets.DOCKER_USER }}
-          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
-          DOCKER_GHCR_USER: ${{ secrets.DOCKER_GHCR_USER }}
-          DOCKER_GHCR_PASS: ${{ secrets.DOCKER_GHCR_PASS }}
+      - if: startsWith(github.ref, 'refs/tags/v')
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - if: startsWith(github.ref, 'refs/tags/v')
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.DOCKER_GHCR_USER }}
+          password: ${{ secrets.DOCKER_GHCR_PASS }}
+      - if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          make DOCKER_BUILD_PUSH=true build-docker
       - if: startsWith(github.ref, 'refs/tags/v')
         uses: svenstaro/upload-release-action@v2
         with:
