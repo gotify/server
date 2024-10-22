@@ -14,7 +14,7 @@
   "enabledManagers": [
     "gomod",
     "dockerfile",
-    "regex"
+    "custom.regex"
   ],
   "customManagers": [
     {
