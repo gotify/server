@@ -1,7 +1,9 @@
-import {createMuiTheme, MuiThemeProvider, Theme, WithStyles, withStyles} from '@material-ui/core';
+import { MuiThemeProvider, Theme, WithStyles, withStyles} from '@material-ui/core';
+import { createTheme } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import * as React from 'react';
-import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
+import React from 'react';
+import { Routes } from 'react-router';
+import { HashRouter, Navigate, Route, Switch } from 'react-router-dom';
 import Header from './Header';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Navigation from './Navigation';
@@ -16,10 +18,10 @@ import PluginDetailView from '../plugin/PluginDetailView';
 import Login from '../user/Login';
 import Messages from '../message/Messages';
 import Users from '../user/Users';
-import {observer} from 'mobx-react';
-import {observable} from 'mobx';
-import {inject, Stores} from '../inject';
-import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
+import { observer } from 'mobx-react';
+import { observable, action } from 'mobx';
+import { inject, Stores } from '../inject';
+import { ConnectionErrorBanner } from '../common/ConnectionErrorBanner';
 
 const styles = (theme: Theme) => ({
     content: {
@@ -36,12 +38,12 @@ const styles = (theme: Theme) => ({
 const localStorageThemeKey = 'gotify-theme';
 type ThemeKey = 'dark' | 'light';
 const themeMap: Record<ThemeKey, Theme> = {
-    light: createMuiTheme({
+    light: createTheme({
         palette: {
             type: 'light',
         },
     }),
-    dark: createMuiTheme({
+    dark: createTheme({
         palette: {
             type: 'dark',
         },
@@ -62,6 +64,7 @@ class Layout extends React.Component<
     @observable
     private navOpen = false;
 
+    @action
     private setNavOpen(open: boolean) {
         this.navOpen = open;
     }
@@ -82,15 +85,15 @@ class Layout extends React.Component<
             currentUser: {
                 loggedIn,
                 authenticating,
-                user: {name, admin},
+                user: { name, admin },
                 logout,
                 tryReconnect,
                 connectionErrorMessage,
             },
         } = this.props;
         const theme = themeMap[currentTheme];
-        const loginRoute = () => (loggedIn ? <Redirect to="/" /> : <Login />);
-        const {version} = config.get('version');
+        const loginRoute = () => (loggedIn ? <Navigate replace to="/" /> : <Login />);
+        const { version } = config.get('version');
         return (
             <MuiThemeProvider theme={theme}>
                 <HashRouter>
@@ -122,30 +125,19 @@ class Layout extends React.Component<
                                     setNavOpen={this.setNavOpen.bind(this)}
                                 />
                                 <main className={classes.content}>
-                                    <Switch>
-                                        {authenticating ? (
-                                            <Route path="/">
-                                                <LoadingSpinner />
-                                            </Route>
-                                        ) : null}
-                                        <Route exact path="/login" render={loginRoute} />
-                                        {loggedIn ? null : <Redirect to="/login" />}
-                                        <Route exact path="/" component={Messages} />
-                                        <Route exact path="/messages/:id" component={Messages} />
-                                        <Route
-                                            exact
-                                            path="/applications"
-                                            component={Applications}
-                                        />
-                                        <Route exact path="/clients" component={Clients} />
-                                        <Route exact path="/users" component={Users} />
-                                        <Route exact path="/plugins" component={Plugins} />
-                                        <Route
-                                            exact
-                                            path="/plugins/:id"
-                                            component={PluginDetailView}
-                                        />
-                                    </Switch>
+                                    <Routes>
+                                        {authenticating ? (<Route path="/" element={<LoadingSpinner />} />) : null}
+                                        <Route path="login" render={loginRoute} />
+                                        {loggedIn ? null : <Navigate replace to="/login" />}
+                                        <Route path="/" element={<Messages />} />
+                                        <Route path="messages/:id" element={<Messages />} />
+                                        <Route path="applications" element={<Applications />} />
+                                        <Route path="clients" element={<Clients />} />
+                                        <Route path="users" element={<Users />} />
+                                        <Route path="plugins" element={<Plugins />} >
+                                            <Route exact path=":id" element={<PluginDetailView />} />
+                                        </Route>
+                                    </Routes>
                                 </main>
                             </div>
                             {showSettings && (

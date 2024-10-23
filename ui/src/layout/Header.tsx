@@ -79,6 +79,7 @@ interface IProps extends Styles {
 
 @observer
 class Header extends Component<IProps> {
+
     public render() {
         const {
             classes,

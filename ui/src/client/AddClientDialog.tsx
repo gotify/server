@@ -37,7 +37,7 @@ export default class AddDialog extends Component<IProps, {name: string}> {
                         className="name"
                         label="Name *"
                         type="email"
-                        value={name}
+                        defaultValue={name}
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth
                     />

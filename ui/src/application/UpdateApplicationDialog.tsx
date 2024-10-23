@@ -60,7 +60,7 @@ export default class UpdateDialog extends Component<IProps, IState> {
                         className="name"
                         label="Name *"
                         type="text"
-                        value={name}
+                        defaultValue={name}
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth
                     />
@@ -68,7 +68,7 @@ export default class UpdateDialog extends Component<IProps, IState> {
                         margin="dense"
                         className="description"
                         label="Short Description"
-                        value={description}
+                        defaultValue={description}
                         onChange={this.handleChange.bind(this, 'description')}
                         fullWidth
                         multiline
