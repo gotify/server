@@ -1,0 +1,46 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "reviewersFromCodeOwners": true,
+  "enabledManagers": [
+    "gomod",
+    "github-actions",
+    "dockerfile",
+    "custom.regex"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^GO_VERSION$"
+      ],
+      "depTypeTemplate": "language",
+      "matchStrings": [
+        "^(?<currentValue>.+)\\n"
+      ],
+      "depNameTemplate": "https://github.com/golang/go",
+      "autoReplaceStringTemplate": "{{{newValue}}}",
+      "datasourceTemplate": "golang-version"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "Bump Go dependencies",
+      "groupSlug": "bump-dependencies-go"
+    }
+  ]
+}
