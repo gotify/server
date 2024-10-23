@@ -8,11 +8,10 @@
   "labels": [
     "dependencies"
   ],
-  "reviewers": [
-    "team:gotify"
-  ],
+  "reviewersFromCodeOwners": true,
   "enabledManagers": [
     "gomod",
+    "github-actions",
     "dockerfile",
     "custom.regex"
   ],
@@ -42,27 +41,6 @@
       ],
       "groupName": "Bump Go dependencies",
       "groupSlug": "bump-dependencies-go"
-    },
-    {
-      "matchDepNames": [
-        "^https://github.com/golang/go$"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "groupName": "Bump Go version",
-      "groupSlug": "bump-go-version"
-    },
-    {
-      "matchDepNames": [
-        "^https://github.com/golang/go$"
-      ],
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "groupName": "Go version major bump",
-      "groupSlug": "bump-go-version-major"
     }
   ]
 }
