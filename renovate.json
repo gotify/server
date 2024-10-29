@@ -15,10 +15,6 @@
     "dockerfile",
     "custom.regex"
   ],
-  "baseBranches": [
-    "main",
-    "renovate/configure"
-  ],
   "customManagers": [
     {
       "customType": "regex",
