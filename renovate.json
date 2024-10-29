@@ -25,9 +25,10 @@
       "matchStrings": [
         "^(?<currentValue>.+)\\n"
       ],
-      "depNameTemplate": "https://github.com/golang/go",
-      "autoReplaceStringTemplate": "{{{newValue}}}",
-      "datasourceTemplate": "golang-version"
+      "extractVersionTemplate": "^v(?<version>.+)$",
+      "depNameTemplate": "https://github.com/gotify/build",
+      "autoReplaceStringTemplate": "{{{replace '^v(.+)$' '$1' newValue}}}",
+      "datasourceTemplate": "github-tags"
     }
   ],
   "packageRules": [
