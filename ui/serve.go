@@ -12,7 +12,6 @@ import (
 	"github.com/gotify/server/v2/model"
 )
 
-//go:embed build/*
 var box embed.FS
 
 type uiConfig struct {
