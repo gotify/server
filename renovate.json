@@ -26,7 +26,7 @@
         "^(?<currentValue>.+)\\n"
       ],
       "extractVersionTemplate": "^v(?<version>.+)$",
-      "depNameTemplate": "https://github.com/gotify/build",
+      "depNameTemplate": "gotify/build",
       "autoReplaceStringTemplate": "{{{replace '^v(.+)$' '$1' newValue}}}",
       "datasourceTemplate": "github-tags"
     }
