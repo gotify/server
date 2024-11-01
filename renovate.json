@@ -23,7 +23,7 @@
       ],
       "depTypeTemplate": "language",
       "matchStrings": [
-        "^(?<currentValue>.+)\\n"
+        "^(?<currentValue>[0-9.]+)"
       ],
       "extractVersionTemplate": "^v(?<version>.+)$",
       "depNameTemplate": "gotify/build",
