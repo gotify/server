@@ -25,10 +25,11 @@
       "matchStrings": [
         "^(?<currentValue>[0-9.]+)"
       ],
-      "extractVersionTemplate": "^v(?<version>.+)$",
-      "depNameTemplate": "gotify/build",
-      "autoReplaceStringTemplate": "{{{replace '^v(.+)$' '$1' newValue}}}",
-      "datasourceTemplate": "github-tags"
+      "extractVersionTemplate": "^(?<version>.+)-linux-amd64$",
+      "depNameTemplate": "docker.io/gotify/build",
+      "autoReplaceStringTemplate": "{{{newValue}}}",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
     }
   ],
   "packageRules": [
