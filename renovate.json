@@ -1,0 +1,48 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "reviewersFromCodeOwners": true,
+  "enabledManagers": [
+    "gomod",
+    "github-actions",
+    "dockerfile",
+    "custom.regex"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^GO_VERSION$"
+      ],
+      "depTypeTemplate": "language",
+      "matchStrings": [
+        "^(?<currentValue>[0-9.]+)"
+      ],
+      "extractVersionTemplate": "^(?<version>.+)-linux-amd64$",
+      "depNameTemplate": "docker.io/gotify/build",
+      "autoReplaceStringTemplate": "{{{newValue}}}",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "Bump Go dependencies",
+      "groupSlug": "bump-dependencies-go"
+    }
+  ]
+}
