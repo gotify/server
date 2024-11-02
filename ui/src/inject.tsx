@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import {UserStore} from './user/UserStore';
 import {SnackManager} from './snack/SnackManager';
 import {MessagesStore} from './message/MessagesStore';

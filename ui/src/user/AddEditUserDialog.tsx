@@ -55,7 +55,7 @@ export default class AddEditDialog extends Component<IProps, IState> {
                         className="name"
                         label="Name *"
                         type="email"
-                        value={name}
+                        defaultValue={name}
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth
                     />
@@ -63,7 +63,7 @@ export default class AddEditDialog extends Component<IProps, IState> {
                         margin="dense"
                         className="password"
                         type="password"
-                        value={pass}
+                        defaultValue={pass}
                         fullWidth
                         label={isEdit ? 'Pass (empty if no change)' : 'Pass *'}
                         onChange={this.handleChange.bind(this, 'pass')}

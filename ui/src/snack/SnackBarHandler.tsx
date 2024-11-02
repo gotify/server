@@ -2,9 +2,9 @@ import IconButton from '@material-ui/core/IconButton';
 import Snackbar from '@material-ui/core/Snackbar';
 import Close from '@material-ui/icons/Close';
 import React, {Component} from 'react';
-import {observable, reaction} from 'mobx';
-import {observer} from 'mobx-react';
-import {inject, Stores} from '../inject';
+import { observable, reaction, toJS, action } from 'mobx';
+import { observer } from 'mobx-react';
+import { inject, Stores } from '../inject';
 
 @observer
 class SnackBarHandler extends Component<Stores<'snackManager'>> {
@@ -35,7 +35,7 @@ class SnackBarHandler extends Component<Stores<'snackManager'>> {
                 open={this.open}
                 autoHideDuration={duration}
                 onClose={this.closeCurrentSnack}
-                onExited={this.openNextSnack}
+                TransitionProps={{ onExited: this.openNextSnack }}
                 message={<span id="message-id">{current}</span>}
                 action={
                     <IconButton

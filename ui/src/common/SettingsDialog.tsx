@@ -6,7 +6,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import React, {Component} from 'react';
-import {observable} from 'mobx';
+import { action, observable } from 'mobx';
 import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
 
@@ -23,7 +23,7 @@ class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
         const {pass} = this;
         const {fClose, currentUser} = this.props;
         const submitAndClose = () => {
-            currentUser.changePassword(pass);
+            currentUser.changePassword(this.pass);
             fClose();
         };
         return (
@@ -40,7 +40,7 @@ class SettingsDialog extends Component<IProps & Stores<'currentUser'>> {
                         margin="dense"
                         type="password"
                         label="New Password *"
-                        value={pass}
+                        defaultValue={pass}
                         onChange={(e) => (this.pass = e.target.value)}
                         fullWidth
                     />

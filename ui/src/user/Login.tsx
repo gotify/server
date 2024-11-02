@@ -4,9 +4,9 @@ import TextField from '@material-ui/core/TextField';
 import React, {Component, FormEvent} from 'react';
 import Container from '../common/Container';
 import DefaultPage from '../common/DefaultPage';
-import {observable} from 'mobx';
+import { action, observable } from 'mobx';
 import {observer} from 'mobx-react';
-import {inject, Stores} from '../inject';
+import {inject, Stores } from '../inject';
 import * as config from '../config';
 import RegistrationDialog from './Register';
 
@@ -27,21 +27,23 @@ class Login extends Component<Stores<'currentUser'>> {
                     <Container>
                         <form onSubmit={this.preventDefault} id="login-form">
                             <TextField
+                                variant="standard"
                                 autoFocus
                                 className="name"
                                 label="Username"
                                 margin="dense"
                                 autoComplete="username"
-                                value={username}
+                                defaultValue={username}
                                 onChange={(e) => (this.username = e.target.value)}
                             />
                             <TextField
+                                variant="standard"
                                 type="password"
                                 className="password"
                                 label="Password"
                                 margin="normal"
                                 autoComplete="current-password"
-                                value={password}
+                                defaultValue={password}
                                 onChange={(e) => (this.password = e.target.value)}
                             />
                             <Button
@@ -69,7 +71,7 @@ class Login extends Component<Stores<'currentUser'>> {
     }
 
     private login = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
+        // e.preventDefault();
         this.props.currentUser.login(this.username, this.password);
     };
 
