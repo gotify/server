@@ -54,7 +54,7 @@ class Clients extends Component<Stores<'clientStore'>> {
                     </Button>
                 }>
                 <Grid item xs={12}>
-                    <Paper elevation={6}>
+                    <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="client-table">
                             <TableHead>
                                 <TableRow style={{textAlign: 'center'}}>
