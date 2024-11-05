@@ -27,7 +27,7 @@ class Plugins extends Component<Stores<'pluginStore'>> {
         return (
             <DefaultPage title="Plugins" maxWidth={1000}>
                 <Grid item xs={12}>
-                    <Paper elevation={6}>
+                    <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="plugin-table">
                             <TableHead>
                                 <TableRow>

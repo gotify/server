@@ -80,7 +80,7 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
                     </Button>
                 }>
                 <Grid item xs={12}>
-                    <Paper elevation={6}>
+                    <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="user-table">
                             <TableHead>
                                 <TableRow style={{textAlign: 'center'}}>

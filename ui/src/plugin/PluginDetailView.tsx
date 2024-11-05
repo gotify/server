@@ -131,29 +131,41 @@ const PanelWrapper: React.FC<IPanelWrapperProps> = ({
 }) => {
     const Icon = icon;
     return (
-        <Container style={{display: 'block', width: '100%', margin: '20px'}}>
-            <Typography variant="h5">
-                {Icon ? (
-                    <span>
-                        <Icon />
-                        &nbsp;
-                    </span>
-                ) : null}
-                {name}
-                {refresh ? (
-                    <Button
-                        style={{float: 'right'}}
-                        onClick={() => {
-                            refresh();
-                        }}>
-                        <Refresh />
-                    </Button>
-                ) : null}
-            </Typography>
-            {description ? <Typography variant="subtitle1">{description}</Typography> : null}
-            <hr />
-            <div className={name.toLowerCase().trim().replace(/ /g, '-')}>{children}</div>
-        </Container>
+        <div
+            style={{
+                width: '100%',
+                paddingLeft: '16px',
+                paddingRight: '16px',
+            }}>
+            <Container
+                style={{
+                    display: 'block',
+                    width: '100%',
+                    margin: '12px 0px',
+                }}>
+                <Typography variant="h5">
+                    {Icon ? (
+                        <span>
+                            <Icon />
+                            &nbsp;
+                        </span>
+                    ) : null}
+                    {name}
+                    {refresh ? (
+                        <Button
+                            style={{float: 'right'}}
+                            onClick={() => {
+                                refresh();
+                            }}>
+                            <Refresh />
+                        </Button>
+                    ) : null}
+                </Typography>
+                {description ? <Typography variant="subtitle1">{description}</Typography> : null}
+                <hr />
+                <div className={name.toLowerCase().trim().replace(/ /g, '-')}>{children}</div>
+            </Container>
+        </div>
     );
 };
 
@@ -225,7 +237,7 @@ class PluginInfo extends Component<{pluginInfo: IPlugin}> {
             },
         } = this;
         return (
-            <div>
+            <div style={{wordWrap: 'break-word'}}>
                 {name ? (
                     <Typography variant="body2" className="name">
                         Name: <span>{name}</span>

@@ -59,7 +59,7 @@ class Applications extends Component<Stores<'appStore'>> {
                 }
                 maxWidth={1000}>
                 <Grid item xs={12}>
-                    <Paper elevation={6}>
+                    <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="app-table">
                             <TableHead>
                                 <TableRow>
