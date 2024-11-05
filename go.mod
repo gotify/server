@@ -15,7 +15,8 @@ require (
 	github.com/robfig/cron v1.2.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.28.0
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -52,7 +53,6 @@ require (
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 go 1.18
