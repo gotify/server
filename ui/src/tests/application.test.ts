@@ -28,10 +28,10 @@ const hiddenToken = '•••••••••••••••';
 const $table = selector.table('#app-table');
 const $dialog = selector.form('#app-dialog');
 
-const hasApp =
+const waitforApp =
     (name: string, description: string, row: number): (() => Promise<void>) =>
     async () => {
-        expect(await innerText(page, $table.cell(row, Col.Name))).toBe(name);
+        await waitForExists(page, $table.cell(row, Col.Name), name);
         expect(await innerText(page, $table.cell(row, Col.Token))).toBe(hiddenToken);
         expect(await innerText(page, $table.cell(row, Col.Description))).toBe(description);
     };
@@ -87,9 +87,9 @@ describe('Application', () => {
             await page.waitForSelector($table.row(3));
             expect(await count(page, $table.rows())).toBe(3);
         });
-        it('has server app', hasApp('server', '#1', 1));
-        it('has desktop app', hasApp('desktop', '#2', 2));
-        it('has raspberry app', hasApp('raspberry', '#3', 3));
+        it('has server app', waitforApp('server', '#1', 1));
+        it('has desktop app', waitforApp('desktop', '#2', 2));
+        it('has raspberry app', waitforApp('raspberry', '#3', 3));
         it('shows token', async () => {
             await page.click($table.cell(3, Col.Token, '.toggle-visibility'));
             const token = await innerText(page, $table.cell(3, Col.Token));
@@ -103,9 +103,9 @@ describe('Application', () => {
         await updateApp(3, {name: 'raspberry_pi', description: 'home_pi'})();
     });
     it('has updated application', async () => {
-        await hasApp('server_linux', '#1', 1)();
-        await hasApp('desktop', 'kitchen_computer', 2)();
-        await hasApp('raspberry_pi', 'home_pi', 3)();
+        await waitforApp('server_linux', '#1', 1)();
+        await waitforApp('desktop', 'kitchen_computer', 2)();
+        await waitforApp('raspberry_pi', 'home_pi', 3)();
     });
     it('deletes application', async () => {
         await page.click($table.cell(2, Col.EditDelete, '.delete'));
