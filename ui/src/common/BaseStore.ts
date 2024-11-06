@@ -30,6 +30,13 @@ export abstract class BaseStore<T extends HasID> implements IClearable {
         this.items = await this.requestItems().then((items) => items || []);
     };
 
+    @action
+    public refreshIfMissing = async (id: number): Promise<void> => {
+        if (this.getByIDOrUndefined(id) === undefined) {
+            await this.refresh();
+        }
+    };
+
     public getByID = (id: number): T => {
         const item = this.getByIDOrUndefined(id);
         if (item === undefined) {
