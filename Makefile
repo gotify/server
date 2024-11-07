@@ -137,4 +137,4 @@ build-windows-386:
 
 build: build-linux-arm-7 build-linux-amd64 build-linux-386 build-linux-arm64 build-linux-riscv64 build-windows-amd64 build-windows-386
 
-.PHONY: test-race test-coverage test check-go check-js verify-swagger check download-tools update-swagger package-zip build-docker build-js build
+.PHONY: test-coverage test check-go check-js verify-swagger check download-tools update-swagger package-zip build-docker build-js build
