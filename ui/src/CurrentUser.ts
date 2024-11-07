@@ -15,7 +15,7 @@ export class CurrentUser {
     @observable
     public loggedIn = false;
     @observable
-    public authenticating = false;
+    public authenticating = true;
     @observable
     public user: IUser = {name: 'unknown', admin: false, id: -1};
     @observable
@@ -80,17 +80,11 @@ export class CurrentUser {
             .then((resp: AxiosResponse<IClient>) => {
                 this.snack(`A client named '${name}' was created for your session.`);
                 this.setToken(resp.data.token);
-                this.tryAuthenticate()
-                    .then(() => {
-                        this.authenticating = false;
-                        this.loggedIn = true;
-                    })
-                    .catch(() => {
-                        this.authenticating = false;
-                        console.log(
-                            'create client succeeded, but authenticated with given token failed'
-                        );
-                    });
+                this.tryAuthenticate().catch(() => {
+                    console.log(
+                        'create client succeeded, but authenticated with given token failed'
+                    );
+                });
             })
             .catch(() => {
                 this.authenticating = false;
@@ -100,6 +94,7 @@ export class CurrentUser {
 
     public tryAuthenticate = async (): Promise<AxiosResponse<IUser>> => {
         if (this.token() === '') {
+            this.authenticating = false;
             return Promise.reject();
         }
 
@@ -111,11 +106,13 @@ export class CurrentUser {
                 .then((passThrough) => {
                     this.user = passThrough.data;
                     this.loggedIn = true;
+                    this.authenticating = false;
                     this.connectionErrorMessage = null;
                     this.reconnectTime = 7500;
                     return passThrough;
                 })
                 .catch((error: AxiosError) => {
+                    this.authenticating = false;
                     if (!error || !error.response) {
                         this.connectionError('No network connection or server unavailable.');
                         return Promise.reject(error);

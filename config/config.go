@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gotify/configor"
 	"github.com/gotify/server/v2/mode"
+	"github.com/jinzhu/configor"
 )
 
 // Configuration is stuff that can be configured externally per env variables or config file (config.yml).
@@ -66,7 +66,7 @@ func configFiles() []string {
 // Get returns the configuration extracted from env variables or config file.
 func Get() *Configuration {
 	conf := new(Configuration)
-	err := configor.New(&configor.Config{EnvironmentPrefix: "GOTIFY"}).Load(conf, configFiles()...)
+	err := configor.New(&configor.Config{ENVPrefix: "GOTIFY"}).Load(conf, configFiles()...)
 	if err != nil {
 		panic(err)
 	}

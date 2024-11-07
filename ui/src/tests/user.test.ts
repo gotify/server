@@ -24,8 +24,8 @@ const $dialog = selector.form('#add-edit-user-dialog');
 
 describe('User', () => {
     it('does login', async () => await auth.login(page));
-    it('navigates to users', async () => {
-        await page.click('#navigate-users');
+    it('navigates to users through window location', async () => {
+        await page.goto(gotify.url + '/#/users');
         await waitForExists(page, selector.heading(), 'Users');
     });
     it('has changed url', async () => {
