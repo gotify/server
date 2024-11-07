@@ -18,7 +18,7 @@ import (
 	"github.com/gotify/server/v2/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func TestPluginSuite(t *testing.T) {
