@@ -44,5 +44,8 @@
       "groupName": "Bump Go dependencies",
       "groupSlug": "bump-dependencies-go"
     }
+  ],
+  "postUpdateOptions": [
+    "gomodTidy"
   ]
 }
