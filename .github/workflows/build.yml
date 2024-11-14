@@ -23,7 +23,7 @@ jobs:
       - run: make download-tools
       - run: make test
       - run: make check-ci
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - if: startsWith(github.ref, 'refs/tags/v')
