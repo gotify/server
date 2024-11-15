@@ -66,7 +66,7 @@ func configFiles() []string {
 // Get returns the configuration extracted from env variables or config file.
 func Get() *Configuration {
 	conf := new(Configuration)
-	err := configor.New(&configor.Config{ENVPrefix: "GOTIFY"}).Load(conf, configFiles()...)
+	err := configor.New(&configor.Config{ENVPrefix: "GOTIFY", Silent: true}).Load(conf, configFiles()...)
 	if err != nil {
 		panic(err)
 	}
