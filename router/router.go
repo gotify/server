@@ -41,7 +41,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	g.Use(gin.LoggerWithFormatter(logFormatter), gin.Recovery(), gerror.Handler(), location.Default())
 	g.NoRoute(gerror.NotFound())
 
-	if conf.Server.SSL.Enabled != nil && conf.Server.SSL.RedirectToHTTPS != nil && *conf.Server.SSL.Enabled && *conf.Server.SSL.RedirectToHTTPS {
+	if conf.Server.SSL.Enabled && conf.Server.SSL.RedirectToHTTPS {
 		g.Use(func(ctx *gin.Context) {
 			if ctx.Request.TLS != nil {
 				ctx.Next()
