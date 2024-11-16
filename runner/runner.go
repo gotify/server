@@ -28,8 +28,8 @@ func Run(router http.Handler, conf *config.Configuration) error {
 	defer httpListener.Close()
 
 	s := &http.Server{Handler: router}
-	if *conf.Server.SSL.Enabled {
-		if *conf.Server.SSL.LetsEncrypt.Enabled {
+	if conf.Server.SSL.Enabled {
+		if conf.Server.SSL.LetsEncrypt.Enabled {
 			applyLetsEncrypt(s, conf)
 		}
 
@@ -93,7 +93,7 @@ func getNetworkAndAddr(listenAddr string, port int) (string, string) {
 
 func applyLetsEncrypt(s *http.Server, conf *config.Configuration) {
 	certManager := autocert.Manager{
-		Prompt:     func(tosURL string) bool { return *conf.Server.SSL.LetsEncrypt.AcceptTOS },
+		Prompt:     func(tosURL string) bool { return conf.Server.SSL.LetsEncrypt.AcceptTOS },
 		HostPolicy: autocert.HostWhitelist(conf.Server.SSL.LetsEncrypt.Hosts...),
 		Cache:      autocert.DirCache(conf.Server.SSL.LetsEncrypt.Cache),
 	}
