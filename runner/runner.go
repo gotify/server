@@ -77,6 +77,9 @@ func startListening(connectionType, listenAddr string, port, keepAlive int) (net
 	network, addr := getNetworkAndAddr(listenAddr, port)
 	lc := net.ListenConfig{KeepAlive: time.Duration(keepAlive) * time.Second}
 
+	oldMask := umask(0)
+	defer umask(oldMask)
+
 	l, err := lc.Listen(context.Background(), network, addr)
 	if err == nil {
 		fmt.Println("Started listening for", connectionType, "on", l.Addr().Network(), l.Addr().String())
