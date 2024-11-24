@@ -5,7 +5,7 @@ require (
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-contrib/gzip v1.0.1
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-playground/validator/v10 v10.22.1
+	github.com/go-playground/validator/v10 v10.23.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/gotify/location v0.0.0-20170722210143-03bc4ad20437
 	github.com/gotify/plugin-api v1.0.0
@@ -13,7 +13,7 @@ require (
 	github.com/jinzhu/configor v1.2.2
 	github.com/jinzhu/gorm v1.9.16
 	github.com/robfig/cron v1.2.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.29.0
 	gopkg.in/yaml.v3 v3.0.1
 )
