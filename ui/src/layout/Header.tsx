@@ -126,6 +126,11 @@ const RenderButtons = () => {
     const admin = useAppSelector((state) => state.auth.user.admin);
     const name = useAppSelector((state) => state.auth.user.name);
 
+    const handleLogout = async () => {
+        await dispatch(logout());
+        navigate('/login');
+    };
+
     return (
         <div className={classes.menuButtons}>
             <ResponsiveButton
@@ -153,16 +158,14 @@ const RenderButtons = () => {
                 icon={<AccountCircle />}
                 label={name}
                 onClick={() => dispatch(uiActions.setShowSettings(true))}
+                id="changepw"
                 color="inherit"
             />
             <ResponsiveButton
                 icon={<ExitToApp />}
                 label="Logout"
                 id="logout"
-                onClick={() => {
-                    dispatch(logout())
-                        .then(() => navigate('/login'))
-                }}
+                onClick={handleLogout}
                 color="inherit"
             />
         </div>
