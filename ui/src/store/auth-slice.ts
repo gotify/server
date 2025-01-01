@@ -1,14 +1,16 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {IUser} from '../types.ts';
 
+const initialAuthUserState = {
+    name: 'unknown',
+    admin: false,
+    id: -1,
+}
+
 const initialAuthState = {
     loggedIn: false,
     authenticating: false,
-    user: {
-        name: 'unknown',
-        admin: false,
-        id: -1,
-    },
+    user: initialAuthUserState,
 };
 
 export const authSlice = createSlice({
@@ -20,13 +22,9 @@ export const authSlice = createSlice({
             state.loggedIn = true;
         },
         logout: (state) => {
-            // TODO: does return undefined maybe work to reset the state?
             state.loggedIn = false;
             state.authenticating = false;
-            state.user.name = 'unknown';
-            state.user.admin = false;
-            state.user.id = -1;
-            // TODO: maybe we need to clear the complete store to not leak messages?
+            state.user = initialAuthUserState;
         },
         isAuthenticating: (state, action: PayloadAction<boolean>) => {
             state.authenticating = action.payload;
