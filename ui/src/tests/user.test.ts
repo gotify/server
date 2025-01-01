@@ -23,10 +23,10 @@ enum Col {
 const $table = selector.table('#user-table');
 const $dialog = selector.form('#add-edit-user-dialog');
 
-describe('User', () => {
+describe.sequential('User', () => {
     it('does login', async () => await auth.login(page));
     it('navigates to users through window location', async () => {
-        await page.goto(gotify.url + '/#/users');
+        await page.click('#navigate-users');
         await waitForExists(page, selector.heading(), 'Users');
     });
     it('has changed url', async () => {
@@ -35,7 +35,7 @@ describe('User', () => {
     it('has only admin user (the current one)', async () => {
         expect(await count(page, $table.rows())).toBe(1);
     });
-    describe('create users', () => {
+    describe.sequential('create users', () => {
         const createUser =
             (name: string, password: string, isAdmin: boolean): (() => Promise<void>) =>
             async () => {
@@ -60,7 +60,7 @@ describe('User', () => {
             expect(await innerText(page, $table.cell(row, Col.Admin))).toBe(isAdmin ? 'Yes' : 'No');
         };
 
-    describe('has created users', () => {
+    describe.sequential('has created users', () => {
         it('has four users', async () => {
             await page.waitForSelector($table.row(4));
             expect(await count(page, $table.rows())).toBe(4);
@@ -70,7 +70,7 @@ describe('User', () => {
         it('has jmattheis user', hasUser('jmattheis', true, 3));
         it('has dude user', hasUser('dude', false, 4));
     });
-    describe('edit users', () => {
+    describe.sequential('edit users', () => {
         it('changes password of jmattheis', async () => {
             await page.click($table.cell(3, Col.EditDelete, '.edit'));
             await page.waitForSelector($dialog.selector());
@@ -119,11 +119,12 @@ describe('User', () => {
         expect(await count(page, $table.rows())).toBe(3);
     });
     it('changes password of current user', async () => {
-        const $changepw = selector.form('#changepw-dialog');
         await page.click('#changepw');
+        const $changepw = selector.form('#changepw-dialog');
         await page.waitForSelector($changepw.selector());
         await page.type($changepw.input('.newpass'), 'changed');
         await page.click($changepw.button('.change'));
+        await waitToDisappear(page, $changepw.selector());
     });
     it('does logout', async () => await auth.logout(page));
     it('can login with new password (admin)', async () =>

@@ -37,7 +37,7 @@ const navigate = async (appName: string) => {
 };
 
 // eslint-disable-next-line
-describe('Messages', () => {
+describe.sequential('Messages', () => {
     it('does login', async () => await auth.login(page));
     it('is on messages', async () => {
         await waitForExists(page, selector.heading(), 'All Messages');
