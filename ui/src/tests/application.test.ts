@@ -66,7 +66,7 @@ const createApp =
         await page.click($dialog.button('.create'));
     };
 
-describe('Application', () => {
+describe.sequential('Application', () => {
     it('does login', async () => await auth.login(page));
     it('navigates to applications', async () => {
         await page.click('#navigate-apps');
@@ -78,12 +78,12 @@ describe('Application', () => {
     it('does not have any applications', async () => {
         expect(await count(page, $table.rows())).toBe(0);
     });
-    describe('create apps', () => {
+    describe.sequential('create apps', () => {
         it('server', createApp('server', '#1'));
         it('desktop', createApp('desktop', '#2'));
         it('raspberry', createApp('raspberry', '#3'));
     });
-    describe('has created apps', () => {
+    describe.sequential('has created apps', () => {
         it('has three apps', async () => {
             await page.waitForSelector($table.row(3));
             expect(await count(page, $table.rows())).toBe(3);
