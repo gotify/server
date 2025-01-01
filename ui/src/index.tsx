@@ -24,7 +24,7 @@ const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
 
 const prodUrl = urlWithSlash;
 
-const clientJS = () => {
+const clientJS = async () => {
 
     if (import.meta.env.MODE === 'production') {
         config.set('url', prodUrl);
@@ -33,8 +33,12 @@ const clientJS = () => {
         config.set('register', true);
     }
 
-    store.dispatch(loadStoredTheme());
-    store.dispatch(tryAuthenticate());
+    await store.dispatch(loadStoredTheme());
+    try {
+        await store.dispatch(tryAuthenticate());
+    } catch (e) {
+        // console.info('Automatic login failed, will forward later to login page.')
+    }
 
     initAxios();
 
@@ -50,4 +54,4 @@ const clientJS = () => {
     unregister();
 };
 
-clientJS();
+clientJS().then();
