@@ -10,22 +10,20 @@ import {unregister} from './registerServiceWorker';
 import {tryAuthenticate} from './store/auth-actions.ts';
 import {loadStoredTheme} from './store/ui-actions.ts';
 
-import {Provider, } from 'react-redux';
+import {Provider} from 'react-redux';
 import store from './store/index';
 
 // the development server of vite will proxy this to the backend
 const devUrl = '/api/';
 
-const {port, hostname, protocol, pathname} = window.location;
-const slashes = protocol.concat('//');
-const path = pathname.endsWith('/') ? pathname : pathname.substring(0, pathname.lastIndexOf('/'));
-const url = slashes.concat(port ? hostname.concat(':', port) : hostname) + path;
-const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
+const currentUrl = new URL(window.location.href);
+currentUrl.pathname = currentUrl.pathname.endsWith('/')
+    ? currentUrl.pathname
+    : currentUrl.pathname.substring(0, currentUrl.pathname.lastIndexOf('/')) + '/';
 
-const prodUrl = urlWithSlash;
+const prodUrl = currentUrl.toString();
 
 const clientJS = async () => {
-
     if (import.meta.env.MODE === 'production') {
         config.set('url', prodUrl);
     } else {
@@ -37,7 +35,7 @@ const clientJS = async () => {
     try {
         await store.dispatch(tryAuthenticate());
     } catch (e) {
-        // console.info('Automatic login failed, will forward later to login page.')
+        // console.info('Automatic login failed, will forward later to login page.');
     }
 
     initAxios();
