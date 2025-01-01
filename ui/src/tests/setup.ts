@@ -51,7 +51,7 @@ export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
         close: async () => {
             await Promise.all([
                 browser.close(),
-                new Promise((resolve) => kill(gotifyInstance.pid!, 'SIGKILL', () => resolve())),
+                await terminateGotify(gotifyInstance.pid!),
             ]);
             await rimraf(gotifyFile, {maxRetries: 8});
         },
@@ -134,4 +134,17 @@ const startGotify = (filename: string, port: number, pluginDir: string): ChildPr
     gotify.stdout.pipe(process.stdout);
     gotify.stderr.pipe(process.stderr);
     return gotify;
+};
+
+const terminateGotify = (pid: number) => {
+    return new Promise<void>((resolve, reject) => {
+        try {
+            kill(pid, 'SIGKILL', (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
 };
