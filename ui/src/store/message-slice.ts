@@ -23,7 +23,6 @@ export const messageSlice = createSlice({
             state.items = action.payload.messages;
             state.nextSince = action.payload.paging.since ?? 0;
             state.loaded = true;
-            // state.items = action.payload;
         },
         add(state, action: PayloadAction<IMessage>) {
             state.items.unshift(action.payload);

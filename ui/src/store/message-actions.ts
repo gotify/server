@@ -37,9 +37,9 @@ export const removeSingleMessage = (message: IMessage) => {
             const response = await axios.delete(config.get('url') + 'message/' + message.id);
             return response.data;
         }
-
         await sendRequest();
         dispatch(messageActions.remove(message.id));
+        dispatch(uiActions.addSnackMessage('Message deleted'));
     }
 }
 
