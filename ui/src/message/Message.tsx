@@ -120,7 +120,7 @@ const Message = ({fDelete, title, date, image, priority, content, extras, height
                     borderLeftStyle: 'solid',
                 }}>
                 <div className={classes.imageWrapper}>
-                    {image !== null ? (
+                    {image != null ? (
                         <img
                             src={config.get('url') + image}
                             alt="app logo"
