@@ -5,7 +5,7 @@ import {newTest, GotifyTest} from './setup';
 import {clickByText, count, innerText, waitForCount, waitForExists} from './utils';
 import * as auth from './authentication';
 import * as selector from './selector';
-import axios from 'axios';
+import axios, {AxiosRequestConfig} from 'axios';
 import {IApplication, IMessage, IMessageExtras} from '../types';
 
 let page: Page;
@@ -18,7 +18,7 @@ beforeAll(async () => {
 afterAll(async () => await gotify.close());
 
 // eslint-disable-next-line
-const axiosAuth = {auth: {username: 'admin', password: 'admin'}};
+const axiosAuth: AxiosRequestConfig = {auth: {username: 'admin', password: 'admin'}};
 
 let windowsServerToken: string;
 let linuxServerToken: string;
@@ -47,7 +47,7 @@ describe.sequential('Messages', () => {
     });
     const createApp = (name: string) =>
         axios
-            .post<IApplication>(`${gotify.url}/application`, {name}, axiosAuth)
+            .post<IApplication>(`${gotify.url}application`, {name}, axiosAuth)
             .then((resp) => resp.data.token);
     it('shows navigation', async () => {
         await page.waitForSelector(naviId);
@@ -99,7 +99,7 @@ describe.sequential('Messages', () => {
         for (const item of messages) {
             const message = await innerText(item, '.content');
             const title = await innerText(item, '.title');
-            result.push({message, title});
+            result.push({title, message});
         }
         return result;
     };
@@ -122,7 +122,7 @@ describe.sequential('Messages', () => {
     const backup3 = m('Backup done', 'Gotify Backup finished (0.1MB).');
 
     const createMessage = (msg: Partial<IMessage>, token: string) =>
-        axios.post<IMessage>(`${gotify.url}/message`, msg, {
+        axios.post<IMessage>(`${gotify.url}message`, msg, {
             headers: {'X-Gotify-Key': token},
         });
 
@@ -156,7 +156,7 @@ describe.sequential('Messages', () => {
         expect(await extractMessages(0)).toEqual([]);
         await navigate('All Messages');
     });
-    describe('add some messages', () => {
+    describe.sequential('add some messages', () => {
         it('1', async () => {
             await createMessage(windows2, windowsServerToken);
             await expectMessages({
@@ -230,7 +230,7 @@ describe.sequential('Messages', () => {
             backup: [backup1],
         });
     });
-    describe('add some more messages', () => {
+    describe.sequential('add some more messages', () => {
         it('1', async () => {
             await createMessage(linux3, linuxServerToken);
             await expectMessages({

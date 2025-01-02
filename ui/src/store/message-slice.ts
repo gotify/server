@@ -6,7 +6,6 @@ interface MessagesState {
     hasMore: boolean;
     nextSince: number;
     loaded: boolean;
-    isLoading: boolean;
 }
 
 const initialMessageState: MessagesState = {
@@ -14,7 +13,6 @@ const initialMessageState: MessagesState = {
     hasMore: false,
     nextSince: 0,
     loaded: false,
-    isLoading: false,
 }
 
 export const messageSlice = createSlice({
@@ -38,6 +36,9 @@ export const messageSlice = createSlice({
         },
         clear(state) {
             state.items = [];
+        },
+        loading(state, action: PayloadAction<boolean>) {
+            state.loaded = !action.payload;
         }
     }
 });
