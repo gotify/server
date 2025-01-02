@@ -88,6 +88,8 @@ const Navigation = () => {
             <ListItemText primary="A Raspberry PI" />
         </ListItemButton>,
     ];
+
+    // TODO: on mobile (size maybe md or xs) the app list on left should be hidden by default
     return (
         <ResponsiveDrawer
             classes={{root: classes.root, paper: classes.drawerPaper}}

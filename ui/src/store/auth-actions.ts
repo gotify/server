@@ -150,7 +150,6 @@ export const logout = () => {
 export const changePassword = (pass: string) => {
     return async (dispatch: AppDispatch) => {
         await axios.post(config.get('url') + 'current/user/password', {pass});
-        // TODO: this post can fail, maybe add error handling?
         dispatch(uiActions.addSnackMessage('Password changed.'));
     };
 };

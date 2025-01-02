@@ -19,7 +19,7 @@ export const fetchMessages = (appId: number = AllMessages, since: number = 0) =>
             const response = await axios.get(url);
             return response.data;
         };
-
+        dispatch(messageActions.loading(true));
         let url;
         if (appId === AllMessages) {
             url = config.get('url') + 'message?since=' + since;
