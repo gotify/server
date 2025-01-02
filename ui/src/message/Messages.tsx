@@ -16,13 +16,13 @@ const Messages = () => {
     const {id} = useParams();
     const appId = id !== undefined ? parseInt(id as string) : -1;
 
-    const [ toDeleteAll, setToDeleteAll ] = useState<boolean>(false);
+    const [toDeleteAll, setToDeleteAll] = useState<boolean>(false);
 
     const heights: Record<string, number> = {};
 
-    const selectedApp = useAppSelector((state) => state.app.items.find(app => app.id === appId));
+    const selectedApp = useAppSelector((state) => state.app.items.find((app) => app.id === appId));
     const apps = useAppSelector((state) => state.app.items);
-    const messages = useAppSelector((state) => state.message.items);
+    const messages = useAppSelector((state) => appId === -1 ? state.message.items : state.message.items.filter((item) => item.appid === appId));
     const hasMore = useAppSelector((state) => state.message.hasMore);
     const name = dispatch(getAppName(appId));
     const messagesLoaded = useAppSelector((state) => state.message.loaded);
@@ -30,7 +30,7 @@ const Messages = () => {
 
     useEffect(() => {
         dispatch(fetchMessages(appId));
-    }, [ dispatch, appId ]);
+    }, [dispatch, appId]);
 
     const label = (text: string) => (
         <Grid size={12}>
@@ -58,9 +58,7 @@ const Messages = () => {
                         variant="contained"
                         disabled={!hasMessages}
                         color="primary"
-                        onClick={() => {
-                            setToDeleteAll(true);
-                        }}>
+                        onClick={() => setToDeleteAll(true)}>
                         Delete All
                     </Button>
                 </div>
@@ -78,25 +76,24 @@ const Messages = () => {
                     {/*    {messages.map(renderMessage)}*/}
                     {/*</ReactInfinite>*/}
                     {messages.map((message) => (
-                            <Message
-                                key={message.id}
-                                height={(height: number) => {
-                                    if (!heights[message.id]) {
-                                        heights[message.id] = height;
-                                    }
-                                }}
+                        <Message
+                            key={message.id}
+                            height={(height: number) => {
+                                if (!heights[message.id]) {
+                                    heights[message.id] = height;
+                                }
+                            }}
                                 fDelete={() => dispatch(removeSingleMessage(message))}
-                                title={message.title}
-                                date={message.date}
-                                content={message.message}
-                                image={apps.find(app => app.id == message.appid)?.image}
-                                extras={message.extras}
-                                priority={message.priority}
-                            />
-                        ),
-                    )}
+                            title={message.title}
+                            date={message.date}
+                            content={message.message}
+                            image={apps.find((app) => app.id == message.appid)?.image}
+                            extras={message.extras}
+                            priority={message.priority}
+                        />
+                    ))}
 
-                    {hasMore ? <LoadingSpinner /> : label('You\'ve reached the end')}
+                    {hasMore ? <LoadingSpinner /> : label("You've reached the end")}
                 </div>
             ) : (
                 label('No messages')
