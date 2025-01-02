@@ -1,5 +1,5 @@
-import React from 'react';
-import {Outlet} from 'react-router-dom';
+import React, {useEffect} from 'react';
+import {Outlet, useNavigate} from 'react-router-dom';
 import {createTheme, CssBaseline, Theme, ThemeProvider} from '@mui/material';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -46,15 +46,23 @@ const themeMap: Record<ThemeKey, Theme> = {
 };
 
 const RootLayout = () => {
+    const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const themeKey = useAppSelector((state) => state.ui.themeKey);
     const connectionErrorMessage = useAppSelector((state) => state.ui.connectionErrorMessage);
     const showSettings = useAppSelector((state) => state.ui.showSettings);
     const authenticating = useAppSelector((state) => state.auth.authenticating);
+    const loggedIn = useAppSelector((state) => state.auth.loggedIn);
     const { classes } = useStyles();
 
     const theme = themeMap[themeKey];
     const { version } = config.get('version');
+
+    useEffect(() => {
+        if (!loggedIn) {
+            navigate('/login');
+        }
+    }, [dispatch, loggedIn]);
 
     return (
         <ThemeProvider theme={theme}>
