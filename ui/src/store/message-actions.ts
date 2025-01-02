@@ -26,8 +26,12 @@ export const fetchMessages = (appId: number = AllMessages, since: number = 0) =>
         } else {
             url = config.get('url') + 'application/' + appId + '/message?since=' + since;
         }
-        const data = await sendRequest(url);
-        dispatch(messageActions.set(data));
+        try {
+            const data = await sendRequest(url);
+            dispatch(messageActions.set(data));
+        } catch (error) {
+            dispatch(messageActions.loading(false));
+        }
     }
 };
 
