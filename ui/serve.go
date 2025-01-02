@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 
 	"github.com/gotify/server/v2/model"
@@ -32,7 +31,7 @@ func Register(r *gin.Engine, version model.VersionInfo, register bool) {
 		return strings.Replace(content, "%CONFIG%", string(uiConfigBytes), 1)
 	}
 
-	ui := r.Group("/", gzip.Gzip(gzip.DefaultCompression))
+	ui := r.Group("/")
 	ui.GET("/", serveFile("index.html", "text/html", replaceConfig))
 	ui.GET("/index.html", serveFile("index.html", "text/html", replaceConfig))
 	ui.GET("/manifest.json", serveFile("manifest.json", "application/json", noop))
