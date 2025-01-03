@@ -5,7 +5,9 @@ import Clients from './client/Clients.tsx';
 import {checkAuthLoader} from './common/Auth.ts';
 import Messages from './message/Messages.tsx';
 import {WebSocketStore} from './message/WebSocketStore.ts';
+import PluginsRootLayout from './pages/plugins.tsx';
 import RootLayout from './pages/root';
+import PluginDetailView from './plugin/PluginDetailView.tsx';
 import Plugins from './plugin/Plugins.tsx';
 import * as Notifications from './snack/browserNotification.ts';
 import {useAppDispatch, useAppSelector} from './store';
@@ -55,14 +57,14 @@ const router = createBrowserRouter([
             },
             {
                 path: 'plugins',
-                element: <Plugins />,
+                element: <PluginsRootLayout />,
                 loader: checkAuthLoader,
                 children: [
+                    { index: true, element: <Plugins /> },
                     {
                         path: ':id',
-                        // TODO: fix problem in PluginDetailView
-                        //element: <PluginDetailView />,
-                    },
+                        element: <PluginDetailView />,
+                    }
                 ],
             },
         ],

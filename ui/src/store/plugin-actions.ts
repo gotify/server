@@ -13,6 +13,7 @@ export const requestPluginConfig = (id: number) => {
         };
 
         const data = await sendRequest();
+        dispatch(pluginActions.setDisplay(data));
     };
 };
 
@@ -23,6 +24,7 @@ export const requestPluginDisplay = (id: number) => {
             return response.data;
         };
         const data = await sendRequest();
+        dispatch(pluginActions.setCurrentConfig(data));
     };
 };
 
@@ -45,7 +47,7 @@ export const deletePlugin = () => {
 };
 
 export const getPluginName = (id: number) => {
-    return (dispatch: AppDispatch, getState: () => RootState) => {
+    return (_dispatch: AppDispatch, getState: () => RootState) => {
         const plugin = getState().plugin.items.filter(plugin => plugin.id === id);
 
         return id === -1 ? 'All Plugins': plugin[0].name || 'unknown';
@@ -60,7 +62,7 @@ export const updatePluginConfig = (id: number, newConfig: string) => {
             });
             return response.data;
         }
-        const data = await sendRequest();
+        await sendRequest();
         dispatch(uiActions.addSnackMessage('Plugin config updated'));
         await dispatch(fetchPlugins())
     }
@@ -72,7 +74,7 @@ export const changePluginEnableState = (id: number, enabled: boolean) => {
             const response = await axios.post(`${config.get('url')}plugin/${id}/${enabled ? 'enable' : 'disable'}`);
             return response.data;
         }
-        const data = await sendRequest();
+        await sendRequest();
         dispatch(uiActions.addSnackMessage(`Plugin ${enabled ? 'enabled' : 'disabled'}`));
         await dispatch(fetchPlugins());
     }
