@@ -23,6 +23,12 @@ const Plugins = () => {
         dispatch(fetchPlugins());
     }, [dispatch]);
 
+    const handleChangePluginStatus = async (plugin: IPlugin) => {
+        await dispatch(
+            changePluginEnableState(plugin.id, !plugin.enabled)
+        )
+    }
+
     return (
         <DefaultPage title="Plugins" maxWidth={1000}>
             <Grid size={12}>
@@ -45,11 +51,7 @@ const Plugins = () => {
                                     token={plugin.token}
                                     name={plugin.name}
                                     enabled={plugin.enabled}
-                                    fToggleStatus={() =>
-                                        dispatch(
-                                            changePluginEnableState(plugin.id, !plugin.enabled)
-                                        )
-                                    }
+                                    fToggleStatus={() => handleChangePluginStatus(plugin)}
                                 />
                             ))}
                         </TableBody>

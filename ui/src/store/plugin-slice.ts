@@ -3,10 +3,14 @@ import {IPlugin} from '../types.ts';
 
 interface PluginState {
     items: IPlugin[];
+    displayText: string | null;
+    currentConfig: string | null;
 }
 
 const initialPluginState: PluginState = {
     items: [],
+    displayText: null,
+    currentConfig: null,
 }
 
 const pluginSlice = createSlice({
@@ -24,7 +28,15 @@ const pluginSlice = createSlice({
         },
         clear(state) {
             state.items = [];
+            state.displayText = null;
+            state.currentConfig = null;
         },
+        setDisplay(state, action: PayloadAction<string | null>) {
+            state.displayText = action.payload;
+        },
+        setCurrentConfig(state, action: PayloadAction<string | null>) {
+            state.currentConfig = action.payload;
+        }
     },
 });
 

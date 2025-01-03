@@ -1,120 +1,99 @@
-import React, {Component, useEffect, useState} from 'react';
-import {RouteComponentProps, useParams} from 'react-router';
-import {Markdown} from '../common/Markdown';
-import {UnControlled as CodeMirror} from 'react-codemirror2';
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/theme/material.css';
-import 'codemirror/mode/yaml/yaml';
-import Info from '@mui/icons-material/Info';
 import Build from '@mui/icons-material/Build';
-import Subject from '@mui/icons-material/Subject';
+import Info from '@mui/icons-material/Info';
 import Refresh from '@mui/icons-material/Refresh';
+import Subject from '@mui/icons-material/Subject';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import DefaultPage from '../common/DefaultPage';
-import * as config from '../config';
+import {langs} from '@uiw/codemirror-extensions-langs';
+import {material} from '@uiw/codemirror-theme-material';
+import CodeMirror from '@uiw/react-codemirror';
+import React, {useCallback, useEffect, useState} from 'react';
+import {useParams} from 'react-router';
 import Container from '../common/Container';
-import {inject, Stores} from '../inject';
-import {useAppDispatch, useAppSelector} from '../store';
-import {requestPluginConfig, requestPluginDisplay} from '../store/plugin-actions.ts';
-import {IPlugin} from '../types';
+
+import DefaultPage from '../common/DefaultPage';
 import LoadingSpinner from '../common/LoadingSpinner';
+import {Markdown} from '../common/Markdown';
+import * as config from '../config';
+import {useAppDispatch, useAppSelector} from '../store';
+import {
+    fetchPlugins,
+    requestPluginConfig,
+    requestPluginDisplay,
+    updatePluginConfig,
+} from '../store/plugin-actions.ts';
+import {IPlugin} from '../types';
 
-type IProps = RouteComponentProps<{id: string}>;
-
-interface IState {
-    displayText: string | null;
-    currentConfig: string | null;
-}
-
-// TODO: finish functional component migration
 const PluginDetailView = () => {
     const {id} = useParams();
     const pluginID = parseInt(id as string, 10);
     const dispatch = useAppDispatch();
     const plugins = useAppSelector((state) => state.plugin.items);
-    const [ currentConfig, setCurrentConfig ] = useState(null);
-    const [ displayText, setDisplayText ] = useState(null);
+    const currentConfig = useAppSelector((state) => state.plugin.currentConfig);
+    const displayText = useAppSelector((state) => state.plugin.displayText);
 
-
-    const pluginInfo = plugins.filter(plugin => plugin.id !== pluginID);
-    const {name, capabilities} = pluginInfo;
-
-// public state: IState = {
-//         displayText: null,
-//         currentConfig: null,
-//     };
+    const pluginInfo = plugins.find((plugin) => plugin.id === pluginID);
 
     useEffect(() => {
-        refreshFeatures();
-    }, []);
+        refreshFeatures().then();
+    }, [dispatch]);
 
-
-    const refreshFeatures = () => {
-        return Promise.all([ refreshConfigurer(), refreshDisplayer() ]);
+    const refreshFeatures = async () => {
+        if (!pluginInfo) {
+            await dispatch(fetchPlugins());
+            return;
+        }
+        await Promise.all([refreshConfigurer(), refreshDisplayer()]);
     };
 
     const refreshConfigurer = async () => {
-
-        if (pluginInfo.capabilities.indexOf('configurer') !== -1) {
-            const response = dispatch(requestPluginConfig(pluginID));
-            setCurrentConfig(response);
+        if (pluginInfo?.capabilities.indexOf('configurer') !== -1) {
+            await dispatch(requestPluginConfig(pluginID));
         }
     };
 
-    private async refreshFeatures() {
-        await this.props.pluginStore.refreshIfMissing(this.pluginID);
-        return await Promise.all([this.refreshConfigurer(), this.refreshDisplayer()]);
-
-        if (pluginInfo.capabilities.indexOf('displayer') !== -1) {
-            const response = dispatch(requestPluginDisplay(pluginID));
-            setDisplayText(response);
+    const refreshDisplayer = async () => {
+        if (pluginInfo?.capabilities.indexOf('displayer') !== -1) {
+            await dispatch(requestPluginDisplay(pluginID));
         }
     };
 
+    if (pluginInfo == null) {
+        return <LoadingSpinner />;
+    }
 
-        const pluginInfo = this.props.pluginStore.getByIDOrUndefined(this.pluginID);
-        if (pluginInfo === undefined) {
-            return <LoadingSpinner />;
-        }
+    const handleSaveConfig = async (newConfig: string) => {
+        await dispatch(updatePluginConfig(pluginID, newConfig));
+        await refreshFeatures();
+    };
+
     return (
-            <DefaultPage title={pluginInfo.name} maxWidth={1000}>
+        <DefaultPage title={pluginInfo.name} maxWidth={1000}>
             <PanelWrapper name={'Plugin Info'} icon={Info}>
                 <PluginInfo pluginInfo={pluginInfo} />
             </PanelWrapper>
-                {pluginInfo.capabilities.indexOf('configurer') !== -1 ? (
+            {pluginInfo.capabilities.indexOf('configurer') !== -1 ? (
                 <PanelWrapper
                     name={'Configurer'}
                     description={'This is the configuration panel for this plugin.'}
                     icon={Build}
-                    refresh={this.refreshConfigurer.bind(this)}>
+                    refresh={refreshConfigurer}>
                     <ConfigurerPanel
                         pluginInfo={pluginInfo}
-                        initialConfig={
-                            this.state.currentConfig !== null
-                                ? this.state.currentConfig
-                                : 'Loading...'
-                        }
-                        save={async (newConfig) => {
-                            await this.props.pluginStore.changeConfig(this.pluginID, newConfig);
-                            await this.refreshFeatures();
-                        }}
+                        initialConfig={currentConfig != null ? currentConfig : 'Loading...'}
+                        save={handleSaveConfig}
                     />
                 </PanelWrapper>
             ) : null}{' '}
-                {pluginInfo.capabilities.indexOf('displayer') !== -1 ? (
+            {pluginInfo.capabilities.indexOf('displayer') !== -1 ? (
                 <PanelWrapper
                     name={'Displayer'}
                     description={'This is the information generated by the plugin.'}
-                    refresh={this.refreshDisplayer.bind(this)}
+                    refresh={refreshDisplayer}
                     icon={Subject}>
                     <DisplayerPanel
                         pluginInfo={pluginInfo}
-                        displayText={
-                            this.state.displayText !== null
-                                ? this.state.displayText
-                                : 'Loading...'
-                        }
+                        displayText={displayText != null ? displayText : 'Loading...'}
                     />
                 </PanelWrapper>
             ) : null}
@@ -130,13 +109,7 @@ interface IPanelWrapperProps {
     children: React.ReactNode;
 }
 
-const PanelWrapper = ({
-                          name,
-                          description,
-                          refresh,
-                          icon,
-                          children,
-                      }: IPanelWrapperProps) => {
+const PanelWrapper = ({name, description, refresh, icon, children}: IPanelWrapperProps) => {
     const Icon = icon;
     return (
         <div
@@ -162,8 +135,8 @@ const PanelWrapper = ({
                     {refresh ? (
                         <Button
                             style={{float: 'right'}}
-                            onClick={() => {
-                                refresh();
+                            onClick={async () => {
+                                await refresh();
                             }}>
                             <Refresh />
                         </Button>
@@ -183,43 +156,40 @@ interface IConfigurerPanelProps {
     save: (newConfig: string) => Promise<void>;
 }
 
-const ConfigurerPanel = ({pluginInfo, initialConfig, save}: IConfigurerPanelProps) => {
-    const [ unsavedChanges, setUnsavedChanges ] = useState<string | null>(null);
+const ConfigurerPanel = ({initialConfig, save}: IConfigurerPanelProps) => {
+    const [unsavedChanges, setUnsavedChanges] = useState<string | null>(null);
+    const onChange = useCallback(
+        (value: string | null) => {
+            let newConf: string | null = value;
+            if (value === initialConfig) {
+                newConf = null;
+            }
+            setUnsavedChanges(newConf);
+        },
+        [initialConfig]
+    );
+
+    const handleOnSave = async () => {
+        await save(unsavedChanges!);
+        setUnsavedChanges(null);
+    }
 
     return (
         <div>
             <CodeMirror
                 value={initialConfig}
-                options={{
-                    mode: 'yaml',
-                    theme: 'material',
-                    lineNumbers: true,
-                }}
-                onChange={(_, _1, value) => {
-                    let newConf: string | null = value;
-                    if (value === initialConfig) {
-                        newConf = null;
-                    }
-                    setUnsavedChanges(newConf);
-                }}
+                theme={material}
+                extensions={[langs.yaml()]}
+                onChange={onChange}
             />
             <br />
             <Button
                 variant="contained"
                 color="primary"
                 fullWidth={true}
-                disabled={
-                    unsavedChanges === null ||
-                    unsavedChanges === initialConfig
-                }
+                disabled={unsavedChanges === null || unsavedChanges === initialConfig}
                 className="config-save"
-                onClick={() => {
-                    const newConfig = unsavedChanges;
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    save(newConfig!).then(() => {
-                        setUnsavedChanges(null);
-                    });
-                }}>
+                onClick={handleOnSave}>
                 <Typography variant="button">Save</Typography>
             </Button>
         </div>
@@ -231,17 +201,21 @@ interface IDisplayerPanelProps {
     displayText: string;
 }
 
-const DisplayerPanel: React.FC<IDisplayerPanelProps> = ({displayText}) => (
+const DisplayerPanel = ({displayText}: IDisplayerPanelProps) => (
     <Typography variant="body2">
         <Markdown>{displayText}</Markdown>
     </Typography>
 );
 
-const PluginInfo = ({pluginInfo}: IDisplayerPanelProps) => {
+interface IPluginInfo {
+    pluginInfo: IPlugin;
+}
+
+const PluginInfo = ({pluginInfo}: IPluginInfo) => {
     const {name, author, modulePath, website, license, capabilities, id, token} = pluginInfo;
 
     return (
-            <div style={{wordWrap: 'break-word'}}>
+        <div style={{wordWrap: 'break-word'}}>
             {name ? (
                 <Typography variant="body2" className="name">
                     Name: <span>{name}</span>
