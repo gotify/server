@@ -1,7 +1,7 @@
-import axios, {AxiosResponse} from 'axios';
+import axios from 'axios';
 import * as config from '../config.ts';
 import {IApplication, IMessage, IPagedMessages} from '../types.ts';
-import {AppDispatch, RootState} from './index.ts';
+import {AppDispatch} from './index.ts';
 import {messageActions} from './message-slice.ts';
 import {uiActions} from './ui-slice.ts';
 
