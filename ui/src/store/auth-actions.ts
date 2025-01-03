@@ -20,7 +20,7 @@ let reconnectTime = 7500;
 export const register = (username: string, password: string) => {
     return async (dispatch: AppDispatch) => {
         const sendRequest = async () => {
-            return await axios.create().post(config.get('url') + 'user', {username, password});
+            return await axios.create().post(config.get('url') + 'user', {name: username, pass: password});
         };
 
         try {

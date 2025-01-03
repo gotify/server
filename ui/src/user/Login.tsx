@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid2';
 import TextField from '@mui/material/TextField';
@@ -7,26 +7,38 @@ import Container from '../common/Container';
 import DefaultPage from '../common/DefaultPage';
 import * as config from '../config';
 import {useAppDispatch, useAppSelector} from '../store';
-import {login} from '../store/auth-actions.ts';
+import {login, register} from '../store/auth-actions.ts';
 import RegistrationDialog from './Register';
 
 const Login = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const formRef = useRef<HTMLFormElement>(null);
     const [showRegisterDialog, setShowRegisterDialog] = useState(false);
     const connectionErrorMessage = useAppSelector((state) => state.ui.connectionErrorMessage);
 
-    const handleLogin = (event) => {
-        event.preventDefault();
-        const fd = new FormData(event.target);
-        const loginData = Object.fromEntries(fd.entries());
-        dispatch(login(loginData.username, loginData.password))
+    const handleLogin = (formData: FormData) => {
+        const username = formData.get('username') as string;
+        const password = formData.get('password') as string;
+        dispatch(login(username, password))
             .then(() => navigate('/'))
             .catch((error) => {
                 console.log(error);
-                event.target.reset();
+                formRef.current!.reset();
             });
     };
+
+    const handleRegister = async (username: string, password: string) => {
+        return dispatch(register(username, password))
+            .then(() => {
+                navigate('/');
+                return true;
+            })
+            .catch((error) => {
+                console.error(error);
+                return false;
+            });
+    }
 
     const registerButton = () => {
         if (config.get('register'))
@@ -46,7 +58,7 @@ const Login = () => {
         <DefaultPage title="Login" rightControl={registerButton()} maxWidth={250}>
             <Grid size={12} style={{textAlign: 'center'}}>
                 <Container>
-                    <form onSubmit={handleLogin} id="login-form">
+                    <form action={handleLogin} ref={formRef} id="login-form">
                         <TextField
                             name="username"
                             variant="standard"
@@ -81,7 +93,7 @@ const Login = () => {
             {showRegisterDialog && (
                 <RegistrationDialog
                     fClose={() => setShowRegisterDialog(false)}
-                    fOnSubmit={this.props.currentUser.register}
+                    fOnSubmit={handleRegister}
                 />
             )}
         </DefaultPage>
