@@ -15,7 +15,6 @@ import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import {useAppDispatch, useAppSelector} from '../store';
 import {createClient, deleteClient, fetchClients, updateClient} from '../store/client-actions.ts';
-import {clientActions} from '../store/client-slice.ts';
 import AddClientDialog from './AddClientDialog';
 import UpdateClientDialog from './UpdateClientDialog';
 import {IClient} from '../types';
