@@ -1,138 +1,115 @@
-import React, {Component} from 'react';
-import {RouteComponentProps} from 'react-router';
-import {Markdown} from '../common/Markdown';
-import {UnControlled as CodeMirror} from 'react-codemirror2';
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/theme/material.css';
-import 'codemirror/mode/yaml/yaml';
-import Info from '@material-ui/icons/Info';
-import Build from '@material-ui/icons/Build';
-import Subject from '@material-ui/icons/Subject';
-import Refresh from '@material-ui/icons/Refresh';
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
-import DefaultPage from '../common/DefaultPage';
-import * as config from '../config';
+import Build from '@mui/icons-material/Build';
+import Info from '@mui/icons-material/Info';
+import Refresh from '@mui/icons-material/Refresh';
+import Subject from '@mui/icons-material/Subject';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import {langs} from '@uiw/codemirror-extensions-langs';
+import {material} from '@uiw/codemirror-theme-material';
+import CodeMirror from '@uiw/react-codemirror';
+import React, {useCallback, useEffect, useState} from 'react';
+import {useParams} from 'react-router';
 import Container from '../common/Container';
-import {inject, Stores} from '../inject';
-import {IPlugin} from '../types';
+
+import DefaultPage from '../common/DefaultPage';
 import LoadingSpinner from '../common/LoadingSpinner';
+import {Markdown} from '../common/Markdown';
+import * as config from '../config';
+import {useAppDispatch, useAppSelector} from '../store';
+import {
+    fetchPlugins,
+    requestPluginConfig,
+    requestPluginDisplay,
+    updatePluginConfig,
+} from '../store/plugin-actions.ts';
+import {IPlugin} from '../types';
 
-type IProps = RouteComponentProps<{id: string}>;
+const PluginDetailView = () => {
+    const {id} = useParams();
+    const pluginID = parseInt(id as string, 10);
+    const dispatch = useAppDispatch();
+    const plugins = useAppSelector((state) => state.plugin.items);
+    const currentConfig = useAppSelector((state) => state.plugin.currentConfig);
+    const displayText = useAppSelector((state) => state.plugin.displayText);
 
-interface IState {
-    displayText: string | null;
-    currentConfig: string | null;
-}
+    const pluginInfo = plugins.find((plugin) => plugin.id === pluginID);
 
-class PluginDetailView extends Component<IProps & Stores<'pluginStore'>, IState> {
-    private pluginID: number = parseInt(this.props.match.params.id, 10);
-    private pluginInfo = () => this.props.pluginStore.getByID(this.pluginID);
+    useEffect(() => {
+        refreshFeatures().then();
+    }, [dispatch]);
 
-    public state: IState = {
-        displayText: null,
-        currentConfig: null,
+    const refreshFeatures = async () => {
+        if (!pluginInfo) {
+            await dispatch(fetchPlugins());
+            return;
+        }
+        await Promise.all([refreshConfigurer(), refreshDisplayer()]);
     };
 
-    public componentWillMount() {
-        this.refreshFeatures();
-    }
-
-    public componentWillReceiveProps(nextProps: IProps & Stores<'pluginStore'>) {
-        this.pluginID = parseInt(nextProps.match.params.id, 10);
-        this.refreshFeatures();
-    }
-
-    private async refreshFeatures() {
-        await this.props.pluginStore.refreshIfMissing(this.pluginID);
-        return await Promise.all([this.refreshConfigurer(), this.refreshDisplayer()]);
-    }
-
-    private async refreshConfigurer() {
-        const {
-            props: {pluginStore},
-        } = this;
-        if (this.pluginInfo().capabilities.indexOf('configurer') !== -1) {
-            const response = await pluginStore.requestConfig(this.pluginID);
-            this.setState({currentConfig: response});
+    const refreshConfigurer = async () => {
+        if (pluginInfo?.capabilities.indexOf('configurer') !== -1) {
+            await dispatch(requestPluginConfig(pluginID));
         }
+    };
+
+    const refreshDisplayer = async () => {
+        if (pluginInfo?.capabilities.indexOf('displayer') !== -1) {
+            await dispatch(requestPluginDisplay(pluginID));
+        }
+    };
+
+    if (pluginInfo == null) {
+        return <LoadingSpinner />;
     }
 
-    private async refreshDisplayer() {
-        const {
-            props: {pluginStore},
-        } = this;
-        if (this.pluginInfo().capabilities.indexOf('displayer') !== -1) {
-            const response = await pluginStore.requestDisplay(this.pluginID);
-            this.setState({displayText: response});
-        }
-    }
+    const handleSaveConfig = async (newConfig: string) => {
+        await dispatch(updatePluginConfig(pluginID, newConfig));
+        await refreshFeatures();
+    };
 
-    public render() {
-        const pluginInfo = this.props.pluginStore.getByIDOrUndefined(this.pluginID);
-        if (pluginInfo === undefined) {
-            return <LoadingSpinner />;
-        }
-        return (
-            <DefaultPage title={pluginInfo.name} maxWidth={1000}>
-                <PanelWrapper name={'Plugin Info'} icon={Info}>
-                    <PluginInfo pluginInfo={pluginInfo} />
+    return (
+        <DefaultPage title={pluginInfo.name} maxWidth={1000}>
+            <PanelWrapper name={'Plugin Info'} icon={Info}>
+                <PluginInfo pluginInfo={pluginInfo} />
+            </PanelWrapper>
+            {pluginInfo.capabilities.indexOf('configurer') !== -1 ? (
+                <PanelWrapper
+                    name={'Configurer'}
+                    description={'This is the configuration panel for this plugin.'}
+                    icon={Build}
+                    refresh={refreshConfigurer}>
+                    <ConfigurerPanel
+                        pluginInfo={pluginInfo}
+                        initialConfig={currentConfig != null ? currentConfig : 'Loading...'}
+                        save={handleSaveConfig}
+                    />
                 </PanelWrapper>
-                {pluginInfo.capabilities.indexOf('configurer') !== -1 ? (
-                    <PanelWrapper
-                        name={'Configurer'}
-                        description={'This is the configuration panel for this plugin.'}
-                        icon={Build}
-                        refresh={this.refreshConfigurer.bind(this)}>
-                        <ConfigurerPanel
-                            pluginInfo={pluginInfo}
-                            initialConfig={
-                                this.state.currentConfig !== null
-                                    ? this.state.currentConfig
-                                    : 'Loading...'
-                            }
-                            save={async (newConfig) => {
-                                await this.props.pluginStore.changeConfig(this.pluginID, newConfig);
-                                await this.refreshFeatures();
-                            }}
-                        />
-                    </PanelWrapper>
-                ) : null}{' '}
-                {pluginInfo.capabilities.indexOf('displayer') !== -1 ? (
-                    <PanelWrapper
-                        name={'Displayer'}
-                        description={'This is the information generated by the plugin.'}
-                        refresh={this.refreshDisplayer.bind(this)}
-                        icon={Subject}>
-                        <DisplayerPanel
-                            pluginInfo={pluginInfo}
-                            displayText={
-                                this.state.displayText !== null
-                                    ? this.state.displayText
-                                    : 'Loading...'
-                            }
-                        />
-                    </PanelWrapper>
-                ) : null}
-            </DefaultPage>
-        );
-    }
-}
+            ) : null}{' '}
+            {pluginInfo.capabilities.indexOf('displayer') !== -1 ? (
+                <PanelWrapper
+                    name={'Displayer'}
+                    description={'This is the information generated by the plugin.'}
+                    refresh={refreshDisplayer}
+                    icon={Subject}>
+                    <DisplayerPanel
+                        pluginInfo={pluginInfo}
+                        displayText={displayText != null ? displayText : 'Loading...'}
+                    />
+                </PanelWrapper>
+            ) : null}
+        </DefaultPage>
+    );
+};
 
 interface IPanelWrapperProps {
     name: string;
     description?: string;
     refresh?: () => Promise<void>;
     icon?: React.ComponentType;
+    children: React.ReactNode;
 }
 
-const PanelWrapper: React.FC<IPanelWrapperProps> = ({
-    name,
-    description,
-    refresh,
-    icon,
-    children,
-}) => {
+const PanelWrapper = ({name, description, refresh, icon, children}: IPanelWrapperProps) => {
     const Icon = icon;
     return (
         <div
@@ -158,8 +135,8 @@ const PanelWrapper: React.FC<IPanelWrapperProps> = ({
                     {refresh ? (
                         <Button
                             style={{float: 'right'}}
-                            onClick={() => {
-                                refresh();
+                            onClick={async () => {
+                                await refresh();
                             }}>
                             <Refresh />
                         </Button>
@@ -178,113 +155,109 @@ interface IConfigurerPanelProps {
     initialConfig: string;
     save: (newConfig: string) => Promise<void>;
 }
-class ConfigurerPanel extends Component<IConfigurerPanelProps, {unsavedChanges: string | null}> {
-    public state = {unsavedChanges: null};
 
-    public render() {
-        return (
-            <div>
-                <CodeMirror
-                    value={this.props.initialConfig}
-                    options={{
-                        mode: 'yaml',
-                        theme: 'material',
-                        lineNumbers: true,
-                    }}
-                    onChange={(_, _1, value) => {
-                        let newConf: string | null = value;
-                        if (value === this.props.initialConfig) {
-                            newConf = null;
-                        }
-                        this.setState({unsavedChanges: newConf});
-                    }}
-                />
-                <br />
-                <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth={true}
-                    disabled={
-                        this.state.unsavedChanges === null ||
-                        this.state.unsavedChanges === this.props.initialConfig
-                    }
-                    className="config-save"
-                    onClick={() => {
-                        const newConfig = this.state.unsavedChanges;
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        this.props.save(newConfig!).then(() => {
-                            this.setState({unsavedChanges: null});
-                        });
-                    }}>
-                    <Typography variant="button">Save</Typography>
-                </Button>
-            </div>
-        );
+const ConfigurerPanel = ({initialConfig, save}: IConfigurerPanelProps) => {
+    const [unsavedChanges, setUnsavedChanges] = useState<string | null>(null);
+    const onChange = useCallback(
+        (value: string | null) => {
+            let newConf: string | null = value;
+            if (value === initialConfig) {
+                newConf = null;
+            }
+            setUnsavedChanges(newConf);
+        },
+        [initialConfig]
+    );
+
+    const handleOnSave = async () => {
+        await save(unsavedChanges!);
+        setUnsavedChanges(null);
     }
-}
+
+    return (
+        <div>
+            <CodeMirror
+                value={initialConfig}
+                theme={material}
+                extensions={[langs.yaml()]}
+                onChange={onChange}
+            />
+            <br />
+            <Button
+                variant="contained"
+                color="primary"
+                fullWidth={true}
+                disabled={unsavedChanges === null || unsavedChanges === initialConfig}
+                className="config-save"
+                onClick={handleOnSave}>
+                <Typography variant="button">Save</Typography>
+            </Button>
+        </div>
+    );
+};
 
 interface IDisplayerPanelProps {
     pluginInfo: IPlugin;
     displayText: string;
 }
-const DisplayerPanel: React.FC<IDisplayerPanelProps> = ({displayText}) => (
+
+const DisplayerPanel = ({displayText}: IDisplayerPanelProps) => (
     <Typography variant="body2">
         <Markdown>{displayText}</Markdown>
     </Typography>
 );
 
-class PluginInfo extends Component<{pluginInfo: IPlugin}> {
-    public render() {
-        const {
-            props: {
-                pluginInfo: {name, author, modulePath, website, license, capabilities, id, token},
-            },
-        } = this;
-        return (
-            <div style={{wordWrap: 'break-word'}}>
-                {name ? (
-                    <Typography variant="body2" className="name">
-                        Name: <span>{name}</span>
-                    </Typography>
-                ) : null}
-                {author ? (
-                    <Typography variant="body2" className="author">
-                        Author: <span>{author}</span>
-                    </Typography>
-                ) : null}
-                <Typography variant="body2" className="module-path">
-                    Module Path: <span>{modulePath}</span>
-                </Typography>
-                {website ? (
-                    <Typography variant="body2" className="website">
-                        Website: <span>{website}</span>
-                    </Typography>
-                ) : null}
-                {license ? (
-                    <Typography variant="body2" className="license">
-                        License: <span>{license}</span>
-                    </Typography>
-                ) : null}
-                <Typography variant="body2" className="capabilities">
-                    Capabilities: <span>{capabilities.join(', ')}</span>
-                </Typography>
-                {capabilities.indexOf('webhooker') !== -1 ? (
-                    <Typography variant="body2">
-                        Custom Route Prefix:{' '}
-                        {((url) => (
-                            <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="custom-route">
-                                {url}
-                            </a>
-                        ))(`${config.get('url')}plugin/${id}/custom/${token}/`)}
-                    </Typography>
-                ) : null}
-            </div>
-        );
-    }
+interface IPluginInfo {
+    pluginInfo: IPlugin;
 }
 
-export default inject('pluginStore')(PluginDetailView);
+const PluginInfo = ({pluginInfo}: IPluginInfo) => {
+    const {name, author, modulePath, website, license, capabilities, id, token} = pluginInfo;
+
+    return (
+        <div style={{wordWrap: 'break-word'}}>
+            {name ? (
+                <Typography variant="body2" className="name">
+                    Name: <span>{name}</span>
+                </Typography>
+            ) : null}
+            {author ? (
+                <Typography variant="body2" className="author">
+                    Author: <span>{author}</span>
+                </Typography>
+            ) : null}
+            <Typography variant="body2" className="module-path">
+                Module Path: <span>{modulePath}</span>
+            </Typography>
+            {website ? (
+                <Typography variant="body2" className="website">
+                    Website: <span>{website}</span>
+                </Typography>
+            ) : null}
+            {license ? (
+                <Typography variant="body2" className="license">
+                    License: <span>{license}</span>
+                </Typography>
+            ) : null}
+            <Typography variant="body2" className="capabilities">
+                Capabilities: <span>{capabilities.join(', ')}</span>
+            </Typography>
+            {capabilities.indexOf('webhooker') !== -1 ? (
+                <Typography variant="body2">
+                    Custom Route Prefix:{' '}
+                    {((url) => (
+                        <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="custom-route">
+                            {url}
+                        </a>
+                    ))(`${config.get('url')}plugin/${id}/custom/${token}/`)}
+                </Typography>
+            ) : null}
+        </div>
+    );
+};
+
+export default PluginDetailView;

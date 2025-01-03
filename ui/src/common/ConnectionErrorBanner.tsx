@@ -1,27 +1,36 @@
 import React from 'react';
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import {useAppDispatch} from '../store';
+import {tryReconnect} from '../store/auth-actions.ts';
 
 interface ConnectionErrorBannerProps {
     height: number;
-    retry: () => void;
     message: string;
 }
 
-export const ConnectionErrorBanner = ({height, retry, message}: ConnectionErrorBannerProps) => (
-    <div
-        style={{
-            backgroundColor: '#e74c3c',
-            height,
-            width: '100%',
-            zIndex: 1300,
-            position: 'relative',
-        }}>
-        <Typography align="center" variant="h6" style={{lineHeight: `${height}px`}}>
-            {message}{' '}
-            <Button variant="outlined" onClick={retry}>
-                Retry
-            </Button>
-        </Typography>
-    </div>
-);
+export const ConnectionErrorBanner = ({height, message}: ConnectionErrorBannerProps) => {
+    const dispatch = useAppDispatch();
+
+    const handleRetry = async () => {
+        await dispatch(tryReconnect());
+    }
+
+    return (
+        <div
+            style={{
+                backgroundColor: '#e74c3c',
+                height,
+                width: '100%',
+                zIndex: 1300,
+                position: 'relative',
+            }}>
+            <Typography align="center" variant="h6" style={{lineHeight: `${height}px`}}>
+                {message}{' '}
+                <Button variant="outlined" onClick={handleRetry}>
+                    Retry
+                </Button>
+            </Typography>
+        </div>
+    );
+};

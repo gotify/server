@@ -1,77 +1,55 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import 'typeface-roboto';
+import './init';
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
 import {initAxios} from './apiAuth';
+import App from './App.tsx';
 import * as config from './config';
-import Layout from './layout/Layout';
 import {unregister} from './registerServiceWorker';
-import {CurrentUser} from './CurrentUser';
-import {AppStore} from './application/AppStore';
-import {WebSocketStore} from './message/WebSocketStore';
-import {SnackManager} from './snack/SnackManager';
-import {InjectProvider, StoreMapping} from './inject';
-import {UserStore} from './user/UserStore';
-import {MessagesStore} from './message/MessagesStore';
-import {ClientStore} from './client/ClientStore';
-import {PluginStore} from './plugin/PluginStore';
-import {registerReactions} from './reactions';
+import {tryAuthenticate} from './store/auth-actions.ts';
+import {loadStoredTheme} from './store/ui-actions.ts';
 
-const devUrl = 'http://localhost:3000/';
+import {Provider} from 'react-redux';
+import store from './store/index';
 
-const {port, hostname, protocol, pathname} = window.location;
-const slashes = protocol.concat('//');
-const path = pathname.endsWith('/') ? pathname : pathname.substring(0, pathname.lastIndexOf('/'));
-const url = slashes.concat(port ? hostname.concat(':', port) : hostname) + path;
-const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
+// the development server of vite will proxy this to the backend
+const devUrl = '/api/';
 
-const prodUrl = urlWithSlash;
+const currentUrl = new URL(window.location.href);
+currentUrl.pathname = currentUrl.pathname.endsWith('/')
+    ? currentUrl.pathname
+    : currentUrl.pathname.substring(0, currentUrl.pathname.lastIndexOf('/')) + '/';
 
-const initStores = (): StoreMapping => {
-    const snackManager = new SnackManager();
-    const appStore = new AppStore(snackManager.snack);
-    const userStore = new UserStore(snackManager.snack);
-    const messagesStore = new MessagesStore(appStore, snackManager.snack);
-    const currentUser = new CurrentUser(snackManager.snack);
-    const clientStore = new ClientStore(snackManager.snack);
-    const wsStore = new WebSocketStore(snackManager.snack, currentUser);
-    const pluginStore = new PluginStore(snackManager.snack);
-    appStore.onDelete = () => messagesStore.clearAll();
+const prodUrl = currentUrl.toString();
 
-    return {
-        appStore,
-        snackManager,
-        userStore,
-        messagesStore,
-        currentUser,
-        clientStore,
-        wsStore,
-        pluginStore,
-    };
-};
-
-(function clientJS() {
-    if (process.env.NODE_ENV === 'production') {
+const clientJS = async () => {
+    if (import.meta.env.MODE === 'production') {
         config.set('url', prodUrl);
     } else {
         config.set('url', devUrl);
         config.set('register', true);
     }
-    const stores = initStores();
-    initAxios(stores.currentUser, stores.snackManager.snack);
 
-    registerReactions(stores);
+    await store.dispatch(loadStoredTheme());
+    try {
+        await store.dispatch(tryAuthenticate());
+    } catch (e) {
+        // console.info('Automatic login failed, will forward later to login page.');
+    }
 
-    stores.currentUser.tryAuthenticate().catch(() => {});
+    initAxios();
 
-    window.onbeforeunload = () => {
-        stores.wsStore.close();
-    };
-
-    ReactDOM.render(
-        <InjectProvider stores={stores}>
-            <Layout />
-        </InjectProvider>,
-        document.getElementById('root')
+    const root = ReactDOM.createRoot(document.getElementById('root')!);
+    root.render(
+        // TODO: enable strict mode again
+        // <React.StrictMode>
+            <Provider store={store}>
+                <App />
+            </Provider>
+        // </React.StrictMode>
     );
     unregister();
-})();
+};
+
+clientJS().then();

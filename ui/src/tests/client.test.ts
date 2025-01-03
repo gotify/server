@@ -1,8 +1,8 @@
 import {Page} from 'puppeteer';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {newTest, GotifyTest} from './setup';
 import {count, innerText, waitForExists, waitToDisappear, clearField} from './utils';
 import * as auth from './authentication';
-
 import * as selector from './selector';
 
 let page: Page;
@@ -45,7 +45,7 @@ const updateClient =
 const $table = selector.table('#client-table');
 const $dialog = selector.form('#client-dialog');
 
-describe('Client', () => {
+describe.sequential('Client', () => {
     it('does login', async () => await auth.login(page));
     it('navigates to clients', async () => {
         await page.click('#navigate-clients');
