@@ -71,10 +71,11 @@ const router = createBrowserRouter([
     },
 ]);
 
+const ws = new WebSocketStore();
+
 const App = () => {
     const dispatch = useAppDispatch();
     const loggedIn = useAppSelector((state) => state.auth.loggedIn);
-    const ws = new WebSocketStore();
 
     useEffect(() => {
         if (loggedIn) {
