@@ -13,6 +13,7 @@ import {
     ListItemAvatar,
     Avatar,
     Box,
+    styled,
 } from '@mui/material';
 import {DrawerProps} from '@mui/material/Drawer/Drawer';
 import CloseIcon from '@mui/icons-material/Close';
@@ -33,7 +34,6 @@ const useStyles = makeStyles()(() => {
             minHeight: '100%',
             height: '100vh',
         },
-        // toolbar: theme.mixins.toolbar,
         link: {
             color: 'inherit',
             textDecoration: 'none',
@@ -61,7 +61,6 @@ const Navigation = () => {
                   <Link
                       onClick={() => {
                           dispatch(uiActions.setNavOpen(false));
-                          // TODO: make sure we can select the app 'All Messages', does not work yet
                           dispatch(appActions.select(app));
                       }}
                       className={`${classes.link} item`}
@@ -89,13 +88,12 @@ const Navigation = () => {
         </ListItemButton>,
     ];
 
-    // TODO: on mobile (size maybe md or xs) the app list on left should be hidden by default
+    const Offset = styled('div')(({theme}) => theme.mixins.toolbar);
     return (
         <ResponsiveDrawer
             classes={{root: classes.root, paper: classes.drawerPaper}}
             id="message-navigation">
-            {/*<div className={classes.toolbar} />*/}
-            <div className="toolbar" />
+            <Offset />
             <Link
                 className={classes.link}
                 to="/"

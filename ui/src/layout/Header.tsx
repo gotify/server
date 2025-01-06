@@ -25,14 +25,16 @@ import {toggleTheme} from '../store/ui-actions.ts';
 const useStyles = makeStyles()((theme) => {
     return {
         appBar: {
-            zIndex: theme.zIndex.drawer + 1,
-            [theme.breakpoints.down('xs')]: {
+            [theme.breakpoints.up('sm')]: {
+                zIndex: theme.zIndex.drawer + 1,
+            },
+            [theme.breakpoints.down('sm')]: {
                 paddingBottom: 10,
             },
         },
         toolbar: {
             justifyContent: 'space-between',
-            [theme.breakpoints.down('xs')]: {
+            [theme.breakpoints.down('sm')]: {
                 flexWrap: 'wrap',
             },
         },
@@ -42,7 +44,7 @@ const useStyles = makeStyles()((theme) => {
                 flex: 1,
             },
             justifyContent: 'center',
-            [theme.breakpoints.down('xs')]: {
+            [theme.breakpoints.down('sm')]: {
                 flexBasis: '100%',
                 marginTop: 5,
                 order: 1,
@@ -80,7 +82,7 @@ const Header = ({version, style}: IProps) => {
 
     return (
         <AppBar
-            position={theme.breakpoints.down('sm') ? 'sticky' : 'fixed'}
+            position={theme.breakpoints.up('xs') ? 'fixed' : 'sticky'}
             style={style}
             enableColorOnDark
             className={classes.appBar}>
@@ -135,7 +137,7 @@ const RenderButtons = () => {
     return (
         <div className={classes.menuButtons}>
             <ResponsiveButton
-                sx={{display: {xl: 'none', xs: 'block'}}}
+                sx={{display: {sm: 'none', xs: 'block'}}}
                 icon={<MenuIcon />}
                 onClick={() => dispatch(uiActions.setNavOpen(true))}
                 label="menu"
