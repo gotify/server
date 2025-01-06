@@ -35,16 +35,16 @@ const hiddenToken = '•••••••••••••••';
 
 const $table = selector.table('#plugin-table');
 
-const switchSelctor = (id: number) => $table.cell(id, Col.SetEnabled, '[data-enabled]');
+const switchSelector = (id: number) => $table.cell(id, Col.SetEnabled, '[data-enabled]');
 
 const enabledState = async (id: number) =>
-    (await page.$eval(switchSelctor(id), (el) => el.getAttribute('data-enabled'))) === 'true';
+    (await page.$eval(switchSelector(id), (el) => el.getAttribute('data-enabled'))) === 'true';
 
 const toggleEnabled = async (id: number) => {
     const origEnabled = (await enabledState(id)).toString();
-    await page.click(switchSelctor(id));
+    await page.click(switchSelector(id));
     await page.waitForFunction(
-        `document.querySelector("${switchSelctor(
+        `document.querySelector("${switchSelector(
             id
         )}").getAttribute("data-enabled") !== "${origEnabled}"`
     );
