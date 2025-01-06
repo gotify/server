@@ -13,7 +13,6 @@ interface IProps {
     fClose: VoidFunction;
 }
 
-// TODO: rename to ChangePasswordDialog
 const SettingsDialog = ({fClose}: IProps) => {
     const dispatch = useAppDispatch();
     const [pass, setPass] = useState('');
