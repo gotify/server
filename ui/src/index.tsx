@@ -16,12 +16,13 @@ import store from './store/index';
 // the development server of vite will proxy this to the backend
 const devUrl = '/api/';
 
-const currentUrl = new URL(window.location.href);
-currentUrl.pathname = currentUrl.pathname.endsWith('/')
-    ? currentUrl.pathname
-    : currentUrl.pathname.substring(0, currentUrl.pathname.lastIndexOf('/')) + '/';
+const {port, hostname, protocol, pathname} = window.location;
+const slashes = protocol.concat('//');
+const path = pathname.endsWith('/') ? pathname : pathname.substring(0, pathname.lastIndexOf('/'));
+const url = slashes.concat(port ? hostname.concat(':', port) : hostname) + path;
+const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
 
-const prodUrl = currentUrl.toString();
+const prodUrl = urlWithSlash;
 
 const clientJS = async () => {
     if (import.meta.env.MODE === 'production') {

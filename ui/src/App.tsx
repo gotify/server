@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {createBrowserRouter, RouterProvider} from 'react-router-dom';
+import {createHashRouter, RouterProvider} from 'react-router-dom';
 import Applications from './application/Applications.tsx';
 import Clients from './client/Clients.tsx';
 import {checkAuthLoader} from './common/Auth.ts';
@@ -15,7 +15,7 @@ import {messageActions} from './store/message-slice.ts';
 import Login from './user/Login.tsx';
 import Users from './user/Users.tsx';
 
-const router = createBrowserRouter([
+const router = createHashRouter([
     {
         path: '/',
         element: <RootLayout />,
