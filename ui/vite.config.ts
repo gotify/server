@@ -66,16 +66,14 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         proxy: {
-            '/api': {
+            '^/(application|message|client|current|user|plugin|version|image)': {
                 target: 'http://localhost:3000/',
                 changeOrigin: true,
                 secure: false,
-                rewrite: (p) => p.replace(/^\/api/, ''),
             },
-            '/api/stream': {
+            '/stream': {
                 target: 'ws://localhost:3000/',
                 ws: true,
-                rewrite: (p) => p.replace(/^\/api/, ''),
                 rewriteWsOrigin: true,
             }
         },
@@ -83,16 +81,14 @@ export default defineConfig({
     },
     preview: {
         proxy: {
-            '/api': {
+            '^/(application|message|client|current|user|plugin|version)': {
                 target: 'http://localhost:3000/',
                 changeOrigin: true,
                 secure: false,
-                rewrite: (p) => p.replace(/^\/api/, ''),
             },
-            '/api/stream': {
+            '/stream': {
                 target: 'ws://localhost:3000/',
                 ws: true,
-                rewrite: (p) => p.replace(/^\/api/, ''),
                 rewriteWsOrigin: true,
             }
         },

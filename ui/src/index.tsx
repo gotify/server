@@ -13,9 +13,6 @@ import {loadStoredTheme} from './store/ui-actions.ts';
 import {Provider} from 'react-redux';
 import store from './store/index';
 
-// the development server of vite will proxy this to the backend
-const devUrl = '/api/';
-
 const {port, hostname, protocol, pathname} = window.location;
 const slashes = protocol.concat('//');
 const path = pathname.endsWith('/') ? pathname : pathname.substring(0, pathname.lastIndexOf('/'));
@@ -25,10 +22,8 @@ const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
 const prodUrl = urlWithSlash;
 
 const clientJS = async () => {
-    if (import.meta.env.MODE === 'production') {
-        config.set('url', prodUrl);
-    } else {
-        config.set('url', devUrl);
+    config.set('url', prodUrl);
+    if (import.meta.env.MODE !== 'production') {
         config.set('register', true);
     }
 
