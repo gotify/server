@@ -53,8 +53,7 @@ export const uploadImage = (id: number, file: Blob) => {
         const formData = new FormData();
         formData.append('file', file);
         const data = await sendRequest();
-        dispatch(appActions.remove(id));
-        dispatch(appActions.add(data));
+        dispatch(appActions.replace(data));
         dispatch(uiActions.addSnackMessage('Application image updated'));
     };
 };
