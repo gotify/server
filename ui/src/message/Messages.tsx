@@ -29,8 +29,8 @@ const Messages = () => {
     const hasMessages = messages.length !== 0;
 
     useEffect(() => {
-        dispatch(fetchMessages(appId));
-    }, [dispatch, appId]);
+        dispatch(fetchMessages());
+    }, [dispatch]);
 
     const label = (text: string) => (
         <Grid size={12}>

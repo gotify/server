@@ -5,18 +5,12 @@ import {AppDispatch} from './index.ts';
 import {messageActions} from './message-slice.ts';
 import {uiActions} from './ui-slice.ts';
 
-const AllMessages = -1;
-
-const refreshByApp = (appId: number) => {
-    return async (dispatch: AppDispatch) => {
-
-    }
-}
+export const AllMessages = -1;
 
 export const fetchMessages = (appId: number = AllMessages, since: number = 0) => {
     return async (dispatch: AppDispatch) => {
         const sendRequest = async (url: string) => {
-            const response = await axios.get(url);
+            const response = await axios.get<IPagedMessages>(url);
             return response.data;
         };
         dispatch(messageActions.loading(true));
@@ -28,11 +22,11 @@ export const fetchMessages = (appId: number = AllMessages, since: number = 0) =>
         }
         try {
             const data = await sendRequest(url);
-            dispatch(messageActions.set(data));
+            dispatch(messageActions.set({appId, pagedMessages: data}));
         } catch (error) {
             dispatch(messageActions.loading(false));
         }
-    }
+    };
 };
 
 export const removeSingleMessage = (message: IMessage) => {
@@ -40,19 +34,19 @@ export const removeSingleMessage = (message: IMessage) => {
         const sendRequest = async () => {
             const response = await axios.delete(config.get('url') + 'message/' + message.id);
             return response.data;
-        }
+        };
         await sendRequest();
         dispatch(messageActions.remove(message.id));
         dispatch(uiActions.addSnackMessage('Message deleted'));
-    }
-}
+    };
+};
 
 export const removeMessagesByApp = (app: IApplication | undefined) => {
     return async (dispatch: AppDispatch) => {
         const sendRequest = async (url: string) => {
             const response = await axios.delete(url);
             return response.data;
-        }
+        };
         let url;
         if (app === undefined) {
             url = config.get('url') + 'message';
@@ -65,5 +59,5 @@ export const removeMessagesByApp = (app: IApplication | undefined) => {
             dispatch(messageActions.removeByAppId(app.id));
             dispatch(uiActions.addSnackMessage(`Deleted all messages from ${app.name}`));
         }
-    }
-}
+    };
+};
