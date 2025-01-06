@@ -1,3 +1,4 @@
+import {grey, indigo} from '@mui/material/colors';
 import React, {useEffect} from 'react';
 import {Outlet, useNavigate} from 'react-router-dom';
 import {createTheme, CssBaseline, Theme, ThemeProvider} from '@mui/material';
@@ -36,11 +37,20 @@ const themeMap: Record<ThemeKey, Theme> = {
     light: createTheme({
         palette: {
             mode: 'light',
+            primary: {
+                main: indigo[500],
+            },
         },
     }),
     dark: createTheme({
         palette: {
             mode: 'dark',
+            primary: {
+                main: indigo[500],
+            },
+            background: {
+                paper: grey[800],
+            },
         },
     }),
 };
@@ -53,10 +63,10 @@ const RootLayout = () => {
     const showSettings = useAppSelector((state) => state.ui.showSettings);
     const authenticating = useAppSelector((state) => state.auth.authenticating);
     const loggedIn = useAppSelector((state) => state.auth.loggedIn);
-    const { classes } = useStyles();
+    const {classes} = useStyles();
 
     const theme = themeMap[themeKey];
-    const { version } = config.get('version');
+    const {version} = config.get('version');
 
     useEffect(() => {
         if (!loggedIn) {
@@ -68,17 +78,11 @@ const RootLayout = () => {
         <ThemeProvider theme={theme}>
             <div>
                 {!connectionErrorMessage ? null : (
-                    <ConnectionErrorBanner
-                        height={64}
-                        message={connectionErrorMessage}
-                    />
+                    <ConnectionErrorBanner height={64} message={connectionErrorMessage} />
                 )}
                 <div style={{display: 'flex', flexDirection: 'column'}}>
                     <CssBaseline />
-                    <Header
-                        style={{top: !connectionErrorMessage ? 0 : 64}}
-                        version={version}
-                    />
+                    <Header style={{top: !connectionErrorMessage ? 0 : 64}} version={version} />
                     <div style={{display: 'flex'}}>
                         <Navigation />
                         <main className={classes.content}>

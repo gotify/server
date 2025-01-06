@@ -82,6 +82,7 @@ const Header = ({version, style}: IProps) => {
         <AppBar
             position={theme.breakpoints.down('sm') ? 'sticky' : 'fixed'}
             style={style}
+            enableColorOnDark
             className={classes.appBar}>
             <Toolbar className={classes.toolbar}>
                 <div className={classes.title}>
