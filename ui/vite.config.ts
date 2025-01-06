@@ -9,7 +9,7 @@ export default defineConfig({
         outDir: 'build',
         assetsDir: 'static',
         emptyOutDir: true,
-        sourcemap: 'inline',
+        sourcemap: true,
         rollupOptions: {
             plugins: [
                 {
