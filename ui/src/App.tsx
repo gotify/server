@@ -80,6 +80,7 @@ const App = () => {
     useEffect(() => {
         if (loggedIn) {
             ws.listen((message) => {
+                dispatch(messageActions.loading(true));
                 dispatch(messageActions.add(message));
                 Notifications.notifyNewMessage(message);
                 if (message.priority >= 4) {

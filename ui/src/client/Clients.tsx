@@ -13,6 +13,7 @@ import Button from '@mui/material/Button';
 
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
+import LoadingSpinner from '../common/LoadingSpinner.tsx';
 import {useAppDispatch, useAppSelector} from '../store';
 import {createClient, deleteClient, fetchClients, updateClient} from './client-actions.ts';
 import AddClientDialog from './AddClientDialog';
@@ -24,6 +25,7 @@ import {LastUsedCell} from '../common/LastUsedCell';
 const Clients = () => {
     const dispatch = useAppDispatch();
     const clients = useAppSelector((state) => state.client.items);
+    const isLoading = useAppSelector((state) => state.client.isLoading);
     const [toDeleteClient, setToDeleteClient] = useState<IClient | null>();
     const [toUpdateClient, setToUpdateClient] = useState<IClient | null>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
@@ -56,33 +58,37 @@ const Clients = () => {
                     Create Client
                 </Button>
             }>
-            <Grid size={12}>
+            {isLoading ? (
+                <LoadingSpinner />
+            ): (
+                <Grid size={12}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
-                    <Table id="client-table">
-                        <TableHead>
-                            <TableRow style={{textAlign: 'center'}}>
-                                <TableCell>Name</TableCell>
-                                <TableCell style={{width: 200}}>Token</TableCell>
-                                <TableCell>Last Used</TableCell>
-                                <TableCell />
-                                <TableCell />
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {clients.map((client: IClient) => (
-                                <Row
-                                    key={client.id}
-                                    name={client.name}
-                                    value={client.token}
-                                    lastUsed={client.lastUsed}
-                                    fEdit={() => setToUpdateClient(client)}
-                                    fDelete={() => setToDeleteClient(client)}
-                                />
-                            ))}
-                        </TableBody>
-                    </Table>
-                </Paper>
-            </Grid>
+                        <Table id="client-table">
+                            <TableHead>
+                                <TableRow style={{textAlign: 'center'}}>
+                                    <TableCell>Name</TableCell>
+                                    <TableCell style={{width: 200}}>Token</TableCell>
+                                    <TableCell>Last Used</TableCell>
+                                    <TableCell />
+                                    <TableCell />
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {clients.map((client: IClient) => (
+                                    <Row
+                                        key={client.id}
+                                        name={client.name}
+                                        value={client.token}
+                                        lastUsed={client.lastUsed}
+                                        fEdit={() => setToUpdateClient(client)}
+                                        fDelete={() => setToDeleteClient(client)}
+                                    />
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </Paper>
+                </Grid>
+            )}
             {createDialog && (
                 <AddClientDialog
                     fClose={() => setCreateDialog(false)}

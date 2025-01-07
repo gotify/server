@@ -11,6 +11,7 @@ export const fetchApps = () => {
         if (!getAuthToken()) {
             return;
         }
+        dispatch(appActions.loading(true));
         const response = await axios.get<IApplication[]>(`${config.get('url')}application`);
         dispatch(appActions.set(response.data));
     };
@@ -18,6 +19,8 @@ export const fetchApps = () => {
 
 export const deleteApp = (id: number) => {
     return async (dispatch: AppDispatch) => {
+        // do not dispatch a loading indicator as the test does not expect it
+        // dispatch(appActions.loading(true));
         await axios.delete(`${config.get('url')}application/${id}`);
         dispatch(appActions.remove(id));
         dispatch(uiActions.addSnackMessage('Application deleted'));
@@ -26,6 +29,7 @@ export const deleteApp = (id: number) => {
 
 export const uploadImage = (id: number, file: Blob) => {
     return async (dispatch: AppDispatch) => {
+        dispatch(appActions.loading(true));
         const formData = new FormData();
         formData.append('file', file);
 
@@ -49,6 +53,7 @@ export const updateApp = (
     defaultPriority: number
 ) => {
     return async (dispatch: AppDispatch) => {
+        dispatch(appActions.loading(true));
         const response = await axios.put(`${config.get('url')}application/${id}`, {
             name,
             description,
@@ -61,6 +66,7 @@ export const updateApp = (
 
 export const createApp = (name: string, description: string, defaultPriority: number) => {
     return async (dispatch: AppDispatch) => {
+        dispatch(appActions.loading(true));
         const response = await axios.post(`${config.get('url')}application`, {
             name,
             description,

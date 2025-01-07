@@ -28,6 +28,7 @@ export const fetchMessages = (appId: number = AllMessages, since: number = 0) =>
 
 export const removeSingleMessage = (message: IMessage) => {
     return async (dispatch: AppDispatch) => {
+        dispatch(messageActions.loading(true));
         await axios.delete(config.get('url') + 'message/' + message.id);
         dispatch(messageActions.remove(message.id));
         dispatch(uiActions.addSnackMessage('Message deleted'));
@@ -36,6 +37,7 @@ export const removeSingleMessage = (message: IMessage) => {
 
 export const removeMessagesByApp = (app: IApplication | undefined) => {
     return async (dispatch: AppDispatch) => {
+        dispatch(messageActions.loading(true));
         let url;
         if (app === undefined) {
             url = config.get('url') + 'message';

@@ -15,6 +15,7 @@ import Button from '@mui/material/Button';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
+import LoadingSpinner from '../common/LoadingSpinner.tsx';
 import {useAppDispatch, useAppSelector} from '../store';
 import {fetchApps, uploadImage, deleteApp, updateApp, createApp} from './app-actions.ts';
 import AddApplicationDialog from './AddApplicationDialog';
@@ -26,6 +27,7 @@ import {LastUsedCell} from '../common/LastUsedCell';
 const Applications = () => {
     const dispatch = useAppDispatch();
     const apps = useAppSelector((state) => state.app.items);
+    const isLoading = useAppSelector((state) => state.app.isLoading);
     const [toDeleteApp, setToDeleteApp] = useState<IApplication | null>();
     const [toUpdateApp, setToUpdateApp] = useState<IApplication | null>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
@@ -83,47 +85,51 @@ const Applications = () => {
                 </Button>
             }
             maxWidth={1000}>
-            <Grid size={12}>
+            {isLoading ? (
+                <LoadingSpinner />
+            ) : (
+                <Grid size={12}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
-                    <Table id="app-table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell padding="checkbox" style={{width: 80}} />
-                                <TableCell>Name</TableCell>
-                                <TableCell>Token</TableCell>
-                                <TableCell>Description</TableCell>
-                                <TableCell>Priority</TableCell>
-                                <TableCell>Last Used</TableCell>
-                                <TableCell />
-                                <TableCell />
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {apps.map((app: IApplication) => (
-                                <Row
-                                    key={app.id}
-                                    description={app.description}
-                                    defaultPriority={app.defaultPriority}
-                                    image={app.image}
-                                    name={app.name}
-                                    value={app.token}
-                                    lastUsed={app.lastUsed}
-                                    fUpload={() => handleImageUploadClick(app.id)}
-                                    fDelete={() => setToDeleteApp(app)}
-                                    fEdit={() => setToUpdateApp(app)}
-                                    noDelete={app.internal}
-                                />
-                            ))}
-                        </TableBody>
-                    </Table>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        style={{display: 'none'}}
-                        onChange={onUploadImage}
-                    />
-                </Paper>
-            </Grid>
+                        <Table id="app-table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell padding="checkbox" style={{width: 80}} />
+                                    <TableCell>Name</TableCell>
+                                    <TableCell>Token</TableCell>
+                                    <TableCell>Description</TableCell>
+                                    <TableCell>Priority</TableCell>
+                                    <TableCell>Last Used</TableCell>
+                                    <TableCell />
+                                    <TableCell />
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {apps.map((app: IApplication) => (
+                                    <Row
+                                        key={app.id}
+                                        description={app.description}
+                                        defaultPriority={app.defaultPriority}
+                                        image={app.image}
+                                        name={app.name}
+                                        value={app.token}
+                                        lastUsed={app.lastUsed}
+                                        fUpload={() => handleImageUploadClick(app.id)}
+                                        fDelete={() => setToDeleteApp(app)}
+                                        fEdit={() => setToUpdateApp(app)}
+                                        noDelete={app.internal}
+                                    />
+                                ))}
+                            </TableBody>
+                        </Table>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            style={{display: 'none'}}
+                            onChange={onUploadImage}
+                        />
+                    </Paper>
+                </Grid>
+            )}
             {createDialog && (
                 <AddApplicationDialog
                     fClose={() => setCreateDialog(false)}

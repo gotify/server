@@ -11,6 +11,7 @@ import Settings from '@mui/icons-material/Settings';
 import {Switch, Button} from '@mui/material';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
+import LoadingSpinner from '../common/LoadingSpinner.tsx';
 import {useAppDispatch, useAppSelector} from '../store';
 import {changePluginEnableState, fetchPlugins} from '../plugin/plugin-actions.ts';
 import {IPlugin} from '../types';
@@ -18,6 +19,7 @@ import {IPlugin} from '../types';
 const Plugins = () => {
     const dispatch = useAppDispatch();
     const plugins = useAppSelector((state) => state.plugin.items);
+    const isLoading = useAppSelector((state) => state.plugin.isLoading);
 
     useEffect(() => {
         dispatch(fetchPlugins());
@@ -31,33 +33,37 @@ const Plugins = () => {
 
     return (
         <DefaultPage title="Plugins" maxWidth={1000}>
-            <Grid size={12}>
+            {isLoading ? (
+                <LoadingSpinner />
+            ) : (
+                <Grid size={12}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
-                    <Table id="plugin-table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>ID</TableCell>
-                                <TableCell>Enabled</TableCell>
-                                <TableCell>Name</TableCell>
-                                <TableCell>Token</TableCell>
-                                <TableCell>Details</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {plugins.map((plugin: IPlugin) => (
-                                <Row
-                                    key={plugin.token}
-                                    id={plugin.id}
-                                    token={plugin.token}
-                                    name={plugin.name}
-                                    enabled={plugin.enabled}
-                                    fToggleStatus={() => handleChangePluginStatus(plugin)}
-                                />
-                            ))}
-                        </TableBody>
-                    </Table>
-                </Paper>
-            </Grid>
+                        <Table id="plugin-table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>ID</TableCell>
+                                    <TableCell>Enabled</TableCell>
+                                    <TableCell>Name</TableCell>
+                                    <TableCell>Token</TableCell>
+                                    <TableCell>Details</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {plugins.map((plugin: IPlugin) => (
+                                    <Row
+                                        key={plugin.token}
+                                        id={plugin.id}
+                                        token={plugin.token}
+                                        name={plugin.name}
+                                        enabled={plugin.enabled}
+                                        fToggleStatus={() => handleChangePluginStatus(plugin)}
+                                    />
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </Paper>
+                </Grid>
+            )}
         </DefaultPage>
     );
 };

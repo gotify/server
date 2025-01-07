@@ -12,6 +12,7 @@ import Edit from '@mui/icons-material/Edit';
 import Button from '@mui/material/Button';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
+import LoadingSpinner from '../common/LoadingSpinner.tsx';
 import {useAppDispatch, useAppSelector} from '../store';
 import {createUser, deleteUser, fetchUsers, updateUser} from './user-actions.ts';
 import AddEditUserDialog from './AddEditUserDialog';
@@ -52,6 +53,7 @@ const Users = () => {
     const dispatch = useAppDispatch();
 
     const users = useAppSelector((state) => state.user.items);
+    const isLoading = useAppSelector((state) => state.user.isLoading);
     const [toDeleteUser, setToDeleteUser] = useState<IUser | null>();
     const [toUpdateUser, setToUpdateUser] = useState<IUser | null>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
@@ -85,30 +87,34 @@ const Users = () => {
                     Create User
                 </Button>
             }>
-            <Grid size={12}>
+            {isLoading ? (
+                <LoadingSpinner />
+            ): (
+                <Grid size={12}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
-                    <Table id="user-table">
-                        <TableHead>
-                            <TableRow style={{textAlign: 'center'}}>
-                                <TableCell>Name</TableCell>
-                                <TableCell>Admin</TableCell>
-                                <TableCell />
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {users.map((user: IUser) => (
-                                <UserRow
-                                    key={user.id}
-                                    name={user.name}
-                                    admin={user.admin}
-                                    fDelete={() => setToDeleteUser(user)}
-                                    fEdit={() => setToUpdateUser(user)}
-                                />
-                            ))}
-                        </TableBody>
-                    </Table>
-                </Paper>
-            </Grid>
+                        <Table id="user-table">
+                            <TableHead>
+                                <TableRow style={{textAlign: 'center'}}>
+                                    <TableCell>Name</TableCell>
+                                    <TableCell>Admin</TableCell>
+                                    <TableCell />
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {users.map((user: IUser) => (
+                                    <UserRow
+                                        key={user.id}
+                                        name={user.name}
+                                        admin={user.admin}
+                                        fDelete={() => setToDeleteUser(user)}
+                                        fEdit={() => setToUpdateUser(user)}
+                                    />
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </Paper>
+                </Grid>
+            )}
             {createDialog && (
                 <AddEditUserDialog
                     fClose={() => setCreateDialog(false)}

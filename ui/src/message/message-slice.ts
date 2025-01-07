@@ -38,15 +38,19 @@ export const messageSlice = createSlice({
         },
         add(state, action: PayloadAction<IMessage>) {
             state.items.unshift(action.payload);
+            state.loaded = true;
         },
         remove(state, action: PayloadAction<number>) {
             state.items = state.items.filter((item) => item.id !== action.payload);
+            state.loaded = true;
         },
         removeByAppId(state, action: PayloadAction<number>) {
             state.items = state.items.filter((item) => item.appid !== action.payload);
+            state.loaded = true;
         },
         clear(state) {
             state.items = [];
+            state.loaded = true;
         },
         loading(state, action: PayloadAction<boolean>) {
             state.loaded = !action.payload;
