@@ -38,12 +38,11 @@ const clientJS = async () => {
 
     const root = ReactDOM.createRoot(document.getElementById('root')!);
     root.render(
-        // TODO: enable strict mode again
-        // <React.StrictMode>
+        <React.StrictMode>
             <Provider store={store}>
                 <App />
             </Provider>
-        // </React.StrictMode>
+        </React.StrictMode>
     );
     unregister();
 };
