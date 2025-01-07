@@ -7,7 +7,7 @@ import Container from '../common/Container';
 import DefaultPage from '../common/DefaultPage';
 import * as config from '../config';
 import {useAppDispatch, useAppSelector} from '../store';
-import {login, register} from '../store/auth-actions.ts';
+import {login, register} from './auth-actions.ts';
 import RegistrationDialog from './Register';
 
 const Login = () => {

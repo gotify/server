@@ -3,8 +3,8 @@ import {getAuthToken} from '../common/Auth.ts';
 import * as config from '../config';
 import {IApplication} from '../types.ts';
 import {appActions} from './app-slice.ts';
-import {AppDispatch, RootState} from './index.ts';
-import {uiActions} from './ui-slice.ts';
+import {AppDispatch, RootState} from '../store/index.ts';
+import {uiActions} from '../store/ui-slice.ts';
 
 export const fetchApps = () => {
     return async (dispatch: AppDispatch) => {

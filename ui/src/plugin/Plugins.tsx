@@ -12,7 +12,7 @@ import {Switch, Button} from '@mui/material';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
 import {useAppDispatch, useAppSelector} from '../store';
-import {changePluginEnableState, fetchPlugins} from '../store/plugin-actions.ts';
+import {changePluginEnableState, fetchPlugins} from '../plugin/plugin-actions.ts';
 import {IPlugin} from '../types';
 
 const Plugins = () => {

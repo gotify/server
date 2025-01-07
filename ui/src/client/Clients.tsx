@@ -14,7 +14,7 @@ import Button from '@mui/material/Button';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import {useAppDispatch, useAppSelector} from '../store';
-import {createClient, deleteClient, fetchClients, updateClient} from '../store/client-actions.ts';
+import {createClient, deleteClient, fetchClients, updateClient} from './client-actions.ts';
 import AddClientDialog from './AddClientDialog';
 import UpdateClientDialog from './UpdateClientDialog';
 import {IClient} from '../types';

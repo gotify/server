@@ -2,12 +2,12 @@ import {configureStore} from '@reduxjs/toolkit';
 import {useDispatch, useSelector} from 'react-redux';
 
 import uiReducer from './ui-slice';
-import authReducer from './auth-slice';
-import appReducer from './app-slice';
-import userReducer from './user-slice';
-import clientReducer from './client-slice';
-import pluginsReducer from './plugin-slice';
-import messageReducer from './message-slice';
+import authReducer from '../user/auth-slice';
+import appReducer from '../application/app-slice';
+import userReducer from '../user/user-slice';
+import clientReducer from '../client/client-slice';
+import pluginsReducer from '../plugin/plugin-slice';
+import messageReducer from '../message/message-slice';
 
 const store = configureStore({
     reducer: {

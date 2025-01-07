@@ -21,7 +21,7 @@ import {
     requestPluginConfig,
     requestPluginDisplay,
     updatePluginConfig,
-} from '../store/plugin-actions.ts';
+} from '../plugin/plugin-actions.ts';
 import {IPlugin} from '../types';
 
 const PluginDetailView = () => {

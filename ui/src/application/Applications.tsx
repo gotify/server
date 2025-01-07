@@ -16,7 +16,7 @@ import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
 import {useAppDispatch, useAppSelector} from '../store';
-import {fetchApps, uploadImage, deleteApp, updateApp, createApp} from '../store/app-actions.ts';
+import {fetchApps, uploadImage, deleteApp, updateApp, createApp} from './app-actions.ts';
 import AddApplicationDialog from './AddApplicationDialog';
 import * as config from '../config';
 import UpdateDialog from './UpdateApplicationDialog';

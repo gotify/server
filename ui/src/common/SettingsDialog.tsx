@@ -7,7 +7,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import {useAppDispatch} from '../store';
-import {changePassword} from '../store/auth-actions.ts';
+import {changePassword} from '../user/auth-actions.ts';
 
 interface IProps {
     fClose: VoidFunction;

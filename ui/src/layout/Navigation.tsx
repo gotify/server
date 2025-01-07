@@ -18,8 +18,8 @@ import {
 import {DrawerProps} from '@mui/material/Drawer/Drawer';
 import CloseIcon from '@mui/icons-material/Close';
 import {useAppDispatch, useAppSelector} from '../store';
-import {fetchApps} from '../store/app-actions.ts';
-import {appActions} from '../store/app-slice.ts';
+import {fetchApps} from '../application/app-actions.ts';
+import {appActions} from '../application/app-slice.ts';
 import {uiActions} from '../store/ui-slice.ts';
 import * as config from '../config';
 

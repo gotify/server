@@ -2,8 +2,8 @@ import axios from 'axios';
 import * as config from '../config.ts';
 import {IClient} from '../types.ts';
 import {clientActions} from './client-slice.ts';
-import {AppDispatch} from './index.ts';
-import {uiActions} from './ui-slice.ts';
+import {AppDispatch} from '../store/index.ts';
+import {uiActions} from '../store/ui-slice.ts';
 
 export const fetchClients = () => {
     return async (dispatch: AppDispatch) => {

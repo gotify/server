@@ -1,8 +1,8 @@
 import axios from 'axios';
 import * as config from '../config.ts';
 import {IUser} from '../types.ts';
-import {AppDispatch} from './index.ts';
-import {uiActions} from './ui-slice.ts';
+import {AppDispatch} from '../store/index.ts';
+import {uiActions} from '../store/ui-slice.ts';
 import {userActions} from './user-slice.ts';
 
 export const fetchUsers = () => {

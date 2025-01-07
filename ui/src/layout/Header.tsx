@@ -18,7 +18,7 @@ import {Link} from 'react-router-dom';
 import {SxProps, useMediaQuery, useTheme} from '@mui/material';
 import {makeStyles} from 'tss-react/mui';
 import {useAppDispatch, useAppSelector} from '../store';
-import {logout} from '../store/auth-actions.ts';
+import {logout} from '../user/auth-actions.ts';
 import {uiActions} from '../store/ui-slice.ts';
 import {toggleTheme} from '../store/ui-actions.ts';
 

@@ -1,9 +1,9 @@
 import axios from 'axios';
 import * as config from '../config.ts';
 import {IApplication, IMessage, IPagedMessages} from '../types.ts';
-import {AppDispatch} from './index.ts';
+import {AppDispatch} from '../store/index.ts';
 import {messageActions} from './message-slice.ts';
-import {uiActions} from './ui-slice.ts';
+import {uiActions} from '../store/ui-slice.ts';
 
 export const AllMessages = -1;
 

@@ -1,5 +1,5 @@
 import {redirect} from 'react-router-dom';
-import {tokenKey} from '../store/auth-actions.ts';
+import {tokenKey} from '../user/auth-actions.ts';
 
 export function getAuthToken() {
     const token = localStorage.getItem(tokenKey);

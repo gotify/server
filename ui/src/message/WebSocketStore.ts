@@ -1,7 +1,7 @@
 import {AxiosError} from 'axios';
 import {getAuthToken} from '../common/Auth.ts';
 import * as config from '../config';
-import {tryAuthenticate} from '../store/auth-actions.ts';
+import {tryAuthenticate} from '../user/auth-actions.ts';
 import {uiActions} from '../store/ui-slice.ts';
 import {IMessage} from '../types';
 import state from '../store/index.ts';

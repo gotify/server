@@ -2,7 +2,7 @@ import React from 'react';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import {useAppDispatch} from '../store';
-import {tryReconnect} from '../store/auth-actions.ts';
+import {tryReconnect} from '../user/auth-actions.ts';
 
 interface ConnectionErrorBannerProps {
     height: number;

@@ -11,7 +11,7 @@ import PluginDetailView from './plugin/PluginDetailView.tsx';
 import Plugins from './plugin/Plugins.tsx';
 import * as Notifications from './snack/browserNotification.ts';
 import {useAppDispatch, useAppSelector} from './store';
-import {messageActions} from './store/message-slice.ts';
+import {messageActions} from './message/message-slice.ts';
 import Login from './user/Login.tsx';
 import Users from './user/Users.tsx';
 

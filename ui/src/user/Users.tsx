@@ -13,7 +13,7 @@ import Button from '@mui/material/Button';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import {useAppDispatch, useAppSelector} from '../store';
-import {createUser, deleteUser, fetchUsers, updateUser} from '../store/user-actions.ts';
+import {createUser, deleteUser, fetchUsers, updateUser} from './user-actions.ts';
 import AddEditUserDialog from './AddEditUserDialog';
 import {IUser} from '../types';
 

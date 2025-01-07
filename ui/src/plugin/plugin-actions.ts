@@ -1,9 +1,9 @@
 import axios from 'axios';
 import * as config from '../config.ts';
 import {IPlugin} from '../types.ts';
-import {AppDispatch, RootState} from './index.ts';
+import {AppDispatch, RootState} from '../store/index.ts';
 import {pluginActions} from './plugin-slice.ts';
-import {uiActions} from './ui-slice.ts';
+import {uiActions} from '../store/ui-slice.ts';
 
 export const requestPluginConfig = (id: number) => {
     return async (dispatch: AppDispatch) => {

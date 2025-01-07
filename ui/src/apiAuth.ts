@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {getAuthToken} from './common/Auth.ts';
 import store from './store';
-import {tryAuthenticate} from './store/auth-actions.ts';
+import {tryAuthenticate} from './user/auth-actions.ts';
 import {uiActions} from './store/ui-slice.ts';
 
 export const initAxios = () => {

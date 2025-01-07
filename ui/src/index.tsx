@@ -7,7 +7,7 @@ import {initAxios} from './apiAuth';
 import App from './App.tsx';
 import * as config from './config';
 import {unregister} from './registerServiceWorker';
-import {tryAuthenticate} from './store/auth-actions.ts';
+import {tryAuthenticate} from './user/auth-actions.ts';
 import {loadStoredTheme} from './store/ui-actions.ts';
 
 import {Provider} from 'react-redux';
