@@ -7,35 +7,22 @@ import {uiActions} from './ui-slice.ts';
 
 export const requestPluginConfig = (id: number) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            const response = await axios.get(`${config.get('url')}plugin/${id}/config`);
-            return response.data;
-        };
-
-        const data = await sendRequest();
-        dispatch(pluginActions.setDisplay(data));
+        const response = await axios.get(`${config.get('url')}plugin/${id}/config`);
+        dispatch(pluginActions.setDisplay(response.data));
     };
 };
 
 export const requestPluginDisplay = (id: number) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            const response = await axios.get(`${config.get('url')}plugin/${id}/display`);
-            return response.data;
-        };
-        const data = await sendRequest();
-        dispatch(pluginActions.setCurrentConfig(data));
+        const response = await axios.get(`${config.get('url')}plugin/${id}/display`);
+        dispatch(pluginActions.setCurrentConfig(response.data));
     };
 };
 
 export const fetchPlugins = () => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            const response = await axios.get<IPlugin[]>(`${config.get('url')}plugin`);
-            return response.data;
-        };
-        const data = await sendRequest();
-        dispatch(pluginActions.set(data));
+        const response = await axios.get<IPlugin[]>(`${config.get('url')}plugin`);
+        dispatch(pluginActions.set(response.data));
     };
 };
 
@@ -56,13 +43,9 @@ export const getPluginName = (id: number) => {
 
 export const updatePluginConfig = (id: number, newConfig: string) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            const response = await axios.post(`${config.get('url')}plugin/${id}/config`, newConfig, {
-                headers: {'content-type': 'application/x-yaml'},
-            });
-            return response.data;
-        }
-        await sendRequest();
+        await axios.post(`${config.get('url')}plugin/${id}/config`, newConfig, {
+            headers: {'content-type': 'application/x-yaml'},
+        });
         dispatch(uiActions.addSnackMessage('Plugin config updated'));
         await dispatch(fetchPlugins())
     }
@@ -70,11 +53,7 @@ export const updatePluginConfig = (id: number, newConfig: string) => {
 
 export const changePluginEnableState = (id: number, enabled: boolean) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            const response = await axios.post(`${config.get('url')}plugin/${id}/${enabled ? 'enable' : 'disable'}`);
-            return response.data;
-        }
-        await sendRequest();
+        await axios.post(`${config.get('url')}plugin/${id}/${enabled ? 'enable' : 'disable'}`);
         dispatch(uiActions.addSnackMessage(`Plugin ${enabled ? 'enabled' : 'disabled'}`));
         await dispatch(fetchPlugins());
     }

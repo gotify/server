@@ -9,10 +9,6 @@ export const AllMessages = -1;
 
 export const fetchMessages = (appId: number = AllMessages, since: number = 0) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async (url: string) => {
-            const response = await axios.get<IPagedMessages>(url);
-            return response.data;
-        };
         dispatch(messageActions.loading(true));
         let url;
         if (appId === AllMessages) {
@@ -20,9 +16,10 @@ export const fetchMessages = (appId: number = AllMessages, since: number = 0) =>
         } else {
             url = config.get('url') + 'application/' + appId + '/message?since=' + since;
         }
+
         try {
-            const data = await sendRequest(url);
-            dispatch(messageActions.set({appId, pagedMessages: data}));
+            const response = await axios.get<IPagedMessages>(url);
+            dispatch(messageActions.set({appId, pagedMessages: response.data}));
         } catch (error) {
             dispatch(messageActions.loading(false));
         }
@@ -31,11 +28,7 @@ export const fetchMessages = (appId: number = AllMessages, since: number = 0) =>
 
 export const removeSingleMessage = (message: IMessage) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            const response = await axios.delete(config.get('url') + 'message/' + message.id);
-            return response.data;
-        };
-        await sendRequest();
+        await axios.delete(config.get('url') + 'message/' + message.id);
         dispatch(messageActions.remove(message.id));
         dispatch(uiActions.addSnackMessage('Message deleted'));
     };
@@ -43,19 +36,15 @@ export const removeSingleMessage = (message: IMessage) => {
 
 export const removeMessagesByApp = (app: IApplication | undefined) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async (url: string) => {
-            const response = await axios.delete(url);
-            return response.data;
-        };
         let url;
         if (app === undefined) {
             url = config.get('url') + 'message';
-            await sendRequest(url);
+            await axios.delete(url);
             dispatch(messageActions.clear());
             dispatch(uiActions.addSnackMessage('Deleted all messages'));
         } else {
             url = config.get('url') + 'application/' + app.id + '/message';
-            await sendRequest(url);
+            await axios.delete(url);
             dispatch(messageActions.removeByAppId(app.id));
             dispatch(uiActions.addSnackMessage(`Deleted all messages from ${app.name}`));
         }

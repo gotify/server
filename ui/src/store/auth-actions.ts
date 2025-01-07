@@ -19,12 +19,8 @@ let reconnectTime = 7500;
 
 export const register = (username: string, password: string) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            return await axios.create().post(config.get('url') + 'user', {name: username, pass: password});
-        };
-
         try {
-            await sendRequest();
+            await axios.create().post(config.get('url') + 'user', {name: username, pass: password});
             dispatch(uiActions.addSnackMessage('User Created. Logging in...'));
             await dispatch(login(username, password));
             return true;
@@ -53,18 +49,14 @@ export const login = (username: string, password: string) => {
         const browser = detect();
         const name = (browser && browser.name + ' ' + browser.version) || 'unknown browser';
 
-        const sendRequest = async () => {
-            return axios.create().request({
+        try {
+            const response = await axios.create().request({
                 url: config.get('url') + 'client',
                 method: 'POST',
                 data: {name},
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 headers: {Authorization: 'Basic ' + Base64.encode(username + ':' + password)},
             });
-        };
-
-        try {
-            const response = await sendRequest();
             dispatch(
                 uiActions.addSnackMessage(`A client named '${name}' was created for your session.`)
             );
@@ -85,17 +77,13 @@ export const tryAuthenticate = () => {
             return Promise.reject(new Error('No token provided'));
         }
 
-        const sendRequest = async () => {
-            return await axios
+        try {
+            const response = await axios
                 .create()
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 .get<IUser>(config.get('url') + 'current/user', {
                     headers: {'X-Gotify-Key': getAuthToken()},
                 });
-        };
-
-        try {
-            const response = await sendRequest();
             dispatch(authActions.login(response.data));
             dispatch(uiActions.setConnectionErrorMessage(null));
             reconnectTime = 7500;

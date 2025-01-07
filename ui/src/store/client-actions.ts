@@ -7,23 +7,14 @@ import {uiActions} from './ui-slice.ts';
 
 export const fetchClients = () => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            const response = await axios.get<IClient[]>(`${config.get('url')}client`);
-            return response.data;
-        };
-
-        const data = await sendRequest();
-        dispatch(clientActions.set(data));
+        const response = await axios.get<IClient[]>(`${config.get('url')}client`);
+        dispatch(clientActions.set(response.data));
     };
 };
 
 export const deleteClient = (id: number) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            const response = await axios.delete<IClient>(`${config.get('url')}client/${id}`);
-            return response.data;
-        };
-        await sendRequest();
+        await axios.delete<IClient>(`${config.get('url')}client/${id}`);
         dispatch(clientActions.remove(id));
         dispatch(uiActions.addSnackMessage('Client deleted'));
     };
@@ -31,24 +22,16 @@ export const deleteClient = (id: number) => {
 
 export const updateClient = (id: number, name: string) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            const response = await axios.put<IClient>(`${config.get('url')}client/${id}`, {name});
-            return response.data;
-        }
-        const data = await sendRequest();
-        dispatch(clientActions.replace(data));
+        const response = await axios.put<IClient>(`${config.get('url')}client/${id}`, {name});
+        dispatch(clientActions.replace(response.data));
         dispatch(uiActions.addSnackMessage('Client deleted'));
     }
 }
 
 export const createClientNoNotification = (name: string) => {
     return async (dispatch: AppDispatch) => {
-        const sendRequest = async () => {
-            const response = await axios.post<IClient>(`${config.get('url')}client`, {name});
-            return response.data;
-        }
-        const data = await sendRequest();
-        dispatch(clientActions.add(data));
+        const response = await axios.post<IClient>(`${config.get('url')}client`, {name});
+        dispatch(clientActions.add(response.data));
     }
 }
 
