@@ -58,7 +58,7 @@ describe.sequential('Messages', () => {
     it('has no applications', async () => {
         expect(await count(page, `${naviId} .item`)).toBe(0);
     });
-    describe('create apps', () => {
+    describe.sequential('create apps', () => {
         it('Windows', async () => {
             windowsServerToken = await createApp('Windows');
             await page.reload();
@@ -84,11 +84,11 @@ describe.sequential('Messages', () => {
         await navigate('All Messages');
     });
     it('has no messages', async () => {
-        expect(await count(page, '#messages')).toBe(0);
+        expect(await count(page, '#messages .message')).toBe(0);
     });
     it('has no messages in app', async () => {
         await navigate('Windows');
-        expect(await count(page, '#messages')).toBe(0);
+        expect(await count(page, '#messages .message')).toBe(0);
         await navigate('All Messages');
     });
 

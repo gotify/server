@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import IconButton from '@mui/material/IconButton';
 import {Theme} from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
@@ -78,7 +78,6 @@ interface IProps {
     priority: number;
     fDelete: VoidFunction;
     extras?: IMessageExtras;
-    height: (height: number) => void;
 }
 
 const priorityColor = (priority: number) => {
@@ -91,14 +90,8 @@ const priorityColor = (priority: number) => {
     }
 };
 
-const Message = ({fDelete, title, date, image, priority, content, extras, height}: IProps) => {
+const Message = ({fDelete, title, date, image, priority, content, extras}: IProps) => {
     const {classes} = useStyles();
-    const node = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        // TODO: fix this
-        // height(node ? node.getBoundingClientRect().height : 0);
-    }, []);
 
     const renderContent = () => {
         switch (contentType(extras)) {
@@ -111,7 +104,7 @@ const Message = ({fDelete, title, date, image, priority, content, extras, height
     };
 
     return (
-        <div className={`${classes.wrapperPadding} message`} ref={node}>
+        <div className={`${classes.wrapperPadding} message`}>
             <Container
                 style={{
                     display: 'flex',
