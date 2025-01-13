@@ -6,7 +6,7 @@ issues:
 linters:
     enable:
         - asciicheck
-        - exportloopref
+        - copyloopvar
         - godot
         - gofmt
         - gofumpt
@@ -27,7 +27,7 @@ linters:
         - unused
         - whitespace
     disable:
-        - goerr113
+        - err113
         - errcheck
         - funlen
         - gochecknoglobals
@@ -35,9 +35,7 @@ linters:
         - goconst
         - gocyclo
         - godox
-        - gomnd
         - lll
-        - maligned
         - nestif
         - nlreturn
         - noctx
