@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/gotify/server/v2/config"
 	"github.com/gotify/server/v2/database"
@@ -30,7 +28,6 @@ func main() {
 	mode.Set(Mode)
 
 	fmt.Println("Starting Gotify version", vInfo.Version+"@"+BuildDate)
-	rand.Seed(time.Now().UnixNano())
 	conf := config.Get()
 
 	if conf.PluginsDir != "" {

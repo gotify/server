@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"plugin"
 	"strconv"
@@ -221,7 +221,7 @@ func (m *Manager) loadPlugins(directory string) error {
 		return nil
 	}
 
-	pluginFiles, err := ioutil.ReadDir(directory)
+	pluginFiles, err := os.ReadDir(directory)
 	if err != nil {
 		return fmt.Errorf("error while reading directory %s", err)
 	}

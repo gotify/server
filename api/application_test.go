@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http/httptest"
 	"os"
@@ -633,9 +632,9 @@ func mustOpen(f string) *os.File {
 }
 
 func fakeImage(t *testing.T, path string) {
-	data, err := ioutil.ReadFile("../test/assets/image.png")
+	data, err := os.ReadFile("../test/assets/image.png")
 	assert.Nil(t, err)
 	// Write data to dst
-	err = ioutil.WriteFile(path, data, 0o644)
+	err = os.WriteFile(path, data, 0o644)
 	assert.Nil(t, err)
 }
