@@ -1,5 +1,5 @@
-run:
-    skip-dirs:
+issues:
+    exclude-dirs:
         - plugin/example
         - plugin/testing
 
