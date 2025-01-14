@@ -13,7 +13,6 @@
     "@uiw/react-codemirror": "^4.23.7",
     "axios": "1.7.9",
     "detect-browser": "5.3.0",
-    "install": "^0.13.0",
     "js-base64": "3.7.7",
     "notifyjs": "3.0.0",
     "prop-types": "15.8.1",
