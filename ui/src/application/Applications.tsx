@@ -17,6 +17,7 @@ import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
 import LoadingSpinner from '../common/LoadingSpinner.tsx';
 import {useAppDispatch, useAppSelector} from '../store';
+import {uiActions} from '../store/ui-slice.ts';
 import {fetchApps, uploadImage, deleteApp, updateApp, createApp} from './app-actions.ts';
 import AddApplicationDialog from './AddApplicationDialog';
 import * as config from '../config';
@@ -28,13 +29,21 @@ const Applications = () => {
     const dispatch = useAppDispatch();
     const apps = useAppSelector((state) => state.app.items);
     const isLoading = useAppSelector((state) => state.app.isLoading);
+    const reloadRequired = useAppSelector((state) => state.ui.reloadRequired);
     const [toDeleteApp, setToDeleteApp] = useState<IApplication | null>();
     const [toUpdateApp, setToUpdateApp] = useState<IApplication | null>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     let uploadId = -1;
-    // select app from global state
+
+    // handle a requested reload
+    useEffect(() => {
+        if (reloadRequired) {
+            dispatch(uiActions.setReloadRequired(false));
+            dispatch(fetchApps());
+        }
+    }, [dispatch, reloadRequired]);
 
     // load applications from server
     useEffect(() => {
@@ -70,7 +79,7 @@ const Applications = () => {
 
     const handleDeleteApp = async () => {
         await dispatch(deleteApp(toDeleteApp!.id));
-    }
+    };
 
     return (
         <DefaultPage

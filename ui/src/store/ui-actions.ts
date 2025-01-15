@@ -1,3 +1,4 @@
+import {Middleware} from '@reduxjs/toolkit';
 import {AppDispatch, RootState} from './index.ts';
 import {localStorageThemeKey, ThemeKey, uiActions} from './ui-slice.ts';
 
@@ -27,4 +28,17 @@ export const loadStoredTheme = () => {
     }
 }
 
+// middleware that triggers a reload of messages as the websocket connection is affected by an unavailability of the server
+export const connectionErrorMiddleware: Middleware<{}, RootState> = (store) => (next) => (action) => {
+    const prevErrorMessage = store.getState().ui.connectionErrorMessage;
+    const result = next(action);
+    const nextErrorMessage = store.getState().ui.connectionErrorMessage;
 
+    if (action.type.startsWith('ui/')) {
+        if (prevErrorMessage !== null && nextErrorMessage === null) {
+            store.dispatch(uiActions.addSnackMessage('Connection to server restored, re-fetching data...'));
+            store.dispatch(uiActions.setReloadRequired(true));
+        }
+    }
+    return result;
+}

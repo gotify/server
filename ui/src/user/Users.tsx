@@ -14,6 +14,7 @@ import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import LoadingSpinner from '../common/LoadingSpinner.tsx';
 import {useAppDispatch, useAppSelector} from '../store';
+import {uiActions} from '../store/ui-slice.ts';
 import {createUser, deleteUser, fetchUsers, updateUser} from './user-actions.ts';
 import AddEditUserDialog from './AddEditUserDialog';
 import {IUser} from '../types';
@@ -54,26 +55,34 @@ const Users = () => {
 
     const users = useAppSelector((state) => state.user.items);
     const isLoading = useAppSelector((state) => state.user.isLoading);
+    const reloadRequired = useAppSelector((state) => state.ui.reloadRequired);
     const [toDeleteUser, setToDeleteUser] = useState<IUser | null>();
     const [toUpdateUser, setToUpdateUser] = useState<IUser | null>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
+
+    // handle a requested reload
+    useEffect(() => {
+        if (reloadRequired) {
+            dispatch(uiActions.setReloadRequired(false));
+            dispatch(fetchUsers());
+        }
+    }, [dispatch, reloadRequired]);
 
     useEffect(() => {
         dispatch(fetchUsers());
     }, [dispatch]);
 
     const handleCreateUser = async (name: string, pass: string | null, admin: boolean) => {
-        await dispatch(createUser(name, pass, admin))
-    }
+        await dispatch(createUser(name, pass, admin));
+    };
 
     const handleUpdateUser = async (name: string, pass: string | null, admin: boolean) => {
         await dispatch(updateUser(toUpdateUser!.id, name, pass, admin));
     };
 
-    const handleDeleteUser = async() => {
-        await dispatch(deleteUser(toDeleteUser!.id))
-    }
-
+    const handleDeleteUser = async () => {
+        await dispatch(deleteUser(toDeleteUser!.id));
+    };
 
     return (
         <DefaultPage
@@ -89,7 +98,7 @@ const Users = () => {
             }>
             {isLoading ? (
                 <LoadingSpinner />
-            ): (
+            ) : (
                 <Grid size={12}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="user-table">
@@ -140,6 +149,6 @@ const Users = () => {
             )}
         </DefaultPage>
     );
-}
+};
 
 export default Users;

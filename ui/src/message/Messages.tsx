@@ -6,6 +6,7 @@ import DefaultPage from '../common/DefaultPage';
 import Button from '@mui/material/Button';
 import {useAppDispatch, useAppSelector} from '../store';
 import {getAppName} from '../application/app-actions.ts';
+import {uiActions} from '../store/ui-slice.ts';
 import {fetchMessages, removeMessagesByApp, removeSingleMessage} from './message-actions.ts';
 import Message from './Message';
 import ConfirmDialog from '../common/ConfirmDialog';
@@ -20,6 +21,7 @@ const Messages = () => {
 
     const heights: Record<string, number> = {};
 
+    const reloadRequired = useAppSelector((state) => state.ui.reloadRequired);
     const selectedApp = useAppSelector((state) => state.app.items.find((app) => app.id === appId));
     const apps = useAppSelector((state) => state.app.items);
     const messages = useAppSelector((state) => appId === -1 ? state.message.items : state.message.items.filter((item) => item.appid === appId));
@@ -27,6 +29,14 @@ const Messages = () => {
     const name = dispatch(getAppName(appId));
     const messagesLoaded = useAppSelector((state) => state.message.loaded);
     const hasMessages = messages.length !== 0;
+
+    // handle a requested reload
+    useEffect(() => {
+        if (reloadRequired) {
+            dispatch(uiActions.setReloadRequired(false));
+            dispatch(fetchMessages());
+        }
+    }, [dispatch, reloadRequired]);
 
     useEffect(() => {
         dispatch(fetchMessages());
@@ -83,7 +93,7 @@ const Messages = () => {
                                     heights[message.id] = height;
                                 }
                             }}
-                                fDelete={() => dispatch(removeSingleMessage(message))}
+                            fDelete={() => dispatch(removeSingleMessage(message))}
                             title={message.title}
                             date={message.date}
                             content={message.message}

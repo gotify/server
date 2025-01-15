@@ -1,8 +1,11 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
+export type ThemeKey = 'dark' | 'light';
+
 interface UiState {
     themeKey: ThemeKey;
     connectionErrorMessage: string | null;
+    reloadRequired: boolean;
     navOpen: boolean;
     showSettings: boolean;
     snack: {
@@ -14,6 +17,7 @@ interface UiState {
 const initialUiState: UiState = {
     themeKey: 'dark',
     connectionErrorMessage: null,
+    reloadRequired: false,
     navOpen: false,
     showSettings: false,
     snack: {
@@ -21,7 +25,6 @@ const initialUiState: UiState = {
         message: null,
     },
 }
-export type ThemeKey = 'dark' | 'light';
 
 export const uiSlice = createSlice({
     name: 'ui',
@@ -49,11 +52,13 @@ export const uiSlice = createSlice({
             if (state.snack.messages.length === 0) {
                 throw new Error('There is no snack message');
             }
-            // TODO check if this is working with state
             state.snack.message = state.snack.messages[0];
             state.snack.messages.splice(0, 1);
+        },
+        setReloadRequired: (state, action: PayloadAction<boolean>) => {
+            state.reloadRequired = action.payload;
         }
-    }
+    },
 });
 
 export const localStorageThemeKey = 'gotify-theme';

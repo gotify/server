@@ -14,22 +14,30 @@ import CopyableSecret from '../common/CopyableSecret';
 import LoadingSpinner from '../common/LoadingSpinner.tsx';
 import {useAppDispatch, useAppSelector} from '../store';
 import {changePluginEnableState, fetchPlugins} from '../plugin/plugin-actions.ts';
+import {uiActions} from '../store/ui-slice.ts';
 import {IPlugin} from '../types';
 
 const Plugins = () => {
     const dispatch = useAppDispatch();
     const plugins = useAppSelector((state) => state.plugin.items);
     const isLoading = useAppSelector((state) => state.plugin.isLoading);
+    const reloadRequired = useAppSelector((state) => state.ui.reloadRequired);
+
+    // handle a requested reload
+    useEffect(() => {
+        if (reloadRequired) {
+            dispatch(uiActions.setReloadRequired(false));
+            dispatch(fetchPlugins());
+        }
+    }, [dispatch, reloadRequired]);
 
     useEffect(() => {
         dispatch(fetchPlugins());
     }, [dispatch]);
 
     const handleChangePluginStatus = async (plugin: IPlugin) => {
-        await dispatch(
-            changePluginEnableState(plugin.id, !plugin.enabled)
-        )
-    }
+        await dispatch(changePluginEnableState(plugin.id, !plugin.enabled));
+    };
 
     return (
         <DefaultPage title="Plugins" maxWidth={1000}>

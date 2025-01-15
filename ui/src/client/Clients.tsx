@@ -15,6 +15,7 @@ import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import LoadingSpinner from '../common/LoadingSpinner.tsx';
 import {useAppDispatch, useAppSelector} from '../store';
+import {uiActions} from '../store/ui-slice.ts';
 import {createClient, deleteClient, fetchClients, updateClient} from './client-actions.ts';
 import AddClientDialog from './AddClientDialog';
 import UpdateClientDialog from './UpdateClientDialog';
@@ -26,9 +27,18 @@ const Clients = () => {
     const dispatch = useAppDispatch();
     const clients = useAppSelector((state) => state.client.items);
     const isLoading = useAppSelector((state) => state.client.isLoading);
+    const reloadRequired = useAppSelector((state) => state.ui.reloadRequired);
     const [toDeleteClient, setToDeleteClient] = useState<IClient | null>();
     const [toUpdateClient, setToUpdateClient] = useState<IClient | null>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
+
+    // handle a requested reload
+    useEffect(() => {
+        if (reloadRequired) {
+            dispatch(uiActions.setReloadRequired(false));
+            dispatch(fetchClients());
+        }
+    }, [dispatch, reloadRequired]);
 
     useEffect(() => {
         dispatch(fetchClients());

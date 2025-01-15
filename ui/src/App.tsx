@@ -76,6 +76,7 @@ const ws = new WebSocketStore();
 const App = () => {
     const dispatch = useAppDispatch();
     const loggedIn = useAppSelector((state) => state.auth.loggedIn);
+    const reloadRequired = useAppSelector((state) => state.ui.reloadRequired);
 
     useEffect(() => {
         if (loggedIn) {
@@ -95,7 +96,7 @@ const App = () => {
         } else {
             ws.close();
         }
-    }, [dispatch, loggedIn]);
+    }, [dispatch, loggedIn, reloadRequired]);
 
 
     return (
