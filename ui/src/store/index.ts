@@ -1,5 +1,6 @@
 import {configureStore} from '@reduxjs/toolkit';
 import {useDispatch, useSelector} from 'react-redux';
+import {handleWebsocketMiddleware} from '../message/WebSocketStore.ts';
 
 import uiReducer from './ui-slice';
 import authReducer from '../user/auth-slice';
@@ -21,7 +22,7 @@ const store = configureStore({
         message: messageReducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(connectionErrorMiddleware),
+        getDefaultMiddleware().concat(handleWebsocketMiddleware, connectionErrorMiddleware),
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

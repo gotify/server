@@ -1,10 +1,13 @@
+import {Middleware} from '@reduxjs/toolkit';
 import {AxiosError} from 'axios';
 import {getAuthToken} from '../common/Auth.ts';
 import * as config from '../config';
+import * as Notifications from '../snack/browserNotification.ts';
 import {tryAuthenticate} from '../user/auth-actions.ts';
 import {uiActions} from '../store/ui-slice.ts';
 import {IMessage} from '../types';
-import state from '../store/index.ts';
+import state, {RootState} from '../store/index.ts';
+import {messageActions} from './message-slice.ts';
 
 export class WebSocketStore {
     private wsActive = false;
@@ -57,3 +60,38 @@ export class WebSocketStore {
 
     public close = () => this.ws?.close(1000, 'WebSocketStore#close');
 }
+
+const ws = new WebSocketStore();
+
+export const handleWebsocketMiddleware: Middleware<{}, RootState> =
+    (store) => (next) => (action) => {
+        const prevLoginStatus = store.getState().auth.loggedIn;
+        const prevReloadRequired = store.getState().ui.reloadRequired;
+        const result = next(action);
+        const nextLoginStatus = store.getState().auth.loggedIn;
+        const nextReloadRequired = store.getState().ui.reloadRequired;
+
+        // Open websocket connection on login and if a reload is required
+        if ((action.type.startsWith('auth/login') && prevLoginStatus !== nextLoginStatus)
+            || (action.type.startsWith('ui/setReloadRequired') && prevReloadRequired !== nextReloadRequired && nextReloadRequired)
+        ) {
+            ws.listen((message) => {
+                store.dispatch(messageActions.loading(true));
+                store.dispatch(messageActions.add(message));
+                Notifications.notifyNewMessage(message);
+                if (message.priority >= 4) {
+                    const src = 'static/notification.ogg';
+                    const audio = new Audio(src);
+                    audio.play();
+                }
+            });
+            window.onbeforeunload = () => {
+                ws.close();
+            };
+        }
+        // Close websocket if the user logs out
+        if (action.type.startsWith('auth/logout') && prevLoginStatus !== nextLoginStatus && !nextLoginStatus) {
+            ws.close();
+        }
+        return result;
+    };
