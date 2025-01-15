@@ -35,7 +35,7 @@ const Applications = () => {
     const [createDialog, setCreateDialog] = useState<boolean>(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    let uploadId = -1;
+    let uploadId = useRef(-1);
 
     // handle a requested reload
     useEffect(() => {
@@ -51,7 +51,7 @@ const Applications = () => {
     }, [dispatch]);
 
     const handleImageUploadClick = (id: number) => {
-        uploadId = id;
+        uploadId.current = id;
         if (fileInputRef.current) {
             fileInputRef.current.click();
         }
@@ -63,7 +63,7 @@ const Applications = () => {
             return;
         }
         if (['image/png', 'image/jpeg', 'image/gif'].indexOf(file.type) !== -1) {
-            dispatch(uploadImage(uploadId, file));
+            dispatch(uploadImage(uploadId.current, file));
         } else {
             alert('Uploaded file must be of type png, jpeg or gif.');
         }
