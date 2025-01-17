@@ -1,7 +1,6 @@
 package test
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 )
@@ -23,6 +22,6 @@ func (c TmpDir) Clean() error {
 
 // NewTmpDir returns a new handle to a tmp dir.
 func NewTmpDir(prefix string) TmpDir {
-	dir, _ := ioutil.TempDir("", prefix)
+	dir, _ := os.MkdirTemp("", prefix)
 	return TmpDir{dir}
 }

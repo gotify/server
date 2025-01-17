@@ -3,7 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/location"
@@ -385,7 +385,7 @@ func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 		}
 
 		newConf := instance.DefaultConfig()
-		newconfBytes, err := ioutil.ReadAll(ctx.Request.Body)
+		newconfBytes, err := io.ReadAll(ctx.Request.Body)
 		if err != nil {
 			ctx.AbortWithError(500, err)
 			return

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/http/httptest"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +11,7 @@ import (
 
 // BodyEquals asserts the content from the response recorder with the encoded json of the provided instance.
 func BodyEquals(t assert.TestingT, obj interface{}, recorder *httptest.ResponseRecorder) {
-	bytes, err := ioutil.ReadAll(recorder.Body)
+	bytes, err := io.ReadAll(recorder.Body)
 	assert.Nil(t, err)
 	actual := string(bytes)
 

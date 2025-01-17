@@ -3,7 +3,7 @@ package error
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 	"testing"
 
@@ -74,7 +74,7 @@ func TestValidationError(t *testing.T) {
 }
 
 func assertJSONResponse(t *testing.T, rec *httptest.ResponseRecorder, code int, json string) {
-	bytes, _ := ioutil.ReadAll(rec.Body)
+	bytes, _ := io.ReadAll(rec.Body)
 	assert.Equal(t, code, rec.Code)
 	assert.JSONEq(t, json, string(bytes))
 }
