@@ -1,4 +1,4 @@
-import {TextField, TextFieldProps} from '@material-ui/core';
+import {TextField, TextFieldProps} from '@mui/material';
 import React from 'react';
 
 export interface NumberFieldProps {

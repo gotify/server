@@ -1,10 +1,11 @@
 // todo before all tests jest start puppeteer
 import {Page} from 'puppeteer';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {newTest, GotifyTest} from './setup';
 import {clickByText, count, innerText, waitForCount, waitForExists} from './utils';
 import * as auth from './authentication';
 import * as selector from './selector';
-import axios from 'axios';
+import axios, {AxiosRequestConfig} from 'axios';
 import {IApplication, IMessage, IMessageExtras} from '../types';
 
 let page: Page;
@@ -17,7 +18,7 @@ beforeAll(async () => {
 afterAll(async () => await gotify.close());
 
 // eslint-disable-next-line
-const axiosAuth = {auth: {username: 'admin', password: 'admin'}};
+const axiosAuth: AxiosRequestConfig = {auth: {username: 'admin', password: 'admin'}};
 
 let windowsServerToken: string;
 let linuxServerToken: string;
@@ -36,7 +37,7 @@ const navigate = async (appName: string) => {
 };
 
 // eslint-disable-next-line
-describe('Messages', () => {
+describe.sequential('Messages', () => {
     it('does login', async () => await auth.login(page));
     it('is on messages', async () => {
         await waitForExists(page, selector.heading(), 'All Messages');
@@ -46,7 +47,7 @@ describe('Messages', () => {
     });
     const createApp = (name: string) =>
         axios
-            .post<IApplication>(`${gotify.url}/application`, {name}, axiosAuth)
+            .post<IApplication>(`${gotify.url}application`, {name}, axiosAuth)
             .then((resp) => resp.data.token);
     it('shows navigation', async () => {
         await page.waitForSelector(naviId);
@@ -57,7 +58,7 @@ describe('Messages', () => {
     it('has no applications', async () => {
         expect(await count(page, `${naviId} .item`)).toBe(0);
     });
-    describe('create apps', () => {
+    describe.sequential('create apps', () => {
         it('Windows', async () => {
             windowsServerToken = await createApp('Windows');
             await page.reload();
@@ -83,11 +84,11 @@ describe('Messages', () => {
         await navigate('All Messages');
     });
     it('has no messages', async () => {
-        expect(await count(page, '#messages')).toBe(0);
+        expect(await count(page, '#messages .message')).toBe(0);
     });
     it('has no messages in app', async () => {
         await navigate('Windows');
-        expect(await count(page, '#messages')).toBe(0);
+        expect(await count(page, '#messages .message')).toBe(0);
         await navigate('All Messages');
     });
 
@@ -98,7 +99,7 @@ describe('Messages', () => {
         for (const item of messages) {
             const message = await innerText(item, '.content');
             const title = await innerText(item, '.title');
-            result.push({message, title});
+            result.push({title, message});
         }
         return result;
     };
@@ -121,7 +122,7 @@ describe('Messages', () => {
     const backup3 = m('Backup done', 'Gotify Backup finished (0.1MB).');
 
     const createMessage = (msg: Partial<IMessage>, token: string) =>
-        axios.post<IMessage>(`${gotify.url}/message`, msg, {
+        axios.post<IMessage>(`${gotify.url}message`, msg, {
             headers: {'X-Gotify-Key': token},
         });
 
@@ -155,7 +156,7 @@ describe('Messages', () => {
         expect(await extractMessages(0)).toEqual([]);
         await navigate('All Messages');
     });
-    describe('add some messages', () => {
+    describe.sequential('add some messages', () => {
         it('1', async () => {
             await createMessage(windows2, windowsServerToken);
             await expectMessages({
@@ -229,7 +230,7 @@ describe('Messages', () => {
             backup: [backup1],
         });
     });
-    describe('add some more messages', () => {
+    describe.sequential('add some more messages', () => {
         it('1', async () => {
             await createMessage(linux3, linuxServerToken);
             await expectMessages({

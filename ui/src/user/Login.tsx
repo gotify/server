@@ -1,93 +1,103 @@
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
-import React, {Component, FormEvent} from 'react';
+import React, {useRef, useState} from 'react';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid2';
+import TextField from '@mui/material/TextField';
+import {useNavigate} from 'react-router';
 import Container from '../common/Container';
 import DefaultPage from '../common/DefaultPage';
-import {observable} from 'mobx';
-import {observer} from 'mobx-react';
-import {inject, Stores} from '../inject';
 import * as config from '../config';
+import {useAppDispatch, useAppSelector} from '../store';
+import {login, register} from './auth-actions.ts';
 import RegistrationDialog from './Register';
 
-@observer
-class Login extends Component<Stores<'currentUser'>> {
-    @observable
-    private username = '';
-    @observable
-    private password = '';
-    @observable
-    private registerDialog = false;
+const Login = () => {
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    const formRef = useRef<HTMLFormElement>(null);
+    const [showRegisterDialog, setShowRegisterDialog] = useState(false);
+    const connectionErrorMessage = useAppSelector((state) => state.ui.connectionErrorMessage);
 
-    public render() {
-        const {username, password, registerDialog} = this;
-        return (
-            <DefaultPage title="Login" rightControl={this.registerButton()} maxWidth={250}>
-                <Grid item xs={12} style={{textAlign: 'center'}}>
-                    <Container>
-                        <form onSubmit={this.preventDefault} id="login-form">
-                            <TextField
-                                autoFocus
-                                className="name"
-                                label="Username"
-                                margin="dense"
-                                autoComplete="username"
-                                value={username}
-                                onChange={(e) => (this.username = e.target.value)}
-                            />
-                            <TextField
-                                type="password"
-                                className="password"
-                                label="Password"
-                                margin="normal"
-                                autoComplete="current-password"
-                                value={password}
-                                onChange={(e) => (this.password = e.target.value)}
-                            />
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                size="large"
-                                className="login"
-                                color="primary"
-                                disabled={!!this.props.currentUser.connectionErrorMessage}
-                                style={{marginTop: 15, marginBottom: 5}}
-                                onClick={this.login}>
-                                Login
-                            </Button>
-                        </form>
-                    </Container>
-                </Grid>
-                {registerDialog && (
-                    <RegistrationDialog
-                        fClose={() => (this.registerDialog = false)}
-                        fOnSubmit={this.props.currentUser.register}
-                    />
-                )}
-            </DefaultPage>
-        );
-    }
-
-    private login = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
-        this.props.currentUser.login(this.username, this.password);
+    const handleLogin = (formData: FormData) => {
+        const username = formData.get('username') as string;
+        const password = formData.get('password') as string;
+        dispatch(login(username, password))
+            .then(() => navigate('/'))
+            .catch((error) => {
+                console.log(error);
+                formRef.current!.reset();
+            });
     };
 
-    private registerButton = () => {
+    const handleRegister = async (username: string, password: string) => {
+        return dispatch(register(username, password))
+            .then(() => {
+                navigate('/');
+                return true;
+            })
+            .catch((error) => {
+                console.error(error);
+                return false;
+            });
+    }
+
+    const registerButton = () => {
         if (config.get('register'))
             return (
                 <Button
                     id="register"
                     variant="contained"
                     color="primary"
-                    onClick={() => (this.registerDialog = true)}>
+                    onClick={() => setShowRegisterDialog(true)}>
                     Register
                 </Button>
             );
         else return null;
     };
 
-    private preventDefault = (e: FormEvent<HTMLFormElement>) => e.preventDefault();
-}
+    return (
+        <DefaultPage title="Login" rightControl={registerButton()} maxWidth={250}>
+            <Grid size={12} style={{textAlign: 'center'}}>
+                <Container>
+                    <form action={handleLogin} ref={formRef} id="login-form">
+                        <TextField
+                            name="username"
+                            variant="standard"
+                            autoFocus
+                            className="name"
+                            label="Username"
+                            margin="dense"
+                            autoComplete="username"
+                        />
+                        <TextField
+                            name="password"
+                            variant="standard"
+                            type="password"
+                            className="password"
+                            label="Password"
+                            margin="normal"
+                            autoComplete="current-password"
+                        />
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            size="large"
+                            className="login"
+                            color="primary"
+                            disabled={!!connectionErrorMessage}
+                            style={{marginTop: 15, marginBottom: 5}}>
+                            Login
+                        </Button>
+                    </form>
+                </Container>
+            </Grid>
+            {showRegisterDialog && (
+                <RegistrationDialog
+                    fClose={() => setShowRegisterDialog(false)}
+                    fOnSubmit={handleRegister}
+                />
+            )}
+        </DefaultPage>
+    );
+};
 
-export default inject('currentUser')(Login);
+export default Login;

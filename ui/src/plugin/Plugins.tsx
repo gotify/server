@@ -1,32 +1,50 @@
-import React, {Component, SFC} from 'react';
+import React, {useEffect} from 'react';
 import {Link} from 'react-router-dom';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Settings from '@material-ui/icons/Settings';
-import {Switch, Button} from '@material-ui/core';
+import Grid from '@mui/material/Grid2';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Settings from '@mui/icons-material/Settings';
+import {Switch, Button} from '@mui/material';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
-import {observer} from 'mobx-react';
-import {inject, Stores} from '../inject';
+import LoadingSpinner from '../common/LoadingSpinner.tsx';
+import {useAppDispatch, useAppSelector} from '../store';
+import {changePluginEnableState, fetchPlugins} from '../plugin/plugin-actions.ts';
+import {uiActions} from '../store/ui-slice.ts';
 import {IPlugin} from '../types';
 
-@observer
-class Plugins extends Component<Stores<'pluginStore'>> {
-    public componentDidMount = () => this.props.pluginStore.refresh();
+const Plugins = () => {
+    const dispatch = useAppDispatch();
+    const plugins = useAppSelector((state) => state.plugin.items);
+    const isLoading = useAppSelector((state) => state.plugin.isLoading);
+    const reloadRequired = useAppSelector((state) => state.ui.reloadRequired);
 
-    public render() {
-        const {
-            props: {pluginStore},
-        } = this;
-        const plugins = pluginStore.getItems();
-        return (
-            <DefaultPage title="Plugins" maxWidth={1000}>
-                <Grid item xs={12}>
+    // handle a requested reload
+    useEffect(() => {
+        if (reloadRequired) {
+            dispatch(uiActions.setReloadRequired(false));
+            dispatch(fetchPlugins());
+        }
+    }, [dispatch, reloadRequired]);
+
+    useEffect(() => {
+        dispatch(fetchPlugins());
+    }, [dispatch]);
+
+    const handleChangePluginStatus = async (plugin: IPlugin) => {
+        await dispatch(changePluginEnableState(plugin.id, !plugin.enabled));
+    };
+
+    return (
+        <DefaultPage title="Plugins" maxWidth={1000}>
+            {isLoading ? (
+                <LoadingSpinner />
+            ) : (
+                <Grid size={12}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="plugin-table">
                             <TableHead>
@@ -46,22 +64,17 @@ class Plugins extends Component<Stores<'pluginStore'>> {
                                         token={plugin.token}
                                         name={plugin.name}
                                         enabled={plugin.enabled}
-                                        fToggleStatus={() =>
-                                            this.props.pluginStore.changeEnabledState(
-                                                plugin.id,
-                                                !plugin.enabled
-                                            )
-                                        }
+                                        fToggleStatus={() => handleChangePluginStatus(plugin)}
                                     />
                                 ))}
                             </TableBody>
                         </Table>
                     </Paper>
                 </Grid>
-            </DefaultPage>
-        );
-    }
-}
+            )}
+        </DefaultPage>
+    );
+};
 
 interface IRowProps {
     id: number;
@@ -71,7 +84,7 @@ interface IRowProps {
     fToggleStatus: VoidFunction;
 }
 
-const Row: SFC<IRowProps> = observer(({name, id, token, enabled, fToggleStatus}) => (
+const Row = ({name, id, token, enabled, fToggleStatus}: IRowProps) => (
     <TableRow>
         <TableCell>{id}</TableCell>
         <TableCell>
@@ -94,6 +107,6 @@ const Row: SFC<IRowProps> = observer(({name, id, token, enabled, fToggleStatus})
             </Link>
         </TableCell>
     </TableRow>
-));
+);
 
-export default inject('pluginStore')(Plugins);
+export default Plugins;
