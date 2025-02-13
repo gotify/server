@@ -19,7 +19,7 @@ require-version:
 	if [ -z ${VERSION} ]; then echo "Need to set VERSION" && exit 1; fi;
 
 test-coverage:
-	go test --race -coverprofile=coverage.txt -covermode=atomic ./...
+	go test --race -coverprofile=coverage.txt -covermode=atomic -coverpkg=./... ./...
 
 format:
 	goimports -w $(shell find . -type f -name '*.go' -not -path "./vendor/*")
