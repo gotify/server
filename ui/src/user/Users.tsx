@@ -1,30 +1,32 @@
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Paper from '@material-ui/core/Paper';
-import {withStyles, WithStyles} from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Delete from '@material-ui/icons/Delete';
-import Edit from '@material-ui/icons/Edit';
-import React, {Component, SFC} from 'react';
+import React, {useEffect, useState} from 'react';
+import Grid from '@mui/material/Grid2';
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Delete from '@mui/icons-material/Delete';
+import Edit from '@mui/icons-material/Edit';
+import Button from '@mui/material/Button';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
-import Button from '@material-ui/core/Button';
-import AddEditDialog from './AddEditUserDialog';
-import {observer} from 'mobx-react';
-import {observable} from 'mobx';
-import {inject, Stores} from '../inject';
+import LoadingSpinner from '../common/LoadingSpinner.tsx';
+import {useAppDispatch, useAppSelector} from '../store';
+import {uiActions} from '../store/ui-slice.ts';
+import {createUser, deleteUser, fetchUsers, updateUser} from './user-actions.ts';
+import AddEditUserDialog from './AddEditUserDialog';
 import {IUser} from '../types';
 
-const styles = () => ({
-    wrapper: {
-        margin: '0 auto',
-        maxWidth: 700,
-    },
-});
+// const useStyles = makeStyles()(() => {
+//     return {
+//         wrapper: {
+//             margin: '0 auto',
+//             maxWidth: 700,
+//         },
+//     };
+// });
 
 interface IRowProps {
     name: string;
@@ -33,7 +35,7 @@ interface IRowProps {
     fEdit: VoidFunction;
 }
 
-const UserRow: SFC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
+const UserRow = ({name, admin, fDelete, fEdit}: IRowProps) => (
     <TableRow>
         <TableCell>{name}</TableCell>
         <TableCell>{admin ? 'Yes' : 'No'}</TableCell>
@@ -48,38 +50,56 @@ const UserRow: SFC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
     </TableRow>
 );
 
-@observer
-class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
-    @observable
-    private createDialog = false;
-    @observable
-    private deleteId: number | false = false;
-    @observable
-    private editId: number | false = false;
+const Users = () => {
+    const dispatch = useAppDispatch();
 
-    public componentDidMount = () => this.props.userStore.refresh();
+    const users = useAppSelector((state) => state.user.items);
+    const isLoading = useAppSelector((state) => state.user.isLoading);
+    const reloadRequired = useAppSelector((state) => state.ui.reloadRequired);
+    const [toDeleteUser, setToDeleteUser] = useState<IUser | null>();
+    const [toUpdateUser, setToUpdateUser] = useState<IUser | null>();
+    const [createDialog, setCreateDialog] = useState<boolean>(false);
 
-    public render() {
-        const {
-            deleteId,
-            editId,
-            createDialog,
-            props: {userStore},
-        } = this;
-        const users = userStore.getItems();
-        return (
-            <DefaultPage
-                title="Users"
-                rightControl={
-                    <Button
-                        id="create-user"
-                        variant="contained"
-                        color="primary"
-                        onClick={() => (this.createDialog = true)}>
-                        Create User
-                    </Button>
-                }>
-                <Grid item xs={12}>
+    // handle a requested reload
+    useEffect(() => {
+        if (reloadRequired) {
+            dispatch(uiActions.setReloadRequired(false));
+            dispatch(fetchUsers());
+        }
+    }, [dispatch, reloadRequired]);
+
+    useEffect(() => {
+        dispatch(fetchUsers());
+    }, [dispatch]);
+
+    const handleCreateUser = async (name: string, pass: string | null, admin: boolean) => {
+        await dispatch(createUser(name, pass, admin));
+    };
+
+    const handleUpdateUser = async (name: string, pass: string | null, admin: boolean) => {
+        await dispatch(updateUser(toUpdateUser!.id, name, pass, admin));
+    };
+
+    const handleDeleteUser = async () => {
+        await dispatch(deleteUser(toDeleteUser!.id));
+    };
+
+    return (
+        <DefaultPage
+            title="Users"
+            rightControl={
+                <Button
+                    id="create-user"
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setCreateDialog(true)}>
+                    Create User
+                </Button>
+            }>
+            {isLoading ? (
+                <LoadingSpinner />
+            ) : (
+                <Grid size={12}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="user-table">
                             <TableHead>
@@ -95,40 +115,40 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
                                         key={user.id}
                                         name={user.name}
                                         admin={user.admin}
-                                        fDelete={() => (this.deleteId = user.id)}
-                                        fEdit={() => (this.editId = user.id)}
+                                        fDelete={() => setToDeleteUser(user)}
+                                        fEdit={() => setToUpdateUser(user)}
                                     />
                                 ))}
                             </TableBody>
                         </Table>
                     </Paper>
                 </Grid>
-                {createDialog && (
-                    <AddEditDialog
-                        fClose={() => (this.createDialog = false)}
-                        fOnSubmit={userStore.create}
-                    />
-                )}
-                {editId !== false && (
-                    <AddEditDialog
-                        fClose={() => (this.editId = false)}
-                        fOnSubmit={userStore.update.bind(this, editId)}
-                        name={userStore.getByID(editId).name}
-                        admin={userStore.getByID(editId).admin}
-                        isEdit={true}
-                    />
-                )}
-                {deleteId !== false && (
-                    <ConfirmDialog
-                        title="Confirm Delete"
-                        text={'Delete ' + userStore.getByID(deleteId).name + '?'}
-                        fClose={() => (this.deleteId = false)}
-                        fOnSubmit={() => userStore.remove(deleteId)}
-                    />
-                )}
-            </DefaultPage>
-        );
-    }
-}
+            )}
+            {createDialog && (
+                <AddEditUserDialog
+                    fClose={() => setCreateDialog(false)}
+                    fOnSubmit={handleCreateUser}
+                />
+            )}
+            {toUpdateUser != null && (
+                <AddEditUserDialog
+                    fClose={() => setToUpdateUser(null)}
+                    fOnSubmit={handleUpdateUser}
+                    name={toUpdateUser?.name}
+                    admin={toUpdateUser?.admin}
+                    isEdit={true}
+                />
+            )}
+            {toDeleteUser != null && (
+                <ConfirmDialog
+                    title="Confirm Delete"
+                    text={'Delete ' + toDeleteUser.name + '?'}
+                    fClose={() => setToDeleteUser(null)}
+                    fOnSubmit={handleDeleteUser}
+                />
+            )}
+        </DefaultPage>
+    );
+};
 
-export default withStyles(styles)(inject('userStore')(Users));
+export default Users;

@@ -1,6 +1,7 @@
 import * as os from 'os';
 import {Page} from 'puppeteer';
 import axios from 'axios';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import * as auth from './authentication';
 import * as selector from './selector';
@@ -34,16 +35,16 @@ const hiddenToken = '•••••••••••••••';
 
 const $table = selector.table('#plugin-table');
 
-const switchSelctor = (id: number) => $table.cell(id, Col.SetEnabled, '[data-enabled]');
+const switchSelector = (id: number) => $table.cell(id, Col.SetEnabled, '[data-enabled]');
 
 const enabledState = async (id: number) =>
-    (await page.$eval(switchSelctor(id), (el) => el.getAttribute('data-enabled'))) === 'true';
+    (await page.$eval(switchSelector(id), (el) => el.getAttribute('data-enabled'))) === 'true';
 
 const toggleEnabled = async (id: number) => {
     const origEnabled = (await enabledState(id)).toString();
-    await page.click(switchSelctor(id));
+    await page.click(switchSelector(id));
     await page.waitForFunction(
-        `document.querySelector("${switchSelctor(
+        `document.querySelector("${switchSelector(
             id
         )}").getAttribute("data-enabled") !== "${origEnabled}"`
     );
@@ -75,8 +76,8 @@ const inDetailPage = async (id: number, callback: () => Promise<void>) => {
     await page.waitForSelector($table.selector());
 };
 
-describe('plugin', () => {
-    describe('navigation', () => {
+describe.sequential('plugin', () => {
+    describe.sequential('navigation', () => {
         it('does login', async () => await auth.login(page));
         it('navigates to plugins', async () => {
             await page.click('#navigate-plugins');
@@ -86,8 +87,8 @@ describe('plugin', () => {
     if (!pluginSupported) {
         return;
     }
-    describe('functionality test', () => {
-        describe('initial status', () => {
+    describe.sequential('functionality test', () => {
+        describe.sequential('initial status', () => {
             it('has echo plugin', async () => {
                 await waitForCount(page, $table.rows(), 1);
                 expect(await innerText(page, $table.cell(1, Col.Name))).toEqual('test plugin');
@@ -100,7 +101,7 @@ describe('plugin', () => {
                 expect(await enabledState(1)).toBe(false);
             });
         });
-        describe('enable and disable plugin', () => {
+        describe.sequential('enable and disable plugin', () => {
             it('enable', async () => {
                 await toggleEnabled(1);
                 expect(await enabledState(1)).toBe(true);
@@ -111,7 +112,7 @@ describe('plugin', () => {
                 expect(await enabledState(1)).toBe(false);
             });
         });
-        describe('details page', () => {
+        describe.sequential('details page', () => {
             it('has plugin info', async () => {
                 await inDetailPage(1, async () => {
                     expect(await pluginInfo('module-path')).toBe(
