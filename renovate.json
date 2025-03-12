@@ -30,7 +30,25 @@
       "autoReplaceStringTemplate": "{{{newValue}}}",
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^go.mod$"
+      ],
+      "depTypeTemplate": "language",
+      "matchStrings": [
+        "toolchain go(?<currentValue>[0-9.]+)\\n"
+      ],
+      "extractVersionTemplate": "^(?<version>.+)-linux-amd64$",
+      "depNameTemplate": "docker.io/gotify/build",
+      "autoReplaceStringTemplate": "toolchain go{{{newValue}}}\n",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
     }
+  ],
+  "ignoreDeps": [
+    "go"
   ],
   "packageRules": [
     {
@@ -43,6 +61,13 @@
       ],
       "groupName": "Bump Go dependencies",
       "groupSlug": "bump-dependencies-go"
+    },
+    {
+      "matchDepNames": [
+        "github.com/gotify/build"
+      ],
+      "groupName": "Bump gotify/build",
+      "groupSlug": "bump-gotify-build"
     }
   ],
   "postUpdateOptions": [

@@ -2,7 +2,11 @@ LICENSE_DIR=./licenses/
 BUILD_DIR=./build
 DOCKER_DIR=./docker/
 SHELL := /bin/bash
-GO_VERSION=`cat GO_VERSION`
+ifndef GOTOOLCHAIN
+	GO_VERSION=$(GOTOOLCHAIN)
+else
+	GO_VERSION=$(shell go mod edit -json | jq -r .Toolchain | sed -e 's/go//')
+endif
 DOCKER_BUILD_IMAGE=gotify/build
 DOCKER_WORKDIR=/proj
 DOCKER_RUN=docker run --rm -e LD_FLAGS="$$LD_FLAGS" -v "$$PWD/.:${DOCKER_WORKDIR}" -v "`go env GOPATH`/pkg/mod/.:/go/pkg/mod:ro" -w ${DOCKER_WORKDIR}
@@ -100,7 +104,7 @@ build-docker-multiarch: require-version
 		-t ghcr.io/gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -2) \
 		-t ghcr.io/gotify/server-riscv64:$(shell echo $(VERSION) | cut -d '.' -f -1) \
 		--build-arg RUN_TESTS=$(DOCKER_TEST_LEVEL) \
-		--build-arg GO_VERSION=$(shell cat GO_VERSION) \
+		--build-arg GO_VERSION=$(GO_VERSION) \
 		--build-arg LD_FLAGS="$$LD_FLAGS" \
 		--platform linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/riscv64 \
 		-f docker/Dockerfile .
