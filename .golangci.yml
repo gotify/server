@@ -1,49 +1,62 @@
-issues:
-    exclude-dirs:
-        - plugin/example
-        - plugin/testing
-
+version: "2"
 linters:
-    enable:
-        - asciicheck
-        - copyloopvar
-        - godot
-        - gofmt
-        - gofumpt
-        - goimports
-        - gomodguard
-        - goprintffuncname
-        - gosimple
-        - govet
-        - ineffassign
-        - misspell
-        - nakedret
-        - nolintlint
-        - sqlclosecheck
-        - staticcheck
-        - stylecheck
-        - typecheck
-        - unconvert
-        - unused
-        - whitespace
-    disable:
-        - err113
-        - errcheck
-        - funlen
-        - gochecknoglobals
-        - gocognit
-        - goconst
-        - gocyclo
-        - godox
-        - lll
-        - nestif
-        - nlreturn
-        - noctx
-        - testpackage
-        - wsl
-
-linters-settings:
-    gofumpt:
-        extra-rules: true
+  enable:
+    - asciicheck
+    - copyloopvar
+    - godot
+    - gomodguard
+    - goprintffuncname
+    - misspell
+    - nakedret
+    - nolintlint
+    - sqlclosecheck
+    - staticcheck
+    - unconvert
+    - whitespace
+  disable:
+    - err113
+    - errcheck
+    - funlen
+    - gochecknoglobals
+    - gocognit
+    - goconst
+    - gocyclo
+    - godox
+    - lll
+    - nestif
+    - nlreturn
+    - noctx
+    - testpackage
+    - wsl
+  settings:
     misspell:
-        locale: US
+      locale: US
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - plugin/example
+      - plugin/testing
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gofumpt:
+      extra-rules: true
+  exclusions:
+    generated: lax
+    paths:
+      - plugin/example
+      - plugin/testing
+      - third_party$
+      - builtin$
+      - examples$
