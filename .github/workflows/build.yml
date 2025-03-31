@@ -14,9 +14,9 @@ jobs:
       - uses: actions/checkout@v4
       - run: (cd ui && yarn)
       - run: make build-js
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.64
+          version: v2.0.2
           args: --timeout=5m
           skip-cache: true
       - run: go mod download
@@ -32,7 +32,7 @@ jobs:
         run: |
           export LD_FLAGS="-w -s -X main.Version=$VERSION -X main.BuildDate=$(date "+%F-%T") -X main.Commit=$(git rev-parse --verify HEAD) -X main.Mode=prod"
           echo "LD_FLAGS=$LD_FLAGS" >> $GITHUB_ENV
-          
+
           make build
           sudo chown -R $UID build
           make package-zip
