@@ -2,7 +2,7 @@ LICENSE_DIR=./licenses/
 BUILD_DIR=./build
 DOCKER_DIR=./docker/
 SHELL := /bin/bash
-ifndef GOTOOLCHAIN
+ifdef GOTOOLCHAIN
 	GO_VERSION=$(GOTOOLCHAIN)
 else
 	GO_VERSION=$(shell go mod edit -json | jq -r .Toolchain | sed -e 's/go//')
