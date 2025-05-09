@@ -1,6 +1,6 @@
 import getPort from 'get-port';
 import {spawn, exec, ChildProcess} from 'child_process';
-import rimraf from 'rimraf';
+import {rimraf} from 'rimraf';
 import path from 'path';
 import puppeteer, {Browser, Page} from 'puppeteer';
 import fs from 'fs';
@@ -36,7 +36,7 @@ export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
 
     const gotifyInstance = startGotify(gotifyFile, port, pluginsDir);
 
-    const gotifyURL = 'http://localhost:' + port;
+    const gotifyURL = new URL('/', `http://localhost:${port}`);
     await waitForGotify('http-get://localhost:' + port);
     const browser = await puppeteer.launch({
         headless: process.env.CI === 'true',
@@ -44,17 +44,18 @@ export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
     });
     const page = await browser.newPage();
     await page.setViewport({width: 1920, height: 1080});
-    await page.goto(gotifyURL);
+    await page.goto(gotifyURL.toString(), {waitUntil: 'domcontentloaded'})
+        .catch((err) => console.log("Error loading url", err));
 
     return {
         close: async () => {
             await Promise.all([
                 browser.close(),
-                new Promise((resolve) => kill(gotifyInstance.pid!, 'SIGKILL', () => resolve())),
+                await terminateGotify(gotifyInstance.pid!),
             ]);
-            rimraf.sync(gotifyFile, {maxBusyTries: 8});
+            await rimraf(gotifyFile, {maxRetries: 8});
         },
-        url: gotifyURL,
+        url: gotifyURL.toString(),
         browser,
         page,
     };
@@ -133,4 +134,17 @@ const startGotify = (filename: string, port: number, pluginDir: string): ChildPr
     gotify.stdout.pipe(process.stdout);
     gotify.stderr.pipe(process.stderr);
     return gotify;
+};
+
+const terminateGotify = (pid: number) => {
+    return new Promise<void>((resolve, reject) => {
+        try {
+            kill(pid, 'SIGKILL', (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
 };

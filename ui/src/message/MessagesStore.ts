@@ -1,5 +1,7 @@
+// TODO: delete this file
+
 import {BaseStore} from '../common/BaseStore';
-import {action, IObservableArray, observable, reaction} from 'mobx';
+import { action, IObservableArray, observable, reaction, runInAction } from 'mobx';
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
 import {createTransformer} from 'mobx-utils';
@@ -51,10 +53,12 @@ export class MessagesStore {
             (resp) => resp.data
         );
 
-        state.messages.replace([...state.messages, ...pagedResult.messages]);
-        state.nextSince = pagedResult.paging.since ?? 0;
-        state.hasMore = 'next' in pagedResult.paging;
-        state.loaded = true;
+        runInAction(() => {
+            state.messages.replace([...state.messages, ...pagedResult.messages]);
+            state.nextSince = pagedResult.paging.since ?? 0;
+            state.hasMore = 'next' in pagedResult.paging;
+            state.loaded = true;
+        });
         this.loading = false;
         return Promise.resolve();
     };

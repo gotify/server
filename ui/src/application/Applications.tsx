@@ -1,64 +1,103 @@
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Delete from '@material-ui/icons/Delete';
-import Edit from '@material-ui/icons/Edit';
-import CloudUpload from '@material-ui/icons/CloudUpload';
-import React, {ChangeEvent, Component, SFC} from 'react';
+import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
+import Grid from '@mui/material/Grid2';
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Delete from '@mui/icons-material/Delete';
+import Edit from '@mui/icons-material/Edit';
+import CloudUpload from '@mui/icons-material/CloudUpload';
+import Button from '@mui/material/Button';
+
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
-import Button from '@material-ui/core/Button';
 import CopyableSecret from '../common/CopyableSecret';
+import LoadingSpinner from '../common/LoadingSpinner.tsx';
+import {useAppDispatch, useAppSelector} from '../store';
+import {uiActions} from '../store/ui-slice.ts';
+import {fetchApps, uploadImage, deleteApp, updateApp, createApp} from './app-actions.ts';
 import AddApplicationDialog from './AddApplicationDialog';
-import {observer} from 'mobx-react';
-import {observable} from 'mobx';
-import {inject, Stores} from '../inject';
 import * as config from '../config';
 import UpdateDialog from './UpdateApplicationDialog';
 import {IApplication} from '../types';
 import {LastUsedCell} from '../common/LastUsedCell';
 
-@observer
-class Applications extends Component<Stores<'appStore'>> {
-    @observable
-    private deleteId: number | false = false;
-    @observable
-    private updateId: number | false = false;
-    @observable
-    private createDialog = false;
+const Applications = () => {
+    const dispatch = useAppDispatch();
+    const apps = useAppSelector((state) => state.app.items);
+    const isLoading = useAppSelector((state) => state.app.isLoading);
+    const reloadRequired = useAppSelector((state) => state.ui.reloadRequired);
+    const [toDeleteApp, setToDeleteApp] = useState<IApplication | null>();
+    const [toUpdateApp, setToUpdateApp] = useState<IApplication | null>();
+    const [createDialog, setCreateDialog] = useState<boolean>(false);
 
-    private uploadId = -1;
-    private upload: HTMLInputElement | null = null;
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    let uploadId = useRef(-1);
 
-    public componentDidMount = () => this.props.appStore.refresh();
+    // handle a requested reload
+    useEffect(() => {
+        if (reloadRequired) {
+            dispatch(uiActions.setReloadRequired(false));
+            dispatch(fetchApps());
+        }
+    }, [dispatch, reloadRequired]);
 
-    public render() {
-        const {
-            createDialog,
-            deleteId,
-            updateId,
-            props: {appStore},
-        } = this;
-        const apps = appStore.getItems();
-        return (
-            <DefaultPage
-                title="Applications"
-                rightControl={
-                    <Button
-                        id="create-app"
-                        variant="contained"
-                        color="primary"
-                        onClick={() => (this.createDialog = true)}>
-                        Create Application
-                    </Button>
-                }
-                maxWidth={1000}>
-                <Grid item xs={12}>
+    // load applications from server
+    useEffect(() => {
+        dispatch(fetchApps());
+    }, [dispatch]);
+
+    const handleImageUploadClick = (id: number) => {
+        uploadId.current = id;
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const onUploadImage = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) {
+            return;
+        }
+        if (['image/png', 'image/jpeg', 'image/gif'].indexOf(file.type) !== -1) {
+            dispatch(uploadImage(uploadId.current, file));
+        } else {
+            alert('Uploaded file must be of type png, jpeg or gif.');
+        }
+    };
+
+    const handleCreateApp = async (name: string, description: string, defaultPriority: number) => {
+        await dispatch(createApp(name, description, defaultPriority));
+    };
+
+    const handleUpdateApp = async (name: string, description: string, defaultPriority: number) => {
+        await dispatch(updateApp(toUpdateApp!.id, name, description, defaultPriority));
+    };
+
+    const handleDeleteApp = async () => {
+        await dispatch(deleteApp(toDeleteApp!.id));
+    };
+
+    return (
+        <DefaultPage
+            title="Applications"
+            rightControl={
+                <Button
+                    id="create-app"
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setCreateDialog(true)}>
+                    Create Application
+                </Button>
+            }
+            maxWidth={1000}>
+            {isLoading ? (
+                <LoadingSpinner />
+            ) : (
+                <Grid size={12}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="app-table">
                             <TableHead>
@@ -83,70 +122,49 @@ class Applications extends Component<Stores<'appStore'>> {
                                         name={app.name}
                                         value={app.token}
                                         lastUsed={app.lastUsed}
-                                        fUpload={() => this.uploadImage(app.id)}
-                                        fDelete={() => (this.deleteId = app.id)}
-                                        fEdit={() => (this.updateId = app.id)}
+                                        fUpload={() => handleImageUploadClick(app.id)}
+                                        fDelete={() => setToDeleteApp(app)}
+                                        fEdit={() => setToUpdateApp(app)}
                                         noDelete={app.internal}
                                     />
                                 ))}
                             </TableBody>
                         </Table>
                         <input
-                            ref={(upload) => (this.upload = upload)}
+                            ref={fileInputRef}
                             type="file"
                             style={{display: 'none'}}
-                            onChange={this.onUploadImage}
+                            onChange={onUploadImage}
                         />
                     </Paper>
                 </Grid>
-                {createDialog && (
-                    <AddApplicationDialog
-                        fClose={() => (this.createDialog = false)}
-                        fOnSubmit={appStore.create}
-                    />
-                )}
-                {updateId !== false && (
-                    <UpdateDialog
-                        fClose={() => (this.updateId = false)}
-                        fOnSubmit={(name, description, defaultPriority) =>
-                            appStore.update(updateId, name, description, defaultPriority)
-                        }
-                        initialDescription={appStore.getByID(updateId).description}
-                        initialName={appStore.getByID(updateId).name}
-                        initialDefaultPriority={appStore.getByID(updateId).defaultPriority}
-                    />
-                )}
-                {deleteId !== false && (
-                    <ConfirmDialog
-                        title="Confirm Delete"
-                        text={'Delete ' + appStore.getByID(deleteId).name + '?'}
-                        fClose={() => (this.deleteId = false)}
-                        fOnSubmit={() => appStore.remove(deleteId)}
-                    />
-                )}
-            </DefaultPage>
-        );
-    }
-
-    private uploadImage = (id: number) => {
-        this.uploadId = id;
-        if (this.upload) {
-            this.upload.click();
-        }
-    };
-
-    private onUploadImage = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) {
-            return;
-        }
-        if (['image/png', 'image/jpeg', 'image/gif'].indexOf(file.type) !== -1) {
-            this.props.appStore.uploadImage(this.uploadId, file);
-        } else {
-            alert('Uploaded file must be of type png, jpeg or gif.');
-        }
-    };
-}
+            )}
+            {createDialog && (
+                <AddApplicationDialog
+                    fClose={() => setCreateDialog(false)}
+                    fOnSubmit={handleCreateApp}
+                />
+            )}
+            {toUpdateApp != null && (
+                <UpdateDialog
+                    fClose={() => setToUpdateApp(null)}
+                    fOnSubmit={handleUpdateApp}
+                    initialDescription={toUpdateApp?.description}
+                    initialName={toUpdateApp?.name}
+                    initialDefaultPriority={toUpdateApp?.defaultPriority}
+                />
+            )}
+            {toDeleteApp != null && (
+                <ConfirmDialog
+                    title="Confirm Delete"
+                    text={'Delete ' + deleteApp.name + '?'}
+                    fClose={() => setToDeleteApp(null)}
+                    fOnSubmit={handleDeleteApp}
+                />
+            )}
+        </DefaultPage>
+    );
+};
 
 interface IRowProps {
     name: string;
@@ -161,21 +179,21 @@ interface IRowProps {
     fEdit: VoidFunction;
 }
 
-const Row: SFC<IRowProps> = observer(
-    ({
-        name,
-        value,
-        noDelete,
-        description,
-        defaultPriority,
-        lastUsed,
-        fDelete,
-        fUpload,
-        image,
-        fEdit,
-    }) => (
+const Row = ({
+    name,
+    value,
+    noDelete,
+    description,
+    defaultPriority,
+    lastUsed,
+    fDelete,
+    fUpload,
+    image,
+    fEdit,
+}: IRowProps) => {
+    return (
         <TableRow>
-            <TableCell padding="default">
+            <TableCell padding="normal">
                 <div style={{display: 'flex'}}>
                     <img src={config.get('url') + image} alt="app logo" width="40" height="40" />
                     <IconButton onClick={fUpload} style={{height: 40}}>
@@ -203,7 +221,7 @@ const Row: SFC<IRowProps> = observer(
                 </IconButton>
             </TableCell>
         </TableRow>
-    )
-);
+    );
+};
 
-export default inject('appStore')(Applications);
+export default Applications;

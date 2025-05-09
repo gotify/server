@@ -1,4 +1,5 @@
 import {Page} from 'puppeteer';
+import { expect } from 'vitest';
 import {waitForExists} from './utils';
 import * as selector from './selector';
 
