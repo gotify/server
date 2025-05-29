@@ -47,7 +47,7 @@ func (d *GormDatabase) DeleteApplicationByID(id uint) error {
 // GetApplicationsByUser returns all applications from a user.
 func (d *GormDatabase) GetApplicationsByUser(userID uint) ([]*model.Application, error) {
 	var apps []*model.Application
-	err := d.DB.Where("user_id = ?", userID).Find(&apps).Error
+	err := d.DB.Where("user_id = ?", userID).Order("id ASC").Find(&apps).Error
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 	}
