@@ -1,22 +1,17 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import 'typeface-roboto';
-import {initAxios} from './apiAuth';
-import * as config from './config';
-import Layout from './layout/Layout';
-import {unregister} from './registerServiceWorker';
-import {CurrentUser} from './CurrentUser';
-import {AppStore} from './application/AppStore';
-import {WebSocketStore} from './message/WebSocketStore';
-import {SnackManager} from './snack/SnackManager';
-import {InjectProvider, StoreMapping} from './inject';
-import {UserStore} from './user/UserStore';
-import {MessagesStore} from './message/MessagesStore';
-import {ClientStore} from './client/ClientStore';
-import {PluginStore} from './plugin/PluginStore';
-import {registerReactions} from './reactions';
+import './init';
 
-const devUrl = 'http://localhost:3000/';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
+import {initAxios} from './apiAuth';
+import App from './App.tsx';
+import * as config from './config';
+import {unregister} from './registerServiceWorker';
+import {tryAuthenticate} from './user/auth-actions.ts';
+import {loadStoredTheme} from './store/ui-actions.ts';
+
+import {Provider} from 'react-redux';
+import store from './store/index';
 
 const {port, hostname, protocol, pathname} = window.location;
 const slashes = protocol.concat('//');
@@ -26,52 +21,30 @@ const urlWithSlash = url.endsWith('/') ? url : url.concat('/');
 
 const prodUrl = urlWithSlash;
 
-const initStores = (): StoreMapping => {
-    const snackManager = new SnackManager();
-    const appStore = new AppStore(snackManager.snack);
-    const userStore = new UserStore(snackManager.snack);
-    const messagesStore = new MessagesStore(appStore, snackManager.snack);
-    const currentUser = new CurrentUser(snackManager.snack);
-    const clientStore = new ClientStore(snackManager.snack);
-    const wsStore = new WebSocketStore(snackManager.snack, currentUser);
-    const pluginStore = new PluginStore(snackManager.snack);
-    appStore.onDelete = () => messagesStore.clearAll();
-
-    return {
-        appStore,
-        snackManager,
-        userStore,
-        messagesStore,
-        currentUser,
-        clientStore,
-        wsStore,
-        pluginStore,
-    };
-};
-
-(function clientJS() {
-    if (process.env.NODE_ENV === 'production') {
-        config.set('url', prodUrl);
-    } else {
-        config.set('url', devUrl);
+const clientJS = async () => {
+    config.set('url', prodUrl);
+    if (import.meta.env.MODE !== 'production') {
         config.set('register', true);
     }
-    const stores = initStores();
-    initAxios(stores.currentUser, stores.snackManager.snack);
 
-    registerReactions(stores);
+    await store.dispatch(loadStoredTheme());
+    try {
+        await store.dispatch(tryAuthenticate());
+    } catch (e) {
+        // console.info('Automatic login failed, will forward later to login page.');
+    }
 
-    stores.currentUser.tryAuthenticate().catch(() => {});
+    initAxios();
 
-    window.onbeforeunload = () => {
-        stores.wsStore.close();
-    };
-
-    ReactDOM.render(
-        <InjectProvider stores={stores}>
-            <Layout />
-        </InjectProvider>,
-        document.getElementById('root')
+    const root = ReactDOM.createRoot(document.getElementById('root')!);
+    root.render(
+        <React.StrictMode>
+            <Provider store={store}>
+                <App />
+            </Provider>
+        </React.StrictMode>
     );
     unregister();
-})();
+};
+
+clientJS().then();
