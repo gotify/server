@@ -54,4 +54,8 @@ type Application struct {
 	// read only: true
 	// example: 2019-01-01T00:00:00Z
 	LastUsed *time.Time `json:"lastUsed"`
+	// The order in which the application should appear in the UI.
+	//
+	// example: 7
+	SortOrder int `json:"sortOrder" query:"sortOrder" form: "sortOrder"`
 }

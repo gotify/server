@@ -68,6 +68,7 @@ class Applications extends Component<Stores<'appStore'>> {
                                     <TableCell>Token</TableCell>
                                     <TableCell>Description</TableCell>
                                     <TableCell>Priority</TableCell>
+                                    <TableCell>Sort Order</TableCell>
                                     <TableCell>Last Used</TableCell>
                                     <TableCell />
                                     <TableCell />
@@ -79,6 +80,7 @@ class Applications extends Component<Stores<'appStore'>> {
                                         key={app.id}
                                         description={app.description}
                                         defaultPriority={app.defaultPriority}
+                                        sortOrder={app.sortOrder}
                                         image={app.image}
                                         name={app.name}
                                         value={app.token}
@@ -108,12 +110,13 @@ class Applications extends Component<Stores<'appStore'>> {
                 {updateId !== false && (
                     <UpdateDialog
                         fClose={() => (this.updateId = false)}
-                        fOnSubmit={(name, description, defaultPriority) =>
-                            appStore.update(updateId, name, description, defaultPriority)
+                        fOnSubmit={(name, description, defaultPriority, sortOrder) =>
+                            appStore.update(updateId, name, description, defaultPriority, sortOrder)
                         }
                         initialDescription={appStore.getByID(updateId).description}
                         initialName={appStore.getByID(updateId).name}
                         initialDefaultPriority={appStore.getByID(updateId).defaultPriority}
+                        initialSortOrder={appStore.getByID(updateId).sortOrder}
                     />
                 )}
                 {deleteId !== false && (
@@ -155,6 +158,7 @@ interface IRowProps {
     description: string;
     defaultPriority: number;
     lastUsed: string | null;
+    sortOrder: number;
     fUpload: VoidFunction;
     image: string;
     fDelete: VoidFunction;
@@ -169,6 +173,7 @@ const Row: SFC<IRowProps> = observer(
         description,
         defaultPriority,
         lastUsed,
+        sortOrder,
         fDelete,
         fUpload,
         image,
@@ -189,6 +194,7 @@ const Row: SFC<IRowProps> = observer(
             </TableCell>
             <TableCell>{description}</TableCell>
             <TableCell>{defaultPriority}</TableCell>
+            <TableCell>{sortOrder}</TableCell>
             <TableCell>
                 <LastUsedCell lastUsed={lastUsed} />
             </TableCell>
