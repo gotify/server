@@ -1,14 +1,20 @@
+import {Button, Collapse} from '@material-ui/core';
 import IconButton from '@material-ui/core/IconButton';
 import {createStyles, Theme, withStyles, WithStyles} from '@material-ui/core/styles';
+import {ClassNameMap} from '@material-ui/core/styles/withStyles';
 import Typography from '@material-ui/core/Typography';
+import {ExpandLess, ExpandMore} from '@material-ui/icons';
 import Delete from '@material-ui/icons/Delete';
-import React from 'react';
+import React, {RefObject} from 'react';
 import TimeAgo from 'react-timeago';
 import Container from '../common/Container';
-import * as config from '../config';
 import {Markdown} from '../common/Markdown';
-import {RenderMode, contentType} from './extras';
+import * as config from '../config';
 import {IMessageExtras} from '../types';
+import {contentType, RenderMode} from './extras';
+
+const PREVIEW_LENGTH = 500;
+const ANIMATION_TIMEOUT_MS = 500;
 
 const styles = (theme: Theme) =>
     createStyles({
@@ -52,7 +58,11 @@ const styles = (theme: Theme) =>
             whiteSpace: 'pre-wrap',
         },
         content: {
+            maxHeight: PREVIEW_LENGTH,
             wordBreak: 'break-all',
+            '&.expanded, &.collapsed': {
+                maxHeight: 'none',
+            },
             '& p': {
                 margin: 0,
             },
@@ -79,6 +89,11 @@ interface IProps {
     height: (height: number) => void;
 }
 
+interface IState {
+    expanded: boolean;
+    isOverflowing: boolean;
+}
+
 const priorityColor = (priority: number) => {
     if (priority >= 4 && priority <= 7) {
         return 'rgba(230, 126, 34, 0.7)';
@@ -91,9 +106,45 @@ const priorityColor = (priority: number) => {
 
 class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
     private node: HTMLDivElement | null = null;
+    public state: IState = {expanded: false, isOverflowing: false};
+    previewRef: RefObject<HTMLDivElement>;
 
-    public componentDidMount = () =>
+    constructor(props: IProps) {
+        super(
+            props as IProps & {
+                classes: ClassNameMap<
+                    | 'header'
+                    | 'image'
+                    | 'content'
+                    | 'headerTitle'
+                    | 'trash'
+                    | 'wrapperPadding'
+                    | 'messageContentWrapper'
+                    | 'date'
+                    | 'imageWrapper'
+                    | 'plainContent'
+                >;
+            }
+        );
+        this.previewRef = React.createRef();
+    }
+
+    public componentDidMount = () => {
+        if (this.previewRef.current) {
+            this.setState({
+                ...this.state,
+                isOverflowing:
+                    this.previewRef.current.scrollHeight > this.previewRef.current.clientHeight,
+            });
+        }
+        return this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
+    };
+
+    public togglePreviewHeight = async () => {
+        this.setState({...this.state, expanded: !this.state.expanded});
+        await new Promise((resolve) => setTimeout(resolve, ANIMATION_TIMEOUT_MS + 1));
         this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
+    };
 
     private renderContent = () => {
         const content = this.props.content;
@@ -141,9 +192,36 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                                 <Delete />
                             </IconButton>
                         </div>
-                        <Typography component="div" className={`${classes.content} content`}>
-                            {this.renderContent()}
-                        </Typography>
+
+                        {!this.state.isOverflowing ? (
+                            <Typography
+                                component="div"
+                                className={`${classes.content} content}`}
+                                ref={this.previewRef}>
+                                {this.renderContent()}
+                            </Typography>
+                        ) : (
+                            <Collapse
+                                in={this.state.expanded}
+                                timeout={ANIMATION_TIMEOUT_MS}
+                                collapsedSize={PREVIEW_LENGTH}>
+                                <Typography
+                                    component="div"
+                                    className={`${classes.content} content ${this.state.expanded ? 'expanded' : 'collapsed'}`}>
+                                    {this.renderContent()}
+                                </Typography>
+                            </Collapse>
+                        )}
+
+                        {this.state.isOverflowing && (
+                            <Button
+                                onClick={() => this.togglePreviewHeight()}
+                                color="primary"
+                                size="small"
+                                startIcon={this.state.expanded ? <ExpandLess /> : <ExpandMore />}>
+                                {this.state.expanded ? 'Read Less' : 'Read More'}
+                            </Button>
+                        )}
                     </div>
                 </Container>
             </div>
