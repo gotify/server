@@ -1,7 +1,6 @@
-import {Button, Collapse} from '@material-ui/core';
+import {Button} from '@material-ui/core';
 import IconButton from '@material-ui/core/IconButton';
 import {createStyles, Theme, withStyles, WithStyles} from '@material-ui/core/styles';
-import {ClassNameMap} from '@material-ui/core/styles/withStyles';
 import Typography from '@material-ui/core/Typography';
 import {ExpandLess, ExpandMore} from '@material-ui/icons';
 import Delete from '@material-ui/icons/Delete';
@@ -14,7 +13,6 @@ import {IMessageExtras} from '../types';
 import {contentType, RenderMode} from './extras';
 
 const PREVIEW_LENGTH = 500;
-const ANIMATION_TIMEOUT_MS = 500;
 
 const styles = (theme: Theme) =>
     createStyles({
@@ -60,7 +58,8 @@ const styles = (theme: Theme) =>
         content: {
             maxHeight: PREVIEW_LENGTH,
             wordBreak: 'break-all',
-            '&.expanded, &.collapsed': {
+            overflowY: 'hidden',
+            '&.expanded': {
                 maxHeight: 'none',
             },
             '& p': {
@@ -109,23 +108,8 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
     public state: IState = {expanded: false, isOverflowing: false};
     previewRef: RefObject<HTMLDivElement>;
 
-    constructor(props: IProps) {
-        super(
-            props as IProps & {
-                classes: ClassNameMap<
-                    | 'header'
-                    | 'image'
-                    | 'content'
-                    | 'headerTitle'
-                    | 'trash'
-                    | 'wrapperPadding'
-                    | 'messageContentWrapper'
-                    | 'date'
-                    | 'imageWrapper'
-                    | 'plainContent'
-                >;
-            }
-        );
+    constructor(props: IProps & WithStyles<typeof styles>) {
+        super(props);
         this.previewRef = React.createRef();
     }
 
@@ -137,17 +121,20 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                     this.previewRef.current.scrollHeight > this.previewRef.current.clientHeight,
             });
         }
-        return this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
+        return this.updateHeightInParent();
     };
 
-    public togglePreviewHeight = async () => {
+    public togglePreviewHeight = () => {
         this.setState({...this.state, expanded: !this.state.expanded});
-        await new Promise((resolve) => setTimeout(resolve, ANIMATION_TIMEOUT_MS + 1));
-        this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
+        this.updateHeightInParent();
     };
+
+    private updateHeightInParent = () =>
+        this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
 
     private renderContent = () => {
         const content = this.props.content;
+
         switch (contentType(this.props.extras)) {
             case RenderMode.Markdown:
                 return <Markdown>{content}</Markdown>;
@@ -165,6 +152,7 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                 <Container
                     style={{
                         display: 'flex',
+                        flexWrap: 'wrap',
                         borderLeftColor: priorityColor(priority),
                         borderLeftWidth: 6,
                         borderLeftStyle: 'solid',
@@ -193,36 +181,27 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                             </IconButton>
                         </div>
 
-                        {!this.state.isOverflowing ? (
-                            <Typography
-                                component="div"
-                                className={`${classes.content} content}`}
-                                ref={this.previewRef}>
-                                {this.renderContent()}
-                            </Typography>
-                        ) : (
-                            <Collapse
-                                in={this.state.expanded}
-                                timeout={ANIMATION_TIMEOUT_MS}
-                                collapsedSize={PREVIEW_LENGTH}>
-                                <Typography
-                                    component="div"
-                                    className={`${classes.content} content ${this.state.expanded ? 'expanded' : 'collapsed'}`}>
-                                    {this.renderContent()}
-                                </Typography>
-                            </Collapse>
-                        )}
-
-                        {this.state.isOverflowing && (
-                            <Button
-                                onClick={() => this.togglePreviewHeight()}
-                                color="primary"
-                                size="small"
-                                startIcon={this.state.expanded ? <ExpandLess /> : <ExpandMore />}>
-                                {this.state.expanded ? 'Read Less' : 'Read More'}
-                            </Button>
-                        )}
+                        <Typography
+                            component="div"
+                            ref={this.previewRef}
+                            className={`${classes.content} content ${!this.state.isOverflowing ? 'loading' : this.state.expanded ? 'expanded' : 'collapsed'}`}>
+                            {this.renderContent()}
+                        </Typography>
                     </div>
+                    {this.state.isOverflowing && (
+                        <Button
+                            style={{
+                                marginTop: 16,
+                            }}
+                            onClick={() => this.togglePreviewHeight()}
+                            variant="contained"
+                            color="primary"
+                            size="large"
+                            fullWidth={true}
+                            startIcon={this.state.expanded ? <ExpandLess /> : <ExpandMore />}>
+                            {this.state.expanded ? 'Read Less' : 'Read More'}
+                        </Button>
+                    )}
                 </Container>
             </div>
         );
