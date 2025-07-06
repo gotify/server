@@ -1,14 +1,18 @@
+import {Button} from '@material-ui/core';
 import IconButton from '@material-ui/core/IconButton';
 import {createStyles, Theme, withStyles, WithStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import {ExpandLess, ExpandMore} from '@material-ui/icons';
 import Delete from '@material-ui/icons/Delete';
-import React from 'react';
+import React, {RefObject} from 'react';
 import TimeAgo from 'react-timeago';
 import Container from '../common/Container';
-import * as config from '../config';
 import {Markdown} from '../common/Markdown';
-import {RenderMode, contentType} from './extras';
+import * as config from '../config';
 import {IMessageExtras} from '../types';
+import {contentType, RenderMode} from './extras';
+
+const PREVIEW_LENGTH = 500;
 
 const styles = (theme: Theme) =>
     createStyles({
@@ -52,7 +56,12 @@ const styles = (theme: Theme) =>
             whiteSpace: 'pre-wrap',
         },
         content: {
+            maxHeight: PREVIEW_LENGTH,
             wordBreak: 'break-all',
+            overflowY: 'hidden',
+            '&.expanded': {
+                maxHeight: 'none',
+            },
             '& p': {
                 margin: 0,
             },
@@ -79,6 +88,11 @@ interface IProps {
     height: (height: number) => void;
 }
 
+interface IState {
+    expanded: boolean;
+    isOverflowing: boolean;
+}
+
 const priorityColor = (priority: number) => {
     if (priority >= 4 && priority <= 7) {
         return 'rgba(230, 126, 34, 0.7)';
@@ -89,14 +103,39 @@ const priorityColor = (priority: number) => {
     }
 };
 
-class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
+class Message extends React.PureComponent<IProps & WithStyles<typeof styles>, IState> {
+    public state = {expanded: false, isOverflowing: false};
     private node: HTMLDivElement | null = null;
+    private previewRef: RefObject<HTMLDivElement>;
 
-    public componentDidMount = () =>
+    constructor(props: IProps & WithStyles<typeof styles>) {
+        super(props);
+        this.previewRef = React.createRef();
+    }
+
+    public componentDidMount = () => {
+        if (this.previewRef.current) {
+            this.setState({
+                isOverflowing:
+                    this.previewRef.current.scrollHeight > this.previewRef.current.clientHeight,
+            });
+        }
+        this.updateHeightInParent();
+    };
+
+    public togglePreviewHeight = () => {
+        this.setState(
+            (state) => ({expanded: !state.expanded}),
+            () => this.updateHeightInParent()
+        );
+    };
+
+    private updateHeightInParent = () =>
         this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
 
     private renderContent = () => {
         const content = this.props.content;
+
         switch (contentType(this.props.extras)) {
             case RenderMode.Markdown:
                 return <Markdown>{content}</Markdown>;
@@ -114,6 +153,7 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                 <Container
                     style={{
                         display: 'flex',
+                        flexWrap: 'wrap',
                         borderLeftColor: priorityColor(priority),
                         borderLeftWidth: 6,
                         borderLeftStyle: 'solid',
@@ -141,10 +181,28 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                                 <Delete />
                             </IconButton>
                         </div>
-                        <Typography component="div" className={`${classes.content} content`}>
+
+                        <Typography
+                            component="div"
+                            ref={this.previewRef}
+                            className={`${classes.content} content ${
+                                this.state.isOverflowing && this.state.expanded ? 'expanded' : ''
+                            }`}>
                             {this.renderContent()}
                         </Typography>
                     </div>
+                    {this.state.isOverflowing && (
+                        <Button
+                            style={{marginTop: 16}}
+                            onClick={() => this.togglePreviewHeight()}
+                            variant="contained"
+                            color="primary"
+                            size="large"
+                            fullWidth={true}
+                            startIcon={this.state.expanded ? <ExpandLess /> : <ExpandMore />}>
+                            {this.state.expanded ? 'Read Less' : 'Read More'}
+                        </Button>
+                    )}
                 </Container>
             </div>
         );
