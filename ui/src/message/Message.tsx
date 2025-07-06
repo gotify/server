@@ -103,10 +103,10 @@ const priorityColor = (priority: number) => {
     }
 };
 
-class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
+class Message extends React.PureComponent<IProps & WithStyles<typeof styles>, IState> {
+    public state = {expanded: false, isOverflowing: false};
     private node: HTMLDivElement | null = null;
-    public state: IState = {expanded: false, isOverflowing: false};
-    previewRef: RefObject<HTMLDivElement>;
+    private previewRef: RefObject<HTMLDivElement>;
 
     constructor(props: IProps & WithStyles<typeof styles>) {
         super(props);
@@ -116,17 +116,18 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
     public componentDidMount = () => {
         if (this.previewRef.current) {
             this.setState({
-                ...this.state,
                 isOverflowing:
                     this.previewRef.current.scrollHeight > this.previewRef.current.clientHeight,
             });
         }
-        return this.updateHeightInParent();
+        this.updateHeightInParent();
     };
 
     public togglePreviewHeight = () => {
-        this.setState({...this.state, expanded: !this.state.expanded});
-        this.updateHeightInParent();
+        this.setState(
+            (state) => ({expanded: !state.expanded}),
+            () => this.updateHeightInParent()
+        );
     };
 
     private updateHeightInParent = () =>
@@ -184,15 +185,15 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>> {
                         <Typography
                             component="div"
                             ref={this.previewRef}
-                            className={`${classes.content} content ${!this.state.isOverflowing ? 'loading' : this.state.expanded ? 'expanded' : 'collapsed'}`}>
+                            className={`${classes.content} content ${
+                                this.state.isOverflowing && this.state.expanded ? 'expanded' : ''
+                            }`}>
                             {this.renderContent()}
                         </Typography>
                     </div>
                     {this.state.isOverflowing && (
                         <Button
-                            style={{
-                                marginTop: 16,
-                            }}
+                            style={{marginTop: 16}}
                             onClick={() => this.togglePreviewHeight()}
                             variant="contained"
                             color="primary"
