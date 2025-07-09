@@ -226,19 +226,28 @@ func (m *Manager) loadPlugins(directory string) error {
 		return fmt.Errorf("error while reading directory %s", err)
 	}
 	for _, f := range pluginFiles {
-		pluginPath := filepath.Join(directory, "./", f.Name())
+		if f.IsDir() {
+			continue
+		}
+
+		name := f.Name()
+		if strings.HasPrefix(name, ".") {
+			continue
+		}
+
+		pluginPath := filepath.Join(directory, "./", name)
 
 		fmt.Println("Loading plugin", pluginPath)
 		pRaw, err := plugin.Open(pluginPath)
 		if err != nil {
-			return pluginFileLoadError{f.Name(), err}
+			return pluginFileLoadError{name, err}
 		}
 		compatPlugin, err := compat.Wrap(pRaw)
 		if err != nil {
-			return pluginFileLoadError{f.Name(), err}
+			return pluginFileLoadError{name, err}
 		}
 		if err := m.LoadPlugin(compatPlugin); err != nil {
-			return pluginFileLoadError{f.Name(), err}
+			return pluginFileLoadError{name, err}
 		}
 	}
 	return nil

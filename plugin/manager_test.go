@@ -147,6 +147,20 @@ func (s *ManagerSuite) TestInitializePlugin_noOpIfEmpty() {
 	assert.Nil(s.T(), s.manager.loadPlugins(""))
 }
 
+func (s *ManagerSuite) TestInitializePlugin_noOpIfDotFile() {
+	tmpDir := test.NewTmpDir("gotify_testinitializeplugin_dotfile")
+	defer tmpDir.Clean()
+	os.Mkdir(tmpDir.Path(".test"), 0o755)
+	assert.Nil(s.T(), s.manager.loadPlugins(tmpDir.Path()))
+}
+
+func (s *ManagerSuite) TestInitializePlugin_noOpIfSubDir() {
+	tmpDir := test.NewTmpDir("gotify_testinitializeplugin_subdir")
+	defer tmpDir.Clean()
+	os.Mkdir(tmpDir.Path("subdir"), 0o755)
+	assert.Nil(s.T(), s.manager.loadPlugins(tmpDir.Path()))
+}
+
 func (s *ManagerSuite) TestInitializePlugin_directoryInvalid_expectError() {
 	assert.Error(s.T(), s.manager.loadPlugins("<<"))
 }
