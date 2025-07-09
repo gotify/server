@@ -150,7 +150,11 @@ func (s *ManagerSuite) TestInitializePlugin_noOpIfEmpty() {
 func (s *ManagerSuite) TestInitializePlugin_noOpIfDotFile() {
 	tmpDir := test.NewTmpDir("gotify_testinitializeplugin_dotfile")
 	defer tmpDir.Clean()
-	os.Mkdir(tmpDir.Path(".test"), 0o755)
+	f, err := os.Create(tmpDir.Path(".test"))
+	assert.NoError(s.T(), err)
+	_, err = f.WriteString("dummy")
+	assert.NoError(s.T(), err)
+	assert.NoError(s.T(), f.Close())
 	assert.Nil(s.T(), s.manager.loadPlugins(tmpDir.Path()))
 }
 
