@@ -14,9 +14,9 @@ jobs:
       - uses: actions/checkout@v4
       - run: (cd ui && yarn)
       - run: make build-js
-      - uses: golangci/golangci-lint-action@v7
+      - uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.0.2
+          version: v2.2.1
           args: --timeout=5m
           skip-cache: true
       - run: go mod download
