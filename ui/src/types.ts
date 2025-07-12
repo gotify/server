@@ -7,6 +7,7 @@ export interface IApplication {
     internal: boolean;
     defaultPriority: number;
     lastUsed: string | null;
+    sortOrder: number;
 }
 
 export interface IClient {

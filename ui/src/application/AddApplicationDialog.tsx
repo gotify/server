@@ -11,24 +11,30 @@ import React, {Component} from 'react';
 
 interface IProps {
     fClose: VoidFunction;
-    fOnSubmit: (name: string, description: string, defaultPriority: number) => void;
+    fOnSubmit: (
+        name: string,
+        description: string,
+        defaultPriority: number,
+        sortOrder: number
+    ) => void;
 }
 
 interface IState {
     name: string;
     description: string;
     defaultPriority: number;
+    sortOrder: number;
 }
 
 export default class AddDialog extends Component<IProps, IState> {
-    public state = {name: '', description: '', defaultPriority: 0};
+    public state = {name: '', description: '', defaultPriority: 0, sortOrder: 0};
 
     public render() {
         const {fClose, fOnSubmit} = this.props;
-        const {name, description, defaultPriority} = this.state;
+        const {name, description, defaultPriority, sortOrder} = this.state;
         const submitEnabled = this.state.name.length !== 0;
         const submitAndClose = () => {
-            fOnSubmit(name, description, defaultPriority);
+            fOnSubmit(name, description, defaultPriority, sortOrder);
             fClose();
         };
         return (
@@ -69,6 +75,14 @@ export default class AddDialog extends Component<IProps, IState> {
                         onChange={(value) => this.setState({defaultPriority: value})}
                         fullWidth
                     />
+                    <NumberField
+                        margin="dense"
+                        className="sortOrder"
+                        label="Sort Order"
+                        value={sortOrder}
+                        onChange={(value) => this.setState({sortOrder: value})}
+                        fullWidth
+                    />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={fClose}>Cancel</Button>
@@ -90,7 +104,7 @@ export default class AddDialog extends Component<IProps, IState> {
     }
 
     private handleChange(propertyName: string, event: React.ChangeEvent<HTMLInputElement>) {
-        const state = this.state;
+        const state: any = this.state;
         state[propertyName] = event.target.value;
         this.setState(state);
     }
