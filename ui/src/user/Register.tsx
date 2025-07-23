@@ -49,7 +49,7 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                         id="register-username"
                         margin="dense"
                         className="name"
-                        label="Name *"
+                        label="Username *"
                         name="username"
                         value={name}
                         onChange={this.handleChange.bind(this, 'name')}
@@ -62,7 +62,7 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                         type="password"
                         value={pass}
                         fullWidth
-                        label="Pass *"
+                        label="Password *"
                         name="password"
                         onChange={this.handleChange.bind(this, 'pass')}
                     />
@@ -76,7 +76,7 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                                 ? passPresent
                                     ? ''
                                     : 'password is required'
-                                : 'name is required'
+                                : 'username is required'
                         }>
                         <div>
                             <Button
