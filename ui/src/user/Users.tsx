@@ -84,7 +84,7 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
                         <Table id="user-table">
                             <TableHead>
                                 <TableRow style={{textAlign: 'center'}}>
-                                    <TableCell>Name</TableCell>
+                                    <TableCell>Username</TableCell>
                                     <TableCell>Admin</TableCell>
                                     <TableCell />
                                 </TableRow>
