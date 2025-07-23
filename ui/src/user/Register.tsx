@@ -46,21 +46,25 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                 <DialogContent>
                     <TextField
                         autoFocus
+                        id="register-username"
                         margin="dense"
                         className="name"
                         label="Name *"
+                        name="username"
                         type="email"
                         value={name}
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth
                     />
                     <TextField
+                        id="register-password"
                         margin="dense"
                         className="password"
                         type="password"
                         value={pass}
                         fullWidth
                         label="Pass *"
+                        name="password"
                         onChange={this.handleChange.bind(this, 'pass')}
                     />
                 </DialogContent>
