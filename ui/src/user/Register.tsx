@@ -51,7 +51,6 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                         className="name"
                         label="Name *"
                         name="username"
-                        type="email"
                         value={name}
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth
