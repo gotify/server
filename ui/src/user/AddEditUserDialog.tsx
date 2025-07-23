@@ -54,7 +54,6 @@ export default class AddEditDialog extends Component<IProps, IState> {
                         margin="dense"
                         className="name"
                         label="Name *"
-                        type="email"
                         value={name}
                         name="username"
                         id="username"
