@@ -52,6 +52,7 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                         label="Username *"
                         name="username"
                         value={name}
+                        autoComplete="username"
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth
                     />
@@ -64,6 +65,7 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                         fullWidth
                         label="Password *"
                         name="password"
+                        autoComplete="new-password"
                         onChange={this.handleChange.bind(this, 'pass')}
                     />
                 </DialogContent>
