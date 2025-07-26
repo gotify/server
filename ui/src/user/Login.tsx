@@ -28,17 +28,21 @@ class Login extends Component<Stores<'currentUser'>> {
                         <form onSubmit={this.preventDefault} id="login-form">
                             <TextField
                                 autoFocus
+                                id="username"
                                 className="name"
                                 label="Username"
+                                name="username"
                                 margin="dense"
                                 autoComplete="username"
                                 value={username}
                                 onChange={(e) => (this.username = e.target.value)}
                             />
                             <TextField
+                                id="password"
                                 type="password"
                                 className="password"
                                 label="Password"
+                                name="password"
                                 margin="normal"
                                 autoComplete="current-password"
                                 value={password}

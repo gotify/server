@@ -53,9 +53,10 @@ export default class AddEditDialog extends Component<IProps, IState> {
                         autoFocus
                         margin="dense"
                         className="name"
-                        label="Name *"
-                        type="email"
+                        label="Username *"
                         value={name}
+                        name="username"
+                        id="username"
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth
                     />
@@ -65,7 +66,9 @@ export default class AddEditDialog extends Component<IProps, IState> {
                         type="password"
                         value={pass}
                         fullWidth
-                        label={isEdit ? 'Pass (empty if no change)' : 'Pass *'}
+                        label={isEdit ? 'Password (empty if no change)' : 'Password *'}
+                        name="password"
+                        id="password"
                         onChange={this.handleChange.bind(this, 'pass')}
                     />
                     <FormControlLabel
@@ -89,7 +92,7 @@ export default class AddEditDialog extends Component<IProps, IState> {
                                 ? passPresent
                                     ? ''
                                     : 'password is required'
-                                : 'name is required'
+                                : 'username is required'
                         }>
                         <div>
                             <Button

@@ -46,21 +46,26 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                 <DialogContent>
                     <TextField
                         autoFocus
+                        id="register-username"
                         margin="dense"
                         className="name"
-                        label="Name *"
-                        type="email"
+                        label="Username *"
+                        name="username"
                         value={name}
+                        autoComplete="username"
                         onChange={this.handleChange.bind(this, 'name')}
                         fullWidth
                     />
                     <TextField
+                        id="register-password"
                         margin="dense"
                         className="password"
                         type="password"
                         value={pass}
                         fullWidth
-                        label="Pass *"
+                        label="Password *"
+                        name="password"
+                        autoComplete="new-password"
                         onChange={this.handleChange.bind(this, 'pass')}
                     />
                 </DialogContent>
@@ -73,7 +78,7 @@ export default class RegistrationDialog extends Component<IProps, IState> {
                                 ? passPresent
                                     ? ''
                                     : 'password is required'
-                                : 'name is required'
+                                : 'username is required'
                         }>
                         <div>
                             <Button
