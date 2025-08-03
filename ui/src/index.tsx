@@ -9,13 +9,12 @@ import {CurrentUser} from './CurrentUser';
 import {AppStore} from './application/AppStore';
 import {WebSocketStore} from './message/WebSocketStore';
 import {SnackManager} from './snack/SnackManager';
-import {InjectProvider, StoreMapping} from './inject';
 import {UserStore} from './user/UserStore';
 import {MessagesStore} from './message/MessagesStore';
 import {ClientStore} from './client/ClientStore';
 import {PluginStore} from './plugin/PluginStore';
 import {registerReactions} from './reactions';
-import {StoreContext} from './stores';
+import {StoreContext, StoreMapping} from './stores';
 
 const {port, hostname, protocol, pathname} = window.location;
 const slashes = protocol.concat('//');
