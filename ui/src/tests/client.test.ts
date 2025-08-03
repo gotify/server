@@ -99,7 +99,6 @@ describe('Client', () => {
 
         expect(await count(page, $table.rows())).toBe(2);
     });
-    // eslint-disable-next-line
     it('deletes own client', async () => {
         await page.click($table.cell(1, Col.Delete, '.delete'));
 

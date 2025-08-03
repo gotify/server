@@ -6,7 +6,6 @@ export interface IConfig {
     version: IVersion;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare global {
     interface Window {
         config?: Partial<IConfig>;

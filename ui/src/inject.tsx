@@ -25,8 +25,7 @@ export type Stores<T extends AllStores> = Pick<StoreMapping, T>;
 
 export const inject =
     <I extends AllStores>(...stores: I[]) =>
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    <P extends {}>(
+    <P extends object>(
         node: React.ComponentType<P>
     ): React.ComponentType<Pick<P, Exclude<keyof P, I>>> =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

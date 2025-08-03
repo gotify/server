@@ -4,7 +4,7 @@ import rimraf from 'rimraf';
 import path from 'path';
 import puppeteer, {Browser, Page} from 'puppeteer';
 import fs from 'fs';
-// @ts-ignore
+// @ts-expect-error no types
 import wait from 'wait-on';
 import kill from 'tree-kill';
 

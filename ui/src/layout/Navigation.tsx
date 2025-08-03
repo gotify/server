@@ -30,6 +30,7 @@ const styles = (theme: Theme) =>
             minHeight: '100%',
             height: '100vh',
         },
+        // eslint-disable-next-line
         toolbar: theme.mixins.toolbar as any,
         link: {
             color: 'inherit',

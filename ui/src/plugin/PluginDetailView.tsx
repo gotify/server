@@ -211,7 +211,6 @@ class ConfigurerPanel extends Component<IConfigurerPanelProps, {unsavedChanges: 
                     className="config-save"
                     onClick={() => {
                         const newConfig = this.state.unsavedChanges;
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         this.props.save(newConfig!).then(() => {
                             this.setState({unsavedChanges: null});
                         });
