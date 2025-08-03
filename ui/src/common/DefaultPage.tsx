@@ -8,7 +8,12 @@ interface IProps {
     maxWidth?: number;
 }
 
-const DefaultPage: FC<IProps> = ({title, rightControl, maxWidth = 700, children}) => (
+const DefaultPage: FC<React.PropsWithChildren<IProps>> = ({
+    title,
+    rightControl,
+    maxWidth = 700,
+    children,
+}) => (
     <main style={{margin: '0 auto', maxWidth}}>
         <Grid container spacing={4}>
             <Grid size={{xs: 12}} style={{display: 'flex', flexWrap: 'wrap'}}>

@@ -95,7 +95,7 @@ interface IPanelWrapperProps {
     icon?: React.ComponentType;
 }
 
-const PanelWrapper: React.FC<IPanelWrapperProps> = ({
+const PanelWrapper: React.FC<React.PropsWithChildren<IPanelWrapperProps>> = ({
     name,
     description,
     refresh,

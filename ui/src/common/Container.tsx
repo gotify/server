@@ -12,7 +12,7 @@ interface IProps {
     style?: React.CSSProperties;
 }
 
-const Container: React.FC<IProps> = ({children, style, ...props}) => {
+const Container: React.FC<React.PropsWithChildren<IProps>> = ({children, style}) => {
     const {classes} = useStyles();
     return (
         <Paper elevation={6} className={classes.paper} style={style}>
