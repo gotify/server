@@ -1,4 +1,4 @@
-import React, {Component, SFC} from 'react';
+import React, {SFC} from 'react';
 import {Link} from 'react-router-dom';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
@@ -12,56 +12,47 @@ import {Switch, Button} from '@mui/material';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
 import {observer} from 'mobx-react';
-import {inject, Stores} from '../inject';
 import {IPlugin} from '../types';
+import {useStores} from '../stores';
 
-@observer
-class Plugins extends Component<Stores<'pluginStore'>> {
-    public componentDidMount = () => this.props.pluginStore.refresh();
-
-    public render() {
-        const {
-            props: {pluginStore},
-        } = this;
-        const plugins = pluginStore.getItems();
-        return (
-            <DefaultPage title="Plugins" maxWidth={1000}>
-                <Grid size={{xs: 12}}>
-                    <Paper elevation={6} style={{overflowX: 'auto'}}>
-                        <Table id="plugin-table">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>ID</TableCell>
-                                    <TableCell>Enabled</TableCell>
-                                    <TableCell>Name</TableCell>
-                                    <TableCell>Token</TableCell>
-                                    <TableCell>Details</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {plugins.map((plugin: IPlugin) => (
-                                    <Row
-                                        key={plugin.token}
-                                        id={plugin.id}
-                                        token={plugin.token}
-                                        name={plugin.name}
-                                        enabled={plugin.enabled}
-                                        fToggleStatus={() =>
-                                            this.props.pluginStore.changeEnabledState(
-                                                plugin.id,
-                                                !plugin.enabled
-                                            )
-                                        }
-                                    />
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Paper>
-                </Grid>
-            </DefaultPage>
-        );
-    }
-}
+const Plugins = observer(() => {
+    const {pluginStore} = useStores();
+    React.useEffect(() => void pluginStore.refresh(), []);
+    const plugins = pluginStore.getItems();
+    return (
+        <DefaultPage title="Plugins" maxWidth={1000}>
+            <Grid size={{xs: 12}}>
+                <Paper elevation={6} style={{overflowX: 'auto'}}>
+                    <Table id="plugin-table">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>ID</TableCell>
+                                <TableCell>Enabled</TableCell>
+                                <TableCell>Name</TableCell>
+                                <TableCell>Token</TableCell>
+                                <TableCell>Details</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {plugins.map((plugin: IPlugin) => (
+                                <Row
+                                    key={plugin.token}
+                                    id={plugin.id}
+                                    token={plugin.token}
+                                    name={plugin.name}
+                                    enabled={plugin.enabled}
+                                    fToggleStatus={() =>
+                                        pluginStore.changeEnabledState(plugin.id, !plugin.enabled)
+                                    }
+                                />
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Paper>
+            </Grid>
+        </DefaultPage>
+    );
+});
 
 interface IRowProps {
     id: number;
@@ -96,4 +87,4 @@ const Row: SFC<IRowProps> = observer(({name, id, token, enabled, fToggleStatus})
     </TableRow>
 ));
 
-export default inject('pluginStore')(Plugins);
+export default Plugins;

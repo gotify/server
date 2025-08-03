@@ -1,3 +1,4 @@
+import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
@@ -9,144 +10,132 @@ import TableRow from '@mui/material/TableRow';
 import Delete from '@mui/icons-material/Delete';
 import Edit from '@mui/icons-material/Edit';
 import CloudUpload from '@mui/icons-material/CloudUpload';
-import React, {ChangeEvent, Component, SFC} from 'react';
+import Button from '@mui/material/Button';
+
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
-import Button from '@mui/material/Button';
 import CopyableSecret from '../common/CopyableSecret';
-import AddApplicationDialog from './AddApplicationDialog';
-import {observer} from 'mobx-react';
-import {observable} from 'mobx';
-import {inject, Stores} from '../inject';
+import {AddApplicationDialog} from './AddApplicationDialog';
 import * as config from '../config';
-import UpdateDialog from './UpdateApplicationDialog';
+import {UpdateApplicationDialog} from './UpdateApplicationDialog';
 import {IApplication} from '../types';
 import {LastUsedCell} from '../common/LastUsedCell';
+import {useStores} from '../stores';
+import {observer} from 'mobx-react-lite';
 
-@observer
-class Applications extends Component<Stores<'appStore'>> {
-    @observable
-    private deleteId: number | false = false;
-    @observable
-    private updateId: number | false = false;
-    @observable
-    private createDialog = false;
+const Applications = observer(() => {
+    const {appStore} = useStores();
+    const apps = appStore.getItems();
+    const [toDeleteApp, setToDeleteApp] = useState<IApplication>();
+    const [toUpdateApp, setToUpdateApp] = useState<IApplication>();
+    const [createDialog, setCreateDialog] = useState<boolean>(false);
 
-    private uploadId = -1;
-    private upload: HTMLInputElement | null = null;
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const uploadId = useRef(-1);
 
-    public componentDidMount = () => this.props.appStore.refresh();
+    useEffect(() => void appStore.refresh(), []);
 
-    public render() {
-        const {
-            createDialog,
-            deleteId,
-            updateId,
-            props: {appStore},
-        } = this;
-        const apps = appStore.getItems();
-        return (
-            <DefaultPage
-                title="Applications"
-                rightControl={
-                    <Button
-                        id="create-app"
-                        variant="contained"
-                        color="primary"
-                        onClick={() => (this.createDialog = true)}>
-                        Create Application
-                    </Button>
-                }
-                maxWidth={1000}>
-                <Grid size={{xs: 12}}>
-                    <Paper elevation={6} style={{overflowX: 'auto'}}>
-                        <Table id="app-table">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell padding="checkbox" style={{width: 80}} />
-                                    <TableCell>Name</TableCell>
-                                    <TableCell>Token</TableCell>
-                                    <TableCell>Description</TableCell>
-                                    <TableCell>Priority</TableCell>
-                                    <TableCell>Last Used</TableCell>
-                                    <TableCell />
-                                    <TableCell />
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {apps.map((app: IApplication) => (
-                                    <Row
-                                        key={app.id}
-                                        description={app.description}
-                                        defaultPriority={app.defaultPriority}
-                                        image={app.image}
-                                        name={app.name}
-                                        value={app.token}
-                                        lastUsed={app.lastUsed}
-                                        fUpload={() => this.uploadImage(app.id)}
-                                        fDelete={() => (this.deleteId = app.id)}
-                                        fEdit={() => (this.updateId = app.id)}
-                                        noDelete={app.internal}
-                                    />
-                                ))}
-                            </TableBody>
-                        </Table>
-                        <input
-                            ref={(upload) => (this.upload = upload)}
-                            type="file"
-                            style={{display: 'none'}}
-                            onChange={this.onUploadImage}
-                        />
-                    </Paper>
-                </Grid>
-                {createDialog && (
-                    <AddApplicationDialog
-                        fClose={() => (this.createDialog = false)}
-                        fOnSubmit={appStore.create}
-                    />
-                )}
-                {updateId !== false && (
-                    <UpdateDialog
-                        fClose={() => (this.updateId = false)}
-                        fOnSubmit={(name, description, defaultPriority) =>
-                            appStore.update(updateId, name, description, defaultPriority)
-                        }
-                        initialDescription={appStore.getByID(updateId).description}
-                        initialName={appStore.getByID(updateId).name}
-                        initialDefaultPriority={appStore.getByID(updateId).defaultPriority}
-                    />
-                )}
-                {deleteId !== false && (
-                    <ConfirmDialog
-                        title="Confirm Delete"
-                        text={'Delete ' + appStore.getByID(deleteId).name + '?'}
-                        fClose={() => (this.deleteId = false)}
-                        fOnSubmit={() => appStore.remove(deleteId)}
-                    />
-                )}
-            </DefaultPage>
-        );
-    }
-
-    private uploadImage = (id: number) => {
-        this.uploadId = id;
-        if (this.upload) {
-            this.upload.click();
+    const handleImageUploadClick = (id: number) => {
+        uploadId.current = id;
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
         }
     };
 
-    private onUploadImage = (e: ChangeEvent<HTMLInputElement>) => {
+    const onUploadImage = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) {
             return;
         }
         if (['image/png', 'image/jpeg', 'image/gif'].indexOf(file.type) !== -1) {
-            this.props.appStore.uploadImage(this.uploadId, file);
+            appStore.uploadImage(uploadId.current, file);
         } else {
             alert('Uploaded file must be of type png, jpeg or gif.');
         }
     };
-}
+
+    return (
+        <DefaultPage
+            title="Applications"
+            rightControl={
+                <Button
+                    id="create-app"
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setCreateDialog(true)}>
+                    Create Application
+                </Button>
+            }
+            maxWidth={1000}>
+            <Grid size={12}>
+                <Paper elevation={6} style={{overflowX: 'auto'}}>
+                    <Table id="app-table">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell padding="checkbox" style={{width: 80}} />
+                                <TableCell>Name</TableCell>
+                                <TableCell>Token</TableCell>
+                                <TableCell>Description</TableCell>
+                                <TableCell>Priority</TableCell>
+                                <TableCell>Last Used</TableCell>
+                                <TableCell />
+                                <TableCell />
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {apps.map((app: IApplication) => (
+                                <Row
+                                    key={app.id}
+                                    description={app.description}
+                                    defaultPriority={app.defaultPriority}
+                                    image={app.image}
+                                    name={app.name}
+                                    value={app.token}
+                                    lastUsed={app.lastUsed}
+                                    fUpload={() => handleImageUploadClick(app.id)}
+                                    fDelete={() => setToDeleteApp(app)}
+                                    fEdit={() => setToUpdateApp(app)}
+                                    noDelete={app.internal}
+                                />
+                            ))}
+                        </TableBody>
+                    </Table>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        style={{display: 'none'}}
+                        onChange={onUploadImage}
+                    />
+                </Paper>
+            </Grid>
+            {createDialog && (
+                <AddApplicationDialog
+                    fClose={() => setCreateDialog(false)}
+                    fOnSubmit={appStore.create}
+                />
+            )}
+            {toUpdateApp != null && (
+                <UpdateApplicationDialog
+                    fClose={() => setToUpdateApp(undefined)}
+                    fOnSubmit={(name, description, defaultPriority) =>
+                        appStore.update(toUpdateApp.id, name, description, defaultPriority)
+                    }
+                    initialDescription={toUpdateApp?.description}
+                    initialName={toUpdateApp?.name}
+                    initialDefaultPriority={toUpdateApp?.defaultPriority}
+                />
+            )}
+            {toDeleteApp != null && (
+                <ConfirmDialog
+                    title="Confirm Delete"
+                    text={'Delete ' + toDeleteApp.name + '?'}
+                    fClose={() => setToDeleteApp(undefined)}
+                    fOnSubmit={() => appStore.remove(toDeleteApp.id)}
+                />
+            )}
+        </DefaultPage>
+    );
+});
 
 interface IRowProps {
     name: string;
@@ -161,24 +150,24 @@ interface IRowProps {
     fEdit: VoidFunction;
 }
 
-const Row: SFC<IRowProps> = observer(
-    ({
-        name,
-        value,
-        noDelete,
-        description,
-        defaultPriority,
-        lastUsed,
-        fDelete,
-        fUpload,
-        image,
-        fEdit,
-    }) => (
+const Row = ({
+    name,
+    value,
+    noDelete,
+    description,
+    defaultPriority,
+    lastUsed,
+    fDelete,
+    fUpload,
+    image,
+    fEdit,
+}: IRowProps) => {
+    return (
         <TableRow>
             <TableCell padding="normal">
                 <div style={{display: 'flex'}}>
                     <img src={config.get('url') + image} alt="app logo" width="40" height="40" />
-                    <IconButton onClick={fUpload} style={{height: 40}} size="large">
+                    <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
                     </IconButton>
                 </div>
@@ -193,17 +182,17 @@ const Row: SFC<IRowProps> = observer(
                 <LastUsedCell lastUsed={lastUsed} />
             </TableCell>
             <TableCell align="right" padding="none">
-                <IconButton onClick={fEdit} className="edit" size="large">
+                <IconButton onClick={fEdit} className="edit">
                     <Edit />
                 </IconButton>
             </TableCell>
             <TableCell align="right" padding="none">
-                <IconButton onClick={fDelete} className="delete" disabled={noDelete} size="large">
+                <IconButton onClick={fDelete} className="delete" disabled={noDelete}>
                     <Delete />
                 </IconButton>
             </TableCell>
         </TableRow>
-    )
-);
+    );
+};
 
-export default inject('appStore')(Applications);
+export default Applications;

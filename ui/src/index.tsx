@@ -15,6 +15,7 @@ import {MessagesStore} from './message/MessagesStore';
 import {ClientStore} from './client/ClientStore';
 import {PluginStore} from './plugin/PluginStore';
 import {registerReactions} from './reactions';
+import {StoreContext} from './stores';
 
 const {port, hostname, protocol, pathname} = window.location;
 const slashes = protocol.concat('//');
@@ -61,9 +62,11 @@ const initStores = (): StoreMapping => {
     };
 
     ReactDOM.render(
-        <InjectProvider stores={stores}>
-            <Layout />
-        </InjectProvider>,
+        <StoreContext.Provider value={stores}>
+            <InjectProvider stores={stores}>
+                <Layout />
+            </InjectProvider>
+        </StoreContext.Provider>,
         document.getElementById('root')
     );
     unregister();
