@@ -1,6 +1,6 @@
 import getPort from 'get-port';
 import {spawn, exec, ChildProcess} from 'child_process';
-import rimraf from 'rimraf';
+import {rimrafSync} from 'rimraf';
 import path from 'path';
 import puppeteer, {Browser, Page} from 'puppeteer';
 import fs from 'fs';
@@ -54,7 +54,7 @@ export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
                     kill(gotifyInstance.pid!, 'SIGKILL', () => resolve(undefined))
                 ),
             ]);
-            rimraf.sync(gotifyFile, {maxBusyTries: 8});
+            rimrafSync(gotifyFile, {maxRetries: 8});
         },
         url: gotifyURL,
         browser,
