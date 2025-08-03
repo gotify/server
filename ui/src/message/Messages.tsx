@@ -1,9 +1,9 @@
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
 import React, {Component} from 'react';
 import {RouteComponentProps} from 'react-router';
 import DefaultPage from '../common/DefaultPage';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import Message from './Message';
 import {observer} from 'mobx-react';
 import {inject, Stores} from '../inject';
@@ -157,7 +157,7 @@ class Messages extends Component<IProps & Stores<'messagesStore' | 'appStore'>, 
     }
 
     private label = (text: string) => (
-        <Grid item xs={12}>
+        <Grid size={{xs: 12}}>
             <Typography variant="caption" component="div" gutterBottom align="center">
                 {text}
             </Typography>

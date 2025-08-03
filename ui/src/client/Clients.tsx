@@ -1,17 +1,17 @@
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Delete from '@material-ui/icons/Delete';
-import Edit from '@material-ui/icons/Edit';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Delete from '@mui/icons-material/Delete';
+import Edit from '@mui/icons-material/Edit';
 import React, {Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import AddClientDialog from './AddClientDialog';
 import UpdateDialog from './UpdateClientDialog';
 import {observer} from 'mobx-react';
@@ -53,7 +53,7 @@ class Clients extends Component<Stores<'clientStore'>> {
                         Create Client
                     </Button>
                 }>
-                <Grid item xs={12}>
+                <Grid size={{xs: 12}}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="client-table">
                             <TableHead>
@@ -127,12 +127,12 @@ const Row: SFC<IRowProps> = ({name, value, lastUsed, fEdit, fDelete}) => (
             <LastUsedCell lastUsed={lastUsed} />
         </TableCell>
         <TableCell align="right" padding="none">
-            <IconButton onClick={fEdit} className="edit">
+            <IconButton onClick={fEdit} className="edit" size="large">
                 <Edit />
             </IconButton>
         </TableCell>
         <TableCell align="right" padding="none">
-            <IconButton onClick={fDelete} className="delete">
+            <IconButton onClick={fDelete} className="delete" size="large">
                 <Delete />
             </IconButton>
         </TableCell>

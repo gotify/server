@@ -1,6 +1,6 @@
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
 import React, {Component, FormEvent} from 'react';
 import Container from '../common/Container';
 import DefaultPage from '../common/DefaultPage';
@@ -23,7 +23,7 @@ class Login extends Component<Stores<'currentUser'>> {
         const {username, password, registerDialog} = this;
         return (
             <DefaultPage title="Login" rightControl={this.registerButton()} maxWidth={250}>
-                <Grid item xs={12} style={{textAlign: 'center'}}>
+                <Grid size={{xs: 12}} style={{textAlign: 'center'}}>
                     <Container>
                         <form onSubmit={this.preventDefault} id="login-form">
                             <TextField

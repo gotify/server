@@ -1,5 +1,5 @@
-import Fab from '@material-ui/core/Fab';
-import KeyboardArrowUp from '@material-ui/icons/KeyboardArrowUp';
+import Fab from '@mui/material/Fab';
+import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp';
 import React, {Component} from 'react';
 
 class ScrollUpButton extends Component {

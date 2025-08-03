@@ -1,9 +1,9 @@
-import {Button} from '@material-ui/core';
-import IconButton from '@material-ui/core/IconButton';
-import {createStyles, Theme, withStyles, WithStyles} from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-import {ExpandLess, ExpandMore} from '@material-ui/icons';
-import Delete from '@material-ui/icons/Delete';
+import {Button, Theme} from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import {withStyles} from 'tss-react/mui';
+import Typography from '@mui/material/Typography';
+import {ExpandLess, ExpandMore} from '@mui/icons-material';
+import Delete from '@mui/icons-material/Delete';
 import React, {RefObject} from 'react';
 import TimeAgo from 'react-timeago';
 import Container from '../common/Container';
@@ -15,7 +15,7 @@ import {contentType, RenderMode} from './extras';
 const PREVIEW_LENGTH = 500;
 
 const styles = (theme: Theme) =>
-    createStyles({
+    ({
         header: {
             display: 'flex',
             flexWrap: 'wrap',
@@ -29,21 +29,20 @@ const styles = (theme: Theme) =>
             marginRight: -15,
         },
         wrapperPadding: {
-            padding: 12,
+            marginBottom: 12,
         },
         messageContentWrapper: {
-            width: '100%',
-            maxWidth: 585,
+            minWidth: 200,
         },
         image: {
             marginRight: 15,
-            [theme.breakpoints.down('sm')]: {
+            [theme.breakpoints.down('md')]: {
                 width: 32,
                 height: 32,
             },
         },
         date: {
-            [theme.breakpoints.down('sm')]: {
+            [theme.breakpoints.down('md')]: {
                 order: 1,
                 flexBasis: '100%',
                 opacity: 0.7,
@@ -75,7 +74,7 @@ const styles = (theme: Theme) =>
                 maxWidth: '100%',
             },
         },
-    });
+    } as const);
 
 interface IProps {
     title: string;
@@ -85,6 +84,7 @@ interface IProps {
     priority: number;
     fDelete: VoidFunction;
     extras?: IMessageExtras;
+    classes?: Partial<Record<keyof ReturnType<typeof styles>, string>>;
     height: (height: number) => void;
 }
 
@@ -103,12 +103,12 @@ const priorityColor = (priority: number) => {
     }
 };
 
-class Message extends React.PureComponent<IProps & WithStyles<typeof styles>, IState> {
+class Message extends React.PureComponent<IProps, IState> {
     public state = {expanded: false, isOverflowing: false};
     private node: HTMLDivElement | null = null;
     private previewRef: RefObject<HTMLDivElement>;
 
-    constructor(props: IProps & WithStyles<typeof styles>) {
+    constructor(props: IProps) {
         super(props);
         this.previewRef = React.createRef();
     }
@@ -135,18 +135,20 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>, IS
 
     private renderContent = () => {
         const content = this.props.content;
+        const classes = withStyles.getClasses(this.props);
 
         switch (contentType(this.props.extras)) {
             case RenderMode.Markdown:
                 return <Markdown>{content}</Markdown>;
             case RenderMode.Plain:
             default:
-                return <span className={this.props.classes.plainContent}>{content}</span>;
+                return <span className={classes.plainContent}>{content}</span>;
         }
     };
 
     public render(): React.ReactNode {
-        const {fDelete, classes, title, date, image, priority} = this.props;
+        const {fDelete, title, date, image, priority} = this.props;
+        const classes = withStyles.getClasses(this.props);
 
         return (
             <div className={`${classes.wrapperPadding} message`} ref={(ref) => (this.node = ref)}>
@@ -158,38 +160,45 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>, IS
                         borderLeftWidth: 6,
                         borderLeftStyle: 'solid',
                     }}>
-                    <div className={classes.imageWrapper}>
-                        {image !== null ? (
-                            <img
-                                src={config.get('url') + image}
-                                alt="app logo"
-                                width="70"
-                                height="70"
-                                className={classes.image}
-                            />
-                        ) : null}
-                    </div>
-                    <div className={classes.messageContentWrapper}>
-                        <div className={classes.header}>
-                            <Typography className={`${classes.headerTitle} title`} variant="h5">
-                                {title}
-                            </Typography>
-                            <Typography variant="body1" className={classes.date}>
-                                <TimeAgo date={date} />
-                            </Typography>
-                            <IconButton onClick={fDelete} className={`${classes.trash} delete`}>
-                                <Delete />
-                            </IconButton>
+                    <div style={{display: 'flex', width: '100%'}}>
+                        <div className={classes.imageWrapper}>
+                            {image !== null ? (
+                                <img
+                                    src={config.get('url') + image}
+                                    alt="app logo"
+                                    width="70"
+                                    height="70"
+                                    className={classes.image}
+                                />
+                            ) : null}
                         </div>
+                        <div className={classes.messageContentWrapper}>
+                            <div className={classes.header}>
+                                <Typography className={`${classes.headerTitle} title`} variant="h5">
+                                    {title}
+                                </Typography>
+                                <Typography variant="body1" className={classes.date}>
+                                    <TimeAgo date={date} />
+                                </Typography>
+                                <IconButton
+                                    onClick={fDelete}
+                                    className={`${classes.trash} delete`}
+                                    size="large">
+                                    <Delete />
+                                </IconButton>
+                            </div>
 
-                        <Typography
-                            component="div"
-                            ref={this.previewRef}
-                            className={`${classes.content} content ${
-                                this.state.isOverflowing && this.state.expanded ? 'expanded' : ''
-                            }`}>
-                            {this.renderContent()}
-                        </Typography>
+                            <Typography
+                                component="div"
+                                ref={this.previewRef}
+                                className={`${classes.content} content ${
+                                    this.state.isOverflowing && this.state.expanded
+                                        ? 'expanded'
+                                        : ''
+                                }`}>
+                                {this.renderContent()}
+                            </Typography>
+                        </div>
                     </div>
                     {this.state.isOverflowing && (
                         <Button
@@ -209,4 +218,4 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>, IS
     }
 }
 
-export default withStyles(styles, {withTheme: true})(Message);
+export default withStyles(Message, styles);

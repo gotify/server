@@ -1,6 +1,6 @@
-import Divider from '@material-ui/core/Divider';
-import Drawer from '@material-ui/core/Drawer';
-import {StyleRules, Theme, WithStyles, withStyles} from '@material-ui/core/styles';
+import Divider from '@mui/material/Divider';
+import Drawer from '@mui/material/Drawer';
+import {Theme} from '@mui/material/styles';
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
 import {observer} from 'mobx-react';
@@ -8,51 +8,52 @@ import {inject, Stores} from '../inject';
 import {mayAllowPermission, requestPermission} from '../snack/browserNotification';
 import {
     Button,
-    Hidden,
     IconButton,
     Typography,
-    ListItem,
     ListItemText,
     ListItemAvatar,
     Avatar,
-} from '@material-ui/core';
-import {DrawerProps} from '@material-ui/core/Drawer/Drawer';
-import CloseIcon from '@material-ui/icons/Close';
+    ListItemButton,
+} from '@mui/material';
+import {DrawerProps} from '@mui/material/Drawer/Drawer';
+import CloseIcon from '@mui/icons-material/Close';
+import {withStyles} from 'tss-react/mui';
 
-const styles = (theme: Theme): StyleRules<'root' | 'drawerPaper' | 'toolbar' | 'link'> => ({
-    root: {
-        height: '100%',
-    },
-    drawerPaper: {
-        position: 'relative',
-        width: 250,
-        minHeight: '100%',
-        height: '100vh',
-    },
-    toolbar: theme.mixins.toolbar,
-    link: {
-        color: 'inherit',
-        textDecoration: 'none',
-    },
-});
-
-type Styles = WithStyles<'root' | 'drawerPaper' | 'toolbar' | 'link'>;
+const styles = (theme: Theme) =>
+    ({
+        root: {
+            height: '100%',
+        },
+        drawerPaper: {
+            position: 'relative',
+            width: 250,
+            minHeight: '100%',
+            height: '100vh',
+        },
+        toolbar: theme.mixins.toolbar as any,
+        link: {
+            color: 'inherit',
+            textDecoration: 'none',
+        },
+    } as const);
 
 interface IProps {
     loggedIn: boolean;
     navOpen: boolean;
+    classes?: Partial<Record<keyof ReturnType<typeof styles>, string>>;
     setNavOpen: (open: boolean) => void;
 }
 
 @observer
 class Navigation extends Component<
-    IProps & Styles & Stores<'appStore'>,
+    IProps & Stores<'appStore'>,
     {showRequestNotification: boolean}
 > {
     public state = {showRequestNotification: mayAllowPermission()};
 
     public render() {
-        const {classes, loggedIn, appStore, navOpen, setNavOpen} = this.props;
+        const {loggedIn, appStore, navOpen, setNavOpen} = this.props;
+        const classes = withStyles.getClasses(this.props);
         const {showRequestNotification} = this.state;
         const apps = appStore.getItems();
 
@@ -65,7 +66,7 @@ class Navigation extends Component<
                           className={`${classes.link} item`}
                           to={'/messages/' + app.id}
                           key={app.id}>
-                          <ListItem button>
+                          <ListItemButton>
                               <ListItemAvatar style={{minWidth: 42}}>
                                   <Avatar
                                       style={{width: 32, height: 32}}
@@ -74,17 +75,17 @@ class Navigation extends Component<
                                   />
                               </ListItemAvatar>
                               <ListItemText primary={app.name} />
-                          </ListItem>
+                          </ListItemButton>
                       </Link>
                   ));
 
         const placeholderItems = [
-            <ListItem button disabled key={-1}>
+            <ListItemButton disabled key={-1}>
                 <ListItemText primary="Some Server" />
-            </ListItem>,
-            <ListItem button disabled key={-2}>
+            </ListItemButton>,
+            <ListItemButton disabled key={-2}>
                 <ListItemText primary="A Raspberry PI" />
-            </ListItem>,
+            </ListItemButton>,
         ];
 
         return (
@@ -95,9 +96,9 @@ class Navigation extends Component<
                 id="message-navigation">
                 <div className={classes.toolbar} />
                 <Link className={classes.link} to="/" onClick={() => setNavOpen(false)}>
-                    <ListItem button disabled={!loggedIn} className="all">
+                    <ListItemButton disabled={!loggedIn} className="all">
                         <ListItemText primary="All Messages" />
-                    </ListItem>
+                    </ListItemButton>
                 </Link>
                 <Divider />
                 <div>{loggedIn ? userApps : placeholderItems}</div>
@@ -122,20 +123,20 @@ const ResponsiveDrawer: React.FC<
     DrawerProps & {navOpen: boolean; setNavOpen: (open: boolean) => void}
 > = ({navOpen, setNavOpen, children, ...rest}) => (
     <>
-        <Hidden smUp implementation="css">
-            <Drawer variant="temporary" open={navOpen} {...rest}>
-                <IconButton onClick={() => setNavOpen(false)}>
-                    <CloseIcon />
-                </IconButton>
-                {children}
-            </Drawer>
-        </Hidden>
-        <Hidden xsDown implementation="css">
-            <Drawer variant="permanent" {...rest}>
-                {children}
-            </Drawer>
-        </Hidden>
+        <Drawer
+            sx={{display: {sm: 'none', xs: 'block'}}}
+            variant="temporary"
+            open={navOpen}
+            {...rest}>
+            <IconButton onClick={() => setNavOpen(false)} size="large">
+                <CloseIcon />
+            </IconButton>
+            {children}
+        </Drawer>
+        <Drawer sx={{display: {xs: 'none', sm: 'block'}}} variant="permanent" {...rest}>
+            {children}
+        </Drawer>
     </>
 );
 
-export default withStyles(styles, {withTheme: true})(inject('appStore')(Navigation));
+export default withStyles(inject('appStore')(Navigation), styles);

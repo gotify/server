@@ -1,14 +1,14 @@
 import React, {Component, SFC} from 'react';
 import {Link} from 'react-router-dom';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Settings from '@material-ui/icons/Settings';
-import {Switch, Button} from '@material-ui/core';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Settings from '@mui/icons-material/Settings';
+import {Switch, Button} from '@mui/material';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
 import {observer} from 'mobx-react';
@@ -26,7 +26,7 @@ class Plugins extends Component<Stores<'pluginStore'>> {
         const plugins = pluginStore.getItems();
         return (
             <DefaultPage title="Plugins" maxWidth={1000}>
-                <Grid item xs={12}>
+                <Grid size={{xs: 12}}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="plugin-table">
                             <TableHead>

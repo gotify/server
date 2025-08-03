@@ -1,8 +1,8 @@
-import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
-import Visibility from '@material-ui/icons/Visibility';
-import Copy from '@material-ui/icons/FileCopyOutlined';
-import VisibilityOff from '@material-ui/icons/VisibilityOff';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import Visibility from '@mui/icons-material/Visibility';
+import Copy from '@mui/icons-material/FileCopyOutlined';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import React, {Component, CSSProperties} from 'react';
 import {Stores, inject} from '../inject';
 
@@ -23,10 +23,13 @@ class CopyableSecret extends Component<IProps & Stores<'snackManager'>, IState> 
         const text = this.state.visible ? value : '•••••••••••••••';
         return (
             <div style={style}>
-                <IconButton onClick={this.copyToClipboard} title="Copy to clipboard">
+                <IconButton onClick={this.copyToClipboard} title="Copy to clipboard" size="large">
                     <Copy />
                 </IconButton>
-                <IconButton onClick={this.toggleVisibility} className="toggle-visibility">
+                <IconButton
+                    onClick={this.toggleVisibility}
+                    className="toggle-visibility"
+                    size="large">
                     {this.state.visible ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
                 <Typography style={{fontFamily: 'monospace', fontSize: 16}}>{text}</Typography>

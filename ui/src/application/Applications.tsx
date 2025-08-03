@@ -1,18 +1,18 @@
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Delete from '@material-ui/icons/Delete';
-import Edit from '@material-ui/icons/Edit';
-import CloudUpload from '@material-ui/icons/CloudUpload';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Delete from '@mui/icons-material/Delete';
+import Edit from '@mui/icons-material/Edit';
+import CloudUpload from '@mui/icons-material/CloudUpload';
 import React, {ChangeEvent, Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import CopyableSecret from '../common/CopyableSecret';
 import AddApplicationDialog from './AddApplicationDialog';
 import {observer} from 'mobx-react';
@@ -58,7 +58,7 @@ class Applications extends Component<Stores<'appStore'>> {
                     </Button>
                 }
                 maxWidth={1000}>
-                <Grid item xs={12}>
+                <Grid size={{xs: 12}}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="app-table">
                             <TableHead>
@@ -175,10 +175,10 @@ const Row: SFC<IRowProps> = observer(
         fEdit,
     }) => (
         <TableRow>
-            <TableCell padding="default">
+            <TableCell padding="normal">
                 <div style={{display: 'flex'}}>
                     <img src={config.get('url') + image} alt="app logo" width="40" height="40" />
-                    <IconButton onClick={fUpload} style={{height: 40}}>
+                    <IconButton onClick={fUpload} style={{height: 40}} size="large">
                         <CloudUpload />
                     </IconButton>
                 </div>
@@ -193,12 +193,12 @@ const Row: SFC<IRowProps> = observer(
                 <LastUsedCell lastUsed={lastUsed} />
             </TableCell>
             <TableCell align="right" padding="none">
-                <IconButton onClick={fEdit} className="edit">
+                <IconButton onClick={fEdit} className="edit" size="large">
                     <Edit />
                 </IconButton>
             </TableCell>
             <TableCell align="right" padding="none">
-                <IconButton onClick={fDelete} className="delete" disabled={noDelete}>
+                <IconButton onClick={fDelete} className="delete" disabled={noDelete} size="large">
                     <Delete />
                 </IconButton>
             </TableCell>

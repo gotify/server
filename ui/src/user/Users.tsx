@@ -1,30 +1,22 @@
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Paper from '@material-ui/core/Paper';
-import {withStyles, WithStyles} from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Delete from '@material-ui/icons/Delete';
-import Edit from '@material-ui/icons/Edit';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Delete from '@mui/icons-material/Delete';
+import Edit from '@mui/icons-material/Edit';
 import React, {Component, SFC} from 'react';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import AddEditDialog from './AddEditUserDialog';
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {inject, Stores} from '../inject';
 import {IUser} from '../types';
-
-const styles = () => ({
-    wrapper: {
-        margin: '0 auto',
-        maxWidth: 700,
-    },
-});
 
 interface IRowProps {
     name: string;
@@ -38,10 +30,10 @@ const UserRow: SFC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
         <TableCell>{name}</TableCell>
         <TableCell>{admin ? 'Yes' : 'No'}</TableCell>
         <TableCell align="right" padding="none">
-            <IconButton onClick={fEdit} className="edit">
+            <IconButton onClick={fEdit} className="edit" size="large">
                 <Edit />
             </IconButton>
-            <IconButton onClick={fDelete} className="delete">
+            <IconButton onClick={fDelete} className="delete" size="large">
                 <Delete />
             </IconButton>
         </TableCell>
@@ -49,7 +41,7 @@ const UserRow: SFC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
 );
 
 @observer
-class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
+class Users extends Component<Stores<'userStore'>> {
     @observable
     private createDialog = false;
     @observable
@@ -79,7 +71,7 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
                         Create User
                     </Button>
                 }>
-                <Grid item xs={12}>
+                <Grid size={{xs: 12}}>
                     <Paper elevation={6} style={{overflowX: 'auto'}}>
                         <Table id="user-table">
                             <TableHead>
@@ -131,4 +123,4 @@ class Users extends Component<WithStyles<'wrapper'> & Stores<'userStore'>> {
     }
 }
 
-export default withStyles(styles)(inject('userStore')(Users));
+export default inject('userStore')(Users);

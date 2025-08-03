@@ -1,5 +1,6 @@
-import {createMuiTheme, MuiThemeProvider, Theme, WithStyles, withStyles} from '@material-ui/core';
-import CssBaseline from '@material-ui/core/CssBaseline';
+import {createTheme, ThemeProvider, StyledEngineProvider, Theme} from '@mui/material';
+import {withStyles} from 'tss-react/mui';
+import CssBaseline from '@mui/material/CssBaseline';
 import * as React from 'react';
 import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
 import Header from './Header';
@@ -27,7 +28,7 @@ const styles = (theme: Theme) => ({
         marginTop: 64,
         padding: theme.spacing(4),
         width: '100%',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             marginTop: 0,
         },
     },
@@ -36,14 +37,14 @@ const styles = (theme: Theme) => ({
 const localStorageThemeKey = 'gotify-theme';
 type ThemeKey = 'dark' | 'light';
 const themeMap: Record<ThemeKey, Theme> = {
-    light: createMuiTheme({
+    light: createTheme({
         palette: {
-            type: 'light',
+            mode: 'light',
         },
     }),
-    dark: createMuiTheme({
+    dark: createTheme({
         palette: {
-            type: 'dark',
+            mode: 'dark',
         },
     }),
 };
@@ -51,10 +52,12 @@ const themeMap: Record<ThemeKey, Theme> = {
 const isThemeKey = (value: string | null): value is ThemeKey =>
     value === 'light' || value === 'dark';
 
+interface LayoutProps {
+    classes?: Partial<Record<keyof ReturnType<typeof styles>, string>>;
+}
+
 @observer
-class Layout extends React.Component<
-    WithStyles<'content'> & Stores<'currentUser' | 'snackManager'>
-> {
+class Layout extends React.Component<LayoutProps & Stores<'currentUser' | 'snackManager'>> {
     @observable
     private currentTheme: ThemeKey = 'dark';
     @observable
@@ -78,7 +81,6 @@ class Layout extends React.Component<
     public render() {
         const {showSettings, currentTheme} = this;
         const {
-            classes,
             currentUser: {
                 loggedIn,
                 authenticating,
@@ -88,75 +90,82 @@ class Layout extends React.Component<
                 connectionErrorMessage,
             },
         } = this.props;
+        const classes = withStyles.getClasses(this.props);
         const theme = themeMap[currentTheme];
         const loginRoute = () => (loggedIn ? <Redirect to="/" /> : <Login />);
         const {version} = config.get('version');
         return (
-            <MuiThemeProvider theme={theme}>
-                <HashRouter>
-                    <div>
-                        {!connectionErrorMessage ? null : (
-                            <ConnectionErrorBanner
-                                height={64}
-                                retry={() => tryReconnect()}
-                                message={connectionErrorMessage}
-                            />
-                        )}
-                        <div style={{display: 'flex', flexDirection: 'column'}}>
-                            <CssBaseline />
-                            <Header
-                                style={{top: !connectionErrorMessage ? 0 : 64}}
-                                admin={admin}
-                                name={name}
-                                version={version}
-                                loggedIn={loggedIn}
-                                toggleTheme={this.toggleTheme.bind(this)}
-                                showSettings={() => (this.showSettings = true)}
-                                logout={logout}
-                                setNavOpen={this.setNavOpen.bind(this)}
-                            />
-                            <div style={{display: 'flex'}}>
-                                <Navigation
+            <StyledEngineProvider injectFirst>
+                <ThemeProvider theme={theme}>
+                    <HashRouter>
+                        <div>
+                            {!connectionErrorMessage ? null : (
+                                <ConnectionErrorBanner
+                                    height={64}
+                                    retry={() => tryReconnect()}
+                                    message={connectionErrorMessage}
+                                />
+                            )}
+                            <div style={{display: 'flex', flexDirection: 'column'}}>
+                                <CssBaseline />
+                                <Header
+                                    style={{top: !connectionErrorMessage ? 0 : 64}}
+                                    admin={admin}
+                                    name={name}
+                                    version={version}
                                     loggedIn={loggedIn}
-                                    navOpen={this.navOpen}
+                                    toggleTheme={this.toggleTheme.bind(this)}
+                                    showSettings={() => (this.showSettings = true)}
+                                    logout={logout}
                                     setNavOpen={this.setNavOpen.bind(this)}
                                 />
-                                <main className={classes.content}>
-                                    <Switch>
-                                        {authenticating ? (
-                                            <Route path="/">
-                                                <LoadingSpinner />
-                                            </Route>
-                                        ) : null}
-                                        <Route exact path="/login" render={loginRoute} />
-                                        {loggedIn ? null : <Redirect to="/login" />}
-                                        <Route exact path="/" component={Messages} />
-                                        <Route exact path="/messages/:id" component={Messages} />
-                                        <Route
-                                            exact
-                                            path="/applications"
-                                            component={Applications}
-                                        />
-                                        <Route exact path="/clients" component={Clients} />
-                                        <Route exact path="/users" component={Users} />
-                                        <Route exact path="/plugins" component={Plugins} />
-                                        <Route
-                                            exact
-                                            path="/plugins/:id"
-                                            component={PluginDetailView}
-                                        />
-                                    </Switch>
-                                </main>
+                                <div style={{display: 'flex'}}>
+                                    <Navigation
+                                        loggedIn={loggedIn}
+                                        navOpen={this.navOpen}
+                                        setNavOpen={this.setNavOpen.bind(this)}
+                                    />
+                                    <main className={classes.content}>
+                                        <Switch>
+                                            {authenticating ? (
+                                                <Route path="/">
+                                                    <LoadingSpinner />
+                                                </Route>
+                                            ) : null}
+                                            <Route exact path="/login" render={loginRoute} />
+                                            {loggedIn ? null : <Redirect to="/login" />}
+                                            <Route exact path="/" component={Messages} />
+                                            <Route
+                                                exact
+                                                path="/messages/:id"
+                                                component={Messages}
+                                            />
+                                            <Route
+                                                exact
+                                                path="/applications"
+                                                component={Applications}
+                                            />
+                                            <Route exact path="/clients" component={Clients} />
+                                            <Route exact path="/users" component={Users} />
+                                            <Route exact path="/plugins" component={Plugins} />
+                                            <Route
+                                                exact
+                                                path="/plugins/:id"
+                                                component={PluginDetailView}
+                                            />
+                                        </Switch>
+                                    </main>
+                                </div>
+                                {showSettings && (
+                                    <SettingsDialog fClose={() => (this.showSettings = false)} />
+                                )}
+                                <ScrollUpButton />
+                                <SnackBarHandler />
                             </div>
-                            {showSettings && (
-                                <SettingsDialog fClose={() => (this.showSettings = false)} />
-                            )}
-                            <ScrollUpButton />
-                            <SnackBarHandler />
                         </div>
-                    </div>
-                </HashRouter>
-            </MuiThemeProvider>
+                    </HashRouter>
+                </ThemeProvider>
+            </StyledEngineProvider>
         );
     }
 
@@ -166,4 +175,4 @@ class Layout extends React.Component<
     }
 }
 
-export default withStyles(styles, {withTheme: true})(inject('currentUser', 'snackManager')(Layout));
+export default withStyles(inject('currentUser', 'snackManager')(Layout), styles);
