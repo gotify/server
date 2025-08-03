@@ -16,7 +16,6 @@
     "mobx-react": "^6.3.0",
     "mobx-utils": "^5.6.1",
     "notifyjs": "^3.0.0",
-    "prop-types": "^15.6.2",
     "react": "^16.4.2",
     "react-codemirror2": "^7.2.1",
     "react-dom": "^16.4.2",
