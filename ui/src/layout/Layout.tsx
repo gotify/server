@@ -8,7 +8,6 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import Navigation from './Navigation';
 import ScrollUpButton from '../common/ScrollUpButton';
 import SettingsDialog from '../common/SettingsDialog';
-import SnackBarHandler from '../snack/SnackBarHandler';
 import * as config from '../config';
 import Applications from '../application/Applications';
 import Clients from '../client/Clients';
@@ -20,6 +19,7 @@ import Users from '../user/Users';
 import {observer} from 'mobx-react';
 import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
 import {useStores} from '../stores';
+import {SnackbarProvider} from 'notistack';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     content: {
@@ -141,7 +141,7 @@ const Layout = observer(() => {
                                 <SettingsDialog fClose={() => setShowSettings(false)} />
                             )}
                             <ScrollUpButton />
-                            <SnackBarHandler />
+                            <SnackbarProvider />
                         </div>
                     </div>
                 </HashRouter>
