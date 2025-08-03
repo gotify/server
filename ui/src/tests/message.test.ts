@@ -2,6 +2,7 @@
 import {Page} from 'puppeteer';
 import {newTest, GotifyTest} from './setup';
 import {clickByText, count, innerText, waitForCount, waitForExists} from './utils';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import * as auth from './authentication';
 import * as selector from './selector';
 import axios from 'axios';

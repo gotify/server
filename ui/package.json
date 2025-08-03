@@ -7,6 +7,7 @@
   "dependencies": {
     "@material-ui/core": "^4.11.4",
     "@material-ui/icons": "^4.9.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "axios": "^0.21.1",
     "codemirror": "^5.61.1",
     "detect-browser": "^5.2.0",
@@ -26,13 +27,14 @@
     "react-timeago": "^6.2.1",
     "remark-gfm": "^1.0.0",
     "remove-markdown": "^0.3.0",
-    "typeface-roboto": "1.1.13"
+    "typeface-roboto": "1.1.13",
+    "vite": "^7.0.6",
+    "vitest": "^3.2.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --env=node",
-    "eject": "react-scripts eject",
+    "start": "vite",
+    "build": "vite build",
+    "test": "vitest --disable-console-intercept --no-file-parallelism",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "format": "prettier \"src/**/*.{ts,tsx}\" --write",
     "testformat": "prettier \"src/**/*.{ts,tsx}\" --list-different"
@@ -41,7 +43,6 @@
     "@types/codemirror": "5.60.0",
     "@types/detect-browser": "^4.0.0",
     "@types/get-port": "^4.0.0",
-    "@types/jest": "^26.0.23",
     "@types/js-base64": "^3.3.1",
     "@types/node": "^15.12.2",
     "@types/notifyjs": "^3.0.2",
@@ -63,7 +64,6 @@
     "get-port": "^5.1.1",
     "prettier": "^2.3.1",
     "puppeteer": "^17.1.3",
-    "react-scripts": "^4.0.3",
     "rimraf": "^3.0.2",
     "tree-kill": "^1.2.0",
     "typescript": "4.0.2",

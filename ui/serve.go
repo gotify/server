@@ -35,7 +35,6 @@ func Register(r *gin.Engine, version model.VersionInfo, register bool) {
 	ui.GET("/", serveFile("index.html", "text/html", replaceConfig))
 	ui.GET("/index.html", serveFile("index.html", "text/html", replaceConfig))
 	ui.GET("/manifest.json", serveFile("manifest.json", "application/json", noop))
-	ui.GET("/asset-manifest.json", serveFile("asset-manifest.json", "application/json", noop))
 
 	subBox, err := fs.Sub(box, "build")
 	if err != nil {

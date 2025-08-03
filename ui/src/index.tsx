@@ -16,8 +16,6 @@ import {ClientStore} from './client/ClientStore';
 import {PluginStore} from './plugin/PluginStore';
 import {registerReactions} from './reactions';
 
-const devUrl = 'http://localhost:3000/';
-
 const {port, hostname, protocol, pathname} = window.location;
 const slashes = protocol.concat('//');
 const path = pathname.endsWith('/') ? pathname : pathname.substring(0, pathname.lastIndexOf('/'));
@@ -50,12 +48,7 @@ const initStores = (): StoreMapping => {
 };
 
 (function clientJS() {
-    if (process.env.NODE_ENV === 'production') {
-        config.set('url', prodUrl);
-    } else {
-        config.set('url', devUrl);
-        config.set('register', true);
-    }
+    config.set('url', prodUrl);
     const stores = initStores();
     initAxios(stores.currentUser, stores.snackManager.snack);
 
