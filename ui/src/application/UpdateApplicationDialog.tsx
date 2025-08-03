@@ -101,7 +101,10 @@ export default class UpdateDialog extends Component<IProps, IState> {
         );
     }
 
-    private handleChange(propertyName: string, event: React.ChangeEvent<HTMLInputElement>) {
+    private handleChange(
+        propertyName: 'name' | 'description',
+        event: React.ChangeEvent<HTMLInputElement>
+    ) {
         const state = this.state;
         state[propertyName] = event.target.value;
         this.setState(state);

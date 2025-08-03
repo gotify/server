@@ -172,6 +172,9 @@ describe('plugin', () => {
                 await inDetailPage(1, async () => {
                     await page.waitForSelector('.displayer a');
                     const hook = await page.$eval('.displayer a', (el) => el.getAttribute('href'));
+                    if (!hook) {
+                        throw 'href not found';
+                    }
                     await axios.get(hook);
                 });
             });

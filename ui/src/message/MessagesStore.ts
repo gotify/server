@@ -136,15 +136,17 @@ export class MessagesStore {
         }
     };
 
-    private getUnCached = (appId: number): Array<IMessage & {image: string | null}> => {
-        const appToImage = this.appStore
+    private getUnCached = (appId: number): Array<IMessage> => {
+        const appToImage: Partial<Record<string, string>> = this.appStore
             .getItems()
             .reduce((all, app) => ({...all, [app.id]: app.image}), {});
 
-        return this.stateOf(appId, false).messages.map((message: IMessage) => ({
-            ...message,
-            image: appToImage[message.appid] || null,
-        }));
+        return this.stateOf(appId, false).messages.map(
+            (message: IMessage): IMessage => ({
+                ...message,
+                image: appToImage[message.appid],
+            })
+        );
     };
 
     public get = createTransformer(this.getUnCached);

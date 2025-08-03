@@ -96,7 +96,7 @@ export default class RegistrationDialog extends Component<IProps, IState> {
         );
     }
 
-    private handleChange(propertyName: string, event: ChangeEvent<HTMLInputElement>) {
+    private handleChange(propertyName: keyof IState, event: ChangeEvent<HTMLInputElement>) {
         const state = this.state;
         state[propertyName] = event.target.value;
         this.setState(state);

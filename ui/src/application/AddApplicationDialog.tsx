@@ -89,7 +89,10 @@ export default class AddDialog extends Component<IProps, IState> {
         );
     }
 
-    private handleChange(propertyName: string, event: React.ChangeEvent<HTMLInputElement>) {
+    private handleChange(
+        propertyName: 'description' | 'name',
+        event: React.ChangeEvent<HTMLInputElement>
+    ) {
         const state = this.state;
         state[propertyName] = event.target.value;
         this.setState(state);

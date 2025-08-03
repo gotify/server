@@ -50,7 +50,9 @@ export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
         close: async () => {
             await Promise.all([
                 browser.close(),
-                new Promise((resolve) => kill(gotifyInstance.pid!, 'SIGKILL', () => resolve())),
+                new Promise((resolve) =>
+                    kill(gotifyInstance.pid!, 'SIGKILL', () => resolve(undefined))
+                ),
             ]);
             rimraf.sync(gotifyFile, {maxBusyTries: 8});
         },

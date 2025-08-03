@@ -110,13 +110,13 @@ export default class AddEditDialog extends Component<IProps, IState> {
         );
     }
 
-    private handleChange(propertyName: string, event: ChangeEvent<HTMLInputElement>) {
+    private handleChange(propertyName: 'name' | 'pass', event: ChangeEvent<HTMLInputElement>) {
         const state = this.state;
         state[propertyName] = event.target.value;
         this.setState(state);
     }
 
-    private handleChecked(propertyName: string, event: ChangeEvent<HTMLInputElement>) {
+    private handleChecked(propertyName: 'admin', event: ChangeEvent<HTMLInputElement>) {
         const state = this.state;
         state[propertyName] = event.target.checked;
         this.setState(state);
