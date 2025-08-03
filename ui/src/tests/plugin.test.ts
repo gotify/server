@@ -57,6 +57,7 @@ const getDisplayer = async () => await innerText(page, '.displayer');
 const hasReceivedMessage = async (title: RegExp, content: RegExp) => {
     await page.click('#message-navigation a');
     await waitForExists(page, selector.heading(), 'All Messages');
+    await waitForCount(page, '#messages .message', 1);
 
     expect(await innerText(page, '.title')).toMatch(title);
     expect(await innerText(page, '.content')).toMatch(content);
@@ -136,11 +137,11 @@ describe('plugin', () => {
                             await (await page.$('.config-save'))!.getProperty('disabled')
                         ).jsonValue()
                     ).toBe(true);
-                    await page.waitForSelector('.CodeMirror .CodeMirror-code');
+                    await page.waitForSelector('.cm-editor .cm-content');
                     await page.waitForFunction(
-                        'document.querySelector(".CodeMirror .CodeMirror-code").innerText.toLowerCase().indexOf("loading")<0'
+                        'document.querySelector(".cm-editor .cm-content").innerText.toLowerCase().indexOf("loading")<0'
                     );
-                    await page.click('.CodeMirror .CodeMirror-code > div');
+                    await page.click('.cm-editor .cm-content > div');
                     await page.keyboard.press('x');
                     await page.waitForFunction(
                         'document.querySelector(".config-save") && !document.querySelector(".config-save").disabled'
@@ -156,13 +157,11 @@ describe('plugin', () => {
                             await (await page.$('.config-save'))!.getProperty('disabled')
                         ).jsonValue()
                     ).toBe(true);
-                    await page.waitForSelector('.CodeMirror .CodeMirror-code > div');
+                    await page.waitForSelector('.cm-editor .cm-content > div');
                     await page.waitForFunction(
-                        'document.querySelector(".CodeMirror .CodeMirror-code > div").innerText.toLowerCase().indexOf("loading")<0'
+                        'document.querySelector(".cm-editor .cm-content > div").innerText.toLowerCase().indexOf("loading")<0'
                     );
-                    expect(await innerText(page, '.CodeMirror .CodeMirror-code > div')).toMatch(
-                        /x$/
-                    );
+                    expect(await innerText(page, '.cm-editor .cm-content > div')).toMatch(/x$/);
                 });
             });
             it('sends messages', async () => {

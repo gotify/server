@@ -1,10 +1,9 @@
 import React from 'react';
 import {useParams} from 'react-router';
 import {Markdown} from '../common/Markdown';
-import {UnControlled as CodeMirror} from 'react-codemirror2';
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/theme/material.css';
-import 'codemirror/mode/yaml/yaml';
+import {langs} from '@uiw/codemirror-extensions-langs';
+import {material} from '@uiw/codemirror-theme-material';
+import CodeMirror from '@uiw/react-codemirror';
 import Info from '@mui/icons-material/Info';
 import Build from '@mui/icons-material/Build';
 import Subject from '@mui/icons-material/Subject';
@@ -150,22 +149,23 @@ interface IConfigurerPanelProps {
 }
 const ConfigurerPanel = ({initialConfig, save}: IConfigurerPanelProps) => {
     const [unsavedChanges, setUnsavedChanges] = React.useState<string | null>(null);
+    const onChange = React.useCallback(
+        (value: string | null) => {
+            let newConf: string | null = value;
+            if (value === initialConfig) {
+                newConf = null;
+            }
+            setUnsavedChanges(newConf);
+        },
+        [initialConfig]
+    );
     return (
         <div>
             <CodeMirror
                 value={initialConfig}
-                options={{
-                    mode: 'yaml',
-                    theme: 'material',
-                    lineNumbers: true,
-                }}
-                onChange={(_, _1, value) => {
-                    let newConf: string | null = value;
-                    if (value === initialConfig) {
-                        newConf = null;
-                    }
-                    setUnsavedChanges(newConf);
-                }}
+                theme={material}
+                extensions={[langs.yaml()]}
+                onChange={onChange}
             />
             <br />
             <Button
