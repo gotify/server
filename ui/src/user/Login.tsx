@@ -8,12 +8,19 @@ import * as config from '../config';
 import RegistrationDialog from './Register';
 import {useStores} from '../stores';
 import {observer} from 'mobx-react';
+import {useNavigate} from 'react-router';
 
 const Login = observer(() => {
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [registerDialog, setRegisterDialog] = React.useState(false);
     const {currentUser} = useStores();
+    const navigate = useNavigate();
+    React.useEffect(() => {
+        if (currentUser.loggedIn) {
+            navigate('/');
+        }
+    }, [currentUser.loggedIn]);
     const registerButton = () => {
         if (config.get('register'))
             return (
@@ -64,8 +71,11 @@ const Login = observer(() => {
                             size="large"
                             className="login"
                             color="primary"
-                            disabled={!!currentUser.connectionErrorMessage}
+                            disabled={
+                                !!currentUser.connectionErrorMessage || currentUser.authenticating
+                            }
                             style={{marginTop: 15, marginBottom: 5}}
+                            loading={currentUser.authenticating}
                             onClick={login}>
                             Login
                         </Button>

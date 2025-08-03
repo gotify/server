@@ -2,9 +2,8 @@ import {createTheme, ThemeProvider, StyledEngineProvider, Theme} from '@mui/mate
 import {makeStyles} from 'tss-react/mui';
 import CssBaseline from '@mui/material/CssBaseline';
 import * as React from 'react';
-import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
+import {HashRouter, Navigate, Route, Routes} from 'react-router-dom';
 import Header from './Header';
-import LoadingSpinner from '../common/LoadingSpinner';
 import Navigation from './Navigation';
 import ScrollUpButton from '../common/ScrollUpButton';
 import SettingsDialog from '../common/SettingsDialog';
@@ -55,7 +54,6 @@ const Layout = observer(() => {
     const {
         currentUser: {
             loggedIn,
-            authenticating,
             user: {name, admin},
             logout,
             tryReconnect,
@@ -68,7 +66,6 @@ const Layout = observer(() => {
         return isThemeKey(stored) ? stored : 'dark';
     });
     const theme = themeMap[currentTheme];
-    const loginRoute = () => (loggedIn ? <Redirect to="/" /> : <Login />);
     const {version} = config.get('version');
     const [navOpen, setNavOpen] = React.useState(false);
     const [showSettings, setShowSettings] = React.useState(false);
@@ -78,6 +75,10 @@ const Layout = observer(() => {
         setCurrentTheme(next);
         localStorage.setItem(localStorageThemeKey, next);
     };
+
+    const authed = (children: React.ReactNode) => (
+        <RequireAuth loggedIn={loggedIn}>{children}</RequireAuth>
+    );
 
     return (
         <StyledEngineProvider injectFirst>
@@ -111,30 +112,25 @@ const Layout = observer(() => {
                                     setNavOpen={setNavOpen}
                                 />
                                 <main className={classes.content}>
-                                    <Switch>
-                                        {authenticating ? (
-                                            <Route path="/">
-                                                <LoadingSpinner />
-                                            </Route>
-                                        ) : null}
-                                        <Route exact path="/login" render={loginRoute} />
-                                        {loggedIn ? null : <Redirect to="/login" />}
-                                        <Route exact path="/" component={Messages} />
-                                        <Route exact path="/messages/:id" component={Messages} />
+                                    <Routes>
+                                        <Route path="/login" element={<Login />} />
+                                        <Route path="/" element={authed(<Messages />)} />
                                         <Route
-                                            exact
+                                            path="/messages/:id"
+                                            element={authed(<Messages />)}
+                                        />
+                                        <Route
                                             path="/applications"
-                                            component={Applications}
+                                            element={authed(<Applications />)}
                                         />
-                                        <Route exact path="/clients" component={Clients} />
-                                        <Route exact path="/users" component={Users} />
-                                        <Route exact path="/plugins" component={Plugins} />
+                                        <Route path="/clients" element={authed(<Clients />)} />
+                                        <Route path="/users" element={authed(<Users />)} />
+                                        <Route path="/plugins" element={authed(<Plugins />)} />
                                         <Route
-                                            exact
                                             path="/plugins/:id"
-                                            component={PluginDetailView}
+                                            element={authed(<PluginDetailView />)}
                                         />
-                                    </Switch>
+                                    </Routes>
                                 </main>
                             </div>
                             {showSettings && (
@@ -149,5 +145,12 @@ const Layout = observer(() => {
         </StyledEngineProvider>
     );
 });
+
+const RequireAuth: React.FC<React.PropsWithChildren<{loggedIn: boolean}>> = ({
+    children,
+    loggedIn,
+}) => {
+    return loggedIn ? <>{children}</> : <Navigate replace={true} to="/login" />;
+};
 
 export default Layout;

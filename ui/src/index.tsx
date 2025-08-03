@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import {createRoot} from 'react-dom/client';
 import 'typeface-roboto';
 import {initAxios} from './apiAuth';
 import * as config from './config';
@@ -60,13 +60,10 @@ const initStores = (): StoreMapping => {
         stores.wsStore.close();
     };
 
-    ReactDOM.render(
+    createRoot(document.getElementById('root')!).render(
         <StoreContext.Provider value={stores}>
-            <InjectProvider stores={stores}>
-                <Layout />
-            </InjectProvider>
-        </StoreContext.Provider>,
-        document.getElementById('root')
+            <Layout />
+        </StoreContext.Provider>
     );
     unregister();
 })();
