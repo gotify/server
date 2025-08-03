@@ -6,8 +6,8 @@ const ScrollUpButton = () => {
     const [state, setState] = React.useState({display: 'none', opacity: 0});
     React.useEffect(() => {
         const scrollHandler = () => {
-            const currentScrollPos = window.pageYOffset;
-            const opacity = Math.min(currentScrollPos / 500, 1);
+            const currentScrollPos = Math.max(window.pageYOffset - 1000, 0);
+            const opacity = Math.min(currentScrollPos / 1000, 1);
             const nextState = {display: currentScrollPos > 0 ? 'inherit' : 'none', opacity};
             if (state.display !== nextState.display || state.opacity !== nextState.opacity) {
                 setState(nextState);
