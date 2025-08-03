@@ -1,6 +1,5 @@
 import axios, {AxiosError, AxiosResponse} from 'axios';
 import * as config from './config';
-import {Base64} from 'js-base64';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
 import {observable} from 'mobx';
@@ -75,7 +74,7 @@ export class CurrentUser {
                 method: 'POST',
                 data: {name},
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                headers: {Authorization: 'Basic ' + Base64.encode(username + ':' + password)},
+                headers: {Authorization: 'Basic ' + btoa(username + ':' + password)},
             })
             .then((resp: AxiosResponse<IClient>) => {
                 this.snack(`A client named '${name}' was created for your session.`);
