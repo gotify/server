@@ -2,7 +2,7 @@ import axios, {AxiosError, AxiosResponse} from 'axios';
 import * as config from './config';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
-import {observable} from 'mobx';
+import {observable, makeObservable} from 'mobx';
 import {IClient, IUser} from './types';
 
 const tokenKey = 'gotify-login-key';
@@ -11,16 +11,19 @@ export class CurrentUser {
     private tokenCache: string | null = null;
     private reconnectTimeoutId: number | null = null;
     private reconnectTime = 7500;
-    @observable
     public loggedIn = false;
-    @observable
     public authenticating = true;
-    @observable
     public user: IUser = {name: 'unknown', admin: false, id: -1};
-    @observable
     public connectionErrorMessage: string | null = null;
 
-    public constructor(private readonly snack: SnackReporter) {}
+    public constructor(private readonly snack: SnackReporter) {
+        makeObservable(this, {
+            loggedIn: observable,
+            authenticating: observable,
+            user: observable,
+            connectionErrorMessage: observable,
+        });
+    }
 
     public token = (): string => {
         if (this.tokenCache !== null) {

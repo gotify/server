@@ -10,15 +10,7 @@ export default defineConfig({
         sourcemap: false,
         assetsDir: 'static',
     },
-    plugins: [
-        react({
-            babel: {
-                parserOpts: {
-                    plugins: ['decorators-legacy'],
-                },
-            },
-        }),
-    ],
+    plugins: [react()],
     define: {
         // Some libraries use the global object, even though it doesn't exist in the browser.
         // Alternatively, we could add `<script>window.global = window;</script>` to index.html.

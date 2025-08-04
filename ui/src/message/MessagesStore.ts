@@ -1,5 +1,5 @@
 import {BaseStore} from '../common/BaseStore';
-import {action, IObservableArray, observable, reaction} from 'mobx';
+import {action, IObservableArray, observable, reaction, makeObservable} from 'mobx';
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
 import {createTransformer} from 'mobx-utils';
@@ -16,7 +16,6 @@ interface MessagesState {
 }
 
 export class MessagesStore {
-    @observable
     private state: Record<string, MessagesState> = {};
 
     private loading = false;
@@ -25,6 +24,16 @@ export class MessagesStore {
         private readonly appStore: BaseStore<IApplication>,
         private readonly snack: SnackReporter
     ) {
+        makeObservable<MessagesStore, 'state'>(this, {
+            state: observable,
+            loadMore: action,
+            publishSingleMessage: action,
+            removeByApp: action,
+            removeSingle: action,
+            clearAll: action,
+            refreshByApp: action,
+        });
+
         reaction(() => appStore.getItems(), this.createEmptyStatesForApps);
     }
 
@@ -39,7 +48,6 @@ export class MessagesStore {
 
     public canLoadMore = (appId: number) => this.stateOf(appId, /*create*/ false).hasMore;
 
-    @action
     public loadMore = async (appId: number) => {
         const state = this.stateOf(appId);
         if (!state.hasMore || this.loading) {
@@ -59,7 +67,6 @@ export class MessagesStore {
         return Promise.resolve();
     };
 
-    @action
     public publishSingleMessage = (message: IMessage) => {
         if (this.exists(AllMessages)) {
             this.stateOf(AllMessages).messages.unshift(message);
@@ -69,7 +76,6 @@ export class MessagesStore {
         }
     };
 
-    @action
     public removeByApp = async (appId: number) => {
         if (appId === AllMessages) {
             await axios.delete(config.get('url') + 'message');
@@ -84,7 +90,6 @@ export class MessagesStore {
         await this.loadMore(appId);
     };
 
-    @action
     public removeSingle = async (message: IMessage) => {
         await axios.delete(config.get('url') + 'message/' + message.id);
         if (this.exists(AllMessages)) {
@@ -96,13 +101,11 @@ export class MessagesStore {
         this.snack('Message deleted');
     };
 
-    @action
     public clearAll = () => {
         this.state = {};
         this.createEmptyStatesForApps(this.appStore.getItems());
     };
 
-    @action
     public refreshByApp = async (appId: number) => {
         this.clearAll();
         this.loadMore(appId);
