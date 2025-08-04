@@ -11,7 +11,6 @@ import * as config from '../config';
 import Applications from '../application/Applications';
 import Clients from '../client/Clients';
 import Plugins from '../plugin/Plugins';
-import PluginDetailView from '../plugin/PluginDetailView';
 import Login from '../user/Login';
 import Messages from '../message/Messages';
 import Users from '../user/Users';
@@ -19,6 +18,7 @@ import {observer} from 'mobx-react';
 import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
 import {useStores} from '../stores';
 import {SnackbarProvider} from 'notistack';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     content: {
@@ -128,7 +128,13 @@ const Layout = observer(() => {
                                         <Route path="/plugins" element={authed(<Plugins />)} />
                                         <Route
                                             path="/plugins/:id"
-                                            element={authed(<PluginDetailView />)}
+                                            element={authed(
+                                                <Lazy
+                                                    component={() =>
+                                                        import('../plugin/PluginDetailView')
+                                                    }
+                                                />
+                                            )}
                                         />
                                     </Routes>
                                 </main>
@@ -145,6 +151,17 @@ const Layout = observer(() => {
         </StyledEngineProvider>
     );
 });
+
+// eslint-disable-next-line
+const Lazy = ({component}: {component: () => Promise<{default: React.ComponentType<any>}>}) => {
+    const Component = React.lazy(component);
+
+    return (
+        <React.Suspense fallback={<LoadingSpinner />}>
+            <Component />
+        </React.Suspense>
+    );
+};
 
 const RequireAuth: React.FC<React.PropsWithChildren<{loggedIn: boolean}>> = ({
     children,
