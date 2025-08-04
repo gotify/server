@@ -11,6 +11,7 @@ import {Markdown} from '../common/Markdown';
 import * as config from '../config';
 import {IMessageExtras} from '../types';
 import {contentType, RenderMode} from './extras';
+import {makeIntlFormatter} from 'react-timeago/defaultFormatter';
 
 const PREVIEW_LENGTH = 500;
 
@@ -39,13 +40,33 @@ const useStyles = makeStyles()((theme: Theme) => ({
             width: 32,
             height: 32,
         },
+        [theme.breakpoints.down('sm')]: {
+            display: 'none',
+        },
+    },
+    appName: {
+        opacity: 0.7,
     },
     date: {
         [theme.breakpoints.down('md')]: {
-            order: 1,
-            flexBasis: '100%',
             opacity: 0.7,
         },
+    },
+    messageWrapper: {
+        display: 'grid',
+        gridTemplateColumns: '70px 1fr',
+        [theme.breakpoints.down('sm')]: {
+            gridTemplateColumns: '1fr',
+        },
+        gap: 16,
+        width: '100%',
+    },
+    actionsWrapper: {
+        flex: 1,
+        display: 'flex',
+        justifyContent: 'flex-end',
+        flexDirection: 'row',
+        alignItems: 'flex-start',
     },
     imageWrapper: {
         display: 'flex',
@@ -81,6 +102,7 @@ interface IProps {
     date: string;
     content: string;
     priority: number;
+    appName: string;
     fDelete: VoidFunction;
     extras?: IMessageExtras;
     expanded: boolean;
@@ -105,6 +127,7 @@ const Message = ({
     priority,
     content,
     extras,
+    appName,
     onExpand,
     expanded: initialExpanded,
 }: IProps) => {
@@ -140,56 +163,73 @@ const Message = ({
                     borderLeftWidth: 6,
                     borderLeftStyle: 'solid',
                 }}>
-                <div style={{display: 'flex', width: '100%'}}>
-                    <div className={classes.imageWrapper}>
-                        {image !== null ? (
-                            <img
-                                src={config.get('url') + image}
-                                alt="app logo"
-                                width="70"
-                                height="70"
-                                className={classes.image}
-                            />
-                        ) : null}
-                    </div>
-                    <div className={classes.messageContentWrapper}>
-                        <div className={classes.header}>
-                            <Typography className={`${classes.headerTitle} title`} variant="h5">
-                                {title}
-                            </Typography>
-                            <Typography variant="body1" className={classes.date}>
-                                <TimeAgo date={date} />
-                            </Typography>
-                            <IconButton
-                                onClick={fDelete}
-                                className={`${classes.trash} delete`}
-                                size="large">
-                                <Delete />
-                            </IconButton>
+                <div className={classes.messageWrapper}>
+                    {image !== null ? (
+                        <img
+                            src={config.get('url') + image}
+                            alt={`${appName} logo`}
+                            width="70"
+                            height="70"
+                            className={classes.image}
+                        />
+                    ) : null}
+                    <div style={{width: '100%'}}>
+                        <div style={{display: 'flex', width: '100%'}}>
+                            <div className={classes.messageContentWrapper}>
+                                <div className={classes.header}>
+                                    <Typography
+                                        className={`${classes.headerTitle} title`}
+                                        variant="h5">
+                                        {title}
+                                    </Typography>
+                                </div>
+                                <div className={classes.appName}>
+                                    <Typography variant="body1" className={classes.date}>
+                                        {appName}
+                                    </Typography>
+                                </div>
+                            </div>
+                            <div className={classes.actionsWrapper}>
+                                <Typography variant="body1" className={classes.date}>
+                                    <TimeAgo
+                                        date={date}
+                                        formatter={makeIntlFormatter({
+                                            style: 'narrow',
+                                        })}
+                                    />
+                                </Typography>
+                                <IconButton
+                                    onClick={fDelete}
+                                    className={`${classes.trash} delete`}
+                                    size="large">
+                                    <Delete />
+                                </IconButton>
+                            </div>
                         </div>
-
-                        <Typography
-                            component="div"
-                            ref={setPreviewRef}
-                            className={`${classes.content} content ${
-                                isOverflowing && expanded ? 'expanded' : ''
-                            }`}>
-                            {renderContent()}
-                        </Typography>
+                        <div>
+                            <Typography
+                                component="div"
+                                ref={setPreviewRef}
+                                className={`${classes.content} content ${
+                                    isOverflowing && expanded ? 'expanded' : ''
+                                }`}>
+                                {renderContent()}
+                            </Typography>
+                        </div>
+                        {isOverflowing && (
+                            <Button
+                                style={{marginTop: 16}}
+                                onClick={togglePreviewHeight}
+                                variant="contained"
+                                color="primary"
+                                size="large"
+                                fullWidth={true}
+                                startIcon={expanded ? <ExpandLess /> : <ExpandMore />}>
+                                {expanded ? 'Read Less' : 'Read More'}
+                            </Button>
+                        )}
                     </div>
                 </div>
-                {isOverflowing && (
-                    <Button
-                        style={{marginTop: 16}}
-                        onClick={togglePreviewHeight}
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        fullWidth={true}
-                        startIcon={expanded ? <ExpandLess /> : <ExpandMore />}>
-                        {expanded ? 'Read Less' : 'Read More'}
-                    </Button>
-                )}
             </Container>
         </div>
     );
