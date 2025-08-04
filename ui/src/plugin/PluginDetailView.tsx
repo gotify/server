@@ -1,7 +1,6 @@
 import React from 'react';
 import {useParams} from 'react-router';
 import {Markdown} from '../common/Markdown';
-import {langs} from '@uiw/codemirror-extensions-langs';
 import {material} from '@uiw/codemirror-theme-material';
 import CodeMirror from '@uiw/react-codemirror';
 import Info from '@mui/icons-material/Info';
@@ -161,12 +160,7 @@ const ConfigurerPanel = ({initialConfig, save}: IConfigurerPanelProps) => {
     );
     return (
         <div>
-            <CodeMirror
-                value={initialConfig}
-                theme={material}
-                extensions={[langs.yaml()]}
-                onChange={onChange}
-            />
+            <CodeMirror value={initialConfig} theme={material} onChange={onChange} />
             <br />
             <Button
                 variant="contained"

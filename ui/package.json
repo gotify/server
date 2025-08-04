@@ -9,7 +9,6 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
-    "@uiw/codemirror-extensions-langs": "^4.24.2",
     "@uiw/codemirror-theme-material": "^4.24.2",
     "@uiw/react-codemirror": "^4.24.2",
     "@vitejs/plugin-react": "^4.7.0",
