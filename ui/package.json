@@ -35,6 +35,7 @@
   },
   "scripts": {
     "start": "vite",
+    "prebuild": "tsc",
     "build": "vite build",
     "test": "vitest --disable-console-intercept --no-file-parallelism",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
