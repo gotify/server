@@ -50,12 +50,13 @@ export class CurrentUser {
                 this.login(name, pass);
                 return true;
             })
-            .catch((error: AxiosError) => {
+            .catch((error: AxiosError<{error?: string; errorDescription?: string}>) => {
                 if (!error || !error.response) {
                     this.snack('No network connection or server unavailable.');
                     return false;
                 }
                 const {data} = error.response;
+
                 this.snack(
                     `Register failed: ${data?.error ?? 'unknown'}: ${data?.errorDescription ?? ''}`
                 );
