@@ -66,6 +66,7 @@ describe('Client', () => {
                 await page.waitForSelector($dialog.selector());
                 await page.type($dialog.input('.name'), name);
                 await page.click($dialog.button('.create'));
+                await waitToDisappear(page, $dialog.selector());
             };
         it('phone', createClient('phone'));
         it('desktop app', createClient('desktop app'));

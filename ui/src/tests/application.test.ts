@@ -64,6 +64,7 @@ const createApp =
         await page.type($dialog.input('.name'), name);
         await page.type($dialog.textarea('.description'), description);
         await page.click($dialog.button('.create'));
+        await waitToDisappear(page, $dialog.selector());
     };
 
 describe('Application', () => {
