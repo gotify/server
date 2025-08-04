@@ -23,6 +23,7 @@ const Messages = observer(() => {
     const hasMore = messagesStore.canLoadMore(appId);
     const name = appStore.getName(appId);
     const hasMessages = messages.length !== 0;
+    const expandedState = React.useRef<Record<number, boolean>>({});
 
     const deleteMessage = (message: IMessage) => () => messagesStore.removeSingle(message);
 
@@ -36,8 +37,10 @@ const Messages = observer(() => {
         <Message
             key={index}
             fDelete={deleteMessage(message)}
+            onExpand={(expanded) => (expandedState.current[message.id] = expanded)}
             title={message.title}
             date={message.date}
+            expanded={expandedState.current[message.id] ?? false}
             content={message.message}
             image={message.image}
             extras={message.extras}

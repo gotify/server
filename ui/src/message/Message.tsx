@@ -83,6 +83,8 @@ interface IProps {
     priority: number;
     fDelete: VoidFunction;
     extras?: IMessageExtras;
+    expanded: boolean;
+    onExpand: (expand: boolean) => void;
 }
 
 const priorityColor = (priority: number) => {
@@ -95,15 +97,27 @@ const priorityColor = (priority: number) => {
     }
 };
 
-const Message = ({fDelete, title, date, image, priority, content, extras}: IProps) => {
+const Message = ({
+    fDelete,
+    title,
+    date,
+    image,
+    priority,
+    content,
+    extras,
+    onExpand,
+    expanded: initialExpanded,
+}: IProps) => {
     const [previewRef, setPreviewRef] = React.useState<HTMLDivElement | null>(null);
     const {classes} = useStyles();
-    const [expanded, setExpanded] = React.useState(false);
+    const [expanded, setExpanded] = React.useState(initialExpanded);
     const [isOverflowing, setOverflowing] = React.useState(false);
 
     React.useEffect(() => {
         setOverflowing(!!previewRef && previewRef.scrollHeight > previewRef.clientHeight);
     }, [previewRef]);
+
+    React.useEffect(() => void onExpand(expanded), [expanded]);
 
     const togglePreviewHeight = () => setExpanded((b) => !b);
 
