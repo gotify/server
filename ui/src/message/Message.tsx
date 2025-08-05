@@ -1,4 +1,4 @@
-import {Button, Theme} from '@mui/material';
+import {Button, Theme, useMediaQuery, useTheme} from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import {makeStyles} from 'tss-react/mui';
 import Typography from '@mui/material/Typography';
@@ -33,6 +33,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
     },
     messageContentWrapper: {
         minWidth: 200,
+        width: '100%',
     },
     image: {
         marginRight: 15,
@@ -40,33 +41,13 @@ const useStyles = makeStyles()((theme: Theme) => ({
             width: 32,
             height: 32,
         },
-        [theme.breakpoints.down('sm')]: {
-            display: 'none',
-        },
-    },
-    appName: {
-        opacity: 0.7,
     },
     date: {
         [theme.breakpoints.down('md')]: {
+            order: 1,
+            flexBasis: '100%',
             opacity: 0.7,
         },
-    },
-    messageWrapper: {
-        display: 'grid',
-        gridTemplateColumns: '70px 1fr',
-        [theme.breakpoints.down('sm')]: {
-            gridTemplateColumns: '1fr',
-        },
-        gap: 16,
-        width: '100%',
-    },
-    actionsWrapper: {
-        flex: 1,
-        display: 'flex',
-        justifyContent: 'flex-end',
-        flexDirection: 'row',
-        alignItems: 'flex-start',
     },
     imageWrapper: {
         display: 'flex',
@@ -131,10 +112,12 @@ const Message = ({
     onExpand,
     expanded: initialExpanded,
 }: IProps) => {
+    const theme = useTheme();
     const [previewRef, setPreviewRef] = React.useState<HTMLDivElement | null>(null);
     const {classes} = useStyles();
     const [expanded, setExpanded] = React.useState(initialExpanded);
     const [isOverflowing, setOverflowing] = React.useState(false);
+    const dateWrapped = useMediaQuery(theme.breakpoints.down('md'));
 
     React.useEffect(() => {
         setOverflowing(!!previewRef && previewRef.scrollHeight > previewRef.clientHeight);
@@ -163,73 +146,61 @@ const Message = ({
                     borderLeftWidth: 6,
                     borderLeftStyle: 'solid',
                 }}>
-                <div className={classes.messageWrapper}>
-                    {image !== null ? (
-                        <img
-                            src={config.get('url') + image}
-                            alt={`${appName} logo`}
-                            width="70"
-                            height="70"
-                            className={classes.image}
-                        />
-                    ) : null}
-                    <div style={{width: '100%'}}>
-                        <div style={{display: 'flex', width: '100%'}}>
-                            <div className={classes.messageContentWrapper}>
-                                <div className={classes.header}>
-                                    <Typography
-                                        className={`${classes.headerTitle} title`}
-                                        variant="h5">
-                                        {title}
-                                    </Typography>
-                                </div>
-                                <div className={classes.appName}>
-                                    <Typography variant="body1" className={classes.date}>
-                                        {appName}
-                                    </Typography>
-                                </div>
-                            </div>
-                            <div className={classes.actionsWrapper}>
-                                <Typography variant="body1" className={classes.date}>
-                                    <TimeAgo
-                                        date={date}
-                                        formatter={makeIntlFormatter({
-                                            style: 'narrow',
-                                        })}
-                                    />
-                                </Typography>
-                                <IconButton
-                                    onClick={fDelete}
-                                    className={`${classes.trash} delete`}
-                                    size="large">
-                                    <Delete />
-                                </IconButton>
-                            </div>
-                        </div>
-                        <div>
-                            <Typography
-                                component="div"
-                                ref={setPreviewRef}
-                                className={`${classes.content} content ${
-                                    isOverflowing && expanded ? 'expanded' : ''
-                                }`}>
-                                {renderContent()}
+                <div style={{display: 'flex', width: '100%'}}>
+                    <div className={classes.imageWrapper}>
+                        {image !== null ? (
+                            <img
+                                src={config.get('url') + image}
+                                alt={`${appName} logo`}
+                                width="70"
+                                height="70"
+                                className={classes.image}
+                            />
+                        ) : null}
+                    </div>
+                    <div className={classes.messageContentWrapper}>
+                        <div className={classes.header}>
+                            <Typography className={`${classes.headerTitle} title`} variant="h5">
+                                {title}
                             </Typography>
+                            <Typography variant="body1" className={classes.date}>
+                                <TimeAgo
+                                    date={date}
+                                    formatter={makeIntlFormatter({
+                                        style: dateWrapped ? 'long' : 'narrow',
+                                    })}
+                                />
+                            </Typography>
+                            <IconButton
+                                onClick={fDelete}
+                                className={`${classes.trash} delete`}
+                                size="large">
+                                <Delete />
+                            </IconButton>
                         </div>
-                        {isOverflowing && (
-                            <Button
-                                style={{marginTop: 16}}
-                                onClick={togglePreviewHeight}
-                                variant="contained"
-                                color="primary"
-                                size="large"
-                                fullWidth={true}
-                                startIcon={expanded ? <ExpandLess /> : <ExpandMore />}>
-                                {expanded ? 'Read Less' : 'Read More'}
-                            </Button>
-                        )}
+
+                        <Typography
+                            component="div"
+                            ref={setPreviewRef}
+                            className={`${classes.content} content ${
+                                isOverflowing && expanded ? 'expanded' : ''
+                            }`}>
+                            {renderContent()}
+                        </Typography>
                     </div>
                 </div>
+                {isOverflowing && (
+                    <Button
+                        style={{marginTop: 16}}
+                        onClick={togglePreviewHeight}
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                        fullWidth={true}
+                        startIcon={expanded ? <ExpandLess /> : <ExpandMore />}>
+                        {expanded ? 'Read Less' : 'Read More'}
+                    </Button>
+                )}
             </Container>
         </div>
     );
