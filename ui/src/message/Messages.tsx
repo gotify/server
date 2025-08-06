@@ -40,6 +40,7 @@ const Messages = observer(() => {
             onExpand={(expanded) => (expandedState.current[message.id] = expanded)}
             title={message.title}
             date={message.date}
+            appName={appStore.getName(message.appid)}
             expanded={expandedState.current[message.id] ?? false}
             content={message.message}
             image={message.image}

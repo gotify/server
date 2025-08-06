@@ -1,4 +1,4 @@
-import {Button, Theme} from '@mui/material';
+import {Button, Theme, useMediaQuery, useTheme} from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import {makeStyles} from 'tss-react/mui';
 import Typography from '@mui/material/Typography';
@@ -11,6 +11,7 @@ import {Markdown} from '../common/Markdown';
 import * as config from '../config';
 import {IMessageExtras} from '../types';
 import {contentType, RenderMode} from './extras';
+import {makeIntlFormatter} from 'react-timeago/defaultFormatter';
 
 const PREVIEW_LENGTH = 500;
 
@@ -32,6 +33,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
     },
     messageContentWrapper: {
         minWidth: 200,
+        width: '100%',
     },
     image: {
         marginRight: 15,
@@ -81,6 +83,7 @@ interface IProps {
     date: string;
     content: string;
     priority: number;
+    appName: string;
     fDelete: VoidFunction;
     extras?: IMessageExtras;
     expanded: boolean;
@@ -105,13 +108,16 @@ const Message = ({
     priority,
     content,
     extras,
+    appName,
     onExpand,
     expanded: initialExpanded,
 }: IProps) => {
+    const theme = useTheme();
     const [previewRef, setPreviewRef] = React.useState<HTMLDivElement | null>(null);
     const {classes} = useStyles();
     const [expanded, setExpanded] = React.useState(initialExpanded);
     const [isOverflowing, setOverflowing] = React.useState(false);
+    const dateWrapped = useMediaQuery(theme.breakpoints.down('md'));
 
     React.useEffect(() => {
         setOverflowing(!!previewRef && previewRef.scrollHeight > previewRef.clientHeight);
@@ -145,7 +151,7 @@ const Message = ({
                         {image !== null ? (
                             <img
                                 src={config.get('url') + image}
-                                alt="app logo"
+                                alt={`${appName} logo`}
                                 width="70"
                                 height="70"
                                 className={classes.image}
@@ -158,7 +164,12 @@ const Message = ({
                                 {title}
                             </Typography>
                             <Typography variant="body1" className={classes.date}>
-                                <TimeAgo date={date} />
+                                <TimeAgo
+                                    date={date}
+                                    formatter={makeIntlFormatter({
+                                        style: dateWrapped ? 'long' : 'narrow',
+                                    })}
+                                />
                             </Typography>
                             <IconButton
                                 onClick={fDelete}

@@ -7,7 +7,7 @@ ifdef GOTOOLCHAIN
 else
 	GO_VERSION=$(shell go mod edit -json | jq -r .Toolchain | sed -e 's/go//')
 endif
-DOCKER_BUILD_IMAGE=gotify/build
+DOCKER_BUILD_IMAGE=docker.io/gotify/build
 DOCKER_WORKDIR=/proj
 DOCKER_RUN=docker run --rm -e LD_FLAGS="$$LD_FLAGS" -v "$$PWD/.:${DOCKER_WORKDIR}" -v "`go env GOPATH`/pkg/mod/.:/go/pkg/mod:ro" -w ${DOCKER_WORKDIR}
 DOCKER_GO_BUILD=go build -mod=readonly -a -installsuffix cgo -ldflags "$$LD_FLAGS"

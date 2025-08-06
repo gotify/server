@@ -1,7 +1,7 @@
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 
-const GOTIFY_PORT = process.env.GOTIFY_PORT ?? '80';
+const GOTIFY_SERVER_PORT = process.env.GOTIFY_SERVER_PORT ?? '80';
 
 export default defineConfig({
     build: {
@@ -21,12 +21,12 @@ export default defineConfig({
         host: '0.0.0.0',
         proxy: {
             '^/(application|message|client|current|user|plugin|version|image)': {
-                target: `http://localhost:${GOTIFY_PORT}/`,
+                target: `http://localhost:${GOTIFY_SERVER_PORT}/`,
                 changeOrigin: true,
                 secure: false,
             },
             '/stream': {
-                target: `ws://localhost:${GOTIFY_PORT}/`,
+                target: `ws://localhost:${GOTIFY_SERVER_PORT}/`,
                 ws: true,
                 rewriteWsOrigin: true,
             },
