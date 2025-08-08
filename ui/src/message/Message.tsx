@@ -70,6 +70,10 @@ const useStyles = makeStyles()((theme: Theme) => ({
         },
         '& pre': {
             overflow: 'auto',
+            borderRadius: '0.25em',
+            backgroundColor:
+                theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+            padding: theme.spacing(1),
         },
         '& img': {
             maxWidth: '100%',
