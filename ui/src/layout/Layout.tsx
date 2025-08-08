@@ -24,10 +24,11 @@ const useStyles = makeStyles()((theme: Theme) => ({
     content: {
         margin: '0 auto',
         marginTop: 64,
-        padding: theme.spacing(4),
+        padding: theme.spacing(3),
         width: '100%',
         [theme.breakpoints.down('sm')]: {
             marginTop: 0,
+            padding: theme.spacing(1),
         },
     },
 }));
