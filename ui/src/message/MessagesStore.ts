@@ -55,15 +55,18 @@ export class MessagesStore {
         }
         this.loading = true;
 
-        const pagedResult = await this.fetchMessages(appId, state.nextSince).then(
-            (resp) => resp.data
-        );
+        try {
+            const pagedResult = await this.fetchMessages(appId, state.nextSince).then(
+                (resp) => resp.data
+            );
+            state.messages.replace([...state.messages, ...pagedResult.messages]);
+            state.nextSince = pagedResult.paging.since ?? 0;
+            state.hasMore = 'next' in pagedResult.paging;
+            state.loaded = true;
+        } finally {
+            this.loading = false;
+        }
 
-        state.messages.replace([...state.messages, ...pagedResult.messages]);
-        state.nextSince = pagedResult.paging.since ?? 0;
-        state.hasMore = 'next' in pagedResult.paging;
-        state.loaded = true;
-        this.loading = false;
         return Promise.resolve();
     };
 
