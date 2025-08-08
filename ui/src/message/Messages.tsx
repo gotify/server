@@ -5,7 +5,7 @@ import {useParams} from 'react-router';
 import DefaultPage from '../common/DefaultPage';
 import Button from '@mui/material/Button';
 import Message from './Message';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {IMessage} from '../types';
 import ConfirmDialog from '../common/ConfirmDialog';
 import LoadingSpinner from '../common/LoadingSpinner';

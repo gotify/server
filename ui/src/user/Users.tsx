@@ -15,7 +15,7 @@ import Button from '@mui/material/Button';
 import AddEditDialog from './AddEditUserDialog';
 import {IUser} from '../types';
 import {useStores} from '../stores';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 
 interface IRowProps {
     name: string;
