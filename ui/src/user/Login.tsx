@@ -7,7 +7,7 @@ import DefaultPage from '../common/DefaultPage';
 import * as config from '../config';
 import RegistrationDialog from './Register';
 import {useStores} from '../stores';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {useNavigate} from 'react-router';
 
 const Login = observer(() => {

@@ -14,7 +14,7 @@ import Plugins from '../plugin/Plugins';
 import Login from '../user/Login';
 import Messages from '../message/Messages';
 import Users from '../user/Users';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
 import {useStores} from '../stores';
 import {SnackbarProvider} from 'notistack';

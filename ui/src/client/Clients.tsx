@@ -17,7 +17,7 @@ import UpdateClientDialog from './UpdateClientDialog';
 import {IClient} from '../types';
 import CopyableSecret from '../common/CopyableSecret';
 import {LastUsedCell} from '../common/LastUsedCell';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {useStores} from '../stores';
 
 const Clients = observer(() => {

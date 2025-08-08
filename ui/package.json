@@ -15,7 +15,7 @@
     "axios": "^1.11.0",
     "detect-browser": "^5.3.0",
     "mobx": "^6.13.7",
-    "mobx-react": "^9.2.0",
+    "mobx-react-lite": "^4.1.0",
     "mobx-utils": "^6.1.1",
     "notifyjs": "^3.0.0",
     "notistack": "^3.0.2",

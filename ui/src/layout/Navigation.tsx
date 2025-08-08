@@ -3,7 +3,7 @@ import Drawer from '@mui/material/Drawer';
 import {Theme} from '@mui/material/styles';
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react-lite';
 import {mayAllowPermission, requestPermission} from '../snack/browserNotification';
 import {
     Button,
