@@ -7,9 +7,7 @@ export enum RenderMode {
 
 export const contentType = (extras?: IMessageExtras): RenderMode => {
     const type = extract(extras, 'client::display', 'contentType');
-    const valid = Object.keys(RenderMode)
-        .map((k) => RenderMode[k])
-        .some((mode) => mode === type);
+    const valid = Object.values(RenderMode).includes(type);
     return valid ? type : RenderMode.Plain;
 };
 

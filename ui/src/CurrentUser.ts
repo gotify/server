@@ -1,9 +1,8 @@
 import axios, {AxiosError, AxiosResponse} from 'axios';
 import * as config from './config';
-import {Base64} from 'js-base64';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
-import {observable} from 'mobx';
+import {observable, makeObservable} from 'mobx';
 import {IClient, IUser} from './types';
 
 const tokenKey = 'gotify-login-key';
@@ -12,16 +11,21 @@ export class CurrentUser {
     private tokenCache: string | null = null;
     private reconnectTimeoutId: number | null = null;
     private reconnectTime = 7500;
-    @observable
     public loggedIn = false;
-    @observable
+    public refreshKey = 0;
     public authenticating = true;
-    @observable
     public user: IUser = {name: 'unknown', admin: false, id: -1};
-    @observable
     public connectionErrorMessage: string | null = null;
 
-    public constructor(private readonly snack: SnackReporter) {}
+    public constructor(private readonly snack: SnackReporter) {
+        makeObservable(this, {
+            loggedIn: observable,
+            authenticating: observable,
+            user: observable,
+            connectionErrorMessage: observable,
+            refreshKey: observable,
+        });
+    }
 
     public token = (): string => {
         if (this.tokenCache !== null) {
@@ -51,12 +55,13 @@ export class CurrentUser {
                 this.login(name, pass);
                 return true;
             })
-            .catch((error: AxiosError) => {
+            .catch((error: AxiosError<{error?: string; errorDescription?: string}>) => {
                 if (!error || !error.response) {
                     this.snack('No network connection or server unavailable.');
                     return false;
                 }
                 const {data} = error.response;
+
                 this.snack(
                     `Register failed: ${data?.error ?? 'unknown'}: ${data?.errorDescription ?? ''}`
                 );
@@ -74,8 +79,7 @@ export class CurrentUser {
                 url: config.get('url') + 'client',
                 method: 'POST',
                 data: {name},
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                headers: {Authorization: 'Basic ' + Base64.encode(username + ':' + password)},
+                headers: {Authorization: 'Basic ' + btoa(username + ':' + password)},
             })
             .then((resp: AxiosResponse<IClient>) => {
                 this.snack(`A client named '${name}' was created for your session.`);
@@ -98,41 +102,38 @@ export class CurrentUser {
             return Promise.reject();
         }
 
-        return (
-            axios
-                .create()
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                .get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': this.token()}})
-                .then((passThrough) => {
-                    this.user = passThrough.data;
-                    this.loggedIn = true;
-                    this.authenticating = false;
-                    this.connectionErrorMessage = null;
-                    this.reconnectTime = 7500;
-                    return passThrough;
-                })
-                .catch((error: AxiosError) => {
-                    this.authenticating = false;
-                    if (!error || !error.response) {
-                        this.connectionError('No network connection or server unavailable.');
-                        return Promise.reject(error);
-                    }
-
-                    if (error.response.status >= 500) {
-                        this.connectionError(
-                            `${error.response.statusText} (code: ${error.response.status}).`
-                        );
-                        return Promise.reject(error);
-                    }
-
-                    this.connectionErrorMessage = null;
-
-                    if (error.response.status >= 400 && error.response.status < 500) {
-                        this.logout();
-                    }
+        return axios
+            .create()
+            .get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': this.token()}})
+            .then((passThrough) => {
+                this.user = passThrough.data;
+                this.loggedIn = true;
+                this.authenticating = false;
+                this.connectionErrorMessage = null;
+                this.reconnectTime = 7500;
+                return passThrough;
+            })
+            .catch((error: AxiosError) => {
+                this.authenticating = false;
+                if (!error || !error.response) {
+                    this.connectionError('No network connection or server unavailable.');
                     return Promise.reject(error);
-                })
-        );
+                }
+
+                if (error.response.status >= 500) {
+                    this.connectionError(
+                        `${error.response.statusText} (code: ${error.response.status}).`
+                    );
+                    return Promise.reject(error);
+                }
+
+                this.connectionErrorMessage = null;
+
+                if (error.response.status >= 400 && error.response.status < 500) {
+                    this.logout();
+                }
+                return Promise.reject(error);
+            });
     };
 
     public logout = async () => {

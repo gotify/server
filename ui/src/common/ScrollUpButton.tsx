@@ -1,48 +1,37 @@
-import Fab from '@material-ui/core/Fab';
-import KeyboardArrowUp from '@material-ui/icons/KeyboardArrowUp';
-import React, {Component} from 'react';
+import Fab from '@mui/material/Fab';
+import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp';
+import React from 'react';
 
-class ScrollUpButton extends Component {
-    state = {
-        display: 'none',
-        opacity: 0,
-    };
-    componentDidMount() {
-        window.addEventListener('scroll', this.scrollHandler);
-    }
+const ScrollUpButton = () => {
+    const [state, setState] = React.useState({display: 'none', opacity: 0});
+    React.useEffect(() => {
+        const scrollHandler = () => {
+            const currentScrollPos = Math.max(window.pageYOffset - 1000, 0);
+            const opacity = Math.min(currentScrollPos / 1000, 1);
+            const nextState = {display: currentScrollPos > 0 ? 'inherit' : 'none', opacity};
+            if (state.display !== nextState.display || state.opacity !== nextState.opacity) {
+                setState(nextState);
+            }
+        };
+        window.addEventListener('scroll', scrollHandler);
+        return () => window.removeEventListener('scroll', scrollHandler);
+    }, []);
 
-    componentWillUnmount() {
-        window.removeEventListener('scroll', this.scrollHandler);
-    }
-
-    scrollHandler = () => {
-        const currentScrollPos = window.pageYOffset;
-        const opacity = Math.min(currentScrollPos / 500, 1);
-        const nextState = {display: currentScrollPos > 0 ? 'inherit' : 'none', opacity};
-        if (this.state.display !== nextState.display || this.state.opacity !== nextState.opacity) {
-            this.setState(nextState);
-        }
-    };
-
-    public render() {
-        return (
-            <Fab
-                color="primary"
-                style={{
-                    position: 'fixed',
-                    bottom: '30px',
-                    right: '30px',
-                    zIndex: 100000,
-                    display: this.state.display,
-                    opacity: this.state.opacity,
-                }}
-                onClick={this.scrollUp}>
-                <KeyboardArrowUp />
-            </Fab>
-        );
-    }
-
-    private scrollUp = () => window.scrollTo(0, 0);
-}
+    return (
+        <Fab
+            color="primary"
+            style={{
+                position: 'fixed',
+                bottom: '30px',
+                right: '30px',
+                zIndex: 100000,
+                display: state.display,
+                opacity: state.opacity,
+            }}
+            onClick={() => window.scrollTo(0, 0)}>
+            <KeyboardArrowUp />
+        </Fab>
+    );
+};
 
 export default ScrollUpButton;

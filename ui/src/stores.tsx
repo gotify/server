@@ -5,7 +5,6 @@ import {MessagesStore} from './message/MessagesStore';
 import {CurrentUser} from './CurrentUser';
 import {ClientStore} from './client/ClientStore';
 import {AppStore} from './application/AppStore';
-import {inject as mobxInject, Provider} from 'mobx-react';
 import {WebSocketStore} from './message/WebSocketStore';
 import {PluginStore} from './plugin/PluginStore';
 
@@ -20,18 +19,10 @@ export interface StoreMapping {
     wsStore: WebSocketStore;
 }
 
-export type AllStores = Extract<keyof StoreMapping, string>;
-export type Stores<T extends AllStores> = Pick<StoreMapping, T>;
+export const StoreContext = React.createContext<StoreMapping | undefined>(undefined);
 
-export const inject =
-    <I extends AllStores>(...stores: I[]) =>
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    <P extends {}>(
-        node: React.ComponentType<P>
-    ): React.ComponentType<Pick<P, Exclude<keyof P, I>>> =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mobxInject(...stores)(node) as any;
-
-export const InjectProvider: React.FC<{stores: StoreMapping}> = ({children, stores}) => (
-    <Provider {...stores}>{children}</Provider>
-);
+export const useStores = (): StoreMapping => {
+    const mapping = React.useContext(StoreContext);
+    if (!mapping) throw new Error('uninitialized');
+    return mapping;
+};

@@ -1,5 +1,6 @@
 import {Page} from 'puppeteer';
 import {waitForExists} from './utils';
+import {expect} from 'vitest';
 import * as selector from './selector';
 
 const $loginForm = selector.form('#login-form');

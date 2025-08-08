@@ -1,12 +1,9 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
-    "outDir": "build/dist",
-    "target": "es5",
-    "lib": [
-      "es6",
-      "dom"
-    ],
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "allowImportingTsExtensions": true,
+
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
@@ -17,10 +14,8 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
     "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "strict": true,
@@ -28,7 +23,6 @@
     "noEmit": true,
     "module": "esnext",
     "resolveJsonModule": true,
-    "keyofStringsOnly": true,
     "noFallthroughCasesInSwitch": true
   },
   "exclude": [

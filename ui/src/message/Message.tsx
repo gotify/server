@@ -1,81 +1,81 @@
-import {Button} from '@material-ui/core';
-import IconButton from '@material-ui/core/IconButton';
-import {createStyles, Theme, withStyles, WithStyles} from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-import {ExpandLess, ExpandMore} from '@material-ui/icons';
-import Delete from '@material-ui/icons/Delete';
-import React, {RefObject} from 'react';
+import {Button, Theme, useMediaQuery, useTheme} from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import {makeStyles} from 'tss-react/mui';
+import Typography from '@mui/material/Typography';
+import {ExpandLess, ExpandMore} from '@mui/icons-material';
+import Delete from '@mui/icons-material/Delete';
+import React from 'react';
 import TimeAgo from 'react-timeago';
 import Container from '../common/Container';
 import {Markdown} from '../common/Markdown';
 import * as config from '../config';
 import {IMessageExtras} from '../types';
 import {contentType, RenderMode} from './extras';
+import {makeIntlFormatter} from 'react-timeago/defaultFormatter';
 
 const PREVIEW_LENGTH = 500;
 
-const styles = (theme: Theme) =>
-    createStyles({
-        header: {
-            display: 'flex',
-            flexWrap: 'wrap',
-            marginBottom: 0,
+const useStyles = makeStyles()((theme: Theme) => ({
+    header: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        marginBottom: 0,
+    },
+    headerTitle: {
+        flex: 1,
+    },
+    trash: {
+        marginTop: -15,
+        marginRight: -15,
+    },
+    wrapperPadding: {
+        marginBottom: 12,
+    },
+    messageContentWrapper: {
+        minWidth: 200,
+        width: '100%',
+    },
+    image: {
+        marginRight: 15,
+        [theme.breakpoints.down('md')]: {
+            width: 32,
+            height: 32,
         },
-        headerTitle: {
-            flex: 1,
+    },
+    date: {
+        [theme.breakpoints.down('md')]: {
+            order: 1,
+            flexBasis: '100%',
+            opacity: 0.7,
         },
-        trash: {
-            marginTop: -15,
-            marginRight: -15,
+    },
+    imageWrapper: {
+        display: 'flex',
+    },
+    plainContent: {
+        whiteSpace: 'pre-wrap',
+    },
+    content: {
+        maxHeight: PREVIEW_LENGTH,
+        wordBreak: 'break-all',
+        overflowY: 'hidden',
+        '&.expanded': {
+            maxHeight: 'none',
         },
-        wrapperPadding: {
-            padding: 12,
+        '& p': {
+            margin: 0,
         },
-        messageContentWrapper: {
-            width: '100%',
-            maxWidth: 585,
+        '& a': {
+            color: '#ff7f50',
         },
-        image: {
-            marginRight: 15,
-            [theme.breakpoints.down('sm')]: {
-                width: 32,
-                height: 32,
-            },
+        '& pre': {
+            overflow: 'auto',
         },
-        date: {
-            [theme.breakpoints.down('sm')]: {
-                order: 1,
-                flexBasis: '100%',
-                opacity: 0.7,
-            },
+        '& img': {
+            maxWidth: '100%',
         },
-        imageWrapper: {
-            display: 'flex',
-        },
-        plainContent: {
-            whiteSpace: 'pre-wrap',
-        },
-        content: {
-            maxHeight: PREVIEW_LENGTH,
-            wordBreak: 'break-all',
-            overflowY: 'hidden',
-            '&.expanded': {
-                maxHeight: 'none',
-            },
-            '& p': {
-                margin: 0,
-            },
-            '& a': {
-                color: '#ff7f50',
-            },
-            '& pre': {
-                overflow: 'auto',
-            },
-            '& img': {
-                maxWidth: '100%',
-            },
-        },
-    });
+    },
+}));
 
 interface IProps {
     title: string;
@@ -83,14 +83,11 @@ interface IProps {
     date: string;
     content: string;
     priority: number;
+    appName: string;
     fDelete: VoidFunction;
     extras?: IMessageExtras;
-    height: (height: number) => void;
-}
-
-interface IState {
     expanded: boolean;
-    isOverflowing: boolean;
+    onExpand: (expand: boolean) => void;
 }
 
 const priorityColor = (priority: number) => {
@@ -103,66 +100,58 @@ const priorityColor = (priority: number) => {
     }
 };
 
-class Message extends React.PureComponent<IProps & WithStyles<typeof styles>, IState> {
-    public state = {expanded: false, isOverflowing: false};
-    private node: HTMLDivElement | null = null;
-    private previewRef: RefObject<HTMLDivElement>;
+const Message = ({
+    fDelete,
+    title,
+    date,
+    image,
+    priority,
+    content,
+    extras,
+    appName,
+    onExpand,
+    expanded: initialExpanded,
+}: IProps) => {
+    const theme = useTheme();
+    const [previewRef, setPreviewRef] = React.useState<HTMLDivElement | null>(null);
+    const {classes} = useStyles();
+    const [expanded, setExpanded] = React.useState(initialExpanded);
+    const [isOverflowing, setOverflowing] = React.useState(false);
+    const dateWrapped = useMediaQuery(theme.breakpoints.down('md'));
 
-    constructor(props: IProps & WithStyles<typeof styles>) {
-        super(props);
-        this.previewRef = React.createRef();
-    }
+    React.useEffect(() => {
+        setOverflowing(!!previewRef && previewRef.scrollHeight > previewRef.clientHeight);
+    }, [previewRef]);
 
-    public componentDidMount = () => {
-        if (this.previewRef.current) {
-            this.setState({
-                isOverflowing:
-                    this.previewRef.current.scrollHeight > this.previewRef.current.clientHeight,
-            });
-        }
-        this.updateHeightInParent();
-    };
+    React.useEffect(() => void onExpand(expanded), [expanded]);
 
-    public togglePreviewHeight = () => {
-        this.setState(
-            (state) => ({expanded: !state.expanded}),
-            () => this.updateHeightInParent()
-        );
-    };
+    const togglePreviewHeight = () => setExpanded((b) => !b);
 
-    private updateHeightInParent = () =>
-        this.props.height(this.node ? this.node.getBoundingClientRect().height : 0);
-
-    private renderContent = () => {
-        const content = this.props.content;
-
-        switch (contentType(this.props.extras)) {
+    const renderContent = () => {
+        switch (contentType(extras)) {
             case RenderMode.Markdown:
                 return <Markdown>{content}</Markdown>;
             case RenderMode.Plain:
             default:
-                return <span className={this.props.classes.plainContent}>{content}</span>;
+                return <span className={classes.plainContent}>{content}</span>;
         }
     };
-
-    public render(): React.ReactNode {
-        const {fDelete, classes, title, date, image, priority} = this.props;
-
-        return (
-            <div className={`${classes.wrapperPadding} message`} ref={(ref) => (this.node = ref)}>
-                <Container
-                    style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        borderLeftColor: priorityColor(priority),
-                        borderLeftWidth: 6,
-                        borderLeftStyle: 'solid',
-                    }}>
+    return (
+        <div className={`${classes.wrapperPadding} message`}>
+            <Container
+                style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    borderLeftColor: priorityColor(priority),
+                    borderLeftWidth: 6,
+                    borderLeftStyle: 'solid',
+                }}>
+                <div style={{display: 'flex', width: '100%'}}>
                     <div className={classes.imageWrapper}>
                         {image !== null ? (
                             <img
                                 src={config.get('url') + image}
-                                alt="app logo"
+                                alt={`${appName} logo`}
                                 width="70"
                                 height="70"
                                 className={classes.image}
@@ -175,38 +164,46 @@ class Message extends React.PureComponent<IProps & WithStyles<typeof styles>, IS
                                 {title}
                             </Typography>
                             <Typography variant="body1" className={classes.date}>
-                                <TimeAgo date={date} />
+                                <TimeAgo
+                                    date={date}
+                                    formatter={makeIntlFormatter({
+                                        style: dateWrapped ? 'long' : 'narrow',
+                                    })}
+                                />
                             </Typography>
-                            <IconButton onClick={fDelete} className={`${classes.trash} delete`}>
+                            <IconButton
+                                onClick={fDelete}
+                                className={`${classes.trash} delete`}
+                                size="large">
                                 <Delete />
                             </IconButton>
                         </div>
 
                         <Typography
                             component="div"
-                            ref={this.previewRef}
+                            ref={setPreviewRef}
                             className={`${classes.content} content ${
-                                this.state.isOverflowing && this.state.expanded ? 'expanded' : ''
+                                isOverflowing && expanded ? 'expanded' : ''
                             }`}>
-                            {this.renderContent()}
+                            {renderContent()}
                         </Typography>
                     </div>
-                    {this.state.isOverflowing && (
-                        <Button
-                            style={{marginTop: 16}}
-                            onClick={() => this.togglePreviewHeight()}
-                            variant="contained"
-                            color="primary"
-                            size="large"
-                            fullWidth={true}
-                            startIcon={this.state.expanded ? <ExpandLess /> : <ExpandMore />}>
-                            {this.state.expanded ? 'Read Less' : 'Read More'}
-                        </Button>
-                    )}
-                </Container>
-            </div>
-        );
-    }
-}
+                </div>
+                {isOverflowing && (
+                    <Button
+                        style={{marginTop: 16}}
+                        onClick={togglePreviewHeight}
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                        fullWidth={true}
+                        startIcon={expanded ? <ExpandLess /> : <ExpandMore />}>
+                        {expanded ? 'Read Less' : 'Read More'}
+                    </Button>
+                )}
+            </Container>
+        </div>
+    );
+};
 
-export default withStyles(styles, {withTheme: true})(Message);
+export default Message;

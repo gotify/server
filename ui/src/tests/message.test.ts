@@ -2,6 +2,7 @@
 import {Page} from 'puppeteer';
 import {newTest, GotifyTest} from './setup';
 import {clickByText, count, innerText, waitForCount, waitForExists} from './utils';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import * as auth from './authentication';
 import * as selector from './selector';
 import axios from 'axios';
@@ -16,7 +17,6 @@ beforeAll(async () => {
 
 afterAll(async () => await gotify.close());
 
-// eslint-disable-next-line
 const axiosAuth = {auth: {username: 'admin', password: 'admin'}};
 
 let windowsServerToken: string;
@@ -35,7 +35,6 @@ const navigate = async (appName: string) => {
     await waitForExists(page, selector.heading(), appName);
 };
 
-// eslint-disable-next-line
 describe('Messages', () => {
     it('does login', async () => await auth.login(page));
     it('is on messages', async () => {
@@ -83,11 +82,11 @@ describe('Messages', () => {
         await navigate('All Messages');
     });
     it('has no messages', async () => {
-        expect(await count(page, '#messages')).toBe(0);
+        expect(await count(page, '#messages .message')).toBe(0);
     });
     it('has no messages in app', async () => {
         await navigate('Windows');
-        expect(await count(page, '#messages')).toBe(0);
+        expect(await count(page, '#messages .message')).toBe(0);
         await navigate('All Messages');
     });
 

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import {createRoot} from 'react-dom/client';
 import 'typeface-roboto';
 import {initAxios} from './apiAuth';
 import * as config from './config';
@@ -9,14 +9,12 @@ import {CurrentUser} from './CurrentUser';
 import {AppStore} from './application/AppStore';
 import {WebSocketStore} from './message/WebSocketStore';
 import {SnackManager} from './snack/SnackManager';
-import {InjectProvider, StoreMapping} from './inject';
 import {UserStore} from './user/UserStore';
 import {MessagesStore} from './message/MessagesStore';
 import {ClientStore} from './client/ClientStore';
 import {PluginStore} from './plugin/PluginStore';
 import {registerReactions} from './reactions';
-
-const devUrl = 'http://localhost:3000/';
+import {StoreContext, StoreMapping} from './stores';
 
 const {port, hostname, protocol, pathname} = window.location;
 const slashes = protocol.concat('//');
@@ -50,12 +48,7 @@ const initStores = (): StoreMapping => {
 };
 
 (function clientJS() {
-    if (process.env.NODE_ENV === 'production') {
-        config.set('url', prodUrl);
-    } else {
-        config.set('url', devUrl);
-        config.set('register', true);
-    }
+    config.set('url', prodUrl);
     const stores = initStores();
     initAxios(stores.currentUser, stores.snackManager.snack);
 
@@ -67,11 +60,10 @@ const initStores = (): StoreMapping => {
         stores.wsStore.close();
     };
 
-    ReactDOM.render(
-        <InjectProvider stores={stores}>
+    createRoot(document.getElementById('root')!).render(
+        <StoreContext.Provider value={stores}>
             <Layout />
-        </InjectProvider>,
-        document.getElementById('root')
+        </StoreContext.Provider>
     );
     unregister();
 })();

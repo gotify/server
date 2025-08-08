@@ -1,7 +1,7 @@
 import {BaseStore} from '../common/BaseStore';
 import axios from 'axios';
 import * as config from '../config';
-import {action} from 'mobx';
+import {action, makeObservable} from 'mobx';
 import {SnackReporter} from '../snack/SnackManager';
 import {IApplication} from '../types';
 
@@ -10,6 +10,12 @@ export class AppStore extends BaseStore<IApplication> {
 
     public constructor(private readonly snack: SnackReporter) {
         super();
+
+        makeObservable(this, {
+            uploadImage: action,
+            update: action,
+            create: action,
+        });
     }
 
     protected requestItems = (): Promise<IApplication[]> =>
@@ -23,7 +29,6 @@ export class AppStore extends BaseStore<IApplication> {
             return this.snack('Application deleted');
         });
 
-    @action
     public uploadImage = async (id: number, file: Blob): Promise<void> => {
         const formData = new FormData();
         formData.append('file', file);
@@ -34,7 +39,6 @@ export class AppStore extends BaseStore<IApplication> {
         this.snack('Application image updated');
     };
 
-    @action
     public update = async (
         id: number,
         name: string,
@@ -50,7 +54,6 @@ export class AppStore extends BaseStore<IApplication> {
         this.snack('Application updated');
     };
 
-    @action
     public create = async (
         name: string,
         description: string,

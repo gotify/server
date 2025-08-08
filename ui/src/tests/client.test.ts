@@ -1,6 +1,7 @@
 import {Page} from 'puppeteer';
 import {newTest, GotifyTest} from './setup';
 import {count, innerText, waitForExists, waitToDisappear, clearField} from './utils';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import * as auth from './authentication';
 
 import * as selector from './selector';
@@ -65,6 +66,7 @@ describe('Client', () => {
                 await page.waitForSelector($dialog.selector());
                 await page.type($dialog.input('.name'), name);
                 await page.click($dialog.button('.create'));
+                await waitToDisappear(page, $dialog.selector());
             };
         it('phone', createClient('phone'));
         it('desktop app', createClient('desktop app'));
@@ -98,7 +100,6 @@ describe('Client', () => {
 
         expect(await count(page, $table.rows())).toBe(2);
     });
-    // eslint-disable-next-line
     it('deletes own client', async () => {
         await page.click($table.cell(1, Col.Delete, '.delete'));
 

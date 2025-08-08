@@ -1,49 +1,48 @@
-import {createMuiTheme, MuiThemeProvider, Theme, WithStyles, withStyles} from '@material-ui/core';
-import CssBaseline from '@material-ui/core/CssBaseline';
+import {createTheme, ThemeProvider, StyledEngineProvider, Theme} from '@mui/material';
+import {makeStyles} from 'tss-react/mui';
+import CssBaseline from '@mui/material/CssBaseline';
 import * as React from 'react';
-import {HashRouter, Redirect, Route, Switch} from 'react-router-dom';
+import {HashRouter, Navigate, Route, Routes} from 'react-router-dom';
 import Header from './Header';
-import LoadingSpinner from '../common/LoadingSpinner';
 import Navigation from './Navigation';
 import ScrollUpButton from '../common/ScrollUpButton';
 import SettingsDialog from '../common/SettingsDialog';
-import SnackBarHandler from '../snack/SnackBarHandler';
 import * as config from '../config';
 import Applications from '../application/Applications';
 import Clients from '../client/Clients';
 import Plugins from '../plugin/Plugins';
-import PluginDetailView from '../plugin/PluginDetailView';
 import Login from '../user/Login';
 import Messages from '../message/Messages';
 import Users from '../user/Users';
 import {observer} from 'mobx-react';
-import {observable} from 'mobx';
-import {inject, Stores} from '../inject';
 import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
+import {useStores} from '../stores';
+import {SnackbarProvider} from 'notistack';
+import LoadingSpinner from '../common/LoadingSpinner';
 
-const styles = (theme: Theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     content: {
         margin: '0 auto',
         marginTop: 64,
         padding: theme.spacing(4),
         width: '100%',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             marginTop: 0,
         },
     },
-});
+}));
 
 const localStorageThemeKey = 'gotify-theme';
 type ThemeKey = 'dark' | 'light';
 const themeMap: Record<ThemeKey, Theme> = {
-    light: createMuiTheme({
+    light: createTheme({
         palette: {
-            type: 'light',
+            mode: 'light',
         },
     }),
-    dark: createMuiTheme({
+    dark: createTheme({
         palette: {
-            type: 'dark',
+            mode: 'dark',
         },
     }),
 };
@@ -51,50 +50,44 @@ const themeMap: Record<ThemeKey, Theme> = {
 const isThemeKey = (value: string | null): value is ThemeKey =>
     value === 'light' || value === 'dark';
 
-@observer
-class Layout extends React.Component<
-    WithStyles<'content'> & Stores<'currentUser' | 'snackManager'>
-> {
-    @observable
-    private currentTheme: ThemeKey = 'dark';
-    @observable
-    private showSettings = false;
-    @observable
-    private navOpen = false;
+const Layout = observer(() => {
+    const {
+        currentUser: {
+            loggedIn,
+            user: {name, admin},
+            logout,
+            tryReconnect,
+            connectionErrorMessage,
+            refreshKey,
+        },
+    } = useStores();
+    const {classes} = useStyles();
+    const [currentTheme, setCurrentTheme] = React.useState<ThemeKey>(() => {
+        const stored = window.localStorage.getItem(localStorageThemeKey);
+        return isThemeKey(stored) ? stored : 'dark';
+    });
+    const theme = themeMap[currentTheme];
+    const {version} = config.get('version');
+    const [navOpen, setNavOpen] = React.useState(false);
+    const [showSettings, setShowSettings] = React.useState(false);
 
-    private setNavOpen(open: boolean) {
-        this.navOpen = open;
-    }
+    const toggleTheme = () => {
+        const next = currentTheme === 'dark' ? 'light' : 'dark';
+        setCurrentTheme(next);
+        localStorage.setItem(localStorageThemeKey, next);
+    };
 
-    public componentDidMount() {
-        const localStorageTheme = window.localStorage.getItem(localStorageThemeKey);
-        if (isThemeKey(localStorageTheme)) {
-            this.currentTheme = localStorageTheme;
-        } else {
-            window.localStorage.setItem(localStorageThemeKey, this.currentTheme);
-        }
-    }
+    const authed = (children: React.ReactNode) => (
+        <RequireAuth loggedIn={loggedIn}>{children}</RequireAuth>
+    );
 
-    public render() {
-        const {showSettings, currentTheme} = this;
-        const {
-            classes,
-            currentUser: {
-                loggedIn,
-                authenticating,
-                user: {name, admin},
-                logout,
-                tryReconnect,
-                connectionErrorMessage,
-            },
-        } = this.props;
-        const theme = themeMap[currentTheme];
-        const loginRoute = () => (loggedIn ? <Redirect to="/" /> : <Login />);
-        const {version} = config.get('version');
-        return (
-            <MuiThemeProvider theme={theme}>
+    return (
+        <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={theme}>
                 <HashRouter>
-                    <div>
+                    {/* This forces all components to fully rerender including useEffects.
+                        The refreshKey is updated when store data was cleaned and pages should refetch their data. */}
+                    <div key={refreshKey}>
                         {!connectionErrorMessage ? null : (
                             <ConnectionErrorBanner
                                 height={64}
@@ -105,65 +98,79 @@ class Layout extends React.Component<
                         <div style={{display: 'flex', flexDirection: 'column'}}>
                             <CssBaseline />
                             <Header
-                                style={{top: !connectionErrorMessage ? 0 : 64}}
                                 admin={admin}
                                 name={name}
+                                style={{top: !connectionErrorMessage ? 0 : 64}}
                                 version={version}
                                 loggedIn={loggedIn}
-                                toggleTheme={this.toggleTheme.bind(this)}
-                                showSettings={() => (this.showSettings = true)}
+                                toggleTheme={toggleTheme}
+                                showSettings={() => setShowSettings(true)}
                                 logout={logout}
-                                setNavOpen={this.setNavOpen.bind(this)}
+                                setNavOpen={setNavOpen}
                             />
                             <div style={{display: 'flex'}}>
                                 <Navigation
                                     loggedIn={loggedIn}
-                                    navOpen={this.navOpen}
-                                    setNavOpen={this.setNavOpen.bind(this)}
+                                    navOpen={navOpen}
+                                    setNavOpen={setNavOpen}
                                 />
                                 <main className={classes.content}>
-                                    <Switch>
-                                        {authenticating ? (
-                                            <Route path="/">
-                                                <LoadingSpinner />
-                                            </Route>
-                                        ) : null}
-                                        <Route exact path="/login" render={loginRoute} />
-                                        {loggedIn ? null : <Redirect to="/login" />}
-                                        <Route exact path="/" component={Messages} />
-                                        <Route exact path="/messages/:id" component={Messages} />
+                                    <Routes>
+                                        <Route path="/login" element={<Login />} />
+                                        <Route path="/" element={authed(<Messages />)} />
                                         <Route
-                                            exact
+                                            path="/messages/:id"
+                                            element={authed(<Messages />)}
+                                        />
+                                        <Route
                                             path="/applications"
-                                            component={Applications}
+                                            element={authed(<Applications />)}
                                         />
-                                        <Route exact path="/clients" component={Clients} />
-                                        <Route exact path="/users" component={Users} />
-                                        <Route exact path="/plugins" component={Plugins} />
+                                        <Route path="/clients" element={authed(<Clients />)} />
+                                        <Route path="/users" element={authed(<Users />)} />
+                                        <Route path="/plugins" element={authed(<Plugins />)} />
                                         <Route
-                                            exact
                                             path="/plugins/:id"
-                                            component={PluginDetailView}
+                                            element={authed(
+                                                <Lazy
+                                                    component={() =>
+                                                        import('../plugin/PluginDetailView')
+                                                    }
+                                                />
+                                            )}
                                         />
-                                    </Switch>
+                                    </Routes>
                                 </main>
                             </div>
                             {showSettings && (
-                                <SettingsDialog fClose={() => (this.showSettings = false)} />
+                                <SettingsDialog fClose={() => setShowSettings(false)} />
                             )}
                             <ScrollUpButton />
-                            <SnackBarHandler />
+                            <SnackbarProvider />
                         </div>
                     </div>
                 </HashRouter>
-            </MuiThemeProvider>
-        );
-    }
+            </ThemeProvider>
+        </StyledEngineProvider>
+    );
+});
 
-    private toggleTheme() {
-        this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
-        localStorage.setItem(localStorageThemeKey, this.currentTheme);
-    }
-}
+// eslint-disable-next-line
+const Lazy = ({component}: {component: () => Promise<{default: React.ComponentType<any>}>}) => {
+    const Component = React.lazy(component);
 
-export default withStyles(styles, {withTheme: true})(inject('currentUser', 'snackManager')(Layout));
+    return (
+        <React.Suspense fallback={<LoadingSpinner />}>
+            <Component />
+        </React.Suspense>
+    );
+};
+
+const RequireAuth: React.FC<React.PropsWithChildren<{loggedIn: boolean}>> = ({
+    children,
+    loggedIn,
+}) => {
+    return loggedIn ? <>{children}</> : <Navigate replace={true} to="/login" />;
+};
+
+export default Layout;

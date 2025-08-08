@@ -1,6 +1,7 @@
 import {Page} from 'puppeteer';
 import {newTest, GotifyTest} from './setup';
 import {count, innerText, waitForExists, waitToDisappear, clearField} from './utils';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import * as auth from './authentication';
 import * as selector from './selector';
 
@@ -63,6 +64,7 @@ const createApp =
         await page.type($dialog.input('.name'), name);
         await page.type($dialog.textarea('.description'), description);
         await page.click($dialog.button('.create'));
+        await waitToDisappear(page, $dialog.selector());
     };
 
 describe('Application', () => {

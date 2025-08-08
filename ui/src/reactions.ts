@@ -1,6 +1,6 @@
-import {StoreMapping} from './inject';
 import {reaction} from 'mobx';
 import * as Notifications from './snack/browserNotification';
+import {StoreMapping} from './stores';
 
 export const registerReactions = (stores: StoreMapping) => {
     const clearAll = () => {
@@ -40,6 +40,7 @@ export const registerReactions = (stores: StoreMapping) => {
             if (!connectionErrorMessage) {
                 clearAll();
                 loadAll();
+                stores.currentUser.refreshKey++;
             }
         }
     );

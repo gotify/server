@@ -1,10 +1,10 @@
 import getPort from 'get-port';
 import {spawn, exec, ChildProcess} from 'child_process';
-import rimraf from 'rimraf';
+import {rimrafSync} from 'rimraf';
 import path from 'path';
 import puppeteer, {Browser, Page} from 'puppeteer';
 import fs from 'fs';
-// @ts-ignore
+// @ts-expect-error no types
 import wait from 'wait-on';
 import kill from 'tree-kill';
 
@@ -50,9 +50,11 @@ export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
         close: async () => {
             await Promise.all([
                 browser.close(),
-                new Promise((resolve) => kill(gotifyInstance.pid!, 'SIGKILL', () => resolve())),
+                new Promise((resolve) =>
+                    kill(gotifyInstance.pid!, 'SIGKILL', () => resolve(undefined))
+                ),
             ]);
-            rimraf.sync(gotifyFile, {maxBusyTries: 8});
+            rimrafSync(gotifyFile, {maxRetries: 8});
         },
         url: gotifyURL,
         browser,

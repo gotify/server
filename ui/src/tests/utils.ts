@@ -59,7 +59,7 @@ export const waitForExists = async (page: Page, selector: string, text: string):
 export const clearField = async (element: ElementHandle | Page, selector: string) => {
     const elementHandle = await element.$(selector);
     if (!elementHandle) {
-        fail();
+        throw 'element handle not set';
     }
     await elementHandle.click();
     await elementHandle.focus();
