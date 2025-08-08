@@ -12,6 +12,7 @@ export class CurrentUser {
     private reconnectTimeoutId: number | null = null;
     private reconnectTime = 7500;
     public loggedIn = false;
+    public refreshKey = 0;
     public authenticating = true;
     public user: IUser = {name: 'unknown', admin: false, id: -1};
     public connectionErrorMessage: string | null = null;
@@ -22,6 +23,7 @@ export class CurrentUser {
             authenticating: observable,
             user: observable,
             connectionErrorMessage: observable,
+            refreshKey: observable,
         });
     }
 

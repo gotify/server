@@ -58,6 +58,7 @@ const Layout = observer(() => {
             logout,
             tryReconnect,
             connectionErrorMessage,
+            refreshKey,
         },
     } = useStores();
     const {classes} = useStyles();
@@ -84,7 +85,9 @@ const Layout = observer(() => {
         <StyledEngineProvider injectFirst>
             <ThemeProvider theme={theme}>
                 <HashRouter>
-                    <div>
+                    {/* This forces all components to fully rerender including useEffects.
+                        The refreshKey is updated when store data was cleaned and pages should refetch their data. */}
+                    <div key={refreshKey}>
                         {!connectionErrorMessage ? null : (
                             <ConnectionErrorBanner
                                 height={64}

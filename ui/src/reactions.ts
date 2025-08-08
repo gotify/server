@@ -40,6 +40,7 @@ export const registerReactions = (stores: StoreMapping) => {
             if (!connectionErrorMessage) {
                 clearAll();
                 loadAll();
+                stores.currentUser.refreshKey++;
             }
         }
     );
