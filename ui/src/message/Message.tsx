@@ -18,8 +18,11 @@ const PREVIEW_LENGTH = 500;
 const useStyles = makeStyles()((theme: Theme) => ({
     header: {
         display: 'flex',
-        flexWrap: 'wrap',
-        marginBottom: 0,
+        width: '100%',
+        alignItems: 'start',
+        alignContent: 'center',
+        paddingBottom: 5,
+        wordBreak: 'break-all',
     },
     headerTitle: {
         flex: 1,
@@ -29,17 +32,21 @@ const useStyles = makeStyles()((theme: Theme) => ({
         marginRight: -15,
     },
     wrapperPadding: {
-        marginBottom: 12,
+        marginBottom: theme.spacing(2),
+        [theme.breakpoints.down('sm')]: {
+            marginBottom: theme.spacing(1),
+        },
     },
     messageContentWrapper: {
         minWidth: 200,
         width: '100%',
     },
     image: {
-        marginRight: 15,
+        width: 50,
+        height: 50,
         [theme.breakpoints.down('md')]: {
-            width: 32,
-            height: 32,
+            width: 30,
+            height: 30,
         },
     },
     date: {
@@ -50,7 +57,9 @@ const useStyles = makeStyles()((theme: Theme) => ({
         },
     },
     imageWrapper: {
-        display: 'flex',
+        marginRight: 15,
+        width: 50,
+        height: 50,
     },
     plainContent: {
         whiteSpace: 'pre-wrap',
@@ -64,6 +73,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
         },
         '& p': {
             margin: 0,
+            wordBreak: 'break-word',
         },
         '& a': {
             color: '#ff7f50',
@@ -121,7 +131,7 @@ const Message = ({
     const {classes} = useStyles();
     const [expanded, setExpanded] = React.useState(initialExpanded);
     const [isOverflowing, setOverflowing] = React.useState(false);
-    const dateWrapped = useMediaQuery(theme.breakpoints.down('md'));
+    const smallHeader = useMediaQuery(theme.breakpoints.down('md'));
 
     React.useEffect(() => {
         setOverflowing(!!previewRef && previewRef.scrollHeight > previewRef.clientHeight);
@@ -150,48 +160,33 @@ const Message = ({
                     borderLeftWidth: 6,
                     borderLeftStyle: 'solid',
                 }}>
-                <div style={{display: 'flex', width: '100%'}}>
-                    <div className={classes.imageWrapper}>
-                        {image !== null ? (
-                            <img
-                                src={config.get('url') + image}
-                                alt={`${appName} logo`}
-                                width="70"
-                                height="70"
-                                className={classes.image}
-                            />
-                        ) : null}
-                    </div>
-                    <div className={classes.messageContentWrapper}>
-                        <div className={classes.header}>
-                            <Typography className={`${classes.headerTitle} title`} variant="h5">
-                                {title}
-                            </Typography>
-                            <Typography variant="body1" className={classes.date}>
-                                <TimeAgo
-                                    date={date}
-                                    formatter={makeIntlFormatter({
-                                        style: dateWrapped ? 'long' : 'narrow',
-                                    })}
-                                />
-                            </Typography>
-                            <IconButton
-                                onClick={fDelete}
-                                className={`${classes.trash} delete`}
-                                size="large">
-                                <Delete />
-                            </IconButton>
-                        </div>
+                {smallHeader ? (
+                    <HeaderSmall
+                        fDelete={fDelete}
+                        title={title}
+                        appName={appName}
+                        image={image}
+                        date={date}
+                    />
+                ) : (
+                    <HeaderWide
+                        fDelete={fDelete}
+                        title={title}
+                        appName={appName}
+                        image={image}
+                        date={date}
+                    />
+                )}
 
-                        <Typography
-                            component="div"
-                            ref={setPreviewRef}
-                            className={`${classes.content} content ${
-                                isOverflowing && expanded ? 'expanded' : ''
-                            }`}>
-                            {renderContent()}
-                        </Typography>
-                    </div>
+                <div className={classes.messageContentWrapper}>
+                    <Typography
+                        component="div"
+                        ref={setPreviewRef}
+                        className={`${classes.content} content ${
+                            isOverflowing && expanded ? 'expanded' : ''
+                        }`}>
+                        {renderContent()}
+                    </Typography>
                 </div>
                 {isOverflowing && (
                     <Button
@@ -206,6 +201,93 @@ const Message = ({
                     </Button>
                 )}
             </Container>
+        </div>
+    );
+};
+
+const HeaderWide = ({
+    appName,
+    image,
+    date,
+    fDelete,
+    title,
+}: Pick<IProps, 'appName' | 'image' | 'fDelete' | 'date' | 'title'>) => {
+    const {classes} = useStyles();
+
+    return (
+        <div className={classes.header}>
+            <div className={classes.imageWrapper}>
+                {image !== null ? (
+                    <img
+                        src={config.get('url') + image}
+                        alt={`${appName} logo`}
+                        width="50"
+                        height="50"
+                        className={classes.image}
+                    />
+                ) : null}
+            </div>
+            <div className={classes.headerTitle}>
+                <Typography className="title" variant="h5" lineHeight={1.2}>
+                    {title}
+                </Typography>
+                <Typography variant="subtitle1" fontSize={12} style={{opacity: 0.7}}>
+                    {appName}
+                </Typography>
+            </div>
+            <Typography variant="body1" className={classes.date}>
+                <TimeAgo date={date} formatter={makeIntlFormatter({style: 'narrow'})} />
+            </Typography>
+            <IconButton
+                onClick={fDelete}
+                style={{padding: 14}}
+                className={`${classes.trash} delete`}
+                size="large">
+                <Delete />
+            </IconButton>
+        </div>
+    );
+};
+const HeaderSmall = ({
+    appName,
+    image,
+    date,
+    fDelete,
+    title,
+}: Pick<IProps, 'appName' | 'image' | 'fDelete' | 'date' | 'title'>) => {
+    const {classes} = useStyles();
+
+    return (
+        <div className={classes.header}>
+            <div className={classes.headerTitle}>
+                <Typography className="title" variant="h5" lineHeight={1.2}>
+                    {title}
+                </Typography>
+                <Typography variant="subtitle1" fontSize={12} style={{opacity: 0.7}}>
+                    {appName}
+                </Typography>
+                <Typography variant="body1" className={classes.date}>
+                    <TimeAgo date={date} formatter={makeIntlFormatter({style: 'long'})} />
+                </Typography>
+            </div>
+            <div style={{display: 'flex', alignItems: 'end', flexDirection: 'column'}}>
+                <IconButton
+                    onClick={fDelete}
+                    style={{padding: 14}}
+                    className={`${classes.trash} delete`}
+                    size="large">
+                    <Delete />
+                </IconButton>
+                <div style={{width: 30, height: 30}}>
+                    {image !== null ? (
+                        <img
+                            src={config.get('url') + image}
+                            alt={`${appName} logo`}
+                            className={classes.image}
+                        />
+                    ) : null}
+                </div>
+            </div>
         </div>
     );
 };

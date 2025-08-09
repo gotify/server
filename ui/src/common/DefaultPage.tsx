@@ -17,7 +17,7 @@ const DefaultPage: FC<React.PropsWithChildren<IProps>> = ({
     <main style={{margin: '0 auto', maxWidth}}>
         <Grid container spacing={4}>
             <Grid size={{xs: 12}} style={{display: 'flex', flexWrap: 'wrap'}}>
-                <Typography variant="h4" style={{flex: 1}}>
+                <Typography variant="h4" style={{flex: 1, minWidth: 300}}>
                     {title}
                 </Typography>
                 {rightControl}
