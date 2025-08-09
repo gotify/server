@@ -7,8 +7,8 @@
 <h1 align="center">gotify/server</h1>
 
 <p align="center">
-    <a href="https://github.com/gotify/server/actions?query=workflow%3Abuild">
-        <img alt="Build Status" src="https://github.com/gotify/server/workflows/build/badge.svg">
+    <a href="https://github.com/gotify/server/actions/workflows/build.yml">
+        <img alt="Build Status" src="https://github.com/gotify/server/actions/workflows/build.yml/badge.svg">
     </a>
     <a href="https://codecov.io/gh/gotify/server">
         <img alt="codecov" src="https://codecov.io/gh/gotify/server/branch/master/graph/badge.svg">
