@@ -19,6 +19,21 @@ import (
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/plugin/compat"
 	"gopkg.in/yaml.v3"
+
+	papiv2 "github.com/gotify/plugin-api/v2"
+
+	"context"
+	"crypto/ed25519"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"net"
+
+	"github.com/gotify/plugin-api/v2/generated/protobuf"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/peer"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // The Database interface for encapsulating database access.
@@ -41,6 +56,215 @@ type Database interface {
 // Notifier notifies when a new message was created.
 type Notifier interface {
 	Notify(userID uint, message *model.MessageExternal)
+}
+
+type ServerVersionInfo struct {
+	Version   string
+	Commit    string
+	BuildDate string
+}
+
+type PluginConnection struct {
+	info *protobuf.Info
+	conn *grpc.ClientConn
+}
+
+type ServerMux struct {
+	version               ServerVersionInfo
+	tlsClient             *papiv2.EphemeralTLSClient
+	infraAddr             net.Addr
+	infraListener         net.Listener
+	infraServer           *grpc.Server
+	pluginDNSToModulePath map[string]string
+	pluginConnections     map[string]PluginConnection
+	protobuf.UnimplementedInfraServer
+}
+
+func (s *ServerMux) GetServerVersion(ctx context.Context, req *emptypb.Empty) (*protobuf.ServerVersionInfo, error) {
+	return &protobuf.ServerVersionInfo{
+		Version:   s.version.Version,
+		Commit:    s.version.Commit,
+		BuildDate: s.version.BuildDate,
+	}, nil
+}
+
+func (s *ServerMux) WhoAmI(ctx context.Context, req *emptypb.Empty) (*protobuf.Info, error) {
+	peer, ok := peer.FromContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("no peer in context")
+	}
+	authInfo := peer.AuthInfo.(*infraTlsAuthInfo)
+	return s.GetPluginInfo(authInfo.moduleName)
+}
+
+type infraTlsCreds struct {
+	pluginDNSToModulePath map[string]string
+	credentials.TransportCredentials
+}
+
+type infraTlsAuthInfo struct {
+	moduleName string
+	credentials.TLSInfo
+}
+
+func (c *infraTlsCreds) ServerHandshake(rawConn net.Conn) (net.Conn, credentials.AuthInfo, error) {
+	netConn, authInfo, err := c.TransportCredentials.ServerHandshake(rawConn)
+	if err != nil {
+		log.Printf("ServerHandshake: error %v", err)
+		rawConn.Close()
+		return nil, nil, err
+	}
+	protocolInfo := authInfo.(credentials.TLSInfo)
+	serverName := protocolInfo.State.VerifiedChains[0][0].DNSNames[0]
+	moduleName, ok := c.pluginDNSToModulePath[serverName]
+	if !ok {
+		log.Printf("ServerHandshake: unknown server name %s", serverName)
+		netConn.Close()
+		rawConn.Close()
+		return nil, nil, fmt.Errorf("unknown server name %s", serverName)
+	}
+
+	return netConn, &infraTlsAuthInfo{
+		moduleName: moduleName,
+		TLSInfo:    protocolInfo,
+	}, nil
+}
+
+// NewServerMux creates a server-side mux with an infra server that handles plugin-to-server calls.
+func NewServerMux(info ServerVersionInfo) *ServerMux {
+	tlsClient, err := papiv2.NewEphemeralTLSClient()
+	if err != nil {
+		panic(err)
+	}
+	_, infraPriv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		panic(err)
+	}
+	infraCsrBytes, err := x509.CreateCertificateRequest(rand.Reader, new(x509.CertificateRequest), infraPriv)
+	if err != nil {
+		panic(err)
+	}
+	infraCsr, err := x509.ParseCertificateRequest(infraCsrBytes)
+	if err != nil {
+		panic(err)
+	}
+	if err := infraCsr.CheckSignature(); err != nil {
+		panic(err)
+	}
+	infraCert, err := tlsClient.SignCSR(papiv2.ServerTLSName, infraCsr)
+	if err != nil {
+		panic(err)
+	}
+	infraCertParsed, err := x509.ParseCertificate(infraCert)
+	if err != nil {
+		panic(err)
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AddCert(tlsClient.CACert())
+	infraTlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{
+			{
+				Certificate: [][]byte{infraCert, tlsClient.CACert().Raw},
+				PrivateKey:  infraPriv,
+				Leaf:        infraCertParsed,
+			},
+		},
+		ClientAuth: tls.RequireAndVerifyClientCert,
+		ClientCAs:  caCertPool,
+		ServerName: papiv2.ServerTLSName,
+	}
+
+	pluginDNSToModulePath := make(map[string]string)
+	infraServer := grpc.NewServer(grpc.Creds(&infraTlsCreds{
+		pluginDNSToModulePath: pluginDNSToModulePath,
+		TransportCredentials:  credentials.NewTLS(infraTlsConfig),
+	}))
+
+	listener, err := papiv2.NewListener()
+	if err != nil {
+		panic(err)
+	}
+	mux := &ServerMux{
+		version:               info,
+		tlsClient:             tlsClient,
+		infraAddr:             listener.Addr(),
+		infraListener:         listener,
+		infraServer:           infraServer,
+		pluginDNSToModulePath: pluginDNSToModulePath,
+		pluginConnections:     make(map[string]PluginConnection),
+	}
+	protobuf.RegisterInfraServer(infraServer, mux)
+
+	go infraServer.Serve(listener)
+
+	return mux
+}
+
+// InfraAddr returns the address of the infra server for plugin-to-server callbacks.
+func (s *ServerMux) InfraAddr() net.Addr {
+	return s.infraAddr
+}
+
+// CACert returns the CA certificate for mutual TLS authentication.
+func (s *ServerMux) CACert() *x509.Certificate {
+	return s.tlsClient.CACert()
+}
+
+// SignPluginCSR signs a certificate request for a plugin.
+func (s *ServerMux) SignPluginCSR(moduleName string, csr *x509.CertificateRequest) ([]byte, error) {
+	return s.tlsClient.SignPluginCSR(moduleName, csr)
+}
+
+func (s *ServerMux) RegisterPlugin(target string, moduleName string) (*grpc.ClientConn, error) {
+	// TODO: implement exec and negotiate certificate
+	grpcConn, err := grpc.NewClient(target, grpc.WithTransportCredentials(credentials.NewTLS(s.tlsClient.ClientTLSConfig(moduleName))))
+	if err != nil {
+		return nil, err
+	}
+	if _, exists := s.pluginDNSToModulePath[papiv2.BuildPluginTLSName(moduleName)]; exists {
+		return nil, fmt.Errorf("plugin %s already registered", moduleName)
+	}
+	s.pluginDNSToModulePath[papiv2.BuildPluginTLSName(moduleName)] = moduleName
+	pluginClient := protobuf.NewPluginClient(grpcConn)
+	pluginInfo, err := pluginClient.GetPluginInfo(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		return nil, err
+	}
+	s.pluginConnections[moduleName] = PluginConnection{
+		info: pluginInfo,
+		conn: grpcConn,
+	}
+	return grpcConn, nil
+}
+
+// GetPluginInfo returns the info of a plugin.
+func (s *ServerMux) GetPluginInfo(moduleName string) (*protobuf.Info, error) {
+	conn, ok := s.pluginConnections[moduleName]
+	if !ok {
+		return nil, fmt.Errorf("plugin %s not registered", moduleName)
+	}
+	return conn.info, nil
+}
+
+// GetPluginConnection returns the connection to the plugin for Server-to-Plugin calls.
+func (s *ServerMux) GetPluginConnection(moduleName string) (*grpc.ClientConn, error) {
+	conn, ok := s.pluginConnections[moduleName]
+	if !ok {
+		return nil, fmt.Errorf("plugin %s not registered", moduleName)
+	}
+	return conn.conn, nil
+}
+
+func (s *ServerMux) Close() error {
+	for _, conn := range s.pluginConnections {
+		conn.conn.Close()
+	}
+	s.infraServer.GracefulStop()
+	if s.infraAddr.Network() == "unix" {
+		os.Remove(s.infraAddr.String())
+	}
+	s.infraListener.Close()
+	return nil
 }
 
 // Manager is an encapsulating layer for plugins and manages all plugins and its instances.
