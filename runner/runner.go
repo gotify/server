@@ -88,8 +88,8 @@ func startListening(connectionType, listenAddr string, port, keepAlive int) (net
 }
 
 func getNetworkAndAddr(listenAddr string, port int) (string, string) {
-	if strings.HasPrefix(listenAddr, "unix:") {
-		return "unix", strings.TrimPrefix(listenAddr, "unix:")
+	if after, ok := strings.CutPrefix(listenAddr, "unix:"); ok {
+		return "unix", after
 	}
 	return "tcp", fmt.Sprintf("%s:%d", listenAddr, port)
 }

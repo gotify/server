@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -11,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/v2/auth"
+	"github.com/gotify/server/v2/broker"
 	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
 )
@@ -22,6 +24,7 @@ type API struct {
 	pingPeriod  time.Duration
 	pongTimeout time.Duration
 	upgrader    *websocket.Upgrader
+	broker      broker.MessageBroker
 }
 
 // New creates a new instance of API.
@@ -34,6 +37,18 @@ func New(pingPeriod, pongTimeout time.Duration, allowedWebSocketOrigins []string
 		pingPeriod:  pingPeriod,
 		pongTimeout: pingPeriod + pongTimeout,
 		upgrader:    newUpgrader(allowedWebSocketOrigins),
+		broker:      broker.NewNoopBroker(),
+	}
+}
+
+// NewWithBroker creates a new instance of API with a message broker.
+func NewWithBroker(pingPeriod, pongTimeout time.Duration, allowedWebSocketOrigins []string, msgBroker broker.MessageBroker) *API {
+	return &API{
+		clients:     make(map[uint][]*client),
+		pingPeriod:  pingPeriod,
+		pongTimeout: pingPeriod + pongTimeout,
+		upgrader:    newUpgrader(allowedWebSocketOrigins),
+		broker:      msgBroker,
 	}
 }
 
@@ -81,6 +96,17 @@ func (a *API) NotifyDeletedClient(userID uint, token string) {
 
 // Notify notifies the clients with the given userID that a new messages was created.
 func (a *API) Notify(userID uint, msg *model.MessageExternal) {
+	// Always notify local clients first for immediate delivery
+	a.notifyLocal(userID, msg)
+	
+	// Also publish to broker for distribution to other pods (if Redis is enabled)
+	if err := a.broker.PublishMessage(userID, msg); err != nil {
+		log.Printf("Failed to publish message to broker: %v", err)
+	}
+}
+
+// notifyLocal notifies only the local WebSocket clients
+func (a *API) notifyLocal(userID uint, msg *model.MessageExternal) {
 	a.lock.RLock()
 	defer a.lock.RUnlock()
 	if clients, ok := a.clients[userID]; ok {
@@ -153,10 +179,24 @@ func (a *API) Handle(ctx *gin.Context) {
 	go client.startWriteHandler(a.pingPeriod)
 }
 
+// StartRedisSubscriber starts the Redis message subscriber
+func (a *API) StartRedisSubscriber() error {
+	return a.broker.Subscribe(func(userID uint, msg *model.MessageExternal) {
+		// This callback is called when a message is received from Redis
+		// Forward it to local WebSocket clients
+		a.notifyLocal(userID, msg)
+	})
+}
+
 // Close closes all client connections and stops answering new connections.
 func (a *API) Close() {
 	a.lock.Lock()
 	defer a.lock.Unlock()
+
+	// Close the broker first
+	if err := a.broker.Close(); err != nil {
+		log.Printf("Error closing message broker: %v", err)
+	}
 
 	for _, clients := range a.clients {
 		for _, client := range clients {

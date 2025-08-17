@@ -54,6 +54,11 @@ type Configuration struct {
 	UploadedImagesDir string `default:"data/images"`
 	PluginsDir        string `default:"data/plugins"`
 	Registration      bool   `default:"false"`
+	Redis             struct {
+		Enabled       bool   `default:"false"`
+		URL           string `default:"redis://localhost:6379/0"`
+		ChannelPrefix string `default:"gotify"`
+	}
 }
 
 func configFiles() []string {
