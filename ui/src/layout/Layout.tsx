@@ -55,6 +55,7 @@ const Layout = observer(() => {
     const {
         currentUser: {
             loggedIn,
+            authenticating,
             user: {name, admin},
             logout,
             tryReconnect,
@@ -79,7 +80,9 @@ const Layout = observer(() => {
     };
 
     const authed = (children: React.ReactNode) => (
-        <RequireAuth loggedIn={loggedIn}>{children}</RequireAuth>
+        <RequireAuth loggedIn={loggedIn} authenticating={authenticating}>
+            {children}
+        </RequireAuth>
     );
 
     return (
@@ -167,11 +170,16 @@ const Lazy = ({component}: {component: () => Promise<{default: React.ComponentTy
     );
 };
 
-const RequireAuth: React.FC<React.PropsWithChildren<{loggedIn: boolean}>> = ({
-    children,
-    loggedIn,
-}) => {
-    return loggedIn ? <>{children}</> : <Navigate replace={true} to="/login" />;
+const RequireAuth: React.FC<
+    React.PropsWithChildren<{loggedIn: boolean; authenticating: boolean}>
+> = ({children, authenticating, loggedIn}) => {
+    if (authenticating) {
+        return <LoadingSpinner />;
+    }
+    if (!loggedIn) {
+        return <Navigate replace={true} to="/login" />;
+    }
+    return <>{children}</>;
 };
 
 export default Layout;
