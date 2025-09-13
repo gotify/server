@@ -2,11 +2,7 @@ LICENSE_DIR=./licenses/
 BUILD_DIR=./build
 DOCKER_DIR=./docker/
 SHELL := /bin/bash
-ifdef GOTOOLCHAIN
-	GO_VERSION=$(GOTOOLCHAIN)
-else
-	GO_VERSION=$(shell go mod edit -json | jq -r .Toolchain | sed -e 's/go//')
-endif
+GO_VERSION=$(shell go mod edit -json | jq -r .Toolchain | sed -e 's/go//')
 DOCKER_BUILD_IMAGE=docker.io/gotify/build
 DOCKER_WORKDIR=/proj
 DOCKER_RUN=docker run --rm -e LD_FLAGS="$$LD_FLAGS" -v "$$PWD/.:${DOCKER_WORKDIR}" -v "`go env GOPATH`/pkg/mod/.:/go/pkg/mod:ro" -w ${DOCKER_WORKDIR}
