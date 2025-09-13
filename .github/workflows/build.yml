@@ -16,7 +16,7 @@ jobs:
       - run: make build-js
       - uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.2.1
+          version: v2.4.0
           args: --timeout=5m
           skip-cache: true
       - run: go mod download
