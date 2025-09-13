@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 const GOTIFY_SERVER_PORT = process.env.GOTIFY_SERVER_PORT ?? '80';
 
 export default defineConfig({
+    base: './',
     build: {
         outDir: 'build',
         emptyOutDir: true,
