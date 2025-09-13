@@ -40,7 +40,7 @@ check-js:
 	(cd ui && yarn testformat)
 
 download-tools:
-	go install github.com/go-swagger/go-swagger/cmd/swagger@v0.31.0
+	go install github.com/go-swagger/go-swagger/cmd/swagger@717e3cb29becaaf00e56953556c6d80f8a01b286
 
 update-swagger:
 	swagger generate spec --scan-models -o docs/spec.json
