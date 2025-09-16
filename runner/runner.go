@@ -98,24 +98,25 @@ func getNetworkAndAddr(listenAddr string, port int) (string, string) {
 }
 
 type LoggingRoundTripper struct {
+	Name         string
 	RoundTripper http.RoundTripper
 }
 
 func (l *LoggingRoundTripper) RoundTrip(r *http.Request) (resp *http.Response, err error) {
 	resp, err = l.RoundTripper.RoundTrip(r)
 	if resp.StatusCode == 429 {
-		log.Printf("Let's Encrypt Client Rate Limited: Retry-After %s on %s %s\n", resp.Header.Get("Retry-After"), r.Method, r.URL.String())
+		log.Printf("%s Rate Limited: Retry-After %s on %s %s\n", l.Name, resp.Header.Get("Retry-After"), r.Method, r.URL.String())
 	} else if resp.StatusCode >= 400 {
-		log.Printf("Let's Encrypt Client Request Failed: Unexpected status code %d on %s %s\n", resp.StatusCode, r.Method, r.URL.String())
+		log.Printf("%s Request Failed: Unexpected status code %d on %s %s\n", l.Name, resp.StatusCode, r.Method, r.URL.String())
 	} else if err != nil {
-		log.Printf("Let's Encrypt Client Request Failed: %s on %s %s\n", err.Error(), r.Method, r.URL.String())
+		log.Printf("%s Request Failed: %s on %s %s\n", l.Name, err.Error(), r.Method, r.URL.String())
 	}
 	return
 }
 
 func applyLetsEncrypt(s *http.Server, conf *config.Configuration) {
 	httpClient := http.DefaultClient
-	httpClient.Transport = &LoggingRoundTripper{RoundTripper: http.DefaultTransport}
+	httpClient.Transport = &LoggingRoundTripper{Name: "Let's Encrypt", RoundTripper: http.DefaultTransport}
 	httpClient.Timeout = 60 * time.Second
 
 	acmeClient := &acme.Client{
