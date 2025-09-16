@@ -17,6 +17,10 @@ server:
       enabled: false # if the certificate should be requested from letsencrypt
       accepttos: false # if you accept the tos from letsencrypt
       cache: data/certs # the directory of the cache from letsencrypt
+      directoryurl: # override the directory url of the ACME server
+                    # Let's Encrypt highly recommend testing against their staging environment before using their production environment.
+                    # Staging server has high rate limits for testing and debugging, issued certificates are not valid
+                    # example: https://acme-staging-v02.api.letsencrypt.org/directory
       hosts: # the hosts for which letsencrypt should request certificates
 #      - mydomain.tld
 #      - myotherdomain.tld
