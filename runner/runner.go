@@ -33,7 +33,7 @@ func Run(router http.Handler, conf *config.Configuration) error {
 		if conf.Server.SSL.LetsEncrypt.Enabled {
 			applyLetsEncrypt(s, conf)
 		} else if conf.Server.SSL.CertFile != "" && conf.Server.SSL.CertKey != "" {
-			log.Fatalf("CertFile and CertKey must be set to use HTTPS when LetsEncrypt is disabled, please set GOTIFY_SERVER_SSL_CERTFILE and GOTIFY_SERVER_SSL_CERTKEY")
+			log.Fatalln("CertFile and CertKey must be set to use HTTPS when LetsEncrypt is disabled, please set GOTIFY_SERVER_SSL_CERTFILE and GOTIFY_SERVER_SSL_CERTKEY")
 		}
 
 		httpsListener, err := startListening("TLS connection", conf.Server.SSL.ListenAddr, conf.Server.SSL.Port, conf.Server.KeepAlivePeriodSeconds)
@@ -115,9 +115,10 @@ func (l *LoggingRoundTripper) RoundTrip(r *http.Request) (resp *http.Response, e
 }
 
 func applyLetsEncrypt(s *http.Server, conf *config.Configuration) {
-	httpClient := http.DefaultClient
-	httpClient.Transport = &LoggingRoundTripper{Name: "Let's Encrypt", RoundTripper: http.DefaultTransport}
-	httpClient.Timeout = 60 * time.Second
+	httpClient := &http.Client{
+		Transport: &LoggingRoundTripper{Name: "Let's Encrypt", RoundTripper: http.DefaultTransport},
+		Timeout:   60 * time.Second,
+	}
 
 	acmeClient := &acme.Client{
 		HTTPClient:   httpClient,
@@ -127,7 +128,7 @@ func applyLetsEncrypt(s *http.Server, conf *config.Configuration) {
 		Client: acmeClient,
 		Prompt: func(tosURL string) bool {
 			if !conf.Server.SSL.LetsEncrypt.AcceptTOS {
-				log.Fatalf("Let's Encrypt TOS must be accepted to use Let's Encrypt, please acknowledge TOS at %s and set GOTIFY_SERVER_SSL_LETSENCRYPT_ACCEPTTOS=true", tosURL)
+				log.Fatalf("Let's Encrypt TOS must be accepted to use Let's Encrypt, please acknowledge TOS at %s and set GOTIFY_SERVER_SSL_LETSENCRYPT_ACCEPTTOS=true\n", tosURL)
 			}
 			return true
 		},
