@@ -92,28 +92,9 @@ func TestRPC(t *testing.T) {
 		ClientCAs:  caCertPool,
 	}
 
-	infraAddr := rpc.InfraAddr()
-	infraAddrTarget := infraAddr.String()
-	if infraAddr.Network() == "unix" {
-		infraAddrTarget = "unix://" + infraAddrTarget
-	}
-
-	pluginClient, err := grpc.NewClient(infraAddrTarget, grpc.WithTransportCredentials(credentials.NewTLS(pluginClientTlsConfig)))
+	pluginClient, err := grpc.NewClient(pluginListenerTarget, grpc.WithTransportCredentials(credentials.NewTLS(pluginClientTlsConfig)))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer pluginClient.Close()
-	pluginInfraClient := protobuf.NewInfraClient(pluginClient)
-	version, err := pluginInfraClient.GetServerVersion(context.Background(), &emptypb.Empty{})
-	assert.NoError(t, err)
-	assert.Equal(t, version.Version, rpc.version.Version)
-	info, err := pluginInfraClient.WhoAmI(context.Background(), &emptypb.Empty{})
-	assert.NoError(t, err)
-
-	assert.Equal(t, info.Name, dummyPluginInfo.Name)
-	assert.Equal(t, info.Version, dummyPluginInfo.Version)
-	assert.Equal(t, info.Description, dummyPluginInfo.Description)
-	assert.Equal(t, info.Author, dummyPluginInfo.Author)
-	assert.Equal(t, info.License, dummyPluginInfo.License)
-	assert.Equal(t, info.ModulePath, dummyPluginInfo.ModulePath)
 }

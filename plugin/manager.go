@@ -25,14 +25,12 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/rand"
-	"crypto/tls"
 	"crypto/x509"
 	"net"
 
 	"github.com/gotify/plugin-api/v2/generated/protobuf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -72,29 +70,8 @@ type PluginConnection struct {
 type ServerMux struct {
 	version               ServerVersionInfo
 	tlsClient             *papiv2.EphemeralTLSClient
-	infraAddr             net.Addr
-	infraListener         net.Listener
-	infraServer           *grpc.Server
 	pluginDNSToModulePath map[string]string
 	pluginConnections     map[string]PluginConnection
-	protobuf.UnimplementedInfraServer
-}
-
-func (s *ServerMux) GetServerVersion(ctx context.Context, req *emptypb.Empty) (*protobuf.ServerVersionInfo, error) {
-	return &protobuf.ServerVersionInfo{
-		Version:   s.version.Version,
-		Commit:    s.version.Commit,
-		BuildDate: s.version.BuildDate,
-	}, nil
-}
-
-func (s *ServerMux) WhoAmI(ctx context.Context, req *emptypb.Empty) (*protobuf.Info, error) {
-	peer, ok := peer.FromContext(ctx)
-	if !ok {
-		return nil, fmt.Errorf("no peer in context")
-	}
-	authInfo := peer.AuthInfo.(*infraTlsAuthInfo)
-	return s.GetPluginInfo(authInfo.moduleName)
 }
 
 type infraTlsCreds struct {
@@ -151,58 +128,18 @@ func NewServerMux(info ServerVersionInfo) *ServerMux {
 	if err := infraCsr.CheckSignature(); err != nil {
 		panic(err)
 	}
-	infraCert, err := tlsClient.SignCSR(papiv2.ServerTLSName, infraCsr)
-	if err != nil {
-		panic(err)
-	}
-	infraCertParsed, err := x509.ParseCertificate(infraCert)
-	if err != nil {
-		panic(err)
-	}
 	caCertPool := x509.NewCertPool()
 	caCertPool.AddCert(tlsClient.CACert())
-	infraTlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{
-			{
-				Certificate: [][]byte{infraCert, tlsClient.CACert().Raw},
-				PrivateKey:  infraPriv,
-				Leaf:        infraCertParsed,
-			},
-		},
-		ClientAuth: tls.RequireAndVerifyClientCert,
-		ClientCAs:  caCertPool,
-		ServerName: papiv2.ServerTLSName,
-	}
 
 	pluginDNSToModulePath := make(map[string]string)
-	infraServer := grpc.NewServer(grpc.Creds(&infraTlsCreds{
-		pluginDNSToModulePath: pluginDNSToModulePath,
-		TransportCredentials:  credentials.NewTLS(infraTlsConfig),
-	}))
-
-	listener, err := papiv2.NewListener()
-	if err != nil {
-		panic(err)
-	}
 	mux := &ServerMux{
 		version:               info,
 		tlsClient:             tlsClient,
-		infraAddr:             listener.Addr(),
-		infraListener:         listener,
-		infraServer:           infraServer,
 		pluginDNSToModulePath: pluginDNSToModulePath,
 		pluginConnections:     make(map[string]PluginConnection),
 	}
-	protobuf.RegisterInfraServer(infraServer, mux)
-
-	go infraServer.Serve(listener)
 
 	return mux
-}
-
-// InfraAddr returns the address of the infra server for plugin-to-server callbacks.
-func (s *ServerMux) InfraAddr() net.Addr {
-	return s.infraAddr
 }
 
 // CACert returns the CA certificate for mutual TLS authentication.
@@ -221,10 +158,10 @@ func (s *ServerMux) RegisterPlugin(target string, moduleName string) (*grpc.Clie
 	if err != nil {
 		return nil, err
 	}
-	if _, exists := s.pluginDNSToModulePath[papiv2.BuildPluginTLSName(moduleName)]; exists {
+	if _, exists := s.pluginDNSToModulePath[papiv2.BuildPluginTLSName("*", moduleName)]; exists {
 		return nil, fmt.Errorf("plugin %s already registered", moduleName)
 	}
-	s.pluginDNSToModulePath[papiv2.BuildPluginTLSName(moduleName)] = moduleName
+	s.pluginDNSToModulePath[papiv2.BuildPluginTLSName("*", moduleName)] = moduleName
 	pluginClient := protobuf.NewPluginClient(grpcConn)
 	pluginInfo, err := pluginClient.GetPluginInfo(context.Background(), &emptypb.Empty{})
 	if err != nil {
@@ -259,11 +196,6 @@ func (s *ServerMux) Close() error {
 	for _, conn := range s.pluginConnections {
 		conn.conn.Close()
 	}
-	s.infraServer.GracefulStop()
-	if s.infraAddr.Network() == "unix" {
-		os.Remove(s.infraAddr.String())
-	}
-	s.infraListener.Close()
 	return nil
 }
 

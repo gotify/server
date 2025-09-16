@@ -9,7 +9,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/gotify/location v0.0.0-20170722210143-03bc4ad20437
 	github.com/gotify/plugin-api v1.0.0
-	github.com/gotify/plugin-api/v2 v2.0.0-20250815172949-e6fc00f4cce2
+	github.com/gotify/plugin-api/v2 v2.0.0-20250824221031-4e1372442210
 	github.com/h2non/filetype v1.1.3
 	github.com/jinzhu/configor v1.2.2
 	github.com/jinzhu/gorm v1.9.16
@@ -52,6 +52,7 @@ require (
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
+	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
 
 go 1.24.5
