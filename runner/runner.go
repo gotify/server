@@ -32,7 +32,7 @@ func Run(router http.Handler, conf *config.Configuration) error {
 	if conf.Server.SSL.Enabled {
 		if conf.Server.SSL.LetsEncrypt.Enabled {
 			applyLetsEncrypt(s, conf)
-		} else if conf.Server.SSL.CertFile != "" && conf.Server.SSL.CertKey != "" {
+		} else if conf.Server.SSL.CertFile == "" || conf.Server.SSL.CertKey == "" {
 			log.Fatalln("CertFile and CertKey must be set to use HTTPS when LetsEncrypt is disabled, please set GOTIFY_SERVER_SSL_CERTFILE and GOTIFY_SERVER_SSL_CERTKEY")
 		}
 
