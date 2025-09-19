@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -14,6 +15,7 @@ import (
 	"github.com/gotify/server/v2/api"
 	"github.com/gotify/server/v2/api/stream"
 	"github.com/gotify/server/v2/auth"
+	"github.com/gotify/server/v2/broker"
 	"github.com/gotify/server/v2/config"
 	"github.com/gotify/server/v2/database"
 	"github.com/gotify/server/v2/docs"
@@ -63,8 +65,29 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			ctx.Abort()
 		})
 	}
-	streamHandler := stream.New(
-		time.Duration(conf.Server.Stream.PingPeriodSeconds)*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
+	var streamHandler *stream.API
+	if conf.Redis.Enabled {
+		// Create Redis broker
+		redisBroker, err := broker.NewRedisBroker(conf.Redis.URL, conf.Redis.ChannelPrefix)
+		if err != nil {
+			log.Printf("Failed to create Redis broker: %v, falling back to local-only mode", err)
+			streamHandler = stream.New(
+				time.Duration(conf.Server.Stream.PingPeriodSeconds)*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
+		} else {
+			streamHandler = stream.NewWithBroker(
+				time.Duration(conf.Server.Stream.PingPeriodSeconds)*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins, redisBroker)
+			
+			// Start Redis subscriber
+			if err := streamHandler.StartRedisSubscriber(); err != nil {
+				log.Printf("Failed to start Redis subscriber: %v", err)
+			} else {
+				log.Println("Redis pub/sub enabled for multi-pod WebSocket support")
+			}
+		}
+	} else {
+		streamHandler = stream.New(
+			time.Duration(conf.Server.Stream.PingPeriodSeconds)*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
+	}
 	go func() {
 		ticker := time.NewTicker(5 * time.Minute)
 		for range ticker.C {

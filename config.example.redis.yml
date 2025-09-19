@@ -1,0 +1,48 @@
+# Example configuration for Redis multi-pod setup
+# Copy this to config.yml and modify as needed
+
+# Enable Redis for multi-pod WebSocket support
+redis:
+  enabled: true
+  url: "redis://localhost:6379/0"  # Change to your Redis server URL
+  channelPrefix: "gotify"          # Prefix for Redis channels
+
+# Standard Gotify configuration
+server:
+  keepalivePeriodSeconds: 0
+  listenAddr: ""
+  port: 80
+  
+  ssl:
+    enabled: false
+    redirectToHTTPS: true
+    port: 443
+    certFile: ""
+    certKey: ""
+    letsEncrypt:
+      enabled: false
+      acceptTOS: false
+      cache: "data/certs"
+      hosts: []
+  
+  stream:
+    pingPeriodSeconds: 45
+    allowedOrigins: []
+    
+  cors:
+    allowOrigins: []
+    allowMethods: []
+    allowHeaders: []
+
+database:
+  dialect: "sqlite3"
+  connection: "data/gotify.db"
+
+defaultUser:
+  name: "admin"
+  pass: "admin"
+
+passStrength: 10
+uploadedImagesDir: "data/images"
+pluginsDir: "data/plugins"
+registration: false
