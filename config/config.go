@@ -23,10 +23,11 @@ type Configuration struct {
 			CertFile        string `default:""`
 			CertKey         string `default:""`
 			LetsEncrypt     struct {
-				Enabled   bool   `default:"false"`
-				AcceptTOS bool   `default:"false"`
-				Cache     string `default:"data/certs"`
-				Hosts     []string
+				Enabled      bool   `default:"false"`
+				AcceptTOS    bool   `default:"false"`
+				Cache        string `default:"data/certs"`
+				DirectoryURL string `default:""`
+				Hosts        []string
 			}
 		}
 		ResponseHeaders map[string]string
