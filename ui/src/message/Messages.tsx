@@ -33,9 +33,9 @@ const Messages = observer(() => {
         }
     }, [appId]);
 
-    const renderMessage = (index: number, message: IMessage) => (
+    const renderMessage = (_index: number, message: IMessage) => (
         <Message
-            key={index}
+            key={message.id}
             fDelete={deleteMessage(message)}
             onExpand={(expanded) => (expandedState.current[message.id] = expanded)}
             title={message.title}
