@@ -1,10 +1,9 @@
 {
-	"name": "Gotify Server Dev Container",
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
-	"features": {
-		"ghcr.io/devcontainers/features/go:1": {}
+	"name": "Gotify Server",
+	//Need to customize the docker build container to add misisng tools (nvm, npm, yarn)
+	"build": {
+		"dockerfile": "Dockerfile"
 	},
-
 
 	"containerEnv": {
 		"GOTIFY_SERVER_PORT": "8080"
