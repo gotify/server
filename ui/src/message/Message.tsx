@@ -127,15 +127,27 @@ const Message = ({
     expanded: initialExpanded,
 }: IProps) => {
     const theme = useTheme();
-    const [previewRef, setPreviewRef] = React.useState<HTMLDivElement | null>(null);
+    const contentRef = React.useRef<HTMLDivElement | null>(null);
     const {classes} = useStyles();
     const [expanded, setExpanded] = React.useState(initialExpanded);
     const [isOverflowing, setOverflowing] = React.useState(false);
     const smallHeader = useMediaQuery(theme.breakpoints.down('md'));
 
-    React.useEffect(() => {
-        setOverflowing(!!previewRef && previewRef.scrollHeight > previewRef.clientHeight);
-    }, [previewRef]);
+    const refreshOverflowing = React.useCallback(() => {
+        const ref = contentRef.current;
+        if (!ref) {
+            return;
+        }
+        setOverflowing((overflowing) => overflowing || ref.scrollHeight > ref.clientHeight);
+    }, [contentRef, setOverflowing]);
+
+    const onContentRef = React.useCallback(
+        (ref: HTMLDivElement | null) => {
+            contentRef.current = ref;
+            refreshOverflowing();
+        },
+        [contentRef, refreshOverflowing]
+    );
 
     React.useEffect(() => void onExpand(expanded), [expanded]);
 
@@ -144,7 +156,7 @@ const Message = ({
     const renderContent = () => {
         switch (contentType(extras)) {
             case RenderMode.Markdown:
-                return <Markdown>{content}</Markdown>;
+                return <Markdown onImageLoaded={refreshOverflowing}>{content}</Markdown>;
             case RenderMode.Plain:
             default:
                 return <span className={classes.plainContent}>{content}</span>;
@@ -181,7 +193,7 @@ const Message = ({
                 <div className={classes.messageContentWrapper}>
                     <Typography
                         component="div"
-                        ref={setPreviewRef}
+                        ref={onContentRef}
                         className={`${classes.content} content ${
                             isOverflowing && expanded ? 'expanded' : ''
                         }`}>
