@@ -169,13 +169,13 @@ func (a *API) Close() {
 }
 
 func uniq[T comparable](s []T) []T {
-	m := make(map[T]struct{})
+	m := make(map[T]struct{}, len(s))
+	r := make([]T, 0, len(s))
 	for _, v := range s {
-		m[v] = struct{}{}
-	}
-	var r []T
-	for k := range m {
-		r = append(r, k)
+		if _, ok := m[v]; !ok {
+			m[v] = struct{}{}
+			r = append(r, v)
+		}
 	}
 	return r
 }
