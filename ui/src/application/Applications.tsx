@@ -10,6 +10,7 @@ import TableRow from '@mui/material/TableRow';
 import Delete from '@mui/icons-material/Delete';
 import Edit from '@mui/icons-material/Edit';
 import CloudUpload from '@mui/icons-material/CloudUpload';
+import Close from '@mui/icons-material/Close';
 import Button from '@mui/material/Button';
 
 import ConfirmDialog from '../common/ConfirmDialog';
@@ -27,6 +28,7 @@ const Applications = observer(() => {
     const {appStore} = useStores();
     const apps = appStore.getItems();
     const [toDeleteApp, setToDeleteApp] = useState<IApplication>();
+    const [toDeleteImage, setToDeleteImage] = useState<IApplication>();
     const [toUpdateApp, setToUpdateApp] = useState<IApplication>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
 
@@ -93,6 +95,7 @@ const Applications = observer(() => {
                                     value={app.token}
                                     lastUsed={app.lastUsed}
                                     fUpload={() => handleImageUploadClick(app.id)}
+                                    fDeleteImage={() => setToDeleteImage(app)}
                                     fDelete={() => setToDeleteApp(app)}
                                     fEdit={() => setToUpdateApp(app)}
                                     noDelete={app.internal}
@@ -133,6 +136,14 @@ const Applications = observer(() => {
                     fOnSubmit={() => appStore.remove(toDeleteApp.id)}
                 />
             )}
+            {toDeleteImage != null && (
+                <ConfirmDialog
+                    title="Confirm Delete Image"
+                    text={'Delete image for ' + toDeleteImage.name + '?'}
+                    fClose={() => setToDeleteImage(undefined)}
+                    fOnSubmit={() => appStore.deleteImage(toDeleteImage.id)}
+                />
+            )}
         </DefaultPage>
     );
 });
@@ -145,6 +156,7 @@ interface IRowProps {
     defaultPriority: number;
     lastUsed: string | null;
     fUpload: VoidFunction;
+    fDeleteImage: VoidFunction;
     image: string;
     fDelete: VoidFunction;
     fEdit: VoidFunction;
@@ -159,15 +171,75 @@ const Row = ({
     lastUsed,
     fDelete,
     fUpload,
+    fDeleteImage,
     image,
     fEdit,
 }: IRowProps) => {
+    const [isHovered, setIsHovered] = useState(false);
+
     return (
         <TableRow>
             <TableCell padding="normal">
-                <div style={{display: 'flex'}}>
-                    <img src={config.get('url') + image} alt="app logo" width="40" height="40" />
-                    <IconButton onClick={fUpload} style={{height: 40}}>
+                <div style={{display: 'flex', alignItems: 'center'}}>
+                    <div
+                        style={{
+                            position: 'relative',
+                            width: 40,
+                            height: 40,
+                            borderRadius: 4,
+                            overflow: 'hidden',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+                            transition: 'transform 0.2s, box-shadow 0.2s',
+                            transform: isHovered ? 'translateY(-1px)' : 'none',
+                            ...(isHovered && {boxShadow: '0 2px 6px rgba(0,0,0,0.15)'}),
+                        }}
+                        onMouseEnter={() => setIsHovered(true)}
+                        onMouseLeave={() => setIsHovered(false)}>
+                        <img
+                            src={config.get('url') + image}
+                            alt="app logo"
+                            width="40"
+                            height="40"
+                            style={{
+                                display: 'block',
+                                objectFit: 'cover',
+                                opacity: isHovered ? 1 : 0.8,
+                                transition: 'opacity 0.2s',
+                            }}
+                        />
+                        <IconButton
+                            onClick={fDeleteImage}
+                            size="small"
+                            style={{
+                                position: 'absolute',
+                                top: 5,
+                                right: 5,
+                                width: 30,
+                                height: 30,
+                                padding: 0,
+                                minWidth: 0,
+                                background: 'rgba(255, 59, 48, 0.95)',
+                                color: 'white',
+                                border: '1px solid white',
+                                borderRadius: '50%',
+                                opacity: isHovered ? 1 : 0,
+                                transform: isHovered ? 'scale(1)' : 'scale(0.8)',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
+                                zIndex: 10,
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 45, 35, 1)';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 59, 48, 0.95)';
+                                e.currentTarget.style.transform = 'scale(1)';
+                            }}>
+                            <Close style={{fontSize: 12}} />
+                        </IconButton>
+                    </div>
+                    <IconButton onClick={fUpload} style={{height: 40, marginLeft: 4}}>
                         <CloudUpload />
                     </IconButton>
                 </div>
