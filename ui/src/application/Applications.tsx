@@ -77,6 +77,7 @@ const Applications = observer(() => {
                                 <TableCell>Token</TableCell>
                                 <TableCell>Description</TableCell>
                                 <TableCell>Priority</TableCell>
+                                <TableCell>Sort Order</TableCell>
                                 <TableCell>Last Used</TableCell>
                                 <TableCell />
                                 <TableCell />
@@ -88,6 +89,7 @@ const Applications = observer(() => {
                                     key={app.id}
                                     description={app.description}
                                     defaultPriority={app.defaultPriority}
+                                    sortOrder={app.sortOrder}
                                     image={app.image}
                                     name={app.name}
                                     value={app.token}
@@ -117,12 +119,13 @@ const Applications = observer(() => {
             {toUpdateApp != null && (
                 <UpdateApplicationDialog
                     fClose={() => setToUpdateApp(undefined)}
-                    fOnSubmit={(name, description, defaultPriority) =>
-                        appStore.update(toUpdateApp.id, name, description, defaultPriority)
+                    fOnSubmit={(name, description, defaultPriority, sortOrder) =>
+                        appStore.update(toUpdateApp.id, name, description, defaultPriority, sortOrder)
                     }
                     initialDescription={toUpdateApp?.description}
                     initialName={toUpdateApp?.name}
                     initialDefaultPriority={toUpdateApp?.defaultPriority}
+                    initialSortOrder={appStore.getByID(toUpdateApp.id).sortOrder}
                 />
             )}
             {toDeleteApp != null && (
@@ -143,6 +146,7 @@ interface IRowProps {
     noDelete: boolean;
     description: string;
     defaultPriority: number;
+    sortOrder: number;
     lastUsed: string | null;
     fUpload: VoidFunction;
     image: string;
@@ -156,6 +160,7 @@ const Row = ({
     noDelete,
     description,
     defaultPriority,
+    sortOrder,
     lastUsed,
     fDelete,
     fUpload,
@@ -178,6 +183,7 @@ const Row = ({
             </TableCell>
             <TableCell>{description}</TableCell>
             <TableCell>{defaultPriority}</TableCell>
+            <TableCell>{sortOrder}</TableCell>
             <TableCell>
                 <LastUsedCell lastUsed={lastUsed} />
             </TableCell>

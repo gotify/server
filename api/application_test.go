@@ -91,8 +91,9 @@ func (s *ApplicationSuite) Test_ensureApplicationHasCorrectJsonRepresentation() 
 		Image:       "asd",
 		Internal:    true,
 		LastUsed:    nil,
+		SortOrder:   7,
 	}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true, "defaultPriority":0, "lastUsed":null}`)
+	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true, "defaultPriority":0, "lastUsed":null, "sortOrder":7}`)
 }
 
 func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {

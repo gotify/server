@@ -48,6 +48,10 @@ type ApplicationParams struct {
 	//
 	// example: 5
 	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`
+	// The order in which this application should appear in the UI. Defaults to 0.
+	//
+	// example: 7
+	SortOrder int `form:"sortOrder" query:"sortOrder" json:"sortOrder"`
 }
 
 // CreateApplication creates an application and returns the access token.
@@ -90,6 +94,7 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 			Name:            applicationParams.Name,
 			Description:     applicationParams.Description,
 			DefaultPriority: applicationParams.DefaultPriority,
+			SortOrder:		 applicationParams.SortOrder,
 			Token:           auth.GenerateNotExistingToken(generateApplicationToken, a.applicationExists),
 			UserID:          auth.GetUserID(ctx),
 			Internal:        false,
@@ -251,6 +256,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 				app.Description = applicationParams.Description
 				app.Name = applicationParams.Name
 				app.DefaultPriority = applicationParams.DefaultPriority
+				app.SortOrder = applicationParams.SortOrder
 
 				if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
 					return
