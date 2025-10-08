@@ -10,7 +10,6 @@ import TableRow from '@mui/material/TableRow';
 import Delete from '@mui/icons-material/Delete';
 import Edit from '@mui/icons-material/Edit';
 import CloudUpload from '@mui/icons-material/CloudUpload';
-import Close from '@mui/icons-material/Close';
 import Button from '@mui/material/Button';
 
 import ConfirmDialog from '../common/ConfirmDialog';
@@ -23,6 +22,29 @@ import {IApplication} from '../types';
 import {LastUsedCell} from '../common/LastUsedCell';
 import {useStores} from '../stores';
 import {observer} from 'mobx-react-lite';
+import {makeStyles} from 'tss-react/mui';
+import {ButtonBase, Tooltip} from '@mui/material';
+
+const useStyles = makeStyles()((theme) => ({
+    imageContainer: {
+        '&::after': {
+            content: '"×"',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 40,
+            height: 40,
+            background: theme.palette.error.main,
+            color: theme.palette.getContrastText(theme.palette.error.main),
+            fontSize: 40,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: 0,
+        },
+        '&:hover::after': {opacity: 1},
+    },
+}));
 
 const Applications = observer(() => {
     const {appStore} = useStores();
@@ -175,71 +197,22 @@ const Row = ({
     image,
     fEdit,
 }: IRowProps) => {
-    const [isHovered, setIsHovered] = useState(false);
-
+    const {classes} = useStyles();
     return (
         <TableRow>
             <TableCell padding="normal">
-                <div style={{display: 'flex', alignItems: 'center'}}>
-                    <div
-                        style={{
-                            position: 'relative',
-                            width: 40,
-                            height: 40,
-                            borderRadius: 4,
-                            overflow: 'hidden',
-                            boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
-                            transition: 'transform 0.2s, box-shadow 0.2s',
-                            transform: isHovered ? 'translateY(-1px)' : 'none',
-                            ...(isHovered && {boxShadow: '0 2px 6px rgba(0,0,0,0.15)'}),
-                        }}
-                        onMouseEnter={() => setIsHovered(true)}
-                        onMouseLeave={() => setIsHovered(false)}>
-                        <img
-                            src={config.get('url') + image}
-                            alt="app logo"
-                            width="40"
-                            height="40"
-                            style={{
-                                display: 'block',
-                                objectFit: 'cover',
-                                opacity: isHovered ? 1 : 0.8,
-                                transition: 'opacity 0.2s',
-                            }}
-                        />
-                        <IconButton
-                            onClick={fDeleteImage}
-                            size="small"
-                            style={{
-                                position: 'absolute',
-                                top: 5,
-                                right: 5,
-                                width: 30,
-                                height: 30,
-                                padding: 0,
-                                minWidth: 0,
-                                background: 'rgba(255, 59, 48, 0.95)',
-                                color: 'white',
-                                border: '1px solid white',
-                                borderRadius: '50%',
-                                opacity: isHovered ? 1 : 0,
-                                transform: isHovered ? 'scale(1)' : 'scale(0.8)',
-                                transition: 'all 0.2s',
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
-                                zIndex: 10,
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 45, 35, 1)';
-                                e.currentTarget.style.transform = 'scale(1.1)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 59, 48, 0.95)';
-                                e.currentTarget.style.transform = 'scale(1)';
-                            }}>
-                            <Close style={{fontSize: 12}} />
-                        </IconButton>
-                    </div>
-                    <IconButton onClick={fUpload} style={{height: 40, marginLeft: 4}}>
+                <div style={{display: 'flex'}}>
+                    <Tooltip title="Delete image" placement="top" arrow>
+                        <ButtonBase className={classes.imageContainer} onClick={fDeleteImage}>
+                            <img
+                                src={config.get('url') + image}
+                                alt="app logo"
+                                width="40"
+                                height="40"
+                            />
+                        </ButtonBase>
+                    </Tooltip>
+                    <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
                     </IconButton>
                 </div>
