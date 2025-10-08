@@ -39,6 +39,17 @@ export class AppStore extends BaseStore<IApplication> {
         this.snack('Application image updated');
     };
 
+    public async deleteImage(id: number): Promise<void> {
+        try {
+            await axios.delete(`${config.get('url')}application/${id}/image`);
+            await this.refresh();
+            this.snack('Application image deleted');
+        } catch (error) {
+            console.error('Error deleting application image:', error);
+            throw error;
+        }
+    }
+
     public update = async (
         id: number,
         name: string,

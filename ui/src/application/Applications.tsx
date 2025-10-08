@@ -22,11 +22,35 @@ import {IApplication} from '../types';
 import {LastUsedCell} from '../common/LastUsedCell';
 import {useStores} from '../stores';
 import {observer} from 'mobx-react-lite';
+import {makeStyles} from 'tss-react/mui';
+import {ButtonBase, Tooltip} from '@mui/material';
+
+const useStyles = makeStyles()((theme) => ({
+    imageContainer: {
+        '&::after': {
+            content: '"×"',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 40,
+            height: 40,
+            background: theme.palette.error.main,
+            color: theme.palette.getContrastText(theme.palette.error.main),
+            fontSize: 40,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: 0,
+        },
+        '&:hover::after': {opacity: 1},
+    },
+}));
 
 const Applications = observer(() => {
     const {appStore} = useStores();
     const apps = appStore.getItems();
     const [toDeleteApp, setToDeleteApp] = useState<IApplication>();
+    const [toDeleteImage, setToDeleteImage] = useState<IApplication>();
     const [toUpdateApp, setToUpdateApp] = useState<IApplication>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
 
@@ -93,6 +117,7 @@ const Applications = observer(() => {
                                     value={app.token}
                                     lastUsed={app.lastUsed}
                                     fUpload={() => handleImageUploadClick(app.id)}
+                                    fDeleteImage={() => setToDeleteImage(app)}
                                     fDelete={() => setToDeleteApp(app)}
                                     fEdit={() => setToUpdateApp(app)}
                                     noDelete={app.internal}
@@ -133,6 +158,14 @@ const Applications = observer(() => {
                     fOnSubmit={() => appStore.remove(toDeleteApp.id)}
                 />
             )}
+            {toDeleteImage != null && (
+                <ConfirmDialog
+                    title="Confirm Delete Image"
+                    text={'Delete image for ' + toDeleteImage.name + '?'}
+                    fClose={() => setToDeleteImage(undefined)}
+                    fOnSubmit={() => appStore.deleteImage(toDeleteImage.id)}
+                />
+            )}
         </DefaultPage>
     );
 });
@@ -145,6 +178,7 @@ interface IRowProps {
     defaultPriority: number;
     lastUsed: string | null;
     fUpload: VoidFunction;
+    fDeleteImage: VoidFunction;
     image: string;
     fDelete: VoidFunction;
     fEdit: VoidFunction;
@@ -159,14 +193,25 @@ const Row = ({
     lastUsed,
     fDelete,
     fUpload,
+    fDeleteImage,
     image,
     fEdit,
 }: IRowProps) => {
+    const {classes} = useStyles();
     return (
         <TableRow>
             <TableCell padding="normal">
                 <div style={{display: 'flex'}}>
-                    <img src={config.get('url') + image} alt="app logo" width="40" height="40" />
+                    <Tooltip title="Delete image" placement="top" arrow>
+                        <ButtonBase className={classes.imageContainer} onClick={fDeleteImage}>
+                            <img
+                                src={config.get('url') + image}
+                                alt="app logo"
+                                width="40"
+                                height="40"
+                            />
+                        </ButtonBase>
+                    </Tooltip>
                     <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
                     </IconButton>
