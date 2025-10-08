@@ -10,7 +10,25 @@ import TableRow from '@mui/material/TableRow';
 import Delete from '@mui/icons-material/Delete';
 import Edit from '@mui/icons-material/Edit';
 import CloudUpload from '@mui/icons-material/CloudUpload';
+import DragIndicator from '@mui/icons-material/DragIndicator';
 import Button from '@mui/material/Button';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {CSS} from '@dnd-kit/utilities';
 
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
@@ -29,11 +47,27 @@ const Applications = observer(() => {
     const [toDeleteApp, setToDeleteApp] = useState<IApplication>();
     const [toUpdateApp, setToUpdateApp] = useState<IApplication>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
+    const [localApps, setLocalApps] = useState<IApplication[]>([]);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const uploadId = useRef(-1);
 
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
     useEffect(() => void appStore.refresh(), []);
+
+    useEffect(() => {
+        setLocalApps(apps);
+    }, [apps]);
 
     const handleImageUploadClick = (id: number) => {
         uploadId.current = id;
@@ -54,6 +88,27 @@ const Applications = observer(() => {
         }
     };
 
+    const handleDragEnd = (event: DragEndEvent) => {
+        const {active, over} = event;
+
+        if (over && active.id !== over.id) {
+            setLocalApps((items) => {
+                const oldIndex = items.findIndex((item) => item.id === active.id);
+                const newIndex = items.findIndex((item) => item.id === over.id);
+
+                const newItems = arrayMove(items, oldIndex, newIndex);
+                
+                const applicationIds = newItems.map((app) => app.id);
+                appStore.reorder(applicationIds).catch((err) => {
+                    console.error('Failed to reorder applications:', err);
+                    setLocalApps(apps);
+                });
+
+                return newItems;
+            });
+        }
+    };
+
     return (
         <DefaultPage
             title="Applications"
@@ -69,39 +124,42 @@ const Applications = observer(() => {
             maxWidth={1000}>
             <Grid size={12}>
                 <Paper elevation={6} style={{overflowX: 'auto'}}>
-                    <Table id="app-table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell padding="checkbox" style={{width: 80}} />
-                                <TableCell>Name</TableCell>
-                                <TableCell>Token</TableCell>
-                                <TableCell>Description</TableCell>
-                                <TableCell>Priority</TableCell>
-                                <TableCell>Sort Order</TableCell>
-                                <TableCell>Last Used</TableCell>
-                                <TableCell />
-                                <TableCell />
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {apps.map((app: IApplication) => (
-                                <Row
-                                    key={app.id}
-                                    description={app.description}
-                                    defaultPriority={app.defaultPriority}
-                                    sortOrder={app.sortOrder}
-                                    image={app.image}
-                                    name={app.name}
-                                    value={app.token}
-                                    lastUsed={app.lastUsed}
-                                    fUpload={() => handleImageUploadClick(app.id)}
-                                    fDelete={() => setToDeleteApp(app)}
-                                    fEdit={() => setToUpdateApp(app)}
-                                    noDelete={app.internal}
-                                />
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}>
+                        <Table id="app-table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell padding="checkbox" style={{width: 60}} />
+                                    <TableCell padding="checkbox" style={{width: 80}} />
+                                    <TableCell>Name</TableCell>
+                                    <TableCell>Token</TableCell>
+                                    <TableCell>Description</TableCell>
+                                    <TableCell>Priority</TableCell>
+                                    <TableCell>Sort Order</TableCell>
+                                    <TableCell>Last Used</TableCell>
+                                    <TableCell />
+                                    <TableCell />
+                                </TableRow>
+                            </TableHead>
+                            <SortableContext
+                                items={localApps.map((app) => app.id)}
+                                strategy={verticalListSortingStrategy}>
+                                <TableBody>
+                                    {localApps.map((app: IApplication) => (
+                                        <SortableRow
+                                            key={app.id}
+                                            app={app}
+                                            fUpload={() => handleImageUploadClick(app.id)}
+                                            fDelete={() => setToDeleteApp(app)}
+                                            fEdit={() => setToUpdateApp(app)}
+                                        />
+                                    ))}
+                                </TableBody>
+                            </SortableContext>
+                        </Table>
+                    </DndContext>
                     <input
                         ref={fileInputRef}
                         type="file"
@@ -140,52 +198,62 @@ const Applications = observer(() => {
     );
 });
 
-interface IRowProps {
-    name: string;
-    value: string;
-    noDelete: boolean;
-    description: string;
-    defaultPriority: number;
-    sortOrder: number;
-    lastUsed: string | null;
+interface ISortableRowProps {
+    app: IApplication;
     fUpload: VoidFunction;
-    image: string;
     fDelete: VoidFunction;
     fEdit: VoidFunction;
 }
 
-const Row = ({
-    name,
-    value,
-    noDelete,
-    description,
-    defaultPriority,
-    sortOrder,
-    lastUsed,
-    fDelete,
-    fUpload,
-    image,
-    fEdit,
-}: IRowProps) => {
+const SortableRow = ({app, fUpload, fDelete, fEdit}: ISortableRowProps) => {
+    const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({
+        id: app.id,
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        backgroundColor: isDragging ? '#f5f5f5' : 'transparent',
+    };
+
     return (
-        <TableRow>
+        <TableRow ref={setNodeRef} style={style}>
+            <TableCell padding="checkbox">
+                <div
+                    {...attributes}
+                    {...listeners}
+                    style={{
+                        cursor: 'grab',
+                        display: 'flex',
+                        alignItems: 'center',
+                        touchAction: 'none',
+                    }}>
+                    <DragIndicator style={{color: '#999'}} />
+                </div>
+            </TableCell>
             <TableCell padding="normal">
                 <div style={{display: 'flex'}}>
-                    <img src={config.get('url') + image} alt="app logo" width="40" height="40" />
+                    <img
+                        src={config.get('url') + app.image}
+                        alt="app logo"
+                        width="40"
+                        height="40"
+                    />
                     <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
                     </IconButton>
                 </div>
             </TableCell>
-            <TableCell>{name}</TableCell>
+            <TableCell>{app.name}</TableCell>
             <TableCell>
-                <CopyableSecret value={value} style={{display: 'flex', alignItems: 'center'}} />
+                <CopyableSecret value={app.token} style={{display: 'flex', alignItems: 'center'}} />
             </TableCell>
-            <TableCell>{description}</TableCell>
-            <TableCell>{defaultPriority}</TableCell>
-            <TableCell>{sortOrder}</TableCell>
+            <TableCell>{app.description}</TableCell>
+            <TableCell>{app.defaultPriority}</TableCell>
+            <TableCell>{app.sortOrder}</TableCell>
             <TableCell>
-                <LastUsedCell lastUsed={lastUsed} />
+                <LastUsedCell lastUsed={app.lastUsed} />
             </TableCell>
             <TableCell align="right" padding="none">
                 <IconButton onClick={fEdit} className="edit">
@@ -193,7 +261,7 @@ const Row = ({
                 </IconButton>
             </TableCell>
             <TableCell align="right" padding="none">
-                <IconButton onClick={fDelete} className="delete" disabled={noDelete}>
+                <IconButton onClick={fDelete} className="delete" disabled={app.internal}>
                     <Delete />
                 </IconButton>
             </TableCell>

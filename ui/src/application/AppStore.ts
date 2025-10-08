@@ -72,6 +72,14 @@ export class AppStore extends BaseStore<IApplication> {
         this.snack('Application created');
     };
 
+    public reorder = async (applicationIds: number[]): Promise<void> => {
+        await axios.put(`${config.get('url')}application/reorder`, {
+            applicationIds,
+        });
+        await this.refresh();
+        this.snack('Applications reordered');
+    };
+
     public getName = (id: number): string => {
         const app = this.getByIDOrUndefined(id);
         return id === -1 ? 'All Messages' : app !== undefined ? app.name : 'unknown';

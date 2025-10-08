@@ -472,3 +472,99 @@ func ValidApplicationImageExt(ext string) bool {
 		return false
 	}
 }
+
+// ApplicationOrderParams represents the new order for applications
+type ApplicationOrderParams struct {
+	// Array of application IDs in the desired order
+	// required: true
+	// example: [3, 1, 5, 2, 4]
+	ApplicationIDs []uint `json:"applicationIds" binding:"required"`
+}
+
+// ReorderApplications updates the sort order of multiple applications based on their position in the array.
+// swagger:operation PUT /application/reorder application reorderApplications
+//
+// Reorder applications.
+//
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: body
+//	  in: body
+//	  description: ordered list of application IDs
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/ApplicationOrderParams"
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	      type: array
+//	      items:
+//	        $ref: "#/definitions/Application"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
+func (a *ApplicationAPI) ReorderApplications(ctx *gin.Context) {
+	userID := auth.GetUserID(ctx)
+	
+	orderParams := ApplicationOrderParams{}
+	if err := ctx.Bind(&orderParams); err != nil {
+		ctx.AbortWithError(400, err)
+		return
+	}
+
+	if len(orderParams.ApplicationIDs) == 0 {
+		ctx.AbortWithError(400, errors.New("applicationIds array cannot be empty"))
+		return
+	}
+
+	userApps, err := a.DB.GetApplicationsByUser(userID)
+	if success := successOrAbort(ctx, 500, err); !success {
+		return
+	}
+
+	userAppMap := make(map[uint]bool)
+	for _, app := range userApps {
+		userAppMap[app.ID] = true
+	}
+
+	for _, appID := range orderParams.ApplicationIDs {
+		if !userAppMap[appID] {
+			ctx.AbortWithError(403, fmt.Errorf("application with id %d does not belong to user", appID))
+			return
+		}
+	}
+
+	updatedApps := make([]*model.Application, 0, len(orderParams.ApplicationIDs))
+	for i, appID := range orderParams.ApplicationIDs {
+		app, err := a.DB.GetApplicationByID(appID)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if app != nil {
+			app.SortOrder = i
+			if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
+				return
+			}
+			updatedApps = append(updatedApps, withResolvedImage(app))
+		}
+	}
+
+	ctx.JSON(200, updatedApps)
+}

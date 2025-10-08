@@ -160,6 +160,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 			app.POST("", applicationHandler.CreateApplication)
 
+			app.PUT("/reorder", applicationHandler.ReorderApplications)
+			
 			app.POST("/:id/image", applicationHandler.UploadApplicationImage)
 
 			app.DELETE("/:id/image", applicationHandler.RemoveApplicationImage)
