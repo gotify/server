@@ -6,6 +6,7 @@ export interface IApplication {
     image: string;
     internal: boolean;
     defaultPriority: number;
+    sortOrder: number;
     lastUsed: string | null;
 }
 

@@ -11,17 +11,18 @@ import React, {useState} from 'react';
 
 interface IProps {
     fClose: VoidFunction;
-    fOnSubmit: (name: string, description: string, defaultPriority: number) => Promise<void>;
+    fOnSubmit: (name: string, description: string, defaultPriority: number, sortOrder: number) => Promise<void>;
 }
 
 export const AddApplicationDialog = ({fClose, fOnSubmit}: IProps) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [defaultPriority, setDefaultPriority] = useState(0);
+    const [sortOrder, setSortOrder] = useState(0);
 
     const submitEnabled = name.length !== 0;
     const submitAndClose = async () => {
-        await fOnSubmit(name, description, defaultPriority);
+        await fOnSubmit(name, description, defaultPriority, sortOrder);
         fClose();
     };
 
@@ -55,6 +56,14 @@ export const AddApplicationDialog = ({fClose, fOnSubmit}: IProps) => {
                     label="Default Priority"
                     value={defaultPriority}
                     onChange={(value) => setDefaultPriority(value)}
+                    fullWidth
+                />
+                <NumberField
+                    margin="dense"
+                    className="sortOrder"
+                    label="Sort Order"
+                    value={sortOrder}
+                    onChange={(value) => setSortOrder(value)}
                     fullWidth
                 />
             </DialogContent>
