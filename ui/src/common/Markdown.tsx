@@ -1,6 +1,16 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown,{defaultUrlTransform} from 'react-markdown';
+import type { UrlTransform } from 'react-markdown';
 import gfm from 'remark-gfm';
+
+// Copy from mlflow/server/js/src/shared/web-shared/genai-markdown-renderer/GenAIMarkdownRenderer.tsx
+// Related PR: https://github.com/mlflow/mlflow/pull/16761
+const urlTransform: UrlTransform = (value) => {
+  if (value.startsWith('data:image/png;') || value.startsWith('data:image/jpeg;')) {
+    return value;
+  }
+  return defaultUrlTransform(value);
+}
 
 export const Markdown = ({
     children,
@@ -12,7 +22,7 @@ export const Markdown = ({
     <ReactMarkdown
         components={{img: ({...props}) => <img onLoad={onImageLoaded} {...props} />}}
         remarkPlugins={[gfm]}
-        urlTransform={(value: string) => value}>
+        urlTransform={urlTransform}>
         {children}
     </ReactMarkdown>
 );
