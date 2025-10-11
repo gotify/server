@@ -11,7 +11,8 @@ export const Markdown = ({
 }) => (
     <ReactMarkdown
         components={{img: ({...props}) => <img onLoad={onImageLoaded} {...props} />}}
-        remarkPlugins={[gfm]}>
+        remarkPlugins={[gfm]}
+        urlTransform={(value: string) => value}>
         {children}
     </ReactMarkdown>
 );
