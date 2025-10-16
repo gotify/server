@@ -58,8 +58,10 @@ type PluginConfig struct {
 	IsNotValid bool
 }
 
-var disableFailUsers = make(map[uint]error)
-var enableFailUsers = make(map[uint]error)
+var (
+	disableFailUsers = make(map[uint]error)
+	enableFailUsers  = make(map[uint]error)
+)
 
 // ReturnErrorOnEnableForUser registers a uid which will throw an error on enabling.
 func ReturnErrorOnEnableForUser(uid uint, err error) {

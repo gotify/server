@@ -2,7 +2,7 @@ package database
 
 import (
 	"github.com/gotify/server/v2/model"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // GetUserByName returns the user by the given name or nil.
@@ -32,8 +32,8 @@ func (d *GormDatabase) GetUserByID(id uint) (*model.User, error) {
 }
 
 // CountUser returns the user count which satisfies the given condition.
-func (d *GormDatabase) CountUser(condition ...interface{}) (int, error) {
-	c := -1
+func (d *GormDatabase) CountUser(condition ...interface{}) (int64, error) {
+	c := int64(-1)
 	handle := d.DB.Model(new(model.User))
 	if len(condition) == 1 {
 		handle = handle.Where(condition[0])

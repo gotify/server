@@ -2,7 +2,7 @@ package database
 
 import (
 	"github.com/gotify/server/v2/model"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // GetPluginConfByUser gets plugin configurations from a user.

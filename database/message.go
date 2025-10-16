@@ -2,7 +2,7 @@ package database
 
 import (
 	"github.com/gotify/server/v2/model"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // GetMessageByID returns the messages for the given id or nil.
@@ -27,7 +27,7 @@ func (d *GormDatabase) CreateMessage(message *model.Message) error {
 func (d *GormDatabase) GetMessagesByUser(userID uint) ([]*model.Message, error) {
 	var messages []*model.Message
 	err := d.DB.Joins("JOIN applications ON applications.user_id = ?", userID).
-		Where("messages.application_id = applications.id").Order("id desc").Find(&messages).Error
+		Where("messages.application_id = applications.id").Order("messages.id desc").Find(&messages).Error
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 	}
@@ -39,7 +39,7 @@ func (d *GormDatabase) GetMessagesByUser(userID uint) ([]*model.Message, error) 
 func (d *GormDatabase) GetMessagesByUserSince(userID uint, limit int, since uint) ([]*model.Message, error) {
 	var messages []*model.Message
 	db := d.DB.Joins("JOIN applications ON applications.user_id = ?", userID).
-		Where("messages.application_id = applications.id").Order("id desc").Limit(limit)
+		Where("messages.application_id = applications.id").Order("messages.id desc").Limit(limit)
 	if since != 0 {
 		db = db.Where("messages.id < ?", since)
 	}
@@ -53,7 +53,7 @@ func (d *GormDatabase) GetMessagesByUserSince(userID uint, limit int, since uint
 // GetMessagesByApplication returns all messages from an application.
 func (d *GormDatabase) GetMessagesByApplication(tokenID uint) ([]*model.Message, error) {
 	var messages []*model.Message
-	err := d.DB.Where("application_id = ?", tokenID).Order("id desc").Find(&messages).Error
+	err := d.DB.Where("application_id = ?", tokenID).Order("messages.id desc").Find(&messages).Error
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 	}
@@ -64,7 +64,7 @@ func (d *GormDatabase) GetMessagesByApplication(tokenID uint) ([]*model.Message,
 // If since is 0 it will be ignored.
 func (d *GormDatabase) GetMessagesByApplicationSince(appID uint, limit int, since uint) ([]*model.Message, error) {
 	var messages []*model.Message
-	db := d.DB.Where("application_id = ?", appID).Order("id desc").Limit(limit)
+	db := d.DB.Where("application_id = ?", appID).Order("messages.id desc").Limit(limit)
 	if since != 0 {
 		db = db.Where("messages.id < ?", since)
 	}
