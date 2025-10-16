@@ -64,6 +64,14 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 	// "too many connections", while load testing Gotify.
 	sqldb.SetMaxOpenConns(10)
 
+	if dialect == "sqlite3" {
+		// We use the database connection inside the handlers from the http
+		// framework, therefore concurrent access occurs. Sqlite cannot handle
+		// concurrent writes, so we limit sqlite to one connection.
+		// see https://github.com/mattn/go-sqlite3/issues/274
+		sqldb.SetMaxOpenConns(1)
+	}
+
 	if dialect == "mysql" {
 		// Mysql has a setting called wait_timeout, which defines the duration
 		// after which a connection may not be used anymore.
