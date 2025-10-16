@@ -2,16 +2,20 @@ package database
 
 import (
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/gotify/server/v2/auth/password"
+	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
+	"github.com/mattn/go-isatty"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var mkdirAll = os.MkdirAll
@@ -20,16 +24,31 @@ var mkdirAll = os.MkdirAll
 func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUserIfNotExist bool) (*GormDatabase, error) {
 	createDirectoryIfSqlite(dialect, connection)
 
+	logLevel := logger.Info
+	if mode.Get() == mode.Prod {
+		logLevel = logger.Warn
+	}
+
+	dbLogger := logger.New(log.New(os.Stderr, "\r\n", log.LstdFlags), logger.Config{
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  logLevel,
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  isatty.IsTerminal(os.Stderr.Fd()),
+	})
+	gormConfig := &gorm.Config{
+		Logger: dbLogger,
+	}
+
 	var db *gorm.DB
 	err := errors.New("unsupported dialect: " + dialect)
 
 	switch dialect {
 	case "mysql":
-		db, err = gorm.Open(mysql.Open(connection), &gorm.Config{})
+		db, err = gorm.Open(mysql.Open(connection), gormConfig)
 	case "postgres":
-		db, err = gorm.Open(postgres.Open(connection), &gorm.Config{})
+		db, err = gorm.Open(postgres.Open(connection), gormConfig)
 	case "sqlite3":
-		db, err = gorm.Open(sqlite.Open(connection), &gorm.Config{})
+		db, err = gorm.Open(sqlite.Open(connection), gormConfig)
 	}
 
 	if err != nil {
