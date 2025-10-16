@@ -43,7 +43,7 @@ type Application struct {
 	// required: true
 	// example: image/image.jpeg
 	Image    string            `gorm:"type:text" json:"image"`
-	Messages []MessageExternal `json:"-"`
+	Messages []MessageExternal `gorm:"-" json:"-"`
 	// The default priority of messages sent by this application. Defaults to 0.
 	//
 	// required: false

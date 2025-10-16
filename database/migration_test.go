@@ -5,9 +5,10 @@ import (
 
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/test"
-	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 func TestMigration(t *testing.T) {
@@ -21,18 +22,18 @@ type MigrationSuite struct {
 
 func (s *MigrationSuite) BeforeTest(suiteName, testName string) {
 	s.tmpDir = test.NewTmpDir("gotify_migrationsuite")
-	db, err := gorm.Open("sqlite3", s.tmpDir.Path("test_obsolete.db"))
+	db, err := gorm.Open(sqlite.Open(s.tmpDir.Path("test_obsolete.db")), &gorm.Config{})
 	assert.Nil(s.T(), err)
-	defer db.Close()
+	defer db.DB()
 
-	assert.Nil(s.T(), db.CreateTable(new(model.User)).Error)
+	assert.Nil(s.T(), db.Migrator().CreateTable(new(model.User)))
 	assert.Nil(s.T(), db.Create(&model.User{
 		Name:  "test_user",
 		Admin: true,
 	}).Error)
 
 	// we should not be able to create applications by now
-	assert.False(s.T(), db.HasTable(new(model.Application)))
+	assert.False(s.T(), db.Migrator().HasTable(new(model.Application)))
 }
 
 func (s *MigrationSuite) AfterTest(suiteName, testName string) {
@@ -44,7 +45,7 @@ func (s *MigrationSuite) TestMigration() {
 	assert.Nil(s.T(), err)
 	defer db.Close()
 
-	assert.True(s.T(), db.DB.HasTable(new(model.Application)))
+	assert.True(s.T(), db.DB.Migrator().HasTable(new(model.Application)))
 
 	// a user already exist, not adding a new user
 	if user, err := db.GetUserByName("admin"); assert.NoError(s.T(), err) {

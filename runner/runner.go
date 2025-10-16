@@ -111,7 +111,7 @@ func (l *LoggingRoundTripper) RoundTrip(r *http.Request) (resp *http.Response, e
 	} else if err != nil {
 		log.Printf("%s Request Failed: %s on %s %s\n", l.Name, err.Error(), r.Method, r.URL.String())
 	}
-	return
+	return resp, err
 }
 
 func applyLetsEncrypt(s *http.Server, conf *config.Configuration) {

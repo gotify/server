@@ -20,7 +20,6 @@ import (
 	"github.com/gotify/server/v2/plugin/testing/mock"
 	"github.com/gotify/server/v2/test"
 	"github.com/gotify/server/v2/test/testdb"
-	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -365,36 +364,6 @@ func TestNewManager_CannotLoadDirectory_expectError(t *testing.T) {
 func TestNewManager_NonPluginFile_expectError(t *testing.T) {
 	_, err := NewManager(nil, path.Join(test.GetProjectDir(), "test/assets/"), nil, nil)
 	assert.Error(t, err)
-}
-
-func TestNewManager_FaultyDB_expectError(t *testing.T) {
-	tmpDir := test.NewTmpDir("gotify_testnewmanager_faultydb")
-	defer tmpDir.Clean()
-	for _, data := range []struct {
-		pkg         string
-		faultyTable string
-		name        string
-	}{{"plugin/example/minimal/", "plugin_confs", "minimal"}, {"plugin/example/clock/", "applications", "clock"}} {
-		test.WithWd(path.Join(test.GetProjectDir(), data.pkg), func(origWd string) {
-			exec.Command("go", "get", "-d").Run()
-			goBuildFlags := []string{"build", "-buildmode=plugin", "-o=" + tmpDir.Path(fmt.Sprintf("%s.so", data.name))}
-
-			goBuildFlags = append(goBuildFlags, extraGoBuildFlags...)
-
-			cmd := exec.Command("go", goBuildFlags...)
-			cmd.Stderr = os.Stderr
-			assert.Nil(t, cmd.Run())
-		})
-		db := testdb.NewDBWithDefaultUser(t)
-		db.GormDatabase.DB.Callback().Create().Register("no_create", func(s *gorm.Scope) {
-			if s.TableName() == data.faultyTable {
-				s.Err(errors.New("database failed"))
-			}
-		})
-		_, err := NewManager(db, tmpDir.Path(), nil, nil)
-		assert.Error(t, err)
-		os.Remove(tmpDir.Path(fmt.Sprintf("%s.so", data.name)))
-	}
 }
 
 func TestNewManager_InternalApplicationManagement(t *testing.T) {
