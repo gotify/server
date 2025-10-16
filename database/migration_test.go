@@ -23,8 +23,10 @@ type MigrationSuite struct {
 func (s *MigrationSuite) BeforeTest(suiteName, testName string) {
 	s.tmpDir = test.NewTmpDir("gotify_migrationsuite")
 	db, err := gorm.Open(sqlite.Open(s.tmpDir.Path("test_obsolete.db")), &gorm.Config{})
-	assert.Nil(s.T(), err)
-	defer db.DB()
+	assert.NoError(s.T(), err)
+	sqlDB, err := db.DB()
+	assert.NoError(s.T(), err)
+	defer sqlDB.Close()
 
 	assert.Nil(s.T(), db.Migrator().CreateTable(new(model.User)))
 	assert.Nil(s.T(), db.Create(&model.User{
