@@ -13,13 +13,13 @@ type Application struct {
 	// read only: true
 	// required: true
 	// example: 5
-	ID uint `gorm:"primary_key;unique_index;AUTO_INCREMENT" json:"id"`
+	ID uint `gorm:"primary_key;uniqueIndex;AUTO_INCREMENT" json:"id"`
 	// The application token. Can be used as `appToken`. See Authentication.
 	//
 	// read only: true
 	// required: true
 	// example: AWH0wZ5r0Mbac.r
-	Token  string `gorm:"type:varchar(180);unique_index" json:"token"`
+	Token  string `gorm:"type:varchar(180);uniqueIndex" json:"token"`
 	UserID uint   `gorm:"index" json:"-"`
 	// The application name. This is how the application should be displayed to the user.
 	//
