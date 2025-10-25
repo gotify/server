@@ -13,13 +13,13 @@ type Application struct {
 	// read only: true
 	// required: true
 	// example: 5
-	ID uint `gorm:"primary_key;unique_index;AUTO_INCREMENT" json:"id"`
+	ID uint `gorm:"primaryKey;autoIncrement" json:"id"`
 	// The application token. Can be used as `appToken`. See Authentication.
 	//
 	// read only: true
 	// required: true
 	// example: AWH0wZ5r0Mbac.r
-	Token  string `gorm:"type:varchar(180);unique_index" json:"token"`
+	Token  string `gorm:"type:varchar(180);uniqueIndex:uix_applications_token" json:"token"`
 	UserID uint   `gorm:"index" json:"-"`
 	// The application name. This is how the application should be displayed to the user.
 	//
@@ -43,7 +43,7 @@ type Application struct {
 	// required: true
 	// example: image/image.jpeg
 	Image    string            `gorm:"type:text" json:"image"`
-	Messages []MessageExternal `json:"-"`
+	Messages []MessageExternal `gorm:"-" json:"-"`
 	// The default priority of messages sent by this application. Defaults to 0.
 	//
 	// required: false

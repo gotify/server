@@ -84,7 +84,7 @@ func (s *AuthenticationSuite) assertQueryRequest(key, value string, f fMiddlewar
 	ctx.Request = httptest.NewRequest("GET", fmt.Sprintf("/?%s=%s", key, value), nil)
 	f()(ctx)
 	assert.Equal(s.T(), code, recorder.Code)
-	return
+	return ctx
 }
 
 func (s *AuthenticationSuite) TestNothingProvided() {
@@ -217,7 +217,7 @@ func (s *AuthenticationSuite) assertHeaderRequest(key, value string, f fMiddlewa
 	ctx.Request.Header.Set(key, value)
 	f()(ctx)
 	assert.Equal(s.T(), code, recorder.Code)
-	return
+	return ctx
 }
 
 type fMiddleware func() gin.HandlerFunc

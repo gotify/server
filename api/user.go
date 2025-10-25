@@ -19,7 +19,7 @@ type UserDatabase interface {
 	DeleteUserByID(id uint) error
 	UpdateUser(user *model.User) error
 	CreateUser(user *model.User) error
-	CountUser(condition ...interface{}) (int, error)
+	CountUser(condition ...interface{}) (int64, error)
 }
 
 // UserChangeNotifier notifies listeners for user changes.

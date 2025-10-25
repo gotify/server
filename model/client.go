@@ -13,13 +13,13 @@ type Client struct {
 	// read only: true
 	// required: true
 	// example: 5
-	ID uint `gorm:"primary_key;unique_index;AUTO_INCREMENT" json:"id"`
+	ID uint `gorm:"primaryKey;autoIncrement" json:"id"`
 	// The client token. Can be used as `clientToken`. See Authentication.
 	//
 	// read only: true
 	// required: true
 	// example: CWH0wZ5r0Mbac.r
-	Token  string `gorm:"type:varchar(180);unique_index" json:"token"`
+	Token  string `gorm:"type:varchar(180);uniqueIndex:uix_clients_token" json:"token"`
 	UserID uint   `gorm:"index" json:"-"`
 	// The client name. This is how the client should be displayed to the user.
 	//
