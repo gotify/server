@@ -13,7 +13,7 @@ type Client struct {
 	// read only: true
 	// required: true
 	// example: 5
-	ID uint `gorm:"primary_key;AUTO_INCREMENT" json:"id"`
+	ID uint `gorm:"primaryKey;autoIncrement" json:"id"`
 	// The client token. Can be used as `clientToken`. See Authentication.
 	//
 	// read only: true

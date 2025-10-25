@@ -6,7 +6,7 @@ import (
 
 // Message holds information about a message.
 type Message struct {
-	ID            uint `gorm:"AUTO_INCREMENT;primary_key;index"`
+	ID            uint `gorm:"autoIncrement;primaryKey;index"`
 	ApplicationID uint
 	Message       string `gorm:"type:text"`
 	Title         string `gorm:"type:text"`

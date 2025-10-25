@@ -13,7 +13,7 @@ type Application struct {
 	// read only: true
 	// required: true
 	// example: 5
-	ID uint `gorm:"primary_key;AUTO_INCREMENT" json:"id"`
+	ID uint `gorm:"primaryKey;autoIncrement" json:"id"`
 	// The application token. Can be used as `appToken`. See Authentication.
 	//
 	// read only: true
