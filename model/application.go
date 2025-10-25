@@ -19,7 +19,7 @@ type Application struct {
 	// read only: true
 	// required: true
 	// example: AWH0wZ5r0Mbac.r
-	Token  string `gorm:"type:varchar(180);uniqueIndex" json:"token"`
+	Token  string `gorm:"type:varchar(180);uniqueIndex:uix_applications_token" json:"token"`
 	UserID uint   `gorm:"index" json:"-"`
 	// The application name. This is how the application should be displayed to the user.
 	//

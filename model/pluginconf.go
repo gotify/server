@@ -5,7 +5,7 @@ type PluginConf struct {
 	ID            uint `gorm:"primaryKey;autoIncrement;index"`
 	UserID        uint
 	ModulePath    string `gorm:"type:text"`
-	Token         string `gorm:"type:varchar(180);uniqueIndex"`
+	Token         string `gorm:"type:varchar(180);uniqueIndex:uix_plugin_confs_token"`
 	ApplicationID uint
 	Enabled       bool
 	Config        []byte
