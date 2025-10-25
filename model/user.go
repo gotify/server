@@ -2,7 +2,7 @@ package model
 
 // The User holds information about the credentials of a user and its application and client tokens.
 type User struct {
-	ID           uint   `gorm:"primary_key;uniqueIndex;AUTO_INCREMENT"`
+	ID           uint   `gorm:"primary_key;AUTO_INCREMENT"`
 	Name         string `gorm:"type:varchar(180);uniqueIndex"`
 	Pass         []byte
 	Admin        bool
