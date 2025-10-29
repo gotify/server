@@ -611,16 +611,16 @@ func upload(values map[string]*os.File) (contentType string, buffer bytes.Buffer
 	for key, r := range values {
 		var fw io.Writer
 		if fw, err = w.CreateFormFile(key, r.Name()); err != nil {
-			return
+			return contentType, buffer, err
 		}
 
 		if _, err = io.Copy(fw, r); err != nil {
-			return
+			return contentType, buffer, err
 		}
 	}
 	contentType = w.FormDataContentType()
 	w.Close()
-	return
+	return contentType, buffer, err
 }
 
 func mustOpen(f string) *os.File {

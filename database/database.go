@@ -1,16 +1,21 @@
 package database
 
 import (
+	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/gotify/server/v2/auth/password"
+	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"    // enable the mysql dialect.
-	_ "github.com/jinzhu/gorm/dialects/postgres" // enable the postgres dialect.
-	_ "github.com/jinzhu/gorm/dialects/sqlite"   // enable the sqlite3 dialect.
+	"github.com/mattn/go-isatty"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var mkdirAll = os.MkdirAll
@@ -19,21 +24,53 @@ var mkdirAll = os.MkdirAll
 func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUserIfNotExist bool) (*GormDatabase, error) {
 	createDirectoryIfSqlite(dialect, connection)
 
-	db, err := gorm.Open(dialect, connection)
+	logLevel := logger.Info
+	if mode.Get() == mode.Prod {
+		logLevel = logger.Warn
+	}
+
+	dbLogger := logger.New(log.New(os.Stderr, "\r\n", log.LstdFlags), logger.Config{
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  logLevel,
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  isatty.IsTerminal(os.Stderr.Fd()),
+	})
+	gormConfig := &gorm.Config{
+		Logger:                                   dbLogger,
+		DisableForeignKeyConstraintWhenMigrating: true,
+	}
+
+	var db *gorm.DB
+	err := errors.New("unsupported dialect: " + dialect)
+
+	switch dialect {
+	case "mysql":
+		db, err = gorm.Open(mysql.Open(connection), gormConfig)
+	case "postgres":
+		db, err = gorm.Open(postgres.Open(connection), gormConfig)
+	case "sqlite3":
+		db, err = gorm.Open(sqlite.Open(connection), gormConfig)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	sqldb, err := db.DB()
 	if err != nil {
 		return nil, err
 	}
 
 	// We normally don't need that much connections, so we limit them. F.ex. mysql complains about
 	// "too many connections", while load testing Gotify.
-	db.DB().SetMaxOpenConns(10)
+	sqldb.SetMaxOpenConns(10)
 
 	if dialect == "sqlite3" {
 		// We use the database connection inside the handlers from the http
 		// framework, therefore concurrent access occurs. Sqlite cannot handle
 		// concurrent writes, so we limit sqlite to one connection.
 		// see https://github.com/mattn/go-sqlite3/issues/274
-		db.DB().SetMaxOpenConns(1)
+		sqldb.SetMaxOpenConns(1)
 	}
 
 	if dialect == "mysql" {
@@ -41,49 +78,20 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 		// after which a connection may not be used anymore.
 		// The default for this setting on mariadb is 10 minutes.
 		// See https://github.com/docker-library/mariadb/issues/113
-		db.DB().SetConnMaxLifetime(9 * time.Minute)
+		sqldb.SetConnMaxLifetime(9 * time.Minute)
 	}
 
-	if err := db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client), new(model.PluginConf)).Error; err != nil {
+	if err := db.AutoMigrate(new(model.User), new(model.Application), new(model.Message), new(model.Client), new(model.PluginConf)); err != nil {
 		return nil, err
 	}
 
-	if err := prepareBlobColumn(dialect, db); err != nil {
-		return nil, err
-	}
-
-	userCount := 0
+	userCount := int64(0)
 	db.Find(new(model.User)).Count(&userCount)
 	if createDefaultUserIfNotExist && userCount == 0 {
 		db.Create(&model.User{Name: defaultUser, Pass: password.CreatePassword(defaultPass, strength), Admin: true})
 	}
 
 	return &GormDatabase{DB: db}, nil
-}
-
-func prepareBlobColumn(dialect string, db *gorm.DB) error {
-	blobType := ""
-	switch dialect {
-	case "mysql":
-		blobType = "longblob"
-	case "postgres":
-		blobType = "bytea"
-	}
-	if blobType != "" {
-		for _, target := range []struct {
-			Table  interface{}
-			Column string
-		}{
-			{model.Message{}, "extras"},
-			{model.PluginConf{}, "config"},
-			{model.PluginConf{}, "storage"},
-		} {
-			if err := db.Model(target.Table).ModifyColumn(target.Column, blobType).Error; err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func createDirectoryIfSqlite(dialect, connection string) {
@@ -103,5 +111,9 @@ type GormDatabase struct {
 
 // Close closes the gorm database connection.
 func (d *GormDatabase) Close() {
-	d.DB.Close()
+	sqldb, err := d.DB.DB()
+	if err != nil {
+		return
+	}
+	sqldb.Close()
 }

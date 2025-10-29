@@ -2,5 +2,9 @@ package database
 
 // Ping pings the database to verify the connection.
 func (d *GormDatabase) Ping() error {
-	return d.DB.DB().Ping()
+	sqldb, err := d.DB.DB()
+	if err != nil {
+		return err
+	}
+	return sqldb.Ping()
 }

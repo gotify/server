@@ -21,7 +21,7 @@ func (s *DatabaseSuite) TestUser() {
 
 	adminCount, err := s.db.CountUser("admin = ?", true)
 	require.NoError(s.T(), err)
-	assert.Equal(s.T(), 1, adminCount, 1, "there is initially one admin")
+	assert.Equal(s.T(), int64(1), adminCount, "there is initially one admin")
 
 	users, err := s.db.GetUsers()
 	require.NoError(s.T(), err)
@@ -33,7 +33,7 @@ func (s *DatabaseSuite) TestUser() {
 	assert.NotEqual(s.T(), 0, nicories.ID, "on create user a new id should be assigned")
 	userCount, err := s.db.CountUser()
 	require.NoError(s.T(), err)
-	assert.Equal(s.T(), 2, userCount, "two users should exist")
+	assert.Equal(s.T(), int64(2), userCount, "two users should exist")
 
 	user, err = s.db.GetUserByName("nicories")
 	require.NoError(s.T(), err)
@@ -60,7 +60,7 @@ func (s *DatabaseSuite) TestUser() {
 
 	adminCount, err = s.db.CountUser(&model.User{Admin: true})
 	require.NoError(s.T(), err)
-	assert.Equal(s.T(), 2, adminCount, "two admins exist")
+	assert.Equal(s.T(), int64(2), adminCount, "two admins exist")
 
 	require.NoError(s.T(), s.db.DeleteUserByID(tom.ID))
 	users, err = s.db.GetUsers()
