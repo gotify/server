@@ -36,7 +36,8 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 		Colorful:                  isatty.IsTerminal(os.Stderr.Fd()),
 	})
 	gormConfig := &gorm.Config{
-		Logger: dbLogger,
+		Logger:                                   dbLogger,
+		DisableForeignKeyConstraintWhenMigrating: true,
 	}
 
 	var db *gorm.DB
