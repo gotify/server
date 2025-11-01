@@ -10,7 +10,7 @@ ARG __TARGETPLATFORM_GO_NOTATION=${__TARGETPLATFORM_DASHES/arm\/v7/arm-7}
 
 # --- JS Builder ---
 
-FROM --platform=${BUILDPLATFORM} node:23 AS js-builder
+FROM --platform=${BUILDPLATFORM} node:24 AS js-builder
 
 ARG BUILD_JS=0
 
