@@ -3,7 +3,7 @@ module github.com/gotify/server/v2
 require (
 	github.com/fortytw2/leaktest v1.3.0
 	github.com/gin-contrib/cors v1.7.6
-	github.com/gin-contrib/gzip v1.2.4
+	github.com/gin-contrib/gzip v1.2.5
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/gorilla/websocket v1.5.3
