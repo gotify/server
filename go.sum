@@ -70,6 +70,8 @@ github.com/gotify/plugin-api/v2 v2.0.0-20250815172949-e6fc00f4cce2 h1:fseISdC49s
 github.com/gotify/plugin-api/v2 v2.0.0-20250815172949-e6fc00f4cce2/go.mod h1:R8L7azU9a93YjU8qABI3N0GwtN92wxhR2x1te8iZqWM=
 github.com/gotify/plugin-api/v2 v2.0.0-20250824221031-4e1372442210 h1:lyyvCGXmRlOIODHYfHnhjn3juqTzlkwqi6Unt8BjTns=
 github.com/gotify/plugin-api/v2 v2.0.0-20250824221031-4e1372442210/go.mod h1:/5oJWM5EWehNbuxdC2/UTdUy/BhuVmQzF3t13d9hc54=
+github.com/gotify/plugin-api/v2 v2.0.0-20250903212810-bfe8e528137f h1:QIQSZhEqVYuV5ZAcuVvJpkjDJvsqkR75ROX8uFcKh24=
+github.com/gotify/plugin-api/v2 v2.0.0-20250903212810-bfe8e528137f/go.mod h1:eFjFHxCCVGeoMTzMwIzA4EMIu89ZIc160KJ8sAOvESQ=
 github.com/h2non/filetype v1.1.3 h1:FKkx9QbD7HR/zjK1Ia5XiBsq9zdLi5Kf3zGyFTAFkGg=
 github.com/h2non/filetype v1.1.3/go.mod h1:319b3zT68BvV+WRj7cwy856M2ehB3HqNOt6sy1HndBY=
 github.com/jinzhu/configor v1.2.2 h1:sLgh6KMzpCmaQB4e+9Fu/29VErtBUqsS2t8C9BNIVsA=
@@ -126,6 +128,7 @@ github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOfJA=
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
+github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go/codec v0.0.0-20181209151446-772ced7fd4c2/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=

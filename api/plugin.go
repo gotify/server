@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"io"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +9,6 @@ import (
 	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/plugin"
-	"github.com/gotify/server/v2/plugin/compat"
 	"gopkg.in/yaml.v3"
 )
 
@@ -310,16 +308,7 @@ func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 			ctx.AbortWithError(404, errors.New("unknown plugin"))
 			return
 		}
-		instance, err := c.Manager.Instance(id)
-		if err != nil {
-			ctx.AbortWithError(404, errors.New("plugin instance not found"))
-			return
-		}
-
-		if aborted := supportOrAbort(ctx, instance, compat.Configurer); aborted {
-			return
-		}
-
+		// TODO check if the plugin supports the CONFIGURER capability
 		ctx.Header("content-type", "application/x-yaml")
 		ctx.Writer.Write(conf.Config)
 	})
@@ -380,9 +369,7 @@ func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 			return
 		}
 
-		if aborted := supportOrAbort(ctx, instance, compat.Configurer); aborted {
-			return
-		}
+		// TODO check if the plugin supports the CONFIGURER capability
 
 		newConf := instance.DefaultConfig()
 		newconfBytes, err := io.ReadAll(ctx.Request.Body)
@@ -405,12 +392,4 @@ func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 
 func isPluginOwner(ctx *gin.Context, conf *model.PluginConf) bool {
 	return conf.UserID == auth.GetUserID(ctx)
-}
-
-func supportOrAbort(ctx *gin.Context, instance compat.PluginInstance, module compat.Capability) (aborted bool) {
-	if compat.HasSupport(instance, module) {
-		return false
-	}
-	ctx.AbortWithError(400, fmt.Errorf("plugin does not support %s", module))
-	return true
 }

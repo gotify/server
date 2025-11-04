@@ -9,12 +9,12 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/gotify/location v0.0.0-20170722210143-03bc4ad20437
 	github.com/gotify/plugin-api v1.0.0
-	github.com/gotify/plugin-api/v2 v2.0.0-20250824221031-4e1372442210
+	github.com/gotify/plugin-api/v2 v2.0.0-20250903212810-bfe8e528137f
 	github.com/h2non/filetype v1.1.3
 	github.com/jinzhu/configor v1.2.2
 	github.com/jinzhu/gorm v1.9.16
 	github.com/robfig/cron v1.2.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.41.0
 	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.7

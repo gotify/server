@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	papiv2 "github.com/gotify/plugin-api/v2"
 	"github.com/gotify/plugin-api/v2/generated/protobuf"
+	"github.com/gotify/plugin-api/v2/transport"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -58,14 +58,10 @@ func TestRPC(t *testing.T) {
 			PrivateKey:  pluginPriv,
 		},
 	}
-	pluginListener, err := papiv2.NewListener()
+	pluginListener, pluginListenerTarget, err := transport.NewListener()
 	assert.NoError(t, err)
 
 	defer pluginListener.Close()
-	pluginListenerTarget := pluginListener.Addr().String()
-	if pluginListener.Addr().Network() == "unix" {
-		pluginListenerTarget = "unix://" + pluginListenerTarget
-	}
 
 	pluginServer := grpc.NewServer(grpc.Creds(credentials.NewTLS(pluginTlsConfig)))
 	protobuf.RegisterPluginServer(pluginServer, &dummyPlugin{})
@@ -80,7 +76,7 @@ func TestRPC(t *testing.T) {
 	caCertPool.AddCert(rpc.CACert())
 	pluginClientTlsConfig := &tls.Config{
 		RootCAs:    caCertPool,
-		ServerName: papiv2.ServerTLSName,
+		ServerName: transport.ServerTLSName,
 		Certificates: []tls.Certificate{
 			{
 				Certificate: [][]byte{pluginCert},
