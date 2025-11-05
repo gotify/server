@@ -128,6 +128,7 @@ const Applications = observer(() => {
                     <input
                         ref={fileInputRef}
                         type="file"
+                        accept="image/png,image/jpeg,image/gif"
                         style={{display: 'none'}}
                         onChange={onUploadImage}
                     />
