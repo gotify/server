@@ -60,7 +60,6 @@ const Applications = observer(() => {
     useEffect(() => void appStore.refresh(), []);
 
     const validExtensions = ['.gif', '.png', '.jpg', '.jpeg'];
-    const validMimeTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg'];
 
     const handleImageUploadClick = (id: number) => {
         uploadId.current = id;
@@ -74,17 +73,7 @@ const Applications = observer(() => {
         if (!file) {
             return;
         }
-        const fileName = file.name.toLowerCase();
-        const ext = fileName.substring(fileName.lastIndexOf('.'));
-        
-        const hasValidExtension = validExtensions.indexOf(ext) !== -1;
-        const hasValidMimeType = validMimeTypes.indexOf(file.type) !== -1;
-        
-        if (hasValidExtension && hasValidMimeType) {
-            appStore.uploadImage(uploadId.current, file);
-        } else {
-            alert('Uploaded file must be of type png, jpeg or gif.');
-        }
+        appStore.uploadImage(uploadId.current, file);
     };
 
     return (
