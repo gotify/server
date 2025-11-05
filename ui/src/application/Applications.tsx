@@ -59,6 +59,8 @@ const Applications = observer(() => {
 
     useEffect(() => void appStore.refresh(), []);
 
+    const validExtensions = ['.gif', '.png', '.jpg', '.jpeg'];
+
     const handleImageUploadClick = (id: number) => {
         uploadId.current = id;
         if (fileInputRef.current) {
@@ -71,11 +73,7 @@ const Applications = observer(() => {
         if (!file) {
             return;
         }
-        if (['image/png', 'image/jpeg', 'image/gif'].indexOf(file.type) !== -1) {
-            appStore.uploadImage(uploadId.current, file);
-        } else {
-            alert('Uploaded file must be of type png, jpeg or gif.');
-        }
+        appStore.uploadImage(uploadId.current, file);
     };
 
     return (
@@ -128,6 +126,7 @@ const Applications = observer(() => {
                     <input
                         ref={fileInputRef}
                         type="file"
+                        accept={validExtensions.join(',')}
                         style={{display: 'none'}}
                         onChange={onUploadImage}
                     />

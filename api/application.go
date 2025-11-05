@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
@@ -459,7 +460,7 @@ func generateNonExistingImageName(imgDir string, gen func() string) string {
 }
 
 func ValidApplicationImageExt(ext string) bool {
-	switch ext {
+	switch strings.ToLower(ext) {
 	case ".gif", ".png", ".jpg", ".jpeg":
 		return true
 	default:
