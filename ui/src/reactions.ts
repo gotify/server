@@ -2,6 +2,8 @@ import {reaction} from 'mobx';
 import * as Notifications from './snack/browserNotification';
 import {StoreMapping} from './stores';
 
+const AUDIO_REPEAT_DELAY = 1000;
+
 export const registerReactions = (stores: StoreMapping) => {
     const clearAll = () => {
         stores.messagesStore.clearAll();
@@ -10,13 +12,19 @@ export const registerReactions = (stores: StoreMapping) => {
         stores.userStore.clear();
         stores.wsStore.close();
     };
+
+    let audio: HTMLAudioElement | undefined;
+    let lastAudio = 0;
+
     const loadAll = () => {
         stores.wsStore.listen((message) => {
             stores.messagesStore.publishSingleMessage(message);
             Notifications.notifyNewMessage(message);
-            if (message.priority >= 4) {
-                const src = 'static/notification.ogg';
-                const audio = new Audio(src);
+            if (message.priority >= 4 && Date.now() > lastAudio + AUDIO_REPEAT_DELAY) {
+                lastAudio = Date.now();
+
+                audio ??= new Audio('static/notification.ogg');
+                audio.currentTime = 0;
                 audio.play();
             }
         });
