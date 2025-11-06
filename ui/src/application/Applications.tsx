@@ -197,20 +197,30 @@ const Row = ({
     fEdit,
 }: IRowProps) => {
     const {classes} = useStyles();
+    const isCustomImage = image.startsWith('image/');
     return (
         <TableRow>
             <TableCell padding="normal">
                 <div style={{display: 'flex'}}>
-                    <Tooltip title="Delete image" placement="top" arrow>
-                        <ButtonBase className={classes.imageContainer} onClick={fDeleteImage}>
-                            <img
-                                src={config.get('url') + image}
-                                alt="app logo"
-                                width="40"
-                                height="40"
-                            />
-                        </ButtonBase>
-                    </Tooltip>
+                    {isCustomImage ? (
+                        <Tooltip title="Delete image" placement="top" arrow>
+                            <ButtonBase className={classes.imageContainer} onClick={fDeleteImage}>
+                                <img
+                                    src={config.get('url') + image}
+                                    alt="app logo"
+                                    width="40"
+                                    height="40"
+                                />
+                            </ButtonBase>
+                        </Tooltip>
+                    ) : (
+                        <img
+                            src={config.get('url') + image}
+                            alt="app logo"
+                            width="40"
+                            height="40"
+                        />
+                    )}
                     <IconButton onClick={fUpload} style={{height: 40}}>
                         <CloudUpload />
                     </IconButton>
