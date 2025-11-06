@@ -431,6 +431,7 @@ func (a *ApplicationAPI) RemoveApplicationImage(ctx *gin.Context) {
 
 func withResolvedImage(app *model.Application) *model.Application {
 	if app.Image == "" {
+		// This must stay in sync with the isDefaultImage check in ui/src/application/Applications.tsx.
 		app.Image = "static/defaultapp.png"
 	} else {
 		app.Image = "image/" + app.Image
