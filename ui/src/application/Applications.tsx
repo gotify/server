@@ -197,12 +197,16 @@ const Row = ({
     fEdit,
 }: IRowProps) => {
     const {classes} = useStyles();
+    const isDefaultImage = image === 'static/defaultapp.png';
     return (
         <TableRow>
             <TableCell padding="normal">
                 <div style={{display: 'flex'}}>
                     <Tooltip title="Delete image" placement="top" arrow>
-                        <ButtonBase className={classes.imageContainer} onClick={fDeleteImage}>
+                        <ButtonBase
+                            className={classes.imageContainer}
+                            onClick={fDeleteImage}
+                            disabled={isDefaultImage}>
                             <img
                                 src={config.get('url') + image}
                                 alt="app logo"
