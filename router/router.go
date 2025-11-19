@@ -27,6 +27,7 @@ import (
 func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Configuration) (*gin.Engine, func()) {
 	g := gin.New()
 
+	g.RemoveExtraSlash = true
 	g.RemoteIPHeaders = []string{"X-Forwarded-For"}
 	g.SetTrustedProxies(conf.Server.TrustedProxies)
 	g.ForwardedByClientIP = true
