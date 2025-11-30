@@ -75,6 +75,10 @@
       "groupSlug": "bump-dependencies-npm"
     },
     {
+      "matchDatasources": ["npm"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
       "matchDepNames": [
         "github.com/gotify/build"
       ],
