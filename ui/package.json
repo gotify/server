@@ -57,7 +57,7 @@
     "tree-kill": "^1.2.0",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.38.0",
-    "wait-on": "^8.0.4"
+    "wait-on": "^9.0.0"
   },
   "browserslist": {
     "production": [
