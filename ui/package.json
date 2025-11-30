@@ -31,7 +31,7 @@
     "tss-react": "^4.9.19",
     "typeface-roboto": "1.1.13",
     "vite": "^7.0.6",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.0"
   },
   "scripts": {
     "start": "vite",
