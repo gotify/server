@@ -64,6 +64,17 @@
       "groupSlug": "bump-dependencies-go"
     },
     {
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "Bump npm dependencies",
+      "groupSlug": "bump-dependencies-npm"
+    },
+    {
       "matchDepNames": [
         "github.com/gotify/build"
       ],
