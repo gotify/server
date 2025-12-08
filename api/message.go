@@ -45,7 +45,7 @@ type pagingParams struct {
 	Since uint `form:"since" binding:"min=0"`
 }
 
-// using custom struct instead of MessageExternal so priority can be a string
+// Using custom struct instead of MessageExternal so priority can be a string.
 type createMessageRequest struct {
 	Message  string                 `form:"message" query:"message" json:"message" binding:"required"`
 	Title    string                 `form:"title" query:"title" json:"title"`
