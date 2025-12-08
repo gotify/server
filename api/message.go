@@ -45,6 +45,14 @@ type pagingParams struct {
 	Since uint `form:"since" binding:"min=0"`
 }
 
+// using custom struct instead of MessageExternal so priority can be a string
+type createMessageRequest struct {
+	Message  string                 `form:"message" query:"message" json:"message" binding:"required"`
+	Title    string                 `form:"title" query:"title" json:"title"`
+	Priority json.Number            `form:"priority" query:"priority" json:"priority"`
+	Extras   map[string]interface{} `form:"-" query:"-" json:"extras,omitempty"`
+}
+
 // GetMessages returns all messages from a user.
 // swagger:operation GET /message message getMessages
 //
@@ -362,8 +370,24 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 //	    schema:
 //	        $ref: "#/definitions/Error"
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
-	message := model.MessageExternal{}
-	if err := ctx.Bind(&message); err == nil {
+	request := createMessageRequest{}
+	if err := ctx.Bind(&request); err == nil {
+		message := model.MessageExternal{
+			Message: request.Message,
+			Title:   request.Title,
+			Extras:  request.Extras,
+		}
+
+		// Priority is a json.Number type to handle strings as well as numbers
+		if request.Priority != "" {
+			priorityInt64, err := request.Priority.Int64()
+			if success := successOrAbort(ctx, 400, err); !success {
+				return
+			}
+			priorityInt := int(priorityInt64)
+			message.Priority = &priorityInt
+		}
+
 		application, err := a.DB.GetApplicationByToken(auth.GetTokenID(ctx))
 		if success := successOrAbort(ctx, 500, err); !success {
 			return

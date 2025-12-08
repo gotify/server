@@ -338,6 +338,29 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 	assert.Equal(s.T(), expected, s.notifiedMessage)
 }
 
+func (s *MessageSuite) Test_CreateMessage_onJson_withStringPriority() {
+	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
+	s.db.User(4).AppWithToken(8, "app-token")
+
+	t, _ := time.Parse("2006/01/02", "2017/01/02")
+
+	timeNow = func() time.Time { return t }
+	defer func() { timeNow = time.Now }()
+
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": "2"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateMessage(s.ctx)
+
+	msgs, err := s.db.GetMessagesByApplication(8)
+	assert.NoError(s.T(), err)
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 8, Title: "mytitle", Message: "mymessage", Priority: intPtr(2), Date: t}
+	assert.Len(s.T(), msgs, 1)
+	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), expected, s.notifiedMessage)
+}
+
 func (s *MessageSuite) Test_CreateMessage_WithDefaultPriority() {
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 
