@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -16,9 +17,9 @@ import (
 
 // The MessageDatabase interface for encapsulating database access.
 type MessageDatabase interface {
-	GetMessagesByApplicationSince(appID uint, limit int, since uint) ([]*model.Message, error)
+	GetMessagesByApplicationPaginated(appID uint, limit int, since uint64, after uint64, by string) ([]*model.Message, error)
 	GetApplicationByID(id uint) (*model.Application, error)
-	GetMessagesByUserSince(userID uint, limit int, since uint) ([]*model.Message, error)
+	GetMessagesByUserPaginated(userID uint, limit int, since uint64, after uint64, by string) ([]*model.Message, error)
 	DeleteMessageByID(id uint) error
 	GetMessageByID(id uint) (*model.Message, error)
 	DeleteMessagesByUser(userID uint) error
@@ -41,8 +42,10 @@ type MessageAPI struct {
 }
 
 type pagingParams struct {
-	Limit int  `form:"limit" binding:"min=1,max=200"`
-	Since uint `form:"since" binding:"min=0"`
+	Limit int    `form:"limit" binding:"min=1,max=200"`
+	Since uint64 `form:"since" binding:"min=0"`
+	After uint64 `form:"after" binding:"min=0"`
+	By    string `form:"by" binding:"oneof=id date"`
 }
 
 // GetMessages returns all messages from a user.
@@ -69,6 +72,27 @@ type pagingParams struct {
 //	  required: false
 //	  type: integer
 //	  format: int64
+//	- name: by
+//	  in: query
+//	  description: the field to order by
+//	  required: false
+//	  type: string
+//	  enum: [id, date]
+//	  default: id
+//	- name: after
+//	  in: query
+//	  description: return all messages with an cursor value greater than or equal to this value
+//	  minimum: 0
+//	  required: false
+//	  type: integer
+//	  format: int64
+//	- name: since
+//	  in: query
+//	  description: return all messages with an cursor value less than this value
+//	  minimum: 0
+//	  required: false
+//	  type: integer
+//	  format: int64
 //	responses:
 //	  200:
 //	    description: Ok
@@ -90,7 +114,7 @@ func (a *MessageAPI) GetMessages(ctx *gin.Context) {
 	userID := auth.GetUserID(ctx)
 	withPaging(ctx, func(params *pagingParams) {
 		// the +1 is used to check if there are more messages and will be removed on buildWithPaging
-		messages, err := a.DB.GetMessagesByUserSince(userID, params.Limit+1, params.Since)
+		messages, err := a.DB.GetMessagesByUserPaginated(userID, params.Limit+1, params.Since, params.After, params.By)
 		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
@@ -120,8 +144,9 @@ func buildWithPaging(ctx *gin.Context, paging *pagingParams, messages []*model.M
 }
 
 func withPaging(ctx *gin.Context, f func(pagingParams *pagingParams)) {
-	params := &pagingParams{Limit: 100}
+	params := &pagingParams{Limit: 100, By: "id"}
 	if err := ctx.MustBindWith(params, binding.Query); err == nil {
+		log.Printf("Paging params: %+v", params)
 		f(params)
 	}
 }
@@ -151,11 +176,25 @@ func withPaging(ctx *gin.Context, f func(pagingParams *pagingParams)) {
 //	  type: integer
 //	- name: since
 //	  in: query
-//	  description: return all messages with an ID less than this value
+//	  description: return all messages with an cursor value less than this value
 //	  minimum: 0
 //	  required: false
 //	  type: integer
 //	  format: int64
+//	- name: after
+//	  in: query
+//	  description: return all messages with an cursor value greater than or equal to this value
+//	  minimum: 0
+//	  required: false
+//	  type: integer
+//	  format: int64
+//	- name: by
+//	  in: query
+//	  description: the field to order by
+//	  required: false
+//	  type: string
+//	  enum: [id, date]
+//	  default: id
 //	responses:
 //	  200:
 //	    description: Ok
@@ -186,7 +225,7 @@ func (a *MessageAPI) GetMessagesWithApplication(ctx *gin.Context) {
 			}
 			if app != nil && app.UserID == auth.GetUserID(ctx) {
 				// the +1 is used to check if there are more messages and will be removed on buildWithPaging
-				messages, err := a.DB.GetMessagesByApplicationSince(id, params.Limit+1, params.Since)
+				messages, err := a.DB.GetMessagesByApplicationPaginated(id, params.Limit+1, params.Since, params.After, params.By)
 				if success := successOrAbort(ctx, 500, err); !success {
 					return
 				}
