@@ -39,7 +39,7 @@ func (d *GormDatabase) GetMessagesByUser(userID uint) ([]*model.Message, error) 
 
 // GetMessagesByUserPaginated returns limited messages from a user.
 // If since is 0 it will be ignored.
-func (d *GormDatabase) GetMessagesByUserPaginated(userID uint, limit int, since uint64, after uint64, by string) ([]*model.Message, error) {
+func (d *GormDatabase) GetMessagesByUserPaginated(userID uint, limit int, since, after uint64, by string) ([]*model.Message, error) {
 	var messages []*model.Message
 	db := d.DB.Joins("JOIN applications ON applications.user_id = ?", userID).
 		Where("messages.application_id = applications.id").Order(clause.OrderBy{Columns: []clause.OrderByColumn{
@@ -84,7 +84,7 @@ func (d *GormDatabase) GetMessagesByApplication(tokenID uint) ([]*model.Message,
 
 // GetMessagesByApplicationPaginated returns limited messages from an application.
 // If since is 0 it will be ignored.
-func (d *GormDatabase) GetMessagesByApplicationPaginated(appID uint, limit int, since uint64, after uint64, by string) ([]*model.Message, error) {
+func (d *GormDatabase) GetMessagesByApplicationPaginated(appID uint, limit int, since, after uint64, by string) ([]*model.Message, error) {
 	var messages []*model.Message
 	db := d.DB.Where("application_id = ?", appID).Order(clause.OrderBy{Columns: []clause.OrderByColumn{
 		{

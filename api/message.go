@@ -17,9 +17,9 @@ import (
 
 // The MessageDatabase interface for encapsulating database access.
 type MessageDatabase interface {
-	GetMessagesByApplicationPaginated(appID uint, limit int, since uint64, after uint64, by string) ([]*model.Message, error)
+	GetMessagesByApplicationPaginated(appID uint, limit int, since, after uint64, by string) ([]*model.Message, error)
 	GetApplicationByID(id uint) (*model.Application, error)
-	GetMessagesByUserPaginated(userID uint, limit int, since uint64, after uint64, by string) ([]*model.Message, error)
+	GetMessagesByUserPaginated(userID uint, limit int, since, after uint64, by string) ([]*model.Message, error)
 	DeleteMessageByID(id uint) error
 	GetMessageByID(id uint) (*model.Message, error)
 	DeleteMessagesByUser(userID uint) error
