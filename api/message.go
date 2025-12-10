@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -146,7 +145,6 @@ func buildWithPaging(ctx *gin.Context, paging *pagingParams, messages []*model.M
 func withPaging(ctx *gin.Context, f func(pagingParams *pagingParams)) {
 	params := &pagingParams{Limit: 100, By: "id"}
 	if err := ctx.MustBindWith(params, binding.Query); err == nil {
-		log.Printf("Paging params: %+v", params)
 		f(params)
 	}
 }
