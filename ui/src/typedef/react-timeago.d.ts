@@ -3,7 +3,7 @@ declare module 'react-timeago' {
 
     export type FormatterOptions = {
         style?: 'long' | 'short' | 'narrow';
-        locale?: void | string;
+        locale?: string;
     };
     export type Formatter = (options: FormatterOptions) => React.ReactNode;
 

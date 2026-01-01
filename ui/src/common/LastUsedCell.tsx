@@ -1,7 +1,7 @@
 import {Typography} from '@mui/material';
 import React from 'react';
 import TimeAgo from 'react-timeago';
-import {TimeAgoFormatter} from './TimeAgoConfig';
+import {TimeAgoFormatter} from './TimeAgoFormatter';
 
 export const LastUsedCell: React.FC<{lastUsed: string | null}> = ({lastUsed}) => {
     if (lastUsed === null) {
@@ -12,5 +12,5 @@ export const LastUsedCell: React.FC<{lastUsed: string | null}> = ({lastUsed}) =>
         return <Typography title={lastUsed}>Recently</Typography>;
     }
 
-    return <TimeAgo date={lastUsed} formatter={TimeAgoFormatter.get('long')} />;
+    return <TimeAgo date={lastUsed} formatter={TimeAgoFormatter.long} />;
 };
