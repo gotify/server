@@ -11,7 +11,7 @@ import {Markdown} from '../common/Markdown';
 import * as config from '../config';
 import {IMessageExtras} from '../types';
 import {contentType, RenderMode} from './extras';
-import {makeIntlFormatter} from 'react-timeago/defaultFormatter';
+import {TimeAgoFormatter} from '../common/TimeAgoConfig';
 
 const PREVIEW_LENGTH = 500;
 
@@ -248,7 +248,7 @@ const HeaderWide = ({
                 </Typography>
             </div>
             <Typography variant="body1" className={classes.date}>
-                <TimeAgo date={date} formatter={makeIntlFormatter({style: 'narrow'})} />
+                <TimeAgo date={date} formatter={TimeAgoFormatter.get('narrow')} />
             </Typography>
             <IconButton
                 onClick={fDelete}
@@ -279,7 +279,7 @@ const HeaderSmall = ({
                     {appName}
                 </Typography>
                 <Typography variant="body1" className={classes.date}>
-                    <TimeAgo date={date} formatter={makeIntlFormatter({style: 'long'})} />
+                    <TimeAgo date={date} formatter={TimeAgoFormatter.get('long')} />
                 </Typography>
             </div>
             <div style={{display: 'flex', alignItems: 'end', flexDirection: 'column'}}>
