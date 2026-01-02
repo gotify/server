@@ -485,8 +485,27 @@
             "minimum": 0,
             "type": "integer",
             "format": "int64",
-            "description": "return all messages with an ID less than this value",
+            "description": "return all messages with an cursor value less than this value",
             "name": "since",
+            "in": "query"
+          },
+          {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64",
+            "description": "return all messages with an cursor value greater than or equal to this value",
+            "name": "after",
+            "in": "query"
+          },
+          {
+            "enum": [
+              "id",
+              "date"
+            ],
+            "type": "string",
+            "default": "id",
+            "description": "the field to order by",
+            "name": "by",
             "in": "query"
           }
         ],
@@ -1023,6 +1042,33 @@
             "type": "integer",
             "format": "int64",
             "description": "return all messages with an ID less than this value",
+            "name": "since",
+            "in": "query"
+          },
+          {
+            "enum": [
+              "id",
+              "date"
+            ],
+            "type": "string",
+            "default": "id",
+            "description": "the field to order by",
+            "name": "by",
+            "in": "query"
+          },
+          {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64",
+            "description": "return all messages with an cursor value greater than or equal to this value",
+            "name": "after",
+            "in": "query"
+          },
+          {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64",
+            "description": "return all messages with an cursor value less than this value",
             "name": "since",
             "in": "query"
           }
