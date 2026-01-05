@@ -11,12 +11,15 @@ import ConfirmDialog from '../common/ConfirmDialog';
 import LoadingSpinner from '../common/LoadingSpinner';
 import {useStores} from '../stores';
 import {Virtuoso} from 'react-virtuoso';
+import Tooltip from '@mui/material/Tooltip';
+import {PushMessageDialog} from './PushMessageDialog';
 
 const Messages = observer(() => {
     const {id} = useParams<{id: string}>();
     const appId = id == null ? -1 : parseInt(id as string, 10);
 
     const [deleteAll, setDeleteAll] = React.useState(false);
+    const [pushMessageOpen, setPushMessageOpen] = React.useState(false);
     const [isLoadingMore, setLoadingMore] = React.useState(false);
     const {messagesStore, appStore} = useStores();
     const messages = messagesStore.get(appId);
@@ -24,6 +27,8 @@ const Messages = observer(() => {
     const name = appStore.getName(appId);
     const hasMessages = messages.length !== 0;
     const expandedState = React.useRef<Record<number, boolean>>({});
+    const app = appId === -1 ? undefined : appStore.getByIDOrUndefined(appId);
+    const canPushMessage = appId !== -1 && app !== undefined;
 
     const deleteMessage = (message: IMessage) => () => messagesStore.removeSingle(message);
 
@@ -93,6 +98,20 @@ const Messages = observer(() => {
             title={name}
             rightControl={
                 <div>
+                    {canPushMessage && (
+                        <Tooltip title="Push message">
+                            <span>
+                                <Button
+                                    id="push-message"
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => setPushMessageOpen(true)}
+                                    style={{marginRight: 5}}>
+                                    Push Message
+                                </Button>
+                            </span>
+                        </Tooltip>
+                    )}
                     <Button
                         id="refresh-all"
                         variant="contained"
@@ -121,6 +140,16 @@ const Messages = observer(() => {
                     text={'Delete all messages?'}
                     fClose={() => setDeleteAll(false)}
                     fOnSubmit={() => messagesStore.removeByApp(appId)}
+                />
+            )}
+            {pushMessageOpen && app && (
+                <PushMessageDialog
+                    appName={app.name}
+                    defaultPriority={app.defaultPriority}
+                    fClose={() => setPushMessageOpen(false)}
+                    fOnSubmit={(message, title, priority) =>
+                        appStore.sendMessage(app.id, message, title, priority)
+                    }
                 />
             )}
         </DefaultPage>

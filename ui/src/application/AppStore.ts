@@ -79,6 +79,25 @@ export class AppStore extends BaseStore<IApplication> {
         this.snack('Application created');
     };
 
+    public sendMessage = async (
+        id: number,
+        message: string,
+        title: string,
+        priority: number
+    ): Promise<void> => {
+        const app = this.getByID(id);
+        const payload: {message: string; title?: string; priority?: number} = {message};
+        if (title.trim() !== '') {
+            payload.title = title;
+        }
+        payload.priority = priority;
+
+        await axios.post(`${config.get('url')}message`, payload, {
+            headers: {'X-Gotify-Key': app.token},
+        });
+        this.snack(`Message sent to ${app.name}`);
+    };
+
     public getName = (id: number): string => {
         const app = this.getByIDOrUndefined(id);
         return id === -1 ? 'All Messages' : app !== undefined ? app.name : 'unknown';
