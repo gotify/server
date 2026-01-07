@@ -36,8 +36,8 @@ export const PushMessageDialog = ({appName, defaultPriority, fClose, fOnSubmit}:
             <DialogTitle id="push-message-title">Push message</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    Send a push message via {appName}. Leave the title empty to use the
-                    application name.
+                    Send a push message via {appName}. Leave the title empty to use the application
+                    name.
                 </DialogContentText>
                 <TextField
                     margin="dense"
