@@ -4,20 +4,9 @@ import {SnackReporter} from './snack/SnackManager';
 
 export const initAxios = (currentUser: CurrentUser, snack: SnackReporter) => {
     axios.interceptors.request.use((config) => {
-        const headers = config.headers ?? {};
-        const hasHeader = (key: string) => {
-            if (typeof headers.get === 'function') {
-                return headers.get(key) != null;
-            }
-            if (typeof headers.has === 'function') {
-                return headers.has(key);
-            }
-            return key in headers;
-        };
-        if (!hasHeader('X-Gotify-Key') && !hasHeader('x-gotify-key')) {
-            headers['X-Gotify-Key'] = currentUser.token();
+        if (!config.headers.has('x-gotify-key')) {
+            config.headers['x-gotify-key'] = currentUser.token();
         }
-        config.headers = headers;
         return config;
     });
 
