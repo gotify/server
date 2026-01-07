@@ -86,11 +86,11 @@ export class AppStore extends BaseStore<IApplication> {
         priority: number
     ): Promise<void> => {
         const app = this.getByID(id);
-        const payload: {message: string; title?: string; priority?: number} = {message};
-        if (title.trim() !== '') {
-            payload.title = title;
-        }
-        payload.priority = priority;
+        const payload: Pick<IMessage, 'title' | 'message' | 'priority'> = {
+            message,
+            priority,
+            title
+        };
 
         await axios.post(`${config.get('url')}message`, payload, {
             headers: {'X-Gotify-Key': app.token},
