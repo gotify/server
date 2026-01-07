@@ -1,7 +1,15 @@
 // todo before all tests jest start puppeteer
 import {Page} from 'puppeteer';
 import {newTest, GotifyTest} from './setup';
-import {clearField, clickByText, count, innerText, waitForCount, waitForExists} from './utils';
+import {
+    clearField,
+    clickByText,
+    count,
+    innerText,
+    waitForCount,
+    waitForExists,
+    waitToDisappear,
+} from './utils';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import * as auth from './authentication';
 import * as selector from './selector';
@@ -103,7 +111,7 @@ describe('Messages', () => {
         await clearField(page, '#push-message-dialog .priority input');
         await page.type('#push-message-dialog .priority input', '2');
         await page.click('#push-message-dialog .send');
-        await waitToDisappear(page, '#push-message-dialog')
+        await waitToDisappear(page, '#push-message-dialog');
         expect(await extractMessages(1)).toEqual([m('UI Test', 'Hello from UI')]);
         await page.click('#messages .message .delete');
         expect(await extractMessages(0)).toEqual([]);
