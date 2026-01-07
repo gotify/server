@@ -104,6 +104,25 @@ export class MessagesStore {
         this.snack('Message deleted');
     };
 
+    public sendMessage = async (
+        appId: number,
+        message: string,
+        title: string,
+        priority: number
+    ): Promise<void> => {
+        const app = this.appStore.getByID(appId);
+        const payload: Pick<IMessage, 'title' | 'message' | 'priority'> = {
+            message,
+            priority,
+            title,
+        };
+
+        await axios.post(`${config.get('url')}message`, payload, {
+            headers: {'X-Gotify-Key': app.token},
+        });
+        this.snack(`Message sent to ${app.name}`);
+    };
+
     public clearAll = () => {
         this.state = {};
         this.createEmptyStatesForApps(this.appStore.getItems());

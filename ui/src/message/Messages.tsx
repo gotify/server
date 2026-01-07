@@ -11,7 +11,6 @@ import ConfirmDialog from '../common/ConfirmDialog';
 import LoadingSpinner from '../common/LoadingSpinner';
 import {useStores} from '../stores';
 import {Virtuoso} from 'react-virtuoso';
-import Tooltip from '@mui/material/Tooltip';
 import {PushMessageDialog} from './PushMessageDialog';
 
 const Messages = observer(() => {
@@ -99,18 +98,14 @@ const Messages = observer(() => {
             rightControl={
                 <div>
                     {canPushMessage && (
-                        <Tooltip title="Push message">
-                            <span>
-                                <Button
-                                    id="push-message"
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => setPushMessageOpen(true)}
-                                    style={{marginRight: 5}}>
-                                    Push Message
-                                </Button>
-                            </span>
-                        </Tooltip>
+                        <Button
+                            id="push-message"
+                            variant="contained"
+                            color="primary"
+                            onClick={() => setPushMessageOpen(true)}
+                            style={{marginRight: 5}}>
+                            Push Message
+                        </Button>
                     )}
                     <Button
                         id="refresh-all"
@@ -148,7 +143,7 @@ const Messages = observer(() => {
                     defaultPriority={app.defaultPriority}
                     fClose={() => setPushMessageOpen(false)}
                     fOnSubmit={(message, title, priority) =>
-                        appStore.sendMessage(app.id, message, title, priority)
+                        messagesStore.sendMessage(app.id, message, title, priority)
                     }
                 />
             )}
