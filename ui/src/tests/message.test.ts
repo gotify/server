@@ -103,9 +103,10 @@ describe('Messages', () => {
         await clearField(page, '#push-message-dialog .priority input');
         await page.type('#push-message-dialog .priority input', '2');
         await page.click('#push-message-dialog .send');
-        await waitForExists(page, '.message .content', 'Hello from UI');
+        await waitToDisappear(page, '#push-message-dialog')
+        expect(await extractMessages(1)).toEqual([m('UI Test', 'Hello from UI')]);
         await page.click('#messages .message .delete');
-        await waitForCount(page, '#messages .message', 0);
+        expect(await extractMessages(0)).toEqual([]);
         await navigate('All Messages');
     });
 
