@@ -27,7 +27,6 @@ const Messages = observer(() => {
     const hasMessages = messages.length !== 0;
     const expandedState = React.useRef<Record<number, boolean>>({});
     const app = appId === -1 ? undefined : appStore.getByIDOrUndefined(appId);
-    const canPushMessage = appId !== -1 && app !== undefined;
 
     const deleteMessage = (message: IMessage) => () => messagesStore.removeSingle(message);
 
@@ -97,7 +96,7 @@ const Messages = observer(() => {
             title={name}
             rightControl={
                 <div>
-                    {canPushMessage && (
+                    {app && (
                         <Button
                             id="push-message"
                             variant="contained"
