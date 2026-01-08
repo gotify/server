@@ -1,7 +1,15 @@
 // todo before all tests jest start puppeteer
 import {Page} from 'puppeteer';
 import {newTest, GotifyTest} from './setup';
-import {clickByText, count, innerText, waitForCount, waitForExists} from './utils';
+import {
+    clearField,
+    clickByText,
+    count,
+    innerText,
+    waitForCount,
+    waitForExists,
+    waitToDisappear,
+} from './utils';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import * as auth from './authentication';
 import * as selector from './selector';
@@ -87,6 +95,26 @@ describe('Messages', () => {
     it('has no messages in app', async () => {
         await navigate('Windows');
         expect(await count(page, '#messages .message')).toBe(0);
+        await navigate('All Messages');
+    });
+    it('hides push message on all messages', async () => {
+        await navigate('All Messages');
+        expect(await count(page, '#push-message')).toBe(0);
+    });
+    it('pushes a message via ui', async () => {
+        await navigate('Windows');
+        await page.waitForSelector('#push-message');
+        await page.click('#push-message');
+        await page.waitForSelector('#push-message-dialog');
+        await page.type('#push-message-dialog .title input', 'UI Test');
+        await page.type('#push-message-dialog .message textarea', 'Hello from UI');
+        await clearField(page, '#push-message-dialog .priority input');
+        await page.type('#push-message-dialog .priority input', '2');
+        await page.click('#push-message-dialog .send');
+        await waitToDisappear(page, '#push-message-dialog');
+        expect(await extractMessages(1)).toEqual([m('UI Test', 'Hello from UI')]);
+        await page.click('#messages .message .delete');
+        expect(await extractMessages(0)).toEqual([]);
         await navigate('All Messages');
     });
 

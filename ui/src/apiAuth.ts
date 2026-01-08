@@ -4,7 +4,9 @@ import {SnackReporter} from './snack/SnackManager';
 
 export const initAxios = (currentUser: CurrentUser, snack: SnackReporter) => {
     axios.interceptors.request.use((config) => {
-        config.headers['X-Gotify-Key'] = currentUser.token();
+        if (!config.headers.has('x-gotify-key')) {
+            config.headers['x-gotify-key'] = currentUser.token();
+        }
         return config;
     });
 
