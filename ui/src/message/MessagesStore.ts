@@ -1,6 +1,7 @@
 import {BaseStore} from '../common/BaseStore';
 import {action, IObservableArray, observable, reaction, makeObservable} from 'mobx';
 import axios, {AxiosResponse} from 'axios';
+import {authFetch} from '../apiAuth';
 import * as config from '../config';
 import {createTransformer} from 'mobx-utils';
 import {SnackReporter} from '../snack/SnackManager';
@@ -100,8 +101,20 @@ export class MessagesStore {
         await this.loadMore(appId);
     };
 
-    public removeSingle = async (message: IMessage) => {
-        await axios.delete(config.get('url') + 'message/' + message.id);
+    public removeSingle = async (message: IMessage, options?: {keepalive?: boolean}) => {
+        const url = config.get('url') + 'message/' + message.id;
+        if (options?.keepalive) {
+            const response = await authFetch(url, {
+                method: 'DELETE',
+                keepalive: true,
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete message');
+            }
+            return;
+        }
+        await axios.delete(url);
     };
 
     public removeSingleLocal = (message: IMessage) => {

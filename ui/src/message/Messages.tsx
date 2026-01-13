@@ -12,17 +12,7 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import {useStores} from '../stores';
 import {Virtuoso} from 'react-virtuoso';
 import {PushMessageDialog} from './PushMessageDialog';
-import {closeSnackbar, SnackbarKey} from 'notistack';
-
-const UndoTimeoutMs = 5000;
-
-interface PendingDelete {
-    message: IMessage;
-    allIndex: false | number;
-    appIndex: false | number;
-    timeoutId: number;
-    snackKey: SnackbarKey;
-}
+import {getMessageDeleteQueue} from './messageDeleteQueue';
 
 const Messages = observer(() => {
     const {id} = useParams<{id: string}>();
@@ -37,10 +27,10 @@ const Messages = observer(() => {
     const name = appStore.getName(appId);
     const hasMessages = messages.length !== 0;
     const expandedState = React.useRef<Record<number, boolean>>({});
-    const pendingDeletesRef = React.useRef<Map<number, PendingDelete>>(new Map());
     const app = appId === -1 ? undefined : appStore.getByIDOrUndefined(appId);
+    const deleteQueue = getMessageDeleteQueue(messagesStore, snackManager.snack);
 
-    const deleteMessage = (message: IMessage) => () => startDelete(message);
+    const deleteMessage = (message: IMessage) => () => deleteQueue.requestDelete(message);
 
     React.useEffect(() => {
         if (!messagesStore.loaded(appId)) {
@@ -48,76 +38,7 @@ const Messages = observer(() => {
         }
     }, [appId]);
 
-    React.useEffect(() => () => clearPendingDeletes(), []);
-
-    const clearPendingDeletes = (targetAppId?: number) => {
-        pendingDeletesRef.current.forEach((pending, messageId) => {
-            if (
-                targetAppId != null &&
-                targetAppId !== -1 &&
-                pending.message.appid !== targetAppId
-            ) {
-                return;
-            }
-            window.clearTimeout(pending.timeoutId);
-            closeSnackbar(pending.snackKey);
-            messagesStore.clearPendingDelete(messageId);
-            pendingDeletesRef.current.delete(messageId);
-        });
-    };
-
-    const undoDelete = (messageId: number, snackKey: SnackbarKey) => {
-        const pending = pendingDeletesRef.current.get(messageId);
-        if (!pending) {
-            return;
-        }
-        window.clearTimeout(pending.timeoutId);
-        pendingDeletesRef.current.delete(messageId);
-        messagesStore.clearPendingDelete(messageId);
-        messagesStore.restoreSingleLocal(pending.message, pending.allIndex, pending.appIndex);
-        closeSnackbar(snackKey);
-        snackManager.snack('Delete undone');
-    };
-
-    const startDelete = (message: IMessage) => {
-        if (pendingDeletesRef.current.has(message.id)) {
-            return;
-        }
-        const {allIndex, appIndex} = messagesStore.removeSingleLocal(message);
-        if (allIndex === false && appIndex === false) {
-            return;
-        }
-        messagesStore.markPendingDelete(message.id);
-        const snackKey = snackManager.snack('Message deleted', {
-            action: (key) => (
-                <Button color="inherit" size="small" onClick={() => undoDelete(message.id, key)}>
-                    Undo
-                </Button>
-            ),
-            autoHideDuration: UndoTimeoutMs,
-        });
-        const timeoutId = window.setTimeout(async () => {
-            const pending = pendingDeletesRef.current.get(message.id);
-            if (!pending) {
-                return;
-            }
-            pendingDeletesRef.current.delete(message.id);
-            messagesStore.clearPendingDelete(message.id);
-            try {
-                await messagesStore.removeSingle(message);
-            } catch {
-                messagesStore.restoreSingleLocal(message, pending.allIndex, pending.appIndex);
-                snackManager.snack('Delete failed, message restored');
-            }
-        }, UndoTimeoutMs);
-        pendingDeletesRef.current.set(message.id, {
-            message,
-            allIndex,
-            appIndex,
-            timeoutId,
-            snackKey,
-        });
-    };
+    React.useEffect(() => () => deleteQueue.finalizePendingDeletes(), [appId, deleteQueue]);
 
     const renderMessage = (_index: number, message: IMessage) => (
         <Message
@@ -194,7 +115,7 @@ const Messages = observer(() => {
                         variant="contained"
                         color="primary"
                         onClick={() => {
-                            clearPendingDeletes(appId);
+                            deleteQueue.finalizePendingDeletes(appId);
                             messagesStore.refreshByApp(appId);
                         }}
                         style={{marginRight: 5}}>
@@ -220,7 +141,7 @@ const Messages = observer(() => {
                     text={'Delete all messages?'}
                     fClose={() => setDeleteAll(false)}
                     fOnSubmit={() => {
-                        clearPendingDeletes(appId);
+                        deleteQueue.finalizePendingDeletes(appId);
                         messagesStore.removeByApp(appId);
                     }}
                 />

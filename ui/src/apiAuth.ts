@@ -2,6 +2,25 @@ import axios from 'axios';
 import {CurrentUser} from './CurrentUser';
 import {SnackReporter} from './snack/SnackManager';
 
+export type TokenProvider = () => string;
+
+let tokenProvider: TokenProvider = () => '';
+
+export const setTokenProvider = (provider: TokenProvider) => {
+    tokenProvider = provider;
+};
+
+export const authFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const headers = new Headers(init?.headers);
+    if (!headers.has('x-gotify-key')) {
+        const token = tokenProvider();
+        if (token) {
+            headers.set('x-gotify-key', token);
+        }
+    }
+    return fetch(input, {...init, headers});
+};
+
 export const initAxios = (currentUser: CurrentUser, snack: SnackReporter) => {
     axios.interceptors.request.use((config) => {
         if (!config.headers.has('x-gotify-key')) {

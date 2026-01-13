@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import 'typeface-roboto';
-import {initAxios} from './apiAuth';
+import {initAxios, setTokenProvider} from './apiAuth';
 import * as config from './config';
 import Layout from './layout/Layout';
 import {unregister} from './registerServiceWorker';
@@ -51,6 +51,7 @@ const initStores = (): StoreMapping => {
     config.set('url', prodUrl);
     const stores = initStores();
     initAxios(stores.currentUser, stores.snackManager.snack);
+    setTokenProvider(stores.currentUser.token);
 
     registerReactions(stores);
 
