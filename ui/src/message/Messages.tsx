@@ -50,13 +50,16 @@ const Messages = observer(() => {
 
     React.useEffect(() => () => clearPendingDeletes(), []);
 
-    const clearPendingDeletes = () => {
+    const clearPendingDeletes = (targetAppId?: number) => {
         pendingDeletesRef.current.forEach((pending, messageId) => {
+            if (targetAppId != null && targetAppId !== -1 && pending.message.appid !== targetAppId) {
+                return;
+            }
             window.clearTimeout(pending.timeoutId);
             closeSnackbar(pending.snackKey);
             messagesStore.clearPendingDelete(messageId);
+            pendingDeletesRef.current.delete(messageId);
         });
-        pendingDeletesRef.current.clear();
     };
 
     const undoDelete = (messageId: number, snackKey: SnackbarKey) => {
@@ -190,7 +193,7 @@ const Messages = observer(() => {
                         variant="contained"
                         color="primary"
                         onClick={() => {
-                            clearPendingDeletes();
+                            clearPendingDeletes(appId);
                             messagesStore.refreshByApp(appId);
                         }}
                         style={{marginRight: 5}}>
@@ -216,7 +219,7 @@ const Messages = observer(() => {
                     text={'Delete all messages?'}
                     fClose={() => setDeleteAll(false)}
                     fOnSubmit={() => {
-                        clearPendingDeletes();
+                        clearPendingDeletes(appId);
                         messagesStore.removeByApp(appId);
                     }}
                 />
