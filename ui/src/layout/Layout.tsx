@@ -1,4 +1,4 @@
-import {createTheme, ThemeProvider, StyledEngineProvider, Theme} from '@mui/material';
+import {createTheme, ThemeProvider, StyledEngineProvider, Theme, useMediaQuery} from '@mui/material';
 import {makeStyles} from 'tss-react/mui';
 import CssBaseline from '@mui/material/CssBaseline';
 import * as React from 'react';
@@ -34,22 +34,10 @@ const useStyles = makeStyles()((theme: Theme) => ({
 }));
 
 const localStorageThemeKey = 'gotify-theme';
-type ThemeKey = 'dark' | 'light';
-const themeMap: Record<ThemeKey, Theme> = {
-    light: createTheme({
-        palette: {
-            mode: 'light',
-        },
-    }),
-    dark: createTheme({
-        palette: {
-            mode: 'dark',
-        },
-    }),
-};
+type ThemeKey = 'dark' | 'light' | 'system';
 
 const isThemeKey = (value: string | null): value is ThemeKey =>
-    value === 'light' || value === 'dark';
+    value === 'light' || value === 'dark' || value === 'system';
 
 const Layout = observer(() => {
     const {
@@ -68,13 +56,28 @@ const Layout = observer(() => {
         const stored = window.localStorage.getItem(localStorageThemeKey);
         return isThemeKey(stored) ? stored : 'dark';
     });
-    const theme = themeMap[currentTheme];
+    const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
+    const paletteMode = currentTheme === 'system' ? (prefersDark ? 'dark' : 'light') : currentTheme;
+    const theme = React.useMemo(
+        () =>
+            createTheme({
+                palette: {
+                    mode: paletteMode,
+                },
+            }),
+        [paletteMode]
+    );
     const {version} = config.get('version');
     const [navOpen, setNavOpen] = React.useState(false);
     const [showSettings, setShowSettings] = React.useState(false);
 
     const toggleTheme = () => {
-        const next = currentTheme === 'dark' ? 'light' : 'dark';
+        const nextMap: Record<ThemeKey, ThemeKey> = {
+            dark: 'light',
+            light: 'system',
+            system: 'dark',
+        };
+        const next = nextMap[currentTheme];
         setCurrentTheme(next);
         localStorage.setItem(localStorageThemeKey, next);
     };
@@ -107,6 +110,7 @@ const Layout = observer(() => {
                                 style={{top: !connectionErrorMessage ? 0 : 64}}
                                 version={version}
                                 loggedIn={loggedIn}
+                                themeMode={currentTheme}
                                 toggleTheme={toggleTheme}
                                 showSettings={() => setShowSettings(true)}
                                 logout={logout}
