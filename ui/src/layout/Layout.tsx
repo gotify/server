@@ -1,4 +1,10 @@
-import {createTheme, ThemeProvider, StyledEngineProvider, Theme, useMediaQuery} from '@mui/material';
+import {
+    createTheme,
+    ThemeProvider,
+    StyledEngineProvider,
+    Theme,
+    useMediaQuery,
+} from '@mui/material';
 import {makeStyles} from 'tss-react/mui';
 import CssBaseline from '@mui/material/CssBaseline';
 import * as React from 'react';

@@ -108,7 +108,13 @@ const Header = ({
     const {classes} = useStyles();
     const themeLabel = `Toggle theme (current: ${themeMode})`;
     const themeIcon =
-        themeMode === 'system' ? <BrightnessAuto /> : themeMode === 'dark' ? <Brightness4 /> : <Brightness7 />;
+        themeMode === 'system' ? (
+            <BrightnessAuto />
+        ) : themeMode === 'dark' ? (
+            <Brightness4 />
+        ) : (
+            <Brightness7 />
+        );
     const themeIconClass =
         themeMode === 'system'
             ? classes.themeIconSystem
