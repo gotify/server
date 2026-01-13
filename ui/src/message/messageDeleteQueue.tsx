@@ -44,7 +44,7 @@ class MessageDeleteQueue {
                 </Button>
             ),
             autoHideDuration: UndoAutoHideMs,
-            onExited: (_node, _key) => {
+            onExited: () => {
                 void this.finalizeDelete(message.id);
             },
         });
