@@ -12,6 +12,17 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import {useStores} from '../stores';
 import {Virtuoso} from 'react-virtuoso';
 import {PushMessageDialog} from './PushMessageDialog';
+import {closeSnackbar, SnackbarKey} from 'notistack';
+
+const UndoTimeoutMs = 5000;
+
+interface PendingDelete {
+    message: IMessage;
+    allIndex: false | number;
+    appIndex: false | number;
+    timeoutId: number;
+    snackKey: SnackbarKey;
+}
 
 const Messages = observer(() => {
     const {id} = useParams<{id: string}>();
@@ -20,21 +31,89 @@ const Messages = observer(() => {
     const [deleteAll, setDeleteAll] = React.useState(false);
     const [pushMessageOpen, setPushMessageOpen] = React.useState(false);
     const [isLoadingMore, setLoadingMore] = React.useState(false);
-    const {messagesStore, appStore} = useStores();
+    const {messagesStore, appStore, snackManager} = useStores();
     const messages = messagesStore.get(appId);
     const hasMore = messagesStore.canLoadMore(appId);
     const name = appStore.getName(appId);
     const hasMessages = messages.length !== 0;
     const expandedState = React.useRef<Record<number, boolean>>({});
+    const pendingDeletesRef = React.useRef<Map<number, PendingDelete>>(new Map());
     const app = appId === -1 ? undefined : appStore.getByIDOrUndefined(appId);
 
-    const deleteMessage = (message: IMessage) => () => messagesStore.removeSingle(message);
+    const deleteMessage = (message: IMessage) => () => startDelete(message);
 
     React.useEffect(() => {
         if (!messagesStore.loaded(appId)) {
             messagesStore.loadMore(appId);
         }
     }, [appId]);
+
+    React.useEffect(() => () => clearPendingDeletes(), []);
+
+    const clearPendingDeletes = () => {
+        pendingDeletesRef.current.forEach((pending, messageId) => {
+            window.clearTimeout(pending.timeoutId);
+            closeSnackbar(pending.snackKey);
+            messagesStore.clearPendingDelete(messageId);
+        });
+        pendingDeletesRef.current.clear();
+    };
+
+    const undoDelete = (messageId: number, snackKey: SnackbarKey) => {
+        const pending = pendingDeletesRef.current.get(messageId);
+        if (!pending) {
+            return;
+        }
+        window.clearTimeout(pending.timeoutId);
+        pendingDeletesRef.current.delete(messageId);
+        messagesStore.clearPendingDelete(messageId);
+        messagesStore.restoreSingleLocal(pending.message, pending.allIndex, pending.appIndex);
+        closeSnackbar(snackKey);
+        snackManager.snack('Delete undone');
+    };
+
+    const startDelete = (message: IMessage) => {
+        if (pendingDeletesRef.current.has(message.id)) {
+            return;
+        }
+        const {allIndex, appIndex} = messagesStore.removeSingleLocal(message);
+        if (allIndex === false && appIndex === false) {
+            return;
+        }
+        messagesStore.markPendingDelete(message.id);
+        const snackKey = snackManager.snack('Message deleted', {
+            action: (key) => (
+                <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => undoDelete(message.id, key)}>
+                    Undo
+                </Button>
+            ),
+            autoHideDuration: UndoTimeoutMs,
+        });
+        const timeoutId = window.setTimeout(async () => {
+            const pending = pendingDeletesRef.current.get(message.id);
+            if (!pending) {
+                return;
+            }
+            pendingDeletesRef.current.delete(message.id);
+            messagesStore.clearPendingDelete(message.id);
+            try {
+                await messagesStore.removeSingle(message);
+            } catch {
+                messagesStore.restoreSingleLocal(message, pending.allIndex, pending.appIndex);
+                snackManager.snack('Delete failed, message restored');
+            }
+        }, UndoTimeoutMs);
+        pendingDeletesRef.current.set(message.id, {
+            message,
+            allIndex,
+            appIndex,
+            timeoutId,
+            snackKey,
+        });
+    };
 
     const renderMessage = (_index: number, message: IMessage) => (
         <Message
@@ -110,7 +189,10 @@ const Messages = observer(() => {
                         id="refresh-all"
                         variant="contained"
                         color="primary"
-                        onClick={() => messagesStore.refreshByApp(appId)}
+                        onClick={() => {
+                            clearPendingDeletes();
+                            messagesStore.refreshByApp(appId);
+                        }}
                         style={{marginRight: 5}}>
                         Refresh
                     </Button>
@@ -133,7 +215,10 @@ const Messages = observer(() => {
                     title="Confirm Delete"
                     text={'Delete all messages?'}
                     fClose={() => setDeleteAll(false)}
-                    fOnSubmit={() => messagesStore.removeByApp(appId)}
+                    fOnSubmit={() => {
+                        clearPendingDeletes();
+                        messagesStore.removeByApp(appId);
+                    }}
                 />
             )}
             {pushMessageOpen && app && (

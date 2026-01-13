@@ -17,6 +17,7 @@ interface MessagesState {
 
 export class MessagesStore {
     private state: Record<string, MessagesState> = {};
+    private pendingDeleteIds = new Set<number>();
 
     private loading = false;
 
@@ -29,7 +30,10 @@ export class MessagesStore {
             loadMore: action,
             publishSingleMessage: action,
             removeByApp: action,
-            removeSingle: action,
+            removeSingleLocal: action,
+            restoreSingleLocal: action,
+            markPendingDelete: action,
+            clearPendingDelete: action,
             clearAll: action,
             refreshByApp: action,
         });
@@ -59,7 +63,10 @@ export class MessagesStore {
             const pagedResult = await this.fetchMessages(appId, state.nextSince).then(
                 (resp) => resp.data
             );
-            state.messages.replace([...state.messages, ...pagedResult.messages]);
+            const incoming = pagedResult.messages.filter(
+                (message) => !this.pendingDeleteIds.has(message.id)
+            );
+            state.messages.replace([...state.messages, ...incoming]);
             state.nextSince = pagedResult.paging.since ?? 0;
             state.hasMore = 'next' in pagedResult.paging;
             state.loaded = true;
@@ -95,13 +102,16 @@ export class MessagesStore {
 
     public removeSingle = async (message: IMessage) => {
         await axios.delete(config.get('url') + 'message/' + message.id);
-        if (this.exists(AllMessages)) {
-            this.removeFromList(this.state[AllMessages].messages, message);
-        }
-        if (this.exists(message.appid)) {
-            this.removeFromList(this.state[message.appid].messages, message);
-        }
-        this.snack('Message deleted');
+    };
+
+    public removeSingleLocal = (message: IMessage) => {
+        const allIndex = this.exists(AllMessages)
+            ? this.removeFromList(this.state[AllMessages].messages, message)
+            : false;
+        const appIndex = this.exists(message.appid)
+            ? this.removeFromList(this.state[message.appid].messages, message)
+            : false;
+        return {allIndex, appIndex};
     };
 
     public sendMessage = async (
@@ -160,6 +170,28 @@ export class MessagesStore {
             );
         }
     };
+
+    public restoreSingleLocal = (
+        message: IMessage,
+        allIndex: false | number,
+        appIndex: false | number
+    ) => {
+        if (allIndex !== false && this.exists(AllMessages)) {
+            this.state[AllMessages].messages.splice(allIndex, 0, message);
+        }
+        if (appIndex !== false && this.exists(message.appid)) {
+            this.state[message.appid].messages.splice(appIndex, 0, message);
+        }
+    };
+
+    public markPendingDelete = (messageId: number) => {
+        this.pendingDeleteIds.add(messageId);
+    };
+
+    public clearPendingDelete = (messageId: number) => {
+        this.pendingDeleteIds.delete(messageId);
+    };
+
 
     private getUnCached = (appId: number): Array<IMessage> => {
         const appToImage: Partial<Record<string, string>> = this.appStore

@@ -114,6 +114,7 @@ describe('Messages', () => {
         await waitToDisappear(page, '#push-message-dialog');
         expect(await extractMessages(1)).toEqual([m('UI Test', 'Hello from UI')]);
         await page.click('#messages .message .delete');
+        await waitForExists(page, 'button', 'Undo');
         expect(await extractMessages(0)).toEqual([]);
         await navigate('All Messages');
     });

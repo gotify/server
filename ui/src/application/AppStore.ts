@@ -26,7 +26,7 @@ export class AppStore extends BaseStore<IApplication> {
     protected requestDelete = (id: number): Promise<void> =>
         axios.delete(`${config.get('url')}application/${id}`).then(() => {
             this.onDelete();
-            return this.snack('Application deleted');
+            this.snack('Application deleted');
         });
 
     public uploadImage = async (id: number, file: Blob): Promise<void> => {

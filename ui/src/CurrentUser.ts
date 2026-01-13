@@ -92,7 +92,7 @@ export class CurrentUser {
             })
             .catch(() => {
                 this.authenticating = false;
-                return this.snack('Login failed');
+                this.snack('Login failed');
             });
     };
 
