@@ -192,7 +192,6 @@ export class MessagesStore {
         this.pendingDeleteIds.delete(messageId);
     };
 
-
     private getUnCached = (appId: number): Array<IMessage> => {
         const appToImage: Partial<Record<string, string>> = this.appStore
             .getItems()

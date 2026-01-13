@@ -20,11 +20,9 @@ export class ClientStore extends BaseStore<IClient> {
         axios.get<IClient[]>(`${config.get('url')}client`).then((response) => response.data);
 
     protected requestDelete(id: number): Promise<void> {
-        return axios
-            .delete(`${config.get('url')}client/${id}`)
-            .then(() => {
-                this.snack('Client deleted');
-            });
+        return axios.delete(`${config.get('url')}client/${id}`).then(() => {
+            this.snack('Client deleted');
+        });
     }
 
     public update = async (id: number, name: string): Promise<void> => {

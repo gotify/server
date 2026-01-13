@@ -52,7 +52,11 @@ const Messages = observer(() => {
 
     const clearPendingDeletes = (targetAppId?: number) => {
         pendingDeletesRef.current.forEach((pending, messageId) => {
-            if (targetAppId != null && targetAppId !== -1 && pending.message.appid !== targetAppId) {
+            if (
+                targetAppId != null &&
+                targetAppId !== -1 &&
+                pending.message.appid !== targetAppId
+            ) {
                 return;
             }
             window.clearTimeout(pending.timeoutId);
@@ -86,10 +90,7 @@ const Messages = observer(() => {
         messagesStore.markPendingDelete(message.id);
         const snackKey = snackManager.snack('Message deleted', {
             action: (key) => (
-                <Button
-                    color="inherit"
-                    size="small"
-                    onClick={() => undoDelete(message.id, key)}>
+                <Button color="inherit" size="small" onClick={() => undoDelete(message.id, key)}>
                     Undo
                 </Button>
             ),
