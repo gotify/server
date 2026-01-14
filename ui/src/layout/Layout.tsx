@@ -57,7 +57,7 @@ const Layout = observer(() => {
     const {classes} = useStyles();
     const [currentTheme, setCurrentTheme] = React.useState<ThemeKey>(() => {
         const stored = window.localStorage.getItem(localStorageThemeKey);
-        return isThemeKey(stored) ? stored : 'dark';
+        return isThemeKey(stored) ? stored : 'system';
     });
     const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
     const paletteMode = currentTheme === 'system' ? (prefersDark ? 'dark' : 'light') : currentTheme;
