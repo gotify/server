@@ -5,6 +5,7 @@ import * as config from '../config';
 import {createTransformer} from 'mobx-utils';
 import {SnackReporter} from '../snack/SnackManager';
 import {IApplication, IMessage, IPagedMessages} from '../types';
+import {closeSnackbar, SnackbarKey} from 'notistack';
 
 const AllMessages = -1;
 
@@ -15,8 +16,14 @@ interface MessagesState {
     loaded: boolean;
 }
 
+interface PendingDelete {
+    key: SnackbarKey;
+    message: IMessage;
+}
+
 export class MessagesStore {
     private state: Record<string, MessagesState> = {};
+    private pendingDeletes: Map<number, PendingDelete> = observable.map();
 
     private loading = false;
 
@@ -24,8 +31,12 @@ export class MessagesStore {
         private readonly appStore: BaseStore<IApplication>,
         private readonly snack: SnackReporter
     ) {
-        makeObservable<MessagesStore, 'state'>(this, {
+        makeObservable<MessagesStore, 'state' | 'pendingDeletes'>(this, {
             state: observable,
+            pendingDeletes: observable,
+            addPendingDelete: action,
+            executePendingDeletes: action,
+            cancelPendingDelete: action,
             loadMore: action,
             publishSingleMessage: action,
             removeByApp: action,
@@ -93,15 +104,39 @@ export class MessagesStore {
         await this.loadMore(appId);
     };
 
+    public addPendingDelete = (pending: PendingDelete) =>
+        this.pendingDeletes.set(pending.message.id, pending);
+
+    public cancelPendingDelete = (message: IMessage): boolean => {
+        const pending = this.pendingDeletes.get(message.id);
+        if (pending) {
+            this.pendingDeletes.delete(message.id);
+            closeSnackbar(pending.key);
+        }
+        return !!pending;
+    };
+
+    public executePendingDeletes = () =>
+        Array.from(this.pendingDeletes.values()).forEach(({message}) => this.removeSingle(message));
+
+    public visible = (message: number): boolean => !this.pendingDeletes.has(message);
+
     public removeSingle = async (message: IMessage) => {
-        await axios.delete(config.get('url') + 'message/' + message.id);
+        if (!this.pendingDeletes.has(message.id)) {
+            return;
+        }
+
+        await axios.delete(config.get('url') + 'message/' + message.id, {
+            adapter: 'fetch',
+            fetchOptions: {keepalive: true},
+        });
         if (this.exists(AllMessages)) {
             this.removeFromList(this.state[AllMessages].messages, message);
         }
         if (this.exists(message.appid)) {
             this.removeFromList(this.state[message.appid].messages, message);
         }
-        this.snack('Message deleted');
+        this.cancelPendingDelete(message);
     };
 
     public sendMessage = async (
