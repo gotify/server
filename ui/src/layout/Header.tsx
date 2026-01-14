@@ -9,7 +9,9 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import Chat from '@mui/icons-material/Chat';
 import DevicesOther from '@mui/icons-material/DevicesOther';
 import ExitToApp from '@mui/icons-material/ExitToApp';
-import Highlight from '@mui/icons-material/Highlight';
+import Brightness4 from '@mui/icons-material/Brightness4';
+import Brightness7 from '@mui/icons-material/Brightness7';
+import BrightnessAuto from '@mui/icons-material/BrightnessAuto';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import MenuIcon from '@mui/icons-material/Menu';
 import Apps from '@mui/icons-material/Apps';
@@ -17,6 +19,13 @@ import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import React, {CSSProperties} from 'react';
 import {Link} from 'react-router-dom';
 import {useMediaQuery} from '@mui/material';
+import {ThemeKey} from './theme';
+
+const themeIcons: Record<ThemeKey, React.ReactElement> = {
+    dark: <Brightness4 />,
+    light: <Brightness7 />,
+    system: <BrightnessAuto />,
+};
 
 const useStyles = makeStyles()((theme: Theme) => ({
     appBar: {
@@ -67,6 +76,7 @@ interface IProps {
     name: string;
     admin: boolean;
     version: string;
+    themeMode: ThemeKey;
     toggleTheme: VoidFunction;
     showSettings: VoidFunction;
     logout: VoidFunction;
@@ -84,9 +94,11 @@ const Header = ({
     style,
     setNavOpen,
     showSettings,
+    themeMode,
 }: IProps) => {
     const {classes} = useStyles();
-
+    const themeLabel = `Toggle theme (current: ${themeMode})`;
+    const themeIcon = themeIcons[themeMode];
     return (
         <AppBar
             sx={{position: {xs: 'sticky', sm: 'fixed'}}}
@@ -117,8 +129,13 @@ const Header = ({
                     />
                 )}
                 <div>
-                    <IconButton onClick={toggleTheme} color="inherit" size="large">
-                        <Highlight />
+                    <IconButton
+                        onClick={toggleTheme}
+                        color="inherit"
+                        size="large"
+                        title={themeLabel}
+                        aria-label={themeLabel}>
+                        {themeIcon}
                     </IconButton>
 
                     <a
