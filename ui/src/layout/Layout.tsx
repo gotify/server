@@ -25,6 +25,7 @@ import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
 import {useStores} from '../stores';
 import {SnackbarProvider} from 'notistack';
 import LoadingSpinner from '../common/LoadingSpinner';
+import {isThemeKey, ThemeKey} from './theme';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     content: {
@@ -40,10 +41,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
 }));
 
 const localStorageThemeKey = 'gotify-theme';
-type ThemeKey = 'dark' | 'light' | 'system';
-
-const isThemeKey = (value: string | null): value is ThemeKey =>
-    value === 'light' || value === 'dark' || value === 'system';
 
 const Layout = observer(() => {
     const {

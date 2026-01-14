@@ -19,6 +19,13 @@ import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import React, {CSSProperties} from 'react';
 import {Link} from 'react-router-dom';
 import {useMediaQuery} from '@mui/material';
+import {ThemeKey} from './theme';
+
+const themeIcons: Record<ThemeKey, React.ReactElement> = {
+    dark: <Brightness4 />,
+    light: <Brightness7 />,
+    system: <BrightnessAuto />,
+};
 
 const useStyles = makeStyles()((theme: Theme) => ({
     appBar: {
@@ -62,22 +69,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
         color: 'inherit',
         textDecoration: 'none',
     },
-    themeIcon: {
-        display: 'inline-flex',
-        transition: 'transform 200ms ease, opacity 200ms ease',
-    },
-    themeIconSystem: {
-        transform: 'rotate(0deg) scale(1)',
-        opacity: 1,
-    },
-    themeIconDark: {
-        transform: 'rotate(-20deg) scale(0.95)',
-        opacity: 0.9,
-    },
-    themeIconLight: {
-        transform: 'rotate(20deg) scale(1.05)',
-        opacity: 1,
-    },
 }));
 
 interface IProps {
@@ -85,7 +76,7 @@ interface IProps {
     name: string;
     admin: boolean;
     version: string;
-    themeMode: 'dark' | 'light' | 'system';
+    themeMode: ThemeKey;
     toggleTheme: VoidFunction;
     showSettings: VoidFunction;
     logout: VoidFunction;
@@ -107,21 +98,7 @@ const Header = ({
 }: IProps) => {
     const {classes} = useStyles();
     const themeLabel = `Toggle theme (current: ${themeMode})`;
-    const themeIcon =
-        themeMode === 'system' ? (
-            <BrightnessAuto />
-        ) : themeMode === 'dark' ? (
-            <Brightness4 />
-        ) : (
-            <Brightness7 />
-        );
-    const themeIconClass =
-        themeMode === 'system'
-            ? classes.themeIconSystem
-            : themeMode === 'dark'
-              ? classes.themeIconDark
-              : classes.themeIconLight;
-
+    const themeIcon = themeIcons[themeMode];
     return (
         <AppBar
             sx={{position: {xs: 'sticky', sm: 'fixed'}}}
@@ -158,9 +135,7 @@ const Header = ({
                         size="large"
                         title={themeLabel}
                         aria-label={themeLabel}>
-                        <span className={`${classes.themeIcon} ${themeIconClass}`}>
-                            {themeIcon}
-                        </span>
+                        {themeIcon}
                     </IconButton>
 
                     <a
