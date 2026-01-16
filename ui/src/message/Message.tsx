@@ -12,8 +12,6 @@ import * as config from '../config';
 import {IMessageExtras} from '../types';
 import {contentType, RenderMode} from './extras';
 import {TimeAgoFormatter} from '../common/TimeAgoFormatter';
-import {useStores} from '../stores';
-import {observer} from 'mobx-react-lite';
 
 const PREVIEW_LENGTH = 500;
 
@@ -94,7 +92,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
 }));
 
 interface IProps {
-    id: number;
     title: string;
     image?: string;
     date: string;
@@ -119,7 +116,6 @@ const priorityColor = (priority: number) => {
 
 const Message = ({
     fDelete,
-    id,
     title,
     date,
     image,
@@ -131,7 +127,6 @@ const Message = ({
     expanded: initialExpanded,
 }: IProps) => {
     const theme = useTheme();
-    const {messagesStore} = useStores();
     const contentRef = React.useRef<HTMLDivElement | null>(null);
     const {classes} = useStyles();
     const [expanded, setExpanded] = React.useState(initialExpanded);
@@ -167,9 +162,6 @@ const Message = ({
                 return <span className={classes.plainContent}>{content}</span>;
         }
     };
-    if (!messagesStore.visible(id)) {
-        return <></>;
-    }
     return (
         <div className={`${classes.wrapperPadding} message`}>
             <Container
@@ -312,4 +304,4 @@ const HeaderSmall = ({
     );
 };
 
-export default observer(Message);
+export default Message;

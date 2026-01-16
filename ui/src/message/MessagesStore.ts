@@ -201,12 +201,9 @@ export class MessagesStore {
             .getItems()
             .reduce((all, app) => ({...all, [app.id]: app.image}), {});
 
-        return this.stateOf(appId, false).messages.map(
-            (message: IMessage): IMessage => ({
-                ...message,
-                image: appToImage[message.appid],
-            })
-        );
+        return this.stateOf(appId, false)
+            .messages.filter((message) => !this.pendingDeletes.has(message.id))
+            .map((message: IMessage): IMessage => ({...message, image: appToImage[message.appid]}));
     };
 
     public get = createTransformer(this.getUnCached);

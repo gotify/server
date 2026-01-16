@@ -60,7 +60,6 @@ const Messages = observer(() => {
     const renderMessage = (_index: number, message: IMessage) => (
         <Message
             key={message.id}
-            id={message.id}
             fDelete={() => deleteMessage(message)}
             onExpand={(expanded) => (expandedState.current[message.id] = expanded)}
             title={message.title}
@@ -92,8 +91,6 @@ const Messages = observer(() => {
     };
 
     const renderMessages = () => (
-        // Virtuoso logs errors when elements have 0px size as this normally means it's miscalculated.
-        // In our case this is fine because we "hide" pending deletions by rendering nothing.
         <Virtuoso
             id="messages"
             style={{width: '100%'}}
