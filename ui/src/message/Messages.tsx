@@ -12,6 +12,9 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import {useStores} from '../stores';
 import {Virtuoso} from 'react-virtuoso';
 import {PushMessageDialog} from './PushMessageDialog';
+import {enqueueSnackbar} from 'notistack';
+
+const UndoAutoHideMs = 5000;
 
 const Messages = observer(() => {
     const {id} = useParams<{id: string}>();
@@ -28,7 +31,25 @@ const Messages = observer(() => {
     const expandedState = React.useRef<Record<number, boolean>>({});
     const app = appId === -1 ? undefined : appStore.getByIDOrUndefined(appId);
 
-    const deleteMessage = (message: IMessage) => () => messagesStore.removeSingle(message);
+    const deleteMessage = (message: IMessage) => {
+        const key = enqueueSnackbar({
+            message: 'Message deleted',
+            variant: 'info',
+            action: () => (
+                <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => messagesStore.cancelPendingDelete(message)}>
+                    Undo
+                </Button>
+            ),
+            disableWindowBlurListener: true,
+            transitionDuration: {enter: 0, exit: 0},
+            autoHideDuration: UndoAutoHideMs,
+            onExited: () => messagesStore.removeSingle(message),
+        });
+        messagesStore.addPendingDelete({message, key});
+    };
 
     React.useEffect(() => {
         if (!messagesStore.loaded(appId)) {
@@ -39,7 +60,7 @@ const Messages = observer(() => {
     const renderMessage = (_index: number, message: IMessage) => (
         <Message
             key={message.id}
-            fDelete={deleteMessage(message)}
+            fDelete={() => deleteMessage(message)}
             onExpand={(expanded) => (expandedState.current[message.id] = expanded)}
             title={message.title}
             date={message.date}
