@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gotify/server/v2/auth/password"
-	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/fracdex"
 	"github.com/gotify/server/v2/model"
 	"github.com/mattn/go-isatty"
@@ -28,14 +27,9 @@ var mkdirAll = os.MkdirAll
 func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUserIfNotExist bool) (*GormDatabase, error) {
 	createDirectoryIfSqlite(dialect, connection)
 
-	logLevel := logger.Info
-	if mode.Get() == mode.Prod {
-		logLevel = logger.Warn
-	}
-
 	dbLogger := logger.New(log.New(os.Stderr, "\r\n", log.LstdFlags), logger.Config{
 		SlowThreshold:             200 * time.Millisecond,
-		LogLevel:                  logLevel,
+		LogLevel:                  logger.Warn,
 		IgnoreRecordNotFoundError: true,
 		Colorful:                  isatty.IsTerminal(os.Stderr.Fd()),
 	})
