@@ -54,4 +54,9 @@ type Application struct {
 	// read only: true
 	// example: 2019-01-01T00:00:00Z
 	LastUsed *time.Time `json:"lastUsed"`
+	// The sort key of this application. Uses fractional indexing.
+	//
+	// required: true
+	// example: a1
+	SortKey string `form:"sortKey" query:"sortKey" json:"sortKey"`
 }

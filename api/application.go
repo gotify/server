@@ -49,6 +49,10 @@ type ApplicationParams struct {
 	//
 	// example: 5
 	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`
+	// The sortKey for the application. Uses fractional indexing.
+	//
+	// example: a1
+	SortKey string `form:"sortKey" query:"sortKey" json:"sortKey"`
 }
 
 // CreateApplication creates an application and returns the access token.
@@ -91,6 +95,7 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 			Name:            applicationParams.Name,
 			Description:     applicationParams.Description,
 			DefaultPriority: applicationParams.DefaultPriority,
+			SortKey:         applicationParams.SortKey,
 			Token:           auth.GenerateNotExistingToken(generateApplicationToken, a.applicationExists),
 			UserID:          auth.GetUserID(ctx),
 			Internal:        false,
@@ -252,6 +257,9 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 				app.Description = applicationParams.Description
 				app.Name = applicationParams.Name
 				app.DefaultPriority = applicationParams.DefaultPriority
+				if applicationParams.SortKey != "" {
+					app.SortKey = applicationParams.SortKey
+				}
 
 				if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
 					return

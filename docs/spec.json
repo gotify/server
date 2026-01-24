@@ -2060,7 +2060,8 @@
         "name",
         "description",
         "internal",
-        "image"
+        "image",
+        "sortKey"
       ],
       "properties": {
         "defaultPriority": {
@@ -2112,6 +2113,12 @@
           "x-go-name": "Name",
           "example": "Backup Server"
         },
+        "sortKey": {
+          "description": "The sort key of this application. Uses fractional indexing.",
+          "type": "string",
+          "x-go-name": "SortKey",
+          "example": "a1"
+        },
         "token": {
           "description": "The application token. Can be used as `appToken`. See Authentication.",
           "type": "string",
@@ -2148,6 +2155,12 @@
           "type": "string",
           "x-go-name": "Name",
           "example": "Backup Server"
+        },
+        "sortKey": {
+          "description": "The sortKey for the application. Uses fractional indexing.",
+          "type": "string",
+          "x-go-name": "SortKey",
+          "example": "a1"
         }
       },
       "x-go-package": "github.com/gotify/server/v2/api"
