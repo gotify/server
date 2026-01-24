@@ -15,13 +15,13 @@ beforeAll(async () => {
 afterAll(async () => await gotify.close());
 
 enum Col {
-    Name = 2,
-    Token = 3,
-    Description = 4,
-    DefaultPriority = 5,
-    LastUsed = 6,
-    EditUpdate = 7,
-    EditDelete = 8,
+    Name = 3,
+    Token = 4,
+    Description = 5,
+    DefaultPriority = 6,
+    LastUsed = 7,
+    EditUpdate = 8,
+    EditDelete = 9,
 }
 
 const hiddenToken = '•••••••••••••••';
