@@ -2,7 +2,7 @@ import axios, {AxiosError, AxiosResponse} from 'axios';
 import * as config from './config';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
-import {observable, makeObservable} from 'mobx';
+import {observable, runInAction, action} from 'mobx';
 import {IClient, IUser} from './types';
 
 const tokenKey = 'gotify-login-key';
@@ -11,21 +11,13 @@ export class CurrentUser {
     private tokenCache: string | null = null;
     private reconnectTimeoutId: number | null = null;
     private reconnectTime = 7500;
-    public loggedIn = false;
-    public refreshKey = 0;
-    public authenticating = true;
-    public user: IUser = {name: 'unknown', admin: false, id: -1};
-    public connectionErrorMessage: string | null = null;
+    @observable accessor loggedIn = false;
+    @observable accessor refreshKey = 0;
+    @observable accessor authenticating = true;
+    @observable accessor user: IUser = {name: 'unknown', admin: false, id: -1};
+    @observable accessor connectionErrorMessage: string | null = null;
 
-    public constructor(private readonly snack: SnackReporter) {
-        makeObservable(this, {
-            loggedIn: observable,
-            authenticating: observable,
-            user: observable,
-            connectionErrorMessage: observable,
-            refreshKey: observable,
-        });
-    }
+    public constructor(private readonly snack: SnackReporter) {}
 
     public token = (): string => {
         if (this.tokenCache !== null) {
@@ -69,8 +61,10 @@ export class CurrentUser {
             });
 
     public login = async (username: string, password: string) => {
-        this.loggedIn = false;
-        this.authenticating = true;
+        runInAction(() => {
+            this.loggedIn = false;
+            this.authenticating = true;
+        });
         const browser = detect();
         const name = (browser && browser.name + ' ' + browser.version) || 'unknown browser';
         axios
@@ -90,50 +84,58 @@ export class CurrentUser {
                     );
                 });
             })
-            .catch(() => {
-                this.authenticating = false;
-                return this.snack('Login failed');
-            });
+            .catch(
+                action(() => {
+                    this.authenticating = false;
+                    return this.snack('Login failed');
+                })
+            );
     };
 
     public tryAuthenticate = async (): Promise<AxiosResponse<IUser>> => {
         if (this.token() === '') {
-            this.authenticating = false;
+            runInAction(() => {
+                this.authenticating = false;
+            });
             return Promise.reject();
         }
 
         return axios
             .create()
             .get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': this.token()}})
-            .then((passThrough) => {
-                this.user = passThrough.data;
-                this.loggedIn = true;
-                this.authenticating = false;
-                this.connectionErrorMessage = null;
-                this.reconnectTime = 7500;
-                return passThrough;
-            })
-            .catch((error: AxiosError) => {
-                this.authenticating = false;
-                if (!error || !error.response) {
-                    this.connectionError('No network connection or server unavailable.');
+            .then(
+                action((passThrough) => {
+                    this.user = passThrough.data;
+                    this.loggedIn = true;
+                    this.authenticating = false;
+                    this.connectionErrorMessage = null;
+                    this.reconnectTime = 7500;
+                    return passThrough;
+                })
+            )
+            .catch(
+                action((error: AxiosError) => {
+                    this.authenticating = false;
+                    if (!error || !error.response) {
+                        this.connectionError('No network connection or server unavailable.');
+                        return Promise.reject(error);
+                    }
+
+                    if (error.response.status >= 500) {
+                        this.connectionError(
+                            `${error.response.statusText} (code: ${error.response.status}).`
+                        );
+                        return Promise.reject(error);
+                    }
+
+                    this.connectionErrorMessage = null;
+
+                    if (error.response.status >= 400 && error.response.status < 500) {
+                        this.logout();
+                    }
                     return Promise.reject(error);
-                }
-
-                if (error.response.status >= 500) {
-                    this.connectionError(
-                        `${error.response.statusText} (code: ${error.response.status}).`
-                    );
-                    return Promise.reject(error);
-                }
-
-                this.connectionErrorMessage = null;
-
-                if (error.response.status >= 400 && error.response.status < 500) {
-                    this.logout();
-                }
-                return Promise.reject(error);
-            });
+                })
+            );
     };
 
     public logout = async () => {
@@ -147,7 +149,9 @@ export class CurrentUser {
             .catch(() => Promise.resolve());
         window.localStorage.removeItem(tokenKey);
         this.tokenCache = null;
-        this.loggedIn = false;
+        runInAction(() => {
+            this.loggedIn = false;
+        });
     };
 
     public changePassword = (pass: string) => {

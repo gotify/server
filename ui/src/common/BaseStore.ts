@@ -1,4 +1,4 @@
-import {action, observable, makeObservable} from 'mobx';
+import {action, observable} from 'mobx';
 
 interface HasID {
     id: number;
@@ -12,21 +12,27 @@ export interface IClearable {
  * Base implementation for handling items with ids.
  */
 export abstract class BaseStore<T extends HasID> implements IClearable {
-    protected items: T[] = [];
+    @observable protected accessor items: T[] = [];
 
     protected abstract requestItems(): Promise<T[]>;
 
     protected abstract requestDelete(id: number): Promise<void>;
 
+    @action
     public remove = async (id: number): Promise<void> => {
         await this.requestDelete(id);
         await this.refresh();
     };
 
-    public refresh = async (): Promise<void> => {
-        this.items = await this.requestItems().then((items) => items || []);
-    };
+    @action
+    public refresh = (): Promise<void> =>
+        this.requestItems().then(
+            action((items) => {
+                this.items = items || [];
+            })
+        );
 
+    @action
     public refreshIfMissing = async (id: number): Promise<void> => {
         if (this.getByIDOrUndefined(id) === undefined) {
             await this.refresh();
@@ -46,18 +52,8 @@ export abstract class BaseStore<T extends HasID> implements IClearable {
 
     public getItems = (): T[] => this.items;
 
+    @action
     public clear = (): void => {
         this.items = [];
     };
-
-    constructor() {
-        // eslint-disable-next-line
-        makeObservable<BaseStore<any>, 'items'>(this, {
-            items: observable,
-            remove: action,
-            refresh: action,
-            refreshIfMissing: action,
-            clear: action,
-        });
-    }
 }

@@ -1,5 +1,5 @@
 import {BaseStore} from '../common/BaseStore';
-import {action, IObservableArray, observable, reaction, makeObservable} from 'mobx';
+import {action, IObservableArray, observable, reaction, runInAction} from 'mobx';
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
 import {createTransformer} from 'mobx-utils';
@@ -22,8 +22,8 @@ interface PendingDelete {
 }
 
 export class MessagesStore {
-    private state: Record<string, MessagesState> = {};
-    private pendingDeletes: Map<number, PendingDelete> = observable.map();
+    @observable private accessor state: Record<string, MessagesState> = {};
+    @observable private accessor pendingDeletes: Map<number, PendingDelete> = observable.map();
 
     private loading = false;
 
@@ -31,20 +31,6 @@ export class MessagesStore {
         private readonly appStore: BaseStore<IApplication>,
         private readonly snack: SnackReporter
     ) {
-        makeObservable<MessagesStore, 'state' | 'pendingDeletes'>(this, {
-            state: observable,
-            pendingDeletes: observable,
-            addPendingDelete: action,
-            executePendingDeletes: action,
-            cancelPendingDelete: action,
-            loadMore: action,
-            publishSingleMessage: action,
-            removeByApp: action,
-            removeSingle: action,
-            clearAll: action,
-            refreshByApp: action,
-        });
-
         reaction(() => appStore.getItems(), this.createEmptyStatesForApps);
     }
 
@@ -59,6 +45,7 @@ export class MessagesStore {
 
     public canLoadMore = (appId: number) => this.stateOf(appId, /*create*/ false).hasMore;
 
+    @action
     public loadMore = async (appId: number) => {
         const state = this.stateOf(appId);
         if (!state.hasMore || this.loading) {
@@ -70,10 +57,12 @@ export class MessagesStore {
             const pagedResult = await this.fetchMessages(appId, state.nextSince).then(
                 (resp) => resp.data
             );
-            state.messages.replace([...state.messages, ...pagedResult.messages]);
-            state.nextSince = pagedResult.paging.since ?? 0;
-            state.hasMore = 'next' in pagedResult.paging;
-            state.loaded = true;
+            runInAction(() => {
+                state.messages.replace([...state.messages, ...pagedResult.messages]);
+                state.nextSince = pagedResult.paging.since ?? 0;
+                state.hasMore = 'next' in pagedResult.paging;
+                state.loaded = true;
+            });
         } finally {
             this.loading = false;
         }
@@ -81,6 +70,7 @@ export class MessagesStore {
         return Promise.resolve();
     };
 
+    @action
     public publishSingleMessage = (message: IMessage) => {
         if (this.exists(AllMessages)) {
             this.stateOf(AllMessages).messages.unshift(message);
@@ -90,6 +80,7 @@ export class MessagesStore {
         }
     };
 
+    @action
     public removeByApp = async (appId: number) => {
         if (appId === AllMessages) {
             await axios.delete(config.get('url') + 'message');
@@ -104,9 +95,11 @@ export class MessagesStore {
         await this.loadMore(appId);
     };
 
+    @action
     public addPendingDelete = (pending: PendingDelete) =>
         this.pendingDeletes.set(pending.message.id, pending);
 
+    @action
     public cancelPendingDelete = (message: IMessage): boolean => {
         const pending = this.pendingDeletes.get(message.id);
         if (pending) {
@@ -116,11 +109,13 @@ export class MessagesStore {
         return !!pending;
     };
 
+    @action
     public executePendingDeletes = () =>
         Array.from(this.pendingDeletes.values()).forEach(({message}) => this.removeSingle(message));
 
     public visible = (message: number): boolean => !this.pendingDeletes.has(message);
 
+    @action
     public removeSingle = async (message: IMessage) => {
         if (!this.pendingDeletes.has(message.id)) {
             return;
@@ -158,11 +153,13 @@ export class MessagesStore {
         this.snack(`Message sent to ${app.name}`);
     };
 
+    @action
     public clearAll = () => {
         this.state = {};
         this.createEmptyStatesForApps(this.appStore.getItems());
     };
 
+    @action
     public refreshByApp = async (appId: number) => {
         this.clearAll();
         this.loadMore(appId);
@@ -170,6 +167,7 @@ export class MessagesStore {
 
     public exists = (id: number) => this.stateOf(id).loaded;
 
+    @action
     private removeFromList(messages: IMessage[], messageToDelete: IMessage): false | number {
         if (messages) {
             const index = messages.findIndex((message) => message.id === messageToDelete.id);
@@ -181,6 +179,7 @@ export class MessagesStore {
         return false;
     }
 
+    @action
     private clear = (appId: number) => (this.state[appId] = this.emptyState());
 
     private fetchMessages = (

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {action, makeObservable} from 'mobx';
+import {action} from 'mobx';
 import {BaseStore} from '../common/BaseStore';
 import * as config from '../config';
 import {SnackReporter} from '../snack/SnackManager';
@@ -10,11 +10,6 @@ export class PluginStore extends BaseStore<IPlugin> {
 
     public constructor(private readonly snack: SnackReporter) {
         super();
-
-        makeObservable(this, {
-            changeConfig: action,
-            changeEnabledState: action,
-        });
     }
 
     public requestConfig = (id: number): Promise<string> =>
@@ -36,6 +31,7 @@ export class PluginStore extends BaseStore<IPlugin> {
         return id === -1 ? 'All Plugins' : plugin !== undefined ? plugin.name : 'unknown';
     };
 
+    @action
     public changeConfig = async (id: number, newConfig: string): Promise<void> => {
         await axios.post(`${config.get('url')}plugin/${id}/config`, newConfig, {
             headers: {'content-type': 'application/x-yaml'},
@@ -44,6 +40,7 @@ export class PluginStore extends BaseStore<IPlugin> {
         await this.refresh();
     };
 
+    @action
     public changeEnabledState = async (id: number, enabled: boolean): Promise<void> => {
         await axios.post(`${config.get('url')}plugin/${id}/${enabled ? 'enable' : 'disable'}`);
         this.snack(`Plugin ${enabled ? 'enabled' : 'disabled'}`);
