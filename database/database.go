@@ -36,6 +36,7 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 	gormConfig := &gorm.Config{
 		Logger:                                   dbLogger,
 		DisableForeignKeyConstraintWhenMigrating: true,
+		TranslateError:                           true,
 	}
 
 	var db *gorm.DB

@@ -20,7 +20,7 @@ type Application struct {
 	// required: true
 	// example: AWH0wZ5r0Mbac.r
 	Token  string `gorm:"type:varchar(180);uniqueIndex:uix_applications_token" json:"token"`
-	UserID uint   `gorm:"index" json:"-"`
+	UserID uint   `gorm:"index;uniqueIndex:uix_application_user_id_sort_key,priority:1" json:"-"`
 	// The application name. This is how the application should be displayed to the user.
 	//
 	// required: true
@@ -58,5 +58,5 @@ type Application struct {
 	//
 	// required: true
 	// example: a1
-	SortKey string `form:"sortKey" query:"sortKey" json:"sortKey"`
+	SortKey string `gorm:"uniqueIndex:uix_application_user_id_sort_key,priority:2" form:"sortKey" query:"sortKey" json:"sortKey"`
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/model"
 	"github.com/h2non/filetype"
+	"gorm.io/gorm"
 )
 
 // The ApplicationDatabase interface for encapsulating database access.
@@ -101,7 +102,8 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 			Internal:        false,
 		}
 
-		if success := successOrAbort(ctx, 500, a.DB.CreateApplication(&app)); !success {
+		if err := a.DB.CreateApplication(&app); err != nil {
+			handleApplicationError(ctx, err)
 			return
 		}
 		ctx.JSON(200, withResolvedImage(&app))
@@ -261,7 +263,8 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 					app.SortKey = applicationParams.SortKey
 				}
 
-				if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
+				if err := a.DB.UpdateApplication(app); err != nil {
+					handleApplicationError(ctx, err)
 					return
 				}
 				ctx.JSON(200, withResolvedImage(app))
@@ -474,5 +477,13 @@ func ValidApplicationImageExt(ext string) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func handleApplicationError(ctx *gin.Context, err error) {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		ctx.AbortWithError(400, errors.New("sort key is not unique"))
+	} else {
+		ctx.AbortWithError(500, err)
 	}
 }

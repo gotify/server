@@ -647,6 +647,21 @@ func (s *ApplicationSuite) Test_UpdateApplication_WithoutPermission_expectNotFou
 	assert.Equal(s.T(), 404, s.recorder.Code)
 }
 
+func (s *ApplicationSuite) Test_UpdateApplication_duplicateSortKey() {
+	user := s.db.User(5)
+	user.App(1) // sortKey=a0
+	user.App(2) // sortKey=a1
+
+	s.withFormData("name=new_name&sortKey=a0")
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+
+	s.a.UpdateApplication(s.ctx)
+
+	assert.EqualError(s.T(), s.ctx.Errors[0].Err, "sort key is not unique")
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
 func (s *ApplicationSuite) withFormData(formData string) {
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(formData))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
