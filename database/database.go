@@ -1,14 +1,17 @@
 package database
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/gotify/server/v2/auth/password"
-	"github.com/gotify/server/v2/mode"
+	"github.com/gotify/server/v2/fracdex"
 	"github.com/gotify/server/v2/model"
 	"github.com/mattn/go-isatty"
 	"gorm.io/driver/mysql"
@@ -24,20 +27,16 @@ var mkdirAll = os.MkdirAll
 func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUserIfNotExist bool) (*GormDatabase, error) {
 	createDirectoryIfSqlite(dialect, connection)
 
-	logLevel := logger.Info
-	if mode.Get() == mode.Prod {
-		logLevel = logger.Warn
-	}
-
 	dbLogger := logger.New(log.New(os.Stderr, "\r\n", log.LstdFlags), logger.Config{
 		SlowThreshold:             200 * time.Millisecond,
-		LogLevel:                  logLevel,
+		LogLevel:                  logger.Warn,
 		IgnoreRecordNotFoundError: true,
 		Colorful:                  isatty.IsTerminal(os.Stderr.Fd()),
 	})
 	gormConfig := &gorm.Config{
 		Logger:                                   dbLogger,
 		DisableForeignKeyConstraintWhenMigrating: true,
+		TranslateError:                           true,
 	}
 
 	var db *gorm.DB
@@ -91,7 +90,44 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 		db.Create(&model.User{Name: defaultUser, Pass: password.CreatePassword(defaultPass, strength), Admin: true})
 	}
 
+	if err := db.Transaction(fillMissingSortKeys, &sql.TxOptions{Isolation: sql.LevelSerializable}); err != nil {
+		return nil, err
+	}
+
 	return &GormDatabase{DB: db}, nil
+}
+
+func fillMissingSortKeys(db *gorm.DB) error {
+	missingSort := int64(0)
+	if err := db.Model(new(model.Application)).Where("sort_key IS NULL OR sort_key = ''").Count(&missingSort).Error; err != nil {
+		return err
+	}
+
+	if missingSort == 0 {
+		return nil
+	}
+
+	var apps []*model.Application
+	if err := db.Order("user_id, sort_key, id ASC").Find(&apps).Error; err != nil && err != gorm.ErrRecordNotFound {
+		return err
+	}
+	fmt.Println("Migrating", len(apps), "application sort keys for")
+
+	sortKey := ""
+	currentUser := uint(math.MaxUint)
+	var err error
+	for _, app := range apps {
+		if currentUser != app.UserID {
+			sortKey = ""
+			currentUser = app.UserID
+		}
+		sortKey, err = fracdex.KeyBetween(sortKey, "")
+		if err != nil {
+			return err
+		}
+		app.SortKey = sortKey
+	}
+	return db.Save(apps).Error
 }
 
 func createDirectoryIfSqlite(dialect, connection string) {

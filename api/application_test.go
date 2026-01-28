@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http/httptest"
@@ -17,12 +18,14 @@ import (
 	"github.com/gotify/server/v2/test"
 	"github.com/gotify/server/v2/test/testdb"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
 var (
 	firstApplicationToken  = "Aaaaaaaaaaaaaaa"
 	secondApplicationToken = "Abbbbbbbbbbbbbb"
+	thirdApplicationToken  = "Acccccccccccccc"
 )
 
 func TestApplicationSuite(t *testing.T) {
@@ -45,8 +48,8 @@ var (
 func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
 	originalGenerateApplicationToken = generateApplicationToken
 	originalGenerateImageName = generateImageName
-	generateApplicationToken = test.Tokens(firstApplicationToken, secondApplicationToken)
-	generateImageName = test.Tokens(firstApplicationToken[1:], secondApplicationToken[1:])
+	generateApplicationToken = test.Tokens(firstApplicationToken, secondApplicationToken, thirdApplicationToken)
+	generateImageName = test.Tokens(firstApplicationToken[1:], secondApplicationToken[1:], thirdApplicationToken[1:])
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())
@@ -65,7 +68,7 @@ func (s *ApplicationSuite) Test_CreateApplication_mapAllParameters() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
-	s.withFormData("name=custom_name&description=description_text")
+	s.withFormData("name=custom_name&description=description_text&sortKey=a5")
 	s.a.CreateApplication(s.ctx)
 
 	expected := &model.Application{
@@ -74,6 +77,7 @@ func (s *ApplicationSuite) Test_CreateApplication_mapAllParameters() {
 		UserID:      5,
 		Name:        "custom_name",
 		Description: "description_text",
+		SortKey:     "a5",
 	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
@@ -91,8 +95,9 @@ func (s *ApplicationSuite) Test_ensureApplicationHasCorrectJsonRepresentation() 
 		Image:       "asd",
 		Internal:    true,
 		LastUsed:    nil,
+		SortKey:     "a1",
 	}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true, "defaultPriority":0, "lastUsed":null}`)
+	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true, "defaultPriority":0, "lastUsed":null, "sortKey":"a1"}`)
 }
 
 func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {
@@ -119,6 +124,7 @@ func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInPar
 		Internal:    true,
 		Token:       "token",
 		Image:       "adfdf",
+		SortKey:     "a5",
 	})
 
 	s.a.CreateApplication(s.ctx)
@@ -131,6 +137,7 @@ func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInPar
 		Description: "description",
 		Internal:    false,
 		Image:       "static/defaultapp.png",
+		SortKey:     "a5",
 	})
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -158,7 +165,7 @@ func (s *ApplicationSuite) Test_CreateApplication_onlyRequiredParameters() {
 	s.withFormData("name=custom_name")
 	s.a.CreateApplication(s.ctx)
 
-	expected := &model.Application{ID: 1, Token: firstApplicationToken, Name: "custom_name", UserID: 5}
+	expected := &model.Application{ID: 1, Token: firstApplicationToken, Name: "custom_name", UserID: 5, SortKey: "a0"}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
 		assert.Contains(s.T(), app, expected)
@@ -174,11 +181,12 @@ func (s *ApplicationSuite) Test_CreateApplication_returnsApplicationWithID() {
 	s.a.CreateApplication(s.ctx)
 
 	expected := &model.Application{
-		ID:     1,
-		Token:  firstApplicationToken,
-		Name:   "custom_name",
-		Image:  "static/defaultapp.png",
-		UserID: 5,
+		ID:      1,
+		Token:   firstApplicationToken,
+		Name:    "custom_name",
+		Image:   "static/defaultapp.png",
+		UserID:  5,
+		SortKey: "a0",
 	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	test.BodyEquals(s.T(), expected, s.recorder)
@@ -193,11 +201,51 @@ func (s *ApplicationSuite) Test_CreateApplication_withExistingToken() {
 
 	s.a.CreateApplication(s.ctx)
 
-	expected := &model.Application{ID: 2, Token: secondApplicationToken, Name: "custom_name", UserID: 5}
+	expected := &model.Application{ID: 2, Token: secondApplicationToken, Name: "custom_name", UserID: 5, SortKey: "a0"}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
 		assert.Contains(s.T(), app, expected)
 	}
+}
+
+func (s *ApplicationSuite) Test_Sorting() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=one")
+	s.a.CreateApplication(s.ctx)
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=two")
+	s.a.CreateApplication(s.ctx)
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=three")
+	s.a.CreateApplication(s.ctx)
+
+	apps, err := s.db.GetApplicationsByUser(5)
+	require.NoError(s.T(), err)
+	require.Len(s.T(), apps, 3)
+	assert.Equal(s.T(), apps[0].Name, "one")
+	assert.Equal(s.T(), apps[0].SortKey, "a0")
+	assert.Equal(s.T(), apps[1].Name, "two")
+	assert.Equal(s.T(), apps[1].SortKey, "a1")
+	assert.Equal(s.T(), apps[2].Name, "three")
+	assert.Equal(s.T(), apps[2].SortKey, "a2")
+
+	s.withFormData("name=one&description=&sortKey=a1V")
+	s.ctx.Params = gin.Params{{Key: "id", Value: fmt.Sprint(apps[0].ID)}}
+	s.a.UpdateApplication(s.ctx)
+
+	apps, err = s.db.GetApplicationsByUser(5)
+	require.NoError(s.T(), err)
+	require.Len(s.T(), apps, 3)
+	assert.Equal(s.T(), apps[0].Name, "two")
+	assert.Equal(s.T(), apps[0].SortKey, "a1")
+	assert.Equal(s.T(), apps[1].Name, "one")
+	assert.Equal(s.T(), apps[1].SortKey, "a1V")
+	assert.Equal(s.T(), apps[2].Name, "three")
+	assert.Equal(s.T(), apps[2].SortKey, "a2")
 }
 
 func (s *ApplicationSuite) Test_GetApplications() {
@@ -481,6 +529,7 @@ func (s *ApplicationSuite) Test_UpdateApplicationNameAndDescription_expectSucces
 		UserID:      5,
 		Name:        "new_name",
 		Description: "new_description_text",
+		SortKey:     "a0",
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -503,6 +552,7 @@ func (s *ApplicationSuite) Test_UpdateApplicationName_expectSuccess() {
 		UserID:      5,
 		Name:        "new_name",
 		Description: "",
+		SortKey:     "a0",
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -526,6 +576,7 @@ func (s *ApplicationSuite) Test_UpdateApplicationDefaultPriority_expectSuccess()
 		Name:            "name",
 		Description:     "",
 		DefaultPriority: 4,
+		SortKey:         "a0",
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -534,9 +585,10 @@ func (s *ApplicationSuite) Test_UpdateApplicationDefaultPriority_expectSuccess()
 	}
 }
 
-func (s *ApplicationSuite) Test_UpdateApplication_preservesImage() {
+func (s *ApplicationSuite) Test_UpdateApplication_preservesImageAndSortKey() {
 	app := s.db.User(5).NewAppWithToken(2, "app-2")
 	app.Image = "existing.png"
+	app.SortKey = "a5"
 	assert.Nil(s.T(), s.db.UpdateApplication(app))
 
 	test.WithUser(s.ctx, 5)
@@ -548,6 +600,7 @@ func (s *ApplicationSuite) Test_UpdateApplication_preservesImage() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	if app, err := s.db.GetApplicationByID(2); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), "existing.png", app.Image)
+		assert.Equal(s.T(), "a5", app.SortKey)
 	}
 }
 
@@ -592,6 +645,21 @@ func (s *ApplicationSuite) Test_UpdateApplication_WithoutPermission_expectNotFou
 	s.a.UpdateApplication(s.ctx)
 
 	assert.Equal(s.T(), 404, s.recorder.Code)
+}
+
+func (s *ApplicationSuite) Test_UpdateApplication_duplicateSortKey() {
+	user := s.db.User(5)
+	user.App(1) // sortKey=a0
+	user.App(2) // sortKey=a1
+
+	s.withFormData("name=new_name&sortKey=a0")
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+
+	s.a.UpdateApplication(s.ctx)
+
+	assert.EqualError(s.T(), s.ctx.Errors[0].Err, "sort key is not unique")
+	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
 func (s *ApplicationSuite) withFormData(formData string) {

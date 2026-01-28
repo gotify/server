@@ -2,6 +2,7 @@ export interface IApplication {
     id: number;
     token: string;
     name: string;
+    sortKey: string;
     description: string;
     image: string;
     internal: boolean;

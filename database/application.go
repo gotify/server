@@ -1,8 +1,10 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 
+	"github.com/gotify/server/v2/fracdex"
 	"github.com/gotify/server/v2/model"
 	"gorm.io/gorm"
 )
@@ -35,7 +37,21 @@ func (d *GormDatabase) GetApplicationByID(id uint) (*model.Application, error) {
 
 // CreateApplication creates an application.
 func (d *GormDatabase) CreateApplication(application *model.Application) error {
-	return d.DB.Create(application).Error
+	return d.DB.Transaction(func(tx *gorm.DB) error {
+		if application.SortKey == "" {
+			sortKey := ""
+			err := tx.Model(&model.Application{}).Select("sort_key").Where("user_id = ?", application.UserID).Order("sort_key DESC").Limit(1).Find(&sortKey).Error
+			if err != nil && err != gorm.ErrRecordNotFound {
+				return err
+			}
+			application.SortKey, err = fracdex.KeyBetween(sortKey, "")
+			if err != nil {
+				return err
+			}
+		}
+
+		return tx.Create(application).Error
+	}, &sql.TxOptions{Isolation: sql.LevelSerializable})
 }
 
 // DeleteApplicationByID deletes an application by its id.
@@ -47,7 +63,7 @@ func (d *GormDatabase) DeleteApplicationByID(id uint) error {
 // GetApplicationsByUser returns all applications from a user.
 func (d *GormDatabase) GetApplicationsByUser(userID uint) ([]*model.Application, error) {
 	var apps []*model.Application
-	err := d.DB.Where("user_id = ?", userID).Order("id ASC").Find(&apps).Error
+	err := d.DB.Where("user_id = ?", userID).Order("sort_key, id ASC").Find(&apps).Error
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 	}

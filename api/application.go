@@ -12,6 +12,7 @@ import (
 	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/model"
 	"github.com/h2non/filetype"
+	"gorm.io/gorm"
 )
 
 // The ApplicationDatabase interface for encapsulating database access.
@@ -49,6 +50,10 @@ type ApplicationParams struct {
 	//
 	// example: 5
 	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`
+	// The sortKey for the application. Uses fractional indexing.
+	//
+	// example: a1
+	SortKey string `form:"sortKey" query:"sortKey" json:"sortKey"`
 }
 
 // CreateApplication creates an application and returns the access token.
@@ -91,12 +96,14 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 			Name:            applicationParams.Name,
 			Description:     applicationParams.Description,
 			DefaultPriority: applicationParams.DefaultPriority,
+			SortKey:         applicationParams.SortKey,
 			Token:           auth.GenerateNotExistingToken(generateApplicationToken, a.applicationExists),
 			UserID:          auth.GetUserID(ctx),
 			Internal:        false,
 		}
 
-		if success := successOrAbort(ctx, 500, a.DB.CreateApplication(&app)); !success {
+		if err := a.DB.CreateApplication(&app); err != nil {
+			handleApplicationError(ctx, err)
 			return
 		}
 		ctx.JSON(200, withResolvedImage(&app))
@@ -252,8 +259,12 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 				app.Description = applicationParams.Description
 				app.Name = applicationParams.Name
 				app.DefaultPriority = applicationParams.DefaultPriority
+				if applicationParams.SortKey != "" {
+					app.SortKey = applicationParams.SortKey
+				}
 
-				if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
+				if err := a.DB.UpdateApplication(app); err != nil {
+					handleApplicationError(ctx, err)
 					return
 				}
 				ctx.JSON(200, withResolvedImage(app))
@@ -466,5 +477,13 @@ func ValidApplicationImageExt(ext string) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func handleApplicationError(ctx *gin.Context, err error) {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		ctx.AbortWithError(400, errors.New("sort key is not unique"))
+	} else {
+		ctx.AbortWithError(500, err)
 	}
 }

@@ -1,9 +1,11 @@
-import {BaseStore} from '../common/BaseStore';
 import axios from 'axios';
+import {generateKeyBetween} from 'fractional-indexing';
+import {action, runInAction} from 'mobx';
+import {BaseStore} from '../common/BaseStore';
 import * as config from '../config';
-import {action} from 'mobx';
 import {SnackReporter} from '../snack/SnackManager';
 import {IApplication} from '../types';
+import {arrayMove} from '@dnd-kit/sortable';
 
 export class AppStore extends BaseStore<IApplication> {
     public onDelete: () => void = () => {};
@@ -46,17 +48,37 @@ export class AppStore extends BaseStore<IApplication> {
     }
 
     @action
-    public update = async (
-        id: number,
-        name: string,
-        description: string,
-        defaultPriority: number
-    ): Promise<void> => {
-        await axios.put(`${config.get('url')}application/${id}`, {
-            name,
-            description,
-            defaultPriority,
-        });
+    public reorder = async (fromId: number, toId: number): Promise<void> => {
+        const fromIndex = this.items.findIndex((app) => app.id === fromId);
+        const toIndex = this.items.findIndex((app) => app.id === toId);
+        if (fromIndex === -1 || toIndex === -1) {
+            throw Error('unknown apps');
+        }
+
+        const toUpdate = this.items[fromIndex];
+
+        const normalizedIndex =
+            toUpdate.sortKey > this.items[toIndex].sortKey ? toIndex - 1 : toIndex;
+
+        const newSortKey = generateKeyBetween(
+            this.items[normalizedIndex]?.sortKey,
+            this.items[normalizedIndex + 1]?.sortKey
+        );
+
+        runInAction(() => (this.items = arrayMove(this.items, fromIndex, toIndex)));
+
+        await this.update({...toUpdate, sortKey: newSortKey});
+    };
+
+    @action
+    public update = async ({
+        id,
+        ...app
+    }: Pick<
+        IApplication,
+        'id' | 'name' | 'description' | 'defaultPriority' | 'sortKey'
+    >): Promise<void> => {
+        await axios.put(`${config.get('url')}application/${id}`, app);
         await this.refresh();
         this.snack('Application updated');
     };
