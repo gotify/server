@@ -22,13 +22,23 @@ func Run(router http.Handler, conf *config.Configuration) error {
 	shutdown := make(chan error)
 	go doShutdownOnSignal(shutdown)
 
-	httpListener, err := startListening("plain connection", conf.Server.ListenAddr, conf.Server.Port, conf.Server.KeepAlivePeriodSeconds)
-	if err != nil {
-		return err
-	}
-	defer httpListener.Close()
-
 	s := &http.Server{Handler: router}
+
+	hasListener := false
+
+	if conf.Server.Port >= 0 {
+		httpListener, err := startListening("plain connection", conf.Server.ListenAddr, conf.Server.Port, conf.Server.KeepAlivePeriodSeconds)
+		if err != nil {
+			return err
+		}
+		hasListener = true
+		defer httpListener.Close()
+		go func() {
+			err := s.Serve(httpListener)
+			doShutdown(shutdown, err)
+		}()
+	}
+
 	if conf.Server.SSL.Enabled {
 		if conf.Server.SSL.LetsEncrypt.Enabled {
 			applyLetsEncrypt(s, conf)
@@ -40,6 +50,7 @@ func Run(router http.Handler, conf *config.Configuration) error {
 		if err != nil {
 			return err
 		}
+		hasListener = true
 		defer httpsListener.Close()
 
 		go func() {
@@ -47,12 +58,12 @@ func Run(router http.Handler, conf *config.Configuration) error {
 			doShutdown(shutdown, err)
 		}()
 	}
-	go func() {
-		err := s.Serve(httpListener)
-		doShutdown(shutdown, err)
-	}()
 
-	err = <-shutdown
+	if !hasListener {
+		log.Fatalln("No listener started, both plain and TLS listeners are disabled")
+	}
+
+	err := <-shutdown
 	fmt.Println("Shutting down:", err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
