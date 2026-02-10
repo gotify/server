@@ -47,13 +47,13 @@
     "testformat": "prettier \"src/**/*.{ts,tsx}\" --list-different"
   },
   "devDependencies": {
-    "@eslint/js": "^9.32.0",
+    "@eslint/js": "^10.0.0",
     "@types/notifyjs": "^3.0.5",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@types/react-router-dom": "^5.3.3",
     "@types/remove-markdown": "^0.3.4",
-    "eslint": "^9.32.0",
+    "eslint": "^10.0.0",
     "get-port": "^7.1.0",
     "prettier": "^3.6.2",
     "puppeteer": "^24.15.0",
