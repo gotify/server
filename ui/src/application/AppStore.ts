@@ -1,4 +1,3 @@
-import axios from 'axios';
 import {generateKeyBetween} from 'fractional-indexing';
 import {action, runInAction} from 'mobx';
 import {BaseStore} from '../common/BaseStore';
@@ -6,39 +5,62 @@ import * as config from '../config';
 import {SnackReporter} from '../snack/SnackManager';
 import {IApplication} from '../types';
 import {arrayMove} from '@dnd-kit/sortable';
+import {CurrentUser} from '../CurrentUser';
+import {identityTransform, jsonBody, jsonTransform, multipartBody} from '../fetchUtils';
 
 export class AppStore extends BaseStore<IApplication> {
     public onDelete: () => void = () => {};
 
-    public constructor(private readonly snack: SnackReporter) {
+    public constructor(
+        private readonly currentUser: CurrentUser,
+        private readonly snack: SnackReporter
+    ) {
         super();
     }
 
     protected requestItems = (): Promise<IApplication[]> =>
-        axios
-            .get<IApplication[]>(`${config.get('url')}application`)
-            .then((response) => response.data);
+        this.currentUser.authenticatedFetch(
+            config.get('url') + 'application',
+            {},
+            jsonTransform<IApplication[]>
+        );
 
     protected requestDelete = (id: number): Promise<void> =>
-        axios.delete(`${config.get('url')}application/${id}`).then(() => {
-            this.onDelete();
-            return this.snack('Application deleted');
-        });
+        this.currentUser
+            .authenticatedFetch(
+                config.get('url') + 'application/' + id,
+                {
+                    method: 'DELETE',
+                },
+                identityTransform
+            )
+            .then(() => {
+                this.onDelete();
+                return this.snack('Application deleted');
+            });
 
     @action
     public uploadImage = async (id: number, file: Blob): Promise<void> => {
         const formData = new FormData();
         formData.append('file', file);
-        await axios.post(`${config.get('url')}application/${id}/image`, formData, {
-            headers: {'content-type': 'multipart/form-data'},
-        });
+        await this.currentUser.authenticatedFetch(
+            config.get('url') + 'application/' + id + '/image',
+            multipartBody(formData),
+            jsonTransform
+        );
         await this.refresh();
         this.snack('Application image updated');
     };
 
     public async deleteImage(id: number): Promise<void> {
         try {
-            await axios.delete(`${config.get('url')}application/${id}/image`);
+            await this.currentUser.authenticatedFetch(
+                config.get('url') + 'application/' + id + '/image',
+                {
+                    method: 'DELETE',
+                },
+                identityTransform
+            );
             await this.refresh();
             this.snack('Application image deleted');
         } catch (error) {
@@ -78,7 +100,11 @@ export class AppStore extends BaseStore<IApplication> {
         IApplication,
         'id' | 'name' | 'description' | 'defaultPriority' | 'sortKey'
     >): Promise<void> => {
-        await axios.put(`${config.get('url')}application/${id}`, app);
+        await this.currentUser.authenticatedFetch(
+            config.get('url') + 'application/' + id,
+            {...jsonBody(app), method: 'PUT'},
+            jsonTransform
+        );
         await this.refresh();
         this.snack('Application updated');
     };
@@ -89,11 +115,11 @@ export class AppStore extends BaseStore<IApplication> {
         description: string,
         defaultPriority: number
     ): Promise<void> => {
-        await axios.post(`${config.get('url')}application`, {
-            name,
-            description,
-            defaultPriority,
-        });
+        await this.currentUser.authenticatedFetch(
+            config.get('url') + 'application',
+            jsonBody({name, description, defaultPriority}),
+            jsonTransform
+        );
         await this.refresh();
         this.snack('Application created');
     };

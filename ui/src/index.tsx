@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import 'typeface-roboto';
-import {initAxios} from './apiAuth';
 import * as config from './config';
 import Layout from './layout/Layout';
 import {unregister} from './registerServiceWorker';
@@ -26,13 +25,13 @@ const prodUrl = urlWithSlash;
 
 const initStores = (): StoreMapping => {
     const snackManager = new SnackManager();
-    const appStore = new AppStore(snackManager.snack);
-    const userStore = new UserStore(snackManager.snack);
-    const messagesStore = new MessagesStore(appStore, snackManager.snack);
     const currentUser = new CurrentUser(snackManager.snack);
-    const clientStore = new ClientStore(snackManager.snack);
+    const appStore = new AppStore(currentUser, snackManager.snack);
+    const userStore = new UserStore(currentUser, snackManager.snack);
+    const messagesStore = new MessagesStore(currentUser, appStore, snackManager.snack);
+    const clientStore = new ClientStore(currentUser, snackManager.snack);
     const wsStore = new WebSocketStore(snackManager.snack, currentUser);
-    const pluginStore = new PluginStore(snackManager.snack);
+    const pluginStore = new PluginStore(currentUser, snackManager.snack);
     appStore.onDelete = () => messagesStore.clearAll();
 
     return {
@@ -50,8 +49,6 @@ const initStores = (): StoreMapping => {
 (function clientJS() {
     config.set('url', prodUrl);
     const stores = initStores();
-    initAxios(stores.currentUser, stores.snackManager.snack);
-
     registerReactions(stores);
 
     stores.currentUser.tryAuthenticate().catch(() => {});

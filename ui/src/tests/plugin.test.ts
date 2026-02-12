@@ -1,6 +1,5 @@
 import * as os from 'os';
 import {Page} from 'puppeteer';
-import axios from 'axios';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import * as auth from './authentication';
 import * as selector from './selector';
@@ -174,7 +173,7 @@ describe('plugin', () => {
                     if (!hook) {
                         throw 'href not found';
                     }
-                    await axios.get(hook);
+                    expect((await fetch(hook)).ok).toBe(true);
                 });
             });
             it('has received message', async () => {
