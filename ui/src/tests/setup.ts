@@ -1,11 +1,9 @@
 import getPort from 'get-port';
-import {spawn, exec, ChildProcess} from 'child_process';
+import {spawn, ChildProcess} from 'child_process';
 import {rimrafSync} from 'rimraf';
 import path from 'path';
 import puppeteer, {Browser, Page} from 'puppeteer';
 import fs from 'fs';
-// @ts-expect-error no types
-import wait from 'wait-on';
 import kill from 'tree-kill';
 
 export interface GotifyTest {
@@ -37,7 +35,7 @@ export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
     const gotifyInstance = startGotify(gotifyFile, port, pluginsDir);
 
     const gotifyURL = 'http://localhost:' + port;
-    await waitForGotify('http-get://localhost:' + port);
+    await waitForGotify(gotifyURL);
     const browser = await puppeteer.launch({
         headless: process.env.CI === 'true',
         args: [`--window-size=1920,1080`, '--no-sandbox'],
@@ -84,23 +82,51 @@ const testFilePath = (): string => {
     return path.join(testBuildPath, filename);
 };
 
-const waitForGotify = (url: string): Promise<void> =>
-    new Promise((resolve, err) => {
-        wait({resources: [url], timeout: 40000}, (error: string) => {
-            if (error) {
-                console.log(error);
-                err(error);
+const waitForGotify = async (url: string): Promise<void> => {
+    const deadline = Date.now() + 30000;
+    let status = new Error('timeout');
+    while (Date.now() < deadline) {
+        const abc = new AbortController();
+        const timeout = setTimeout(() => {
+            abc.abort();
+        }, 1000);
+        try {
+            const res = await fetch(url, {
+                signal: abc.signal,
+            });
+            if (res.status === 200) {
+                return;
+            }
+            status = new Error(`${res.status} ${res.statusText}`);
+        } catch (error) {
+            if (error instanceof Error) {
+                status = error;
+            } else {
+                status = new Error(String(error));
+            }
+            await new Promise((resolve) => setTimeout(resolve, 250));
+        } finally {
+            clearTimeout(timeout);
+        }
+    }
+    throw status;
+};
+
+const buildGoPlugin = (filename: string, pluginPath: string): Promise<void> => {
+    process.stdout.write(`### Building Plugin ${pluginPath}\n`);
+    return new Promise((resolve, err) => {
+        const build = spawn('go', ['build', '-o', filename, '-buildmode=plugin', pluginPath], {
+            stdio: 'inherit',
+        });
+
+        build.on('close', (code) => {
+            if (code) {
+                err('exit code: ' + err);
             } else {
                 resolve();
             }
         });
     });
-
-const buildGoPlugin = (filename: string, pluginPath: string): Promise<void> => {
-    process.stdout.write(`### Building Plugin ${pluginPath}\n`);
-    return new Promise((resolve) =>
-        exec(`go build -o ${filename} -buildmode=plugin ${pluginPath}`, () => resolve())
-    );
 };
 
 const buildGoExecutable = (filename: string): Promise<void> => {
@@ -114,11 +140,22 @@ const buildGoExecutable = (filename: string): Promise<void> => {
         return Promise.resolve();
     } else {
         process.stdout.write(`### Building Gotify ${filename}\n`);
-        return new Promise((resolve) =>
-            exec(`go build -ldflags="-X main.Mode=prod" -o ${filename} ${appDotGo}`, () =>
-                resolve()
-            )
-        );
+        return new Promise((resolve, err) => {
+            const build = spawn(
+                'go',
+                ['build', '-ldflags=-X main.Mode=prod', '-o', filename, appDotGo],
+                {
+                    stdio: 'inherit',
+                }
+            );
+            build.on('close', (code) => {
+                if (code) {
+                    err('exit code: ' + err);
+                } else {
+                    resolve();
+                }
+            });
+        });
     }
 };
 
