@@ -207,6 +207,19 @@ export class MessagesStore {
 
     public get = createTransformer(this.getUnCached);
 
+    // Get all the messages that are in the Pending Deletions Hashmap
+    private getPendingDeletions = (appId: number): Array<IMessage> => {
+        const appToImage: Partial<Record<string, string>> = this.appStore
+            .getItems()
+            .reduce((all, app) => ({...all, [app.id]: app.image}), {});
+
+        return this.stateOf(appId, false)
+            .messages.filter((message) => !this.pendingDeletes.has(message.id))
+            .map((message: IMessage): IMessage => ({...message, image: appToImage[message.appid]}));
+    };
+
+    public getPending = createTransformer(this.getPendingDeletions);
+
     private clearCache = () => (this.get = createTransformer(this.getUnCached));
 
     private createEmptyStatesForApps = (apps: IApplication[]) => {

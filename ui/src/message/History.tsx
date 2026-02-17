@@ -11,26 +11,34 @@ import ConfirmDialog from '../common/ConfirmDialog';
 import LoadingSpinner from '../common/LoadingSpinner';
 import {useStores} from '../stores';
 import {Virtuoso} from 'react-virtuoso';
-import {PushMessageDialog} from './PushMessageDialog';
 import {enqueueSnackbar} from 'notistack';
-import {Link} from 'react-router-dom';
 
 const UndoAutoHideMs = 5000;
 
-const Messages = observer(() => {
+/***************************************************************************
+ * Page Name: Deleted Messages
+ * Right Control Buttons: Refresh, Delete All
+ * URL: ../history (routing is located in ui/src/layout/Layout.tsx)
+ * 
+ * Function:
+ * The purpose of this file is to generate the UI regarding viewing deleted
+ * messages (essentially implementing a soft-delete), with the capability to 
+ * permanently delete, and set an expiration timer for auto-deletion 
+ * (not currently supported)
+****************************************************************************/
+
+const History = observer(() => {
     const {id} = useParams<{id: string}>();
     const appId = id == null ? -1 : parseInt(id as string, 10);
 
     const [deleteAll, setDeleteAll] = React.useState(false);
-    const [pushMessageOpen, setPushMessageOpen] = React.useState(false);
     const [isLoadingMore, setLoadingMore] = React.useState(false);
     const {messagesStore, appStore} = useStores();
     const messages = messagesStore.get(appId);
     const hasMore = messagesStore.canLoadMore(appId);
-    const name = appStore.getName(appId);
     const hasMessages = messages.length !== 0;
     const expandedState = React.useRef<Record<number, boolean>>({});
-    const app = appId === -1 ? undefined : appStore.getByIDOrUndefined(appId);
+    const pendingDelete = 0;
 
     const deleteMessage = (message: IMessage) => {
         const key = enqueueSnackbar({
@@ -115,30 +123,9 @@ const Messages = observer(() => {
     );
     return (
         <DefaultPage
-            title={name}
+            title="Deleted Messages"
             rightControl={
                 <div>
-                    {app && (
-                        <Button
-                            id="push-message"
-                            variant="contained"
-                            color="primary"
-                            onClick={() => setPushMessageOpen(true)}
-                            style={{marginRight: 5}}>
-                            Push Message
-                        </Button>
-                    )}
-                    <Link to="/history" id="navigate-history">
-                        <Button
-                            id="get-history"
-                            variant="contained"
-                            color="primary"
-                            //onClick={() => messagesStore.refreshByApp(appId)}
-                            // Implement viewing of deleted messages and link function here
-                            style={{marginRight: 5}}>
-                            History
-                        </Button>
-                    </Link>
                     <Button
                         id="refresh-all"
                         variant="contained"
@@ -169,18 +156,8 @@ const Messages = observer(() => {
                     fOnSubmit={() => messagesStore.removeByApp(appId)}
                 />
             )}
-            {pushMessageOpen && app && (
-                <PushMessageDialog
-                    appName={app.name}
-                    defaultPriority={app.defaultPriority}
-                    fClose={() => setPushMessageOpen(false)}
-                    fOnSubmit={(message, title, priority) =>
-                        messagesStore.sendMessage(app.id, message, title, priority)
-                    }
-                />
-            )}
         </DefaultPage>
     );
 });
 
-export default Messages;
+export default History;

@@ -19,6 +19,7 @@ import Clients from '../client/Clients';
 import Plugins from '../plugin/Plugins';
 import Login from '../user/Login';
 import Messages from '../message/Messages';
+import History from '../message/History'
 import Users from '../user/Users';
 import {observer} from 'mobx-react-lite';
 import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
@@ -140,6 +141,7 @@ const Layout = observer(() => {
                                         <Route path="/clients" element={authed(<Clients />)} />
                                         <Route path="/users" element={authed(<Users />)} />
                                         <Route path="/plugins" element={authed(<Plugins />)} />
+                                        <Route path="/history" element={authed(<History />)} />
                                         <Route
                                             path="/plugins/:id"
                                             element={authed(
