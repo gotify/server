@@ -2,7 +2,7 @@ import {Button, Theme, useMediaQuery, useTheme} from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import {makeStyles} from 'tss-react/mui';
 import Typography from '@mui/material/Typography';
-import {ExpandLess, ExpandMore} from '@mui/icons-material';
+import {ExpandLess, ExpandMore, Restore} from '@mui/icons-material';
 import Delete from '@mui/icons-material/Delete';
 import React from 'react';
 import TimeAgo from 'react-timeago';
@@ -28,6 +28,10 @@ const useStyles = makeStyles()((theme: Theme) => ({
         flex: 1,
     },
     trash: {
+        marginTop: -15,
+        marginRight: -15,
+    },
+    restore: {
         marginTop: -15,
         marginRight: -15,
     },
@@ -99,6 +103,8 @@ interface IProps {
     priority: number;
     appName: string;
     fDelete: VoidFunction;
+    fRestore: VoidFunction;
+    pending: boolean;
     extras?: IMessageExtras;
     expanded: boolean;
     onExpand: (expand: boolean) => void;
@@ -116,6 +122,8 @@ const priorityColor = (priority: number) => {
 
 const Message = ({
     fDelete,
+    fRestore,
+    pending,
     title,
     date,
     image,
@@ -175,6 +183,8 @@ const Message = ({
                 {smallHeader ? (
                     <HeaderSmall
                         fDelete={fDelete}
+                        fRestore={fRestore}
+                        pending={pending}
                         title={title}
                         appName={appName}
                         image={image}
@@ -183,6 +193,8 @@ const Message = ({
                 ) : (
                     <HeaderWide
                         fDelete={fDelete}
+                        fRestore={fRestore}
+                        pending={pending}
                         title={title}
                         appName={appName}
                         image={image}
@@ -222,8 +234,10 @@ const HeaderWide = ({
     image,
     date,
     fDelete,
+    fRestore,
     title,
-}: Pick<IProps, 'appName' | 'image' | 'fDelete' | 'date' | 'title'>) => {
+    pending,
+}: Pick<IProps, 'appName' | 'image' | 'fDelete' | 'date' | 'title' | 'pending' | 'fRestore'>) => {
     const {classes} = useStyles();
 
     return (
@@ -250,6 +264,15 @@ const HeaderWide = ({
             <Typography variant="body1" className={classes.date}>
                 <TimeAgo date={date} formatter={TimeAgoFormatter.narrow} />
             </Typography>
+            { pending && (
+                    <IconButton
+                        onClick={fRestore}
+                        style={{padding: 14}}
+                        className={`${classes.restore} restore`}
+                        size="large">
+                        <Restore />
+                    </IconButton>
+            )}
             <IconButton
                 onClick={fDelete}
                 style={{padding: 14}}
@@ -265,8 +288,10 @@ const HeaderSmall = ({
     image,
     date,
     fDelete,
+    fRestore,
+    pending,
     title,
-}: Pick<IProps, 'appName' | 'image' | 'fDelete' | 'date' | 'title'>) => {
+}: Pick<IProps, 'appName' | 'image' | 'fDelete' | 'date' | 'title' | 'pending' | 'fRestore'>) => {
     const {classes} = useStyles();
 
     return (
@@ -283,6 +308,15 @@ const HeaderSmall = ({
                 </Typography>
             </div>
             <div style={{display: 'flex', alignItems: 'end', flexDirection: 'column'}}>
+                { pending && (
+                    <IconButton
+                        onClick={fRestore}
+                        style={{padding: 14}}
+                        className={`${classes.restore} restore`}
+                        size="large">
+                        <Restore />
+                    </IconButton>
+                )}
                 <IconButton
                     onClick={fDelete}
                     style={{padding: 14}}

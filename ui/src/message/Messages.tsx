@@ -15,7 +15,7 @@ import {PushMessageDialog} from './PushMessageDialog';
 import {enqueueSnackbar} from 'notistack';
 import {Link} from 'react-router-dom';
 
-const UndoAutoHideMs = 5000;
+const UndoAutoHideMs = 3000;
 
 const Messages = observer(() => {
     const {id} = useParams<{id: string}>();
@@ -47,7 +47,6 @@ const Messages = observer(() => {
             disableWindowBlurListener: true,
             transitionDuration: {enter: 0, exit: 0},
             autoHideDuration: UndoAutoHideMs,
-            onExited: () => messagesStore.removeSingle(message),
         });
         messagesStore.addPendingDelete({message, key});
     };
@@ -62,6 +61,8 @@ const Messages = observer(() => {
         <Message
             key={message.id}
             fDelete={() => deleteMessage(message)}
+            fRestore={() => messagesStore.cancelPendingDelete(message)}
+            pending={false}
             onExpand={(expanded) => (expandedState.current[message.id] = expanded)}
             title={message.title}
             date={message.date}

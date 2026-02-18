@@ -214,7 +214,7 @@ export class MessagesStore {
             .reduce((all, app) => ({...all, [app.id]: app.image}), {});
 
         return this.stateOf(appId, false)
-            .messages.filter((message) => !this.pendingDeletes.has(message.id))
+            .messages.filter((message) => this.pendingDeletes.has(message.id))
             .map((message: IMessage): IMessage => ({...message, image: appToImage[message.appid]}));
     };
 
