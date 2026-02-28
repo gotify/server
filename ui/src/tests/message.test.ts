@@ -13,8 +13,7 @@ import {
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import * as auth from './authentication';
 import * as selector from './selector';
-import axios from 'axios';
-import {IApplication, IMessage, IMessageExtras} from '../types';
+import {IMessage, IMessageExtras} from '../types';
 
 let page: Page;
 let gotify: GotifyTest;
@@ -24,8 +23,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => await gotify.close());
-
-const axiosAuth = {auth: {username: 'admin', password: 'admin'}};
 
 let windowsServerToken: string;
 let linuxServerToken: string;
@@ -52,9 +49,20 @@ describe('Messages', () => {
         expect(page.url()).toContain('/');
     });
     const createApp = (name: string) =>
-        axios
-            .post<IApplication>(`${gotify.url}/application`, {name}, axiosAuth)
-            .then((resp) => resp.data.token);
+        fetch(`${gotify.url}/application`, {
+            method: 'POST',
+            headers: {
+                Authorization: 'Basic ' + btoa('admin:admin'),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({name}),
+        })
+            .then((resp) => {
+                expect(resp.ok).toBe(true);
+                return resp.json();
+            })
+            .then((data) => data.token);
+
     it('shows navigation', async () => {
         await page.waitForSelector(naviId);
     });
@@ -148,8 +156,18 @@ describe('Messages', () => {
     const backup3 = m('Backup done', 'Gotify Backup finished (0.1MB).');
 
     const createMessage = (msg: Partial<IMessage>, token: string) =>
-        axios.post<IMessage>(`${gotify.url}/message`, msg, {
-            headers: {'X-Gotify-Key': token},
+        fetch(`${gotify.url}/message`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Gotify-Key': token,
+            },
+            body: JSON.stringify(msg),
+        }).then((resp) => {
+            if (!resp.ok) {
+                throw new Error('Failed to create message');
+            }
+            return resp.json();
         });
 
     const expectMessages = async (toCheck: {

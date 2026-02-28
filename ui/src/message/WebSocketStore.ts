@@ -1,7 +1,6 @@
 import {SnackReporter} from '../snack/SnackManager';
 import {CurrentUser} from '../CurrentUser';
 import * as config from '../config';
-import {AxiosError} from 'axios';
 import {IMessage} from '../types';
 
 export class WebSocketStore {
@@ -37,10 +36,8 @@ export class WebSocketStore {
                     this.snack('WebSocket connection closed, trying again in 30 seconds.');
                     setTimeout(() => this.listen(callback), 30000);
                 })
-                .catch((error: AxiosError) => {
-                    if (error?.response?.status === 401) {
-                        this.snack('Could not authenticate with client token, logging out.');
-                    }
+                .catch(() => {
+                    this.snack('Could not authenticate with client token.');
                 });
         };
 

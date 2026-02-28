@@ -1,9 +1,9 @@
-import axios, {AxiosError, AxiosResponse} from 'axios';
 import * as config from './config';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
 import {observable, runInAction, action} from 'mobx';
 import {IClient, IUser} from './types';
+import {identityTransform, jsonBody, jsonTransform, ResponseTransformer} from './fetchUtils';
 
 const tokenKey = 'gotify-login-key';
 
@@ -33,32 +33,75 @@ export class CurrentUser {
         return '';
     };
 
+    public authenticatedFetch = async <T>(
+        url: string,
+        init: RequestInit,
+        xform: ResponseTransformer<T>
+    ): Promise<T> => {
+        const headers = new Headers(init?.headers);
+        if (this.loggedIn && !headers.has('X-Gotify-Key'))
+            headers.set('X-Gotify-Key', this.token());
+        let response;
+        try {
+            response = await fetch(url, {...init, headers});
+        } catch (error) {
+            this.snack('Gotify server is not reachable, try refreshing the page.');
+            throw error;
+        }
+        if (response.ok) {
+            try {
+                return xform(response);
+            } catch (error) {
+                this.snack('Response transformation failed: ' + error);
+                throw error;
+            }
+        }
+        if (response.status === 401) {
+            this.tryAuthenticate().then(() => this.snack('Could not complete request.'));
+        }
+
+        let error = 'Unexpected status code: ' + response.status;
+        if (response.status === 400 || response.status === 403 || response.status === 500) {
+            if (response.headers.get('content-type')?.includes('application/json')) {
+                const data = await response.json();
+                error = data.error + ': ' + data.errorDescription;
+            } else {
+                const text = await response.text();
+                error = 'Unexpected response: ' + text;
+            }
+        }
+        this.snack(error);
+        throw new Error(error);
+    };
+
     private readonly setToken = (token: string) => {
         this.tokenCache = token;
         window.localStorage.setItem(tokenKey, token);
     };
 
-    public register = async (name: string, pass: string): Promise<boolean> =>
-        axios
-            .create()
-            .post(config.get('url') + 'user', {name, pass})
+    public register = async (name: string, pass: string): Promise<boolean> => {
+        runInAction(() => {
+            this.loggedIn = false;
+        });
+        return this.authenticatedFetch(
+            config.get('url') + 'user',
+            jsonBody({name, pass}),
+            identityTransform
+        )
             .then(() => {
                 this.snack('User Created. Logging in...');
                 this.login(name, pass);
                 return true;
             })
-            .catch((error: AxiosError<{error?: string; errorDescription?: string}>) => {
-                if (!error || !error.response) {
+            .catch((error) => {
+                if (error instanceof TypeError) {
                     this.snack('No network connection or server unavailable.');
                     return false;
                 }
-                const {data} = error.response;
-
-                this.snack(
-                    `Register failed: ${data?.error ?? 'unknown'}: ${data?.errorDescription ?? ''}`
-                );
+                this.snack(`Register failed: ${error?.message ?? error}`);
                 return false;
             });
+    };
 
     public login = async (username: string, password: string) => {
         runInAction(() => {
@@ -67,17 +110,17 @@ export class CurrentUser {
         });
         const browser = detect();
         const name = (browser && browser.name + ' ' + browser.version) || 'unknown browser';
-        axios
-            .create()
-            .request({
-                url: config.get('url') + 'client',
-                method: 'POST',
-                data: {name},
-                headers: {Authorization: 'Basic ' + btoa(username + ':' + password)},
-            })
-            .then((resp: AxiosResponse<IClient>) => {
+        const fetchInit = jsonBody({name});
+        fetchInit.headers = new Headers(fetchInit.headers);
+        fetchInit.headers.set('Authorization', 'Basic ' + btoa(username + ':' + password));
+        return this.authenticatedFetch(
+            config.get('url') + 'client',
+            fetchInit,
+            jsonTransform<IClient>
+        )
+            .then((resp) => {
                 this.snack(`A client named '${name}' was created for your session.`);
-                this.setToken(resp.data.token);
+                this.setToken(resp.token);
                 this.tryAuthenticate().catch(() => {
                     console.log(
                         'create client succeeded, but authenticated with given token failed'
@@ -92,7 +135,7 @@ export class CurrentUser {
             );
     };
 
-    public tryAuthenticate = async (): Promise<AxiosResponse<IUser>> => {
+    public tryAuthenticate = async (): Promise<IUser> => {
         if (this.token() === '') {
             runInAction(() => {
                 this.authenticating = false;
@@ -100,51 +143,50 @@ export class CurrentUser {
             return Promise.reject();
         }
 
-        return axios
-            .create()
-            .get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': this.token()}})
-            .then(
-                action((passThrough) => {
-                    this.user = passThrough.data;
-                    this.loggedIn = true;
-                    this.authenticating = false;
-                    this.connectionErrorMessage = null;
-                    this.reconnectTime = 7500;
-                    return passThrough;
-                })
-            )
+        return fetch(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': this.token()}})
+            .then(async (response) => {
+                if (response.ok) {
+                    const user = await response.json();
+                    runInAction(() => {
+                        this.user = user;
+                        this.loggedIn = true;
+                        this.authenticating = false;
+                        this.connectionErrorMessage = null;
+                        this.reconnectTime = 7500;
+                    });
+                    return user;
+                }
+                if (response.status >= 500) {
+                    this.connectionError(`${response.statusText} (code: ${response.status}).`);
+                    return Promise.reject(new Error('Server error'));
+                }
+
+                this.connectionErrorMessage = null;
+
+                if (response.status >= 400 && response.status < 500) {
+                    this.logout();
+                }
+                throw new Error('Unexpected status code: ' + response.status);
+            })
             .catch(
-                action((error: AxiosError) => {
+                action((error) => {
                     this.authenticating = false;
-                    if (!error || !error.response) {
-                        this.connectionError('No network connection or server unavailable.');
-                        return Promise.reject(error);
-                    }
-
-                    if (error.response.status >= 500) {
-                        this.connectionError(
-                            `${error.response.statusText} (code: ${error.response.status}).`
-                        );
-                        return Promise.reject(error);
-                    }
-
-                    this.connectionErrorMessage = null;
-
-                    if (error.response.status >= 400 && error.response.status < 500) {
-                        this.logout();
-                    }
+                    this.connectionError('No network connection or server unavailable.');
                     return Promise.reject(error);
                 })
             );
     };
 
     public logout = async () => {
-        await axios
-            .get(config.get('url') + 'client')
-            .then((resp: AxiosResponse<IClient[]>) => {
-                resp.data
-                    .filter((client) => client.token === this.tokenCache)
-                    .forEach((client) => axios.delete(config.get('url') + 'client/' + client.id));
+        await this.authenticatedFetch(config.get('url') + 'client', {}, jsonTransform<IClient[]>)
+            .then((resp) => {
+                resp.filter((client) => client.token === this.tokenCache).forEach((client) =>
+                    this.authenticatedFetch(
+                        config.get('url') + 'client/' + client.id,
+                        {},
+                        jsonTransform
+                    )
+                );
             })
             .catch(() => Promise.resolve());
         window.localStorage.removeItem(tokenKey);
@@ -155,9 +197,15 @@ export class CurrentUser {
     };
 
     public changePassword = (pass: string) => {
-        axios
-            .post(config.get('url') + 'current/user/password', {pass})
-            .then(() => this.snack('Password changed'));
+        this.authenticatedFetch(
+            config.get('url') + 'current/user/password',
+            jsonBody({pass}),
+            identityTransform
+        )
+            .then(() => this.snack('Password changed'))
+            .catch((error) => {
+                this.snack(`Change password failed: ${error?.message ?? error}`);
+            });
     };
 
     public tryReconnect = (quiet = false) => {

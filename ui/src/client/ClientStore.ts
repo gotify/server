@@ -1,36 +1,60 @@
 import {BaseStore} from '../common/BaseStore';
-import axios from 'axios';
 import * as config from '../config';
 import {action} from 'mobx';
 import {SnackReporter} from '../snack/SnackManager';
 import {IClient} from '../types';
+import {CurrentUser} from '../CurrentUser';
+import {identityTransform, jsonBody, jsonTransform} from '../fetchUtils';
 
 export class ClientStore extends BaseStore<IClient> {
-    public constructor(private readonly snack: SnackReporter) {
+    public constructor(
+        private readonly currentUser: CurrentUser,
+        private readonly snack: SnackReporter
+    ) {
         super();
     }
 
     protected requestItems = (): Promise<IClient[]> =>
-        axios.get<IClient[]>(`${config.get('url')}client`).then((response) => response.data);
+        this.currentUser.authenticatedFetch(
+            config.get('url') + 'client',
+            {},
+            jsonTransform<IClient[]>
+        );
 
     protected requestDelete(id: number): Promise<void> {
-        return axios
-            .delete(`${config.get('url')}client/${id}`)
+        return this.currentUser
+            .authenticatedFetch(
+                config.get('url') + 'client/' + id,
+                {
+                    method: 'DELETE',
+                },
+                identityTransform
+            )
             .then(() => this.snack('Client deleted'));
     }
 
     @action
     public update = async (id: number, name: string): Promise<void> => {
-        await axios.put(`${config.get('url')}client/${id}`, {name});
+        await this.currentUser
+            .authenticatedFetch(
+                config.get('url') + 'client/' + id,
+                {...jsonBody({name}), method: 'PUT'},
+                jsonTransform
+            )
+            .then(() => this.snack('Client updated'));
         await this.refresh();
         this.snack('Client updated');
     };
 
     @action
     public createNoNotifcation = async (name: string): Promise<IClient> => {
-        const client = await axios.post(`${config.get('url')}client`, {name});
+        const client = await this.currentUser.authenticatedFetch(
+            config.get('url') + 'client',
+            jsonBody({name}),
+            jsonTransform<IClient>
+        );
         await this.refresh();
-        return client.data;
+        return client;
     };
 
     @action

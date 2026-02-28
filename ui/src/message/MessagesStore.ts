@@ -1,11 +1,12 @@
 import {BaseStore} from '../common/BaseStore';
 import {action, IObservableArray, observable, reaction, runInAction} from 'mobx';
-import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
 import {createTransformer} from 'mobx-utils';
 import {SnackReporter} from '../snack/SnackManager';
 import {IApplication, IMessage, IPagedMessages} from '../types';
 import {closeSnackbar, SnackbarKey} from 'notistack';
+import {identityTransform, jsonBody, jsonTransform} from '../fetchUtils';
+import {CurrentUser} from '../CurrentUser';
 
 const AllMessages = -1;
 
@@ -28,6 +29,7 @@ export class MessagesStore {
     private loading = false;
 
     public constructor(
+        private readonly currentUser: CurrentUser,
         private readonly appStore: BaseStore<IApplication>,
         private readonly snack: SnackReporter
     ) {
@@ -54,9 +56,7 @@ export class MessagesStore {
         this.loading = true;
 
         try {
-            const pagedResult = await this.fetchMessages(appId, state.nextSince).then(
-                (resp) => resp.data
-            );
+            const pagedResult = await this.fetchMessages(appId, state.nextSince);
             runInAction(() => {
                 state.messages.replace([...state.messages, ...pagedResult.messages]);
                 state.nextSince = pagedResult.paging.since ?? 0;
@@ -83,12 +83,28 @@ export class MessagesStore {
     @action
     public removeByApp = async (appId: number) => {
         if (appId === AllMessages) {
-            await axios.delete(config.get('url') + 'message');
-            this.snack('Deleted all messages');
+            await this.currentUser
+                .authenticatedFetch(
+                    config.get('url') + 'message',
+                    {
+                        method: 'DELETE',
+                    },
+                    identityTransform
+                )
+                .then(() => this.snack('Deleted all messages'));
             this.clearAll();
         } else {
-            await axios.delete(config.get('url') + 'application/' + appId + '/message');
-            this.snack(`Deleted all messages from ${this.appStore.getByID(appId).name}`);
+            await this.currentUser
+                .authenticatedFetch(
+                    config.get('url') + 'application/' + appId + '/message',
+                    {
+                        method: 'DELETE',
+                    },
+                    identityTransform
+                )
+                .then(() =>
+                    this.snack(`Deleted all messages from ${this.appStore.getByID(appId).name}`)
+                );
             this.clear(AllMessages);
             this.clear(appId);
         }
@@ -121,10 +137,16 @@ export class MessagesStore {
             return;
         }
 
-        await axios.delete(config.get('url') + 'message/' + message.id, {
-            adapter: 'fetch',
-            fetchOptions: {keepalive: true},
-        });
+        await this.currentUser
+            .authenticatedFetch(
+                config.get('url') + 'message/' + message.id,
+                {
+                    method: 'DELETE',
+                    keepalive: true,
+                },
+                identityTransform
+            )
+            .then(() => this.snack(`Deleted message ${message.id}`));
         if (this.exists(AllMessages)) {
             this.removeFromList(this.state[AllMessages].messages, message);
         }
@@ -147,10 +169,12 @@ export class MessagesStore {
             title,
         };
 
-        await axios.post(`${config.get('url')}message`, payload, {
-            headers: {'X-Gotify-Key': app.token},
-        });
-        this.snack(`Message sent to ${app.name}`);
+        const fetchInit = jsonBody(payload);
+        fetchInit.headers = new Headers(fetchInit.headers);
+        fetchInit.headers.set('X-Gotify-Key', app.token);
+        await this.currentUser
+            .authenticatedFetch(config.get('url') + 'message', fetchInit, jsonTransform)
+            .then(() => this.snack(`Message sent to ${app.name}`));
     };
 
     @action
@@ -182,15 +206,18 @@ export class MessagesStore {
     @action
     private clear = (appId: number) => (this.state[appId] = this.emptyState());
 
-    private fetchMessages = (
-        appId: number,
-        since: number
-    ): Promise<AxiosResponse<IPagedMessages>> => {
+    private fetchMessages = (appId: number, since: number): Promise<IPagedMessages> => {
         if (appId === AllMessages) {
-            return axios.get(config.get('url') + 'message?since=' + since);
+            return this.currentUser.authenticatedFetch(
+                config.get('url') + 'message?since=' + since,
+                {},
+                jsonTransform<IPagedMessages>
+            );
         } else {
-            return axios.get(
-                config.get('url') + 'application/' + appId + '/message?since=' + since
+            return this.currentUser.authenticatedFetch(
+                config.get('url') + 'application/' + appId + '/message?since=' + since,
+                {},
+                jsonTransform<IPagedMessages>
             );
         }
     };
