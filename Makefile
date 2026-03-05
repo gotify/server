@@ -66,6 +66,9 @@ package-zip: extract-licenses
 build-docker-multiarch: require-version
 	docker buildx build --sbom=true --provenance=true \
 		$(if $(DOCKER_BUILD_PUSH),--push) \
+		--label org.opencontainers.image.revision=$(shell git rev-parse HEAD) \
+		--label org.opencontainers.image.version=$(VERSION) \
+		--label org.opencontainers.image.created=$(shell date -u +%Y-%m-%dT%H:%M:%SZ) \
 		-t gotify/server:latest \
 		-t gotify/server:${VERSION} \
 		-t gotify/server:$(shell echo $(VERSION) | cut -d '.' -f -2) \
