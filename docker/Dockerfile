@@ -54,8 +54,8 @@ RUN cd /src/gotify && \
 
 FROM debian:${DEBIAN}
 
-LABEL org.opencontainers.image.documentation https://gotify.net/
-LABEL org.opencontainers.image.source https://github.com/gotify/server
+LABEL org.opencontainers.image.documentation=https://gotify.net/
+LABEL org.opencontainers.image.source=https://github.com/gotify/server
 
 # Build-time configurables
 ARG GOTIFY_SERVER_EXPOSE=80
