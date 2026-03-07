@@ -58,5 +58,5 @@ type Application struct {
 	//
 	// required: true
 	// example: a1
-	SortKey string `gorm:"uniqueIndex:uix_application_user_id_sort_key,priority:2" form:"sortKey" query:"sortKey" json:"sortKey"`
+	SortKey string `gorm:"type:bytes;uniqueIndex:uix_application_user_id_sort_key,priority:2,length:255" form:"sortKey" query:"sortKey" json:"sortKey"`
 }

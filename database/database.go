@@ -111,7 +111,7 @@ func fillMissingSortKeys(db *gorm.DB) error {
 	if err := db.Order("user_id, sort_key, id ASC").Find(&apps).Error; err != nil && err != gorm.ErrRecordNotFound {
 		return err
 	}
-	fmt.Println("Migrating", len(apps), "application sort keys for")
+	fmt.Println("Migrating", len(apps), "application sort keys")
 
 	sortKey := ""
 	currentUser := uint(math.MaxUint)
