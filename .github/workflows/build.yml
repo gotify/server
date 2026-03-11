@@ -39,7 +39,7 @@ jobs:
           ls -lath build
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Set up QEMU
         uses: docker/setup-qemu-action@v4
