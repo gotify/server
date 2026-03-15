@@ -34,7 +34,7 @@
     "remove-markdown": "^0.6.2",
     "tss-react": "^4.9.19",
     "typeface-roboto": "1.1.13",
-    "vite": "^7.0.6",
+    "vite": "^8.0.0",
     "vitest": "^4.0.0"
   },
   "scripts": {
