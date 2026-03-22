@@ -35,21 +35,21 @@
 //	          type: apiKey
 //	          name: token
 //	          in: query
-//		      appTokenHeader:
+//	       appTokenHeader:
 //	          type: apiKey
 //	          name: X-Gotify-Key
 //	          in: header
-//		      clientTokenHeader:
+//	       clientTokenHeader:
 //	          type: apiKey
 //	          name: X-Gotify-Key
 //	          in: header
-//		      appTokenAuthorizationHeader:
+//	       appTokenAuthorizationHeader:
 //	          type: apiKey
 //	          name: Authorization
 //	          in: header
 //	          description: >-
 //	              Enter an application token with the `Bearer` prefix, e.g. `Bearer Axxxxxxxxxx`.
-//		      clientTokenAuthorizationHeader:
+//	       clientTokenAuthorizationHeader:
 //	          type: apiKey
 //	          name: Authorization
 //	          in: header
