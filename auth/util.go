@@ -39,3 +39,7 @@ func TryGetUserID(ctx *gin.Context) *uint {
 func GetTokenID(ctx *gin.Context) string {
 	return ctx.MustGet("tokenid").(string)
 }
+
+func TryGetTokenID(ctx *gin.Context) string {
+	return ctx.GetString("tokenid")
+}

@@ -86,6 +86,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		DB:       db,
 		ImageDir: conf.UploadedImagesDir,
 	}
+	sessionHandler := api.SessionAPI{DB: db, NotifyDeleted: streamHandler.NotifyDeletedClient}
 	userChangeNotifier := new(api.UserChangeNotifier)
 	userHandler := api.UserAPI{DB: db, PasswordStrength: conf.PassStrength, UserChangeNotifier: userChangeNotifier, Registration: conf.Registration}
 
@@ -132,6 +133,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	}
 
 	g.Group("/user").Use(authentication.Optional).POST("", userHandler.CreateUser)
+
+	g.POST("/auth/local/login", sessionHandler.Login)
 
 	g.OPTIONS("/*any")
 
@@ -202,6 +205,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		clientAuth.GET("current/user", userHandler.GetCurrentUser)
 
 		clientAuth.POST("current/user/password", userHandler.ChangePassword)
+
+		clientAuth.POST("/auth/local/logout", sessionHandler.Logout)
 	}
 
 	authAdmin := g.Group("/user")

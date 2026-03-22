@@ -129,7 +129,7 @@ func (a *Auth) user(requireAdmin bool) func(ctx *gin.Context) (authState, error)
 
 func (a *Auth) client(requireAdmin bool) func(ctx *gin.Context) (authState, error) {
 	return func(ctx *gin.Context) (authState, error) {
-		token := a.readTokenFromRequest(ctx)
+		token, isCookie := a.readTokenFromRequest(ctx)
 		if token == "" {
 			return authStateSkip, nil
 		}
@@ -147,6 +147,9 @@ func (a *Auth) client(requireAdmin bool) func(ctx *gin.Context) (authState, erro
 			if err := a.DB.UpdateClientTokensLastUsed([]string{client.Token}, &now); err != nil {
 				return authStateSkip, err
 			}
+			if isCookie {
+				SetCookie(ctx.Writer, client.Token, CookieMaxAge)
+			}
 		}
 
 		if requireAdmin {
@@ -162,7 +165,7 @@ func (a *Auth) client(requireAdmin bool) func(ctx *gin.Context) (authState, erro
 }
 
 func (a *Auth) application(ctx *gin.Context) (authState, error) {
-	token := a.readTokenFromRequest(ctx)
+	token, isCookie := a.readTokenFromRequest(ctx)
 	if token == "" {
 		return authStateSkip, nil
 	}
@@ -180,22 +183,25 @@ func (a *Auth) application(ctx *gin.Context) (authState, error) {
 		if err := a.DB.UpdateApplicationTokenLastUsed(app.Token, &now); err != nil {
 			return authStateSkip, err
 		}
+		if isCookie {
+			SetCookie(ctx.Writer, app.Token, CookieMaxAge)
+		}
 	}
 
 	return authStateOk, nil
 }
 
-func (a *Auth) readTokenFromRequest(ctx *gin.Context) string {
+func (a *Auth) readTokenFromRequest(ctx *gin.Context) (string, bool) {
 	if token := a.tokenFromQuery(ctx); token != "" {
-		return token
+		return token, false
 	} else if token := a.tokenFromXGotifyHeader(ctx); token != "" {
-		return token
+		return token, false
 	} else if token := a.tokenFromAuthorizationHeader(ctx); token != "" {
-		return token
+		return token, false
 	} else if token := a.tokenFromCookie(ctx); token != "" {
-		return token
+		return token, true
 	}
-	return ""
+	return "", false
 }
 
 func (a *Auth) tokenFromCookie(ctx *gin.Context) string {
