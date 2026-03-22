@@ -21,7 +21,7 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         proxy: {
-            '^/(application|message|client|current|user|plugin|version|image)': {
+            '^/(application|message|client|current|user|plugin|version|image|auth)': {
                 target: `http://localhost:${GOTIFY_SERVER_PORT}/`,
                 changeOrigin: true,
                 secure: false,

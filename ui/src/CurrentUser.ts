@@ -3,12 +3,9 @@ import * as config from './config';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
 import {observable, runInAction, action} from 'mobx';
-import {IClient, IUser} from './types';
-
-const tokenKey = 'gotify-login-key';
+import {IUser} from './types';
 
 export class CurrentUser {
-    private tokenCache: string | null = null;
     private reconnectTimeoutId: number | null = null;
     private reconnectTime = 7500;
     @observable accessor loggedIn = false;
@@ -18,25 +15,6 @@ export class CurrentUser {
     @observable accessor connectionErrorMessage: string | null = null;
 
     public constructor(private readonly snack: SnackReporter) {}
-
-    public token = (): string => {
-        if (this.tokenCache !== null) {
-            return this.tokenCache;
-        }
-
-        const localStorageToken = window.localStorage.getItem(tokenKey);
-        if (localStorageToken) {
-            this.tokenCache = localStorageToken;
-            return localStorageToken;
-        }
-
-        return '';
-    };
-
-    private readonly setToken = (token: string) => {
-        this.tokenCache = token;
-        window.localStorage.setItem(tokenKey, token);
-    };
 
     public register = async (name: string, pass: string): Promise<boolean> =>
         axios
@@ -70,20 +48,21 @@ export class CurrentUser {
         axios
             .create()
             .request({
-                url: config.get('url') + 'client',
+                url: config.get('url') + 'auth/local/login',
                 method: 'POST',
                 data: {name},
                 headers: {Authorization: 'Basic ' + btoa(username + ':' + password)},
             })
-            .then((resp: AxiosResponse<IClient>) => {
-                this.snack(`A client named '${name}' was created for your session.`);
-                this.setToken(resp.data.token);
-                this.tryAuthenticate().catch(() => {
-                    console.log(
-                        'create client succeeded, but authenticated with given token failed'
-                    );
-                });
-            })
+            .then(
+                action((resp: AxiosResponse<IUser>) => {
+                    this.snack(`A client named '${name}' was created for your session.`);
+                    this.user = resp.data;
+                    this.loggedIn = true;
+                    this.authenticating = false;
+                    this.connectionErrorMessage = null;
+                    this.reconnectTime = 7500;
+                })
+            )
             .catch(
                 action(() => {
                     this.authenticating = false;
@@ -93,16 +72,9 @@ export class CurrentUser {
     };
 
     public tryAuthenticate = async (): Promise<AxiosResponse<IUser>> => {
-        if (this.token() === '') {
-            runInAction(() => {
-                this.authenticating = false;
-            });
-            return Promise.reject();
-        }
-
         return axios
             .create()
-            .get(config.get('url') + 'current/user', {headers: {'X-Gotify-Key': this.token()}})
+            .get(config.get('url') + 'current/user')
             .then(
                 action((passThrough) => {
                     this.user = passThrough.data;
@@ -139,19 +111,14 @@ export class CurrentUser {
     };
 
     public logout = async () => {
-        await axios
-            .get(config.get('url') + 'client')
-            .then((resp: AxiosResponse<IClient[]>) => {
-                resp.data
-                    .filter((client) => client.token === this.tokenCache)
-                    .forEach((client) => axios.delete(config.get('url') + 'client/' + client.id));
-            })
-            .catch(() => Promise.resolve());
-        window.localStorage.removeItem(tokenKey);
-        this.tokenCache = null;
-        runInAction(() => {
-            this.loggedIn = false;
-        });
+        if (this.loggedIn) {
+            runInAction(() => {
+                this.loggedIn = false;
+            });
+            await axios
+                .post(config.get('url') + 'auth/local/logout')
+                .catch(() => Promise.resolve());
+        }
     };
 
     public changePassword = (pass: string) => {
