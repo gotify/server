@@ -47,7 +47,9 @@
     "testformat": "prettier \"src/**/*.{ts,tsx}\" --list-different"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.29.0",
     "@eslint/js": "^10.0.0",
+    "@rolldown/plugin-babel": "^0.2.2",
     "@types/notifyjs": "^3.0.5",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
