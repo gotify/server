@@ -9,13 +9,13 @@ const CookieMaxAge = 7 * 24 * 60 * 60
 
 const CookieName = "gotify-client-token"
 
-func SetCookie(w http.ResponseWriter, token string, maxAge int) {
+func SetCookie(w http.ResponseWriter, token string, maxAge int, secure bool) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
 		Value:    token,
 		Path:     "/",
 		MaxAge:   maxAge,
-		Secure:   true, // TODO: does this work?
+		Secure:   secure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})

@@ -21,6 +21,7 @@ type SessionDatabase interface {
 type SessionAPI struct {
 	DB            SessionDatabase
 	NotifyDeleted func(uint, string)
+	SecureCookie  bool
 }
 
 // Login authenticates via basic auth, creates a client, sets an HttpOnly cookie, and returns user info.
@@ -55,7 +56,7 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 		return
 	}
 
-	auth.SetCookie(ctx.Writer, client.Token, auth.CookieMaxAge)
+	auth.SetCookie(ctx.Writer, client.Token, auth.CookieMaxAge, a.SecureCookie)
 
 	ctx.JSON(200, &model.UserExternal{
 		ID:    user.ID,
@@ -66,7 +67,7 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 
 // Logout deletes the client for the current session and clears the cookie.
 func (a *SessionAPI) Logout(ctx *gin.Context) {
-	auth.SetCookie(ctx.Writer, "", -1)
+	auth.SetCookie(ctx.Writer, "", -1, a.SecureCookie)
 
 	tokenID := auth.TryGetTokenID(ctx)
 	if tokenID == "" {

@@ -35,7 +35,8 @@ type Database interface {
 
 // Auth is the provider for authentication middleware.
 type Auth struct {
-	DB Database
+	DB           Database
+	SecureCookie bool
 }
 
 // RequireAdmin returns a gin middleware which requires a client token or basic authentication header to be supplied
@@ -148,7 +149,7 @@ func (a *Auth) client(requireAdmin bool) func(ctx *gin.Context) (authState, erro
 				return authStateSkip, err
 			}
 			if isCookie {
-				SetCookie(ctx.Writer, client.Token, CookieMaxAge)
+				SetCookie(ctx.Writer, client.Token, CookieMaxAge, a.SecureCookie)
 			}
 		}
 
@@ -184,7 +185,7 @@ func (a *Auth) application(ctx *gin.Context) (authState, error) {
 			return authStateSkip, err
 		}
 		if isCookie {
-			SetCookie(ctx.Writer, app.Token, CookieMaxAge)
+			SetCookie(ctx.Writer, app.Token, CookieMaxAge, a.SecureCookie)
 		}
 	}
 

@@ -42,6 +42,7 @@ type Configuration struct {
 		}
 
 		TrustedProxies []string
+		SecureCookie   bool `default:"false"`
 	}
 	Database struct {
 		Dialect    string `default:"sqlite3"`
