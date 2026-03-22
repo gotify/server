@@ -38,13 +38,17 @@ export class CurrentUser {
                 return false;
             });
 
+    public createClientName = (): string => {
+        const browser = detect();
+        return (browser && browser.name + ' ' + browser.version) || 'unknown browser';
+    };
+
     public login = async (username: string, password: string) => {
         runInAction(() => {
             this.loggedIn = false;
             this.authenticating = true;
         });
-        const browser = detect();
-        const name = (browser && browser.name + ' ' + browser.version) || 'unknown browser';
+        const name = this.createClientName();
         axios
             .create()
             .request({

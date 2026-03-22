@@ -1,0 +1,206 @@
+package api
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/v2/auth"
+	"github.com/gotify/server/v2/config"
+	"github.com/gotify/server/v2/database"
+	"github.com/gotify/server/v2/model"
+	"github.com/zitadel/oidc/v3/pkg/client/rp"
+	httphelper "github.com/zitadel/oidc/v3/pkg/http"
+	"github.com/zitadel/oidc/v3/pkg/oidc"
+)
+
+func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNotifier *UserChangeNotifier) *OIDCAPI {
+	scopes := conf.OIDC.Scopes
+	if len(scopes) == 0 {
+		scopes = []string{"openid", "profile", "email"}
+	}
+
+	cookieKey := make([]byte, 32)
+	if _, err := rand.Read(cookieKey); err != nil {
+		log.Fatalf("failed to generate OIDC cookie key: %v", err)
+	}
+	cookieHandlerOpt := []httphelper.CookieHandlerOpt{}
+	if !conf.Server.SecureCookie {
+		cookieHandlerOpt = append(cookieHandlerOpt, httphelper.WithUnsecure())
+	}
+	cookieHandler := httphelper.NewCookieHandler(cookieKey, cookieKey, cookieHandlerOpt...)
+
+	opts := []rp.Option{rp.WithCookieHandler(cookieHandler), rp.WithPKCE(cookieHandler)}
+
+	provider, err := rp.NewRelyingPartyOIDC(
+		context.Background(),
+		conf.OIDC.Issuer,
+		conf.OIDC.ClientID,
+		conf.OIDC.ClientSecret,
+		conf.OIDC.RedirectURL,
+		scopes,
+		opts...,
+	)
+	if err != nil {
+		log.Fatalf("failed to initialize OIDC provider: %v", err)
+	}
+
+	return &OIDCAPI{
+		DB:                 db,
+		Provider:           provider,
+		UserChangeNotifier: userChangeNotifier,
+		UsernameClaim:      conf.OIDC.UsernameClaim,
+		PasswordStrength:   conf.PassStrength,
+		SecureCookie:       conf.Server.SecureCookie,
+		AutoRegister:       conf.OIDC.AutoRegister,
+	}
+}
+
+// OIDCAPI provides handlers for OIDC authentication.
+type OIDCAPI struct {
+	DB                 *database.GormDatabase
+	Provider           rp.RelyingParty
+	UserChangeNotifier *UserChangeNotifier
+	UsernameClaim      string
+	PasswordStrength   int
+	SecureCookie       bool
+	AutoRegister       bool
+}
+
+// swagger:operation GET /auth/oidc/login oidc oidcLogin
+//
+// Start the OIDC login flow (browser).
+//
+// Redirects the user to the OIDC provider's authorization endpoint.
+// After authentication, the provider redirects back to the callback endpoint.
+//
+//	---
+//	parameters:
+//	- name: name
+//	  in: query
+//	  description: the client name to create after login
+//	  required: true
+//	  type: string
+//	responses:
+//	  302:
+//	    description: Redirect to OIDC provider
+//	  default:
+//	    description: Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
+func (a *OIDCAPI) LoginHandler() gin.HandlerFunc {
+	return gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+		clientName := r.URL.Query().Get("name")
+		if clientName == "" {
+			http.Error(w, "invalid client name", http.StatusBadRequest)
+			return
+		}
+		state, err := a.generateState(clientName)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to generate state: %v", err), http.StatusInternalServerError)
+			return
+		}
+		rp.AuthURLHandler(func() string { return state }, a.Provider)(w, r)
+	})
+}
+
+// swagger:operation GET /auth/oidc/callback oidc oidcCallback
+//
+// Handle the OIDC provider callback (browser).
+//
+// Exchanges the authorization code for tokens, resolves the user,
+// creates a gotify client, sets a session cookie, and redirects to the UI.
+//
+//	---
+//	parameters:
+//	- name: code
+//	  in: query
+//	  description: the authorization code from the OIDC provider
+//	  required: true
+//	  type: string
+//	- name: state
+//	  in: query
+//	  description: the state parameter for CSRF protection
+//	  required: true
+//	  type: string
+//	responses:
+//	  307:
+//	    description: Redirect to UI
+//	  default:
+//	    description: Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
+func (a *OIDCAPI) CallbackHandler() gin.HandlerFunc {
+	callback := func(w http.ResponseWriter, r *http.Request, tokens *oidc.Tokens[*oidc.IDTokenClaims], state string, provider rp.RelyingParty, info *oidc.UserInfo) {
+		user, status, err := a.resolveUser(info)
+		if err != nil {
+			http.Error(w, err.Error(), status)
+			return
+		}
+		clientName, _, _ := strings.Cut(state, ":")
+		client, err := a.createClient(clientName, user.ID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to create client: %v", err), http.StatusInternalServerError)
+			return
+		}
+		auth.SetCookie(w, client.Token, auth.CookieMaxAge, a.SecureCookie)
+		// A reverse proxy may have already stripped a url prefix from the URL
+		// without us knowing, we have to make a relative redirect.
+		// We cannot use http.Redirect as this normalizes the Path with r.URL.
+		w.Header().Set("Location", "../../")
+		w.WriteHeader(http.StatusTemporaryRedirect)
+	}
+	return gin.WrapF(rp.CodeExchangeHandler(rp.UserinfoCallback(callback), a.Provider))
+}
+
+func (a *OIDCAPI) generateState(name string) (string, error) {
+	nonce := make([]byte, 20)
+	if _, err := rand.Read(nonce); err != nil {
+		return "", err
+	}
+	return name + ":" + hex.EncodeToString(nonce), nil
+}
+
+// resolveUser looks up or creates a user from OIDC userinfo claims.
+func (a *OIDCAPI) resolveUser(info *oidc.UserInfo) (*model.User, int, error) {
+	usernameRaw, ok := info.Claims[a.UsernameClaim]
+	if !ok {
+		return nil, http.StatusInternalServerError, fmt.Errorf("username claim %q is missing", a.UsernameClaim)
+	}
+	username := fmt.Sprint(usernameRaw)
+	if username == "" || usernameRaw == nil {
+		return nil, http.StatusInternalServerError, fmt.Errorf("username claim was empty")
+	}
+
+	user, err := a.DB.GetUserByName(username)
+	if err != nil {
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error: %w", err)
+	}
+	if user == nil {
+		if !a.AutoRegister {
+			return nil, http.StatusForbidden, fmt.Errorf("user does not exist and auto-registration is disabled")
+		}
+		user = &model.User{Name: username, Admin: false, Pass: nil}
+		if err := a.DB.CreateUser(user); err != nil {
+			return nil, http.StatusInternalServerError, fmt.Errorf("failed to create user: %w", err)
+		}
+		if err := a.UserChangeNotifier.fireUserAdded(user.ID); err != nil {
+			log.Printf("Could not notify user change: %v\n", err)
+		}
+	}
+	return user, 0, nil
+}
+
+func (a *OIDCAPI) createClient(name string, userID uint) (*model.Client, error) {
+	client := &model.Client{
+		Name:   name,
+		Token:  auth.GenerateNotExistingToken(generateClientToken, func(t string) bool { c, _ := a.DB.GetClientByToken(t); return c != nil }),
+		UserID: userID,
+	}
+	return client, a.DB.CreateClient(client)
+}

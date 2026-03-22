@@ -587,6 +587,73 @@
         }
       }
     },
+    "/auth/oidc/callback": {
+      "get": {
+        "description": "Exchanges the authorization code for tokens, resolves the user,\ncreates a gotify client, sets a session cookie, and redirects to the UI.",
+        "tags": [
+          "oidc"
+        ],
+        "summary": "Handle the OIDC provider callback (browser).",
+        "operationId": "oidcCallback",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the authorization code from the OIDC provider",
+            "name": "code",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "the state parameter for CSRF protection",
+            "name": "state",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Redirect to UI"
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/auth/oidc/login": {
+      "get": {
+        "description": "Redirects the user to the OIDC provider's authorization endpoint.\nAfter authentication, the provider redirects back to the callback endpoint.",
+        "tags": [
+          "oidc"
+        ],
+        "summary": "Start the OIDC login flow (browser).",
+        "operationId": "oidcLogin",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the client name to create after login",
+            "name": "name",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to OIDC provider"
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/client": {
       "get": {
         "security": [

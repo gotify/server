@@ -48,6 +48,14 @@ server:
     allowedorigins: # allowed origins for websocket connections (same origin is always allowed)
 #      - ".+.example.com"
 #      - "otherdomain.com"
+oidc:
+  enabled: false # Enable OpenID Connect login, allowing users to authenticate via an external identity provider (e.g. Keycloak, Authelia, Google).
+  issuer: # The OIDC issuer URL. This is the base URL of your identity provider, used to discover endpoints. Example: "https://auth.example.com/realms/myrealm"
+  clientid: # The client ID registered with your identity provider for this application.
+  clientsecret: # The client secret for the registered client.
+  redirecturl: http://gotify.example.org/auth/oidc/callback # The callback URL that the identity provider redirects to after authentication. Must match exactly what is configured in your identity provider.
+  autoregister: true # If true, automatically create a new user on first OIDC login. If false, only existing users can log in via OIDC.
+  usernameclaim: preferred_username # The OIDC claim used to determine the username. Common values: "preferred_username" or "email".
 
 database: # for database see (configure database section)
   dialect: sqlite3

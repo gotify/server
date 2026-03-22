@@ -104,7 +104,14 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	userChangeNotifier.OnUserDeleted(pluginManager.RemoveUser)
 	userChangeNotifier.OnUserAdded(pluginManager.InitializeForUserID)
 
-	ui.Register(g, *vInfo, conf.Registration)
+	ui.Register(g, *vInfo, conf.Registration, conf.OIDC.Enabled)
+
+	if conf.OIDC.Enabled {
+		oidcHandler := api.NewOIDC(conf, db, userChangeNotifier)
+		oidcGroup := g.Group("/auth/oidc")
+		oidcGroup.GET("/login", oidcHandler.LoginHandler())
+		oidcGroup.GET("/callback", oidcHandler.CallbackHandler())
+	}
 
 	g.Match([]string{"GET", "HEAD"}, "/health", healthHandler.Health)
 	g.GET("/swagger", docs.Serve)
