@@ -18,7 +18,10 @@ const (
 	authStateOk
 )
 
-const headerName = "X-Gotify-Key"
+const (
+	headerName = "X-Gotify-Key"
+	cookieName = "gotify-client-token"
+)
 
 // The Database interface for encapsulating database access.
 type Database interface {
@@ -189,8 +192,18 @@ func (a *Auth) readTokenFromRequest(ctx *gin.Context) string {
 		return token
 	} else if token := a.tokenFromAuthorizationHeader(ctx); token != "" {
 		return token
+	} else if token := a.tokenFromCookie(ctx); token != "" {
+		return token
 	}
 	return ""
+}
+
+func (a *Auth) tokenFromCookie(ctx *gin.Context) string {
+	token, err := ctx.Cookie(cookieName)
+	if err != nil {
+		return ""
+	}
+	return token
 }
 
 func (a *Auth) tokenFromQuery(ctx *gin.Context) string {
