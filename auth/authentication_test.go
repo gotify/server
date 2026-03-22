@@ -82,7 +82,7 @@ func (s *AuthenticationSuite) assertQueryRequest(key, value string, f fMiddlewar
 	recorder := httptest.NewRecorder()
 	ctx, _ = gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest("GET", fmt.Sprintf("/?%s=%s", key, value), nil)
-	f()(ctx)
+	f(ctx)
 	assert.Equal(s.T(), code, recorder.Code)
 	return ctx
 }
@@ -91,7 +91,7 @@ func (s *AuthenticationSuite) TestNothingProvided() {
 	recorder := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest("GET", "/", nil)
-	s.auth.RequireApplicationToken()(ctx)
+	s.auth.RequireApplicationToken(ctx)
 	assert.Equal(s.T(), 401, recorder.Code)
 }
 
@@ -215,9 +215,9 @@ func (s *AuthenticationSuite) assertHeaderRequest(key, value string, f fMiddlewa
 	ctx, _ = gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest("GET", "/", nil)
 	ctx.Request.Header.Set(key, value)
-	f()(ctx)
+	f(ctx)
 	assert.Equal(s.T(), code, recorder.Code)
 	return ctx
 }
 
-type fMiddleware func() gin.HandlerFunc
+type fMiddleware gin.HandlerFunc

@@ -120,8 +120,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	g.Use(cors.New(auth.CorsConfig(conf)))
 
 	{
-		g.GET("/plugin", authentication.RequireClient(), pluginHandler.GetPlugins)
-		pluginRoute := g.Group("/plugin/", authentication.RequireClient())
+		g.GET("/plugin", authentication.RequireClient, pluginHandler.GetPlugins)
+		pluginRoute := g.Group("/plugin/", authentication.RequireClient)
 		{
 			pluginRoute.GET("/:id/config", pluginHandler.GetConfig)
 			pluginRoute.POST("/:id/config", pluginHandler.UpdateConfig)
@@ -131,7 +131,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		}
 	}
 
-	g.Group("/user").Use(authentication.Optional()).POST("", userHandler.CreateUser)
+	g.Group("/user").Use(authentication.Optional).POST("", userHandler.CreateUser)
 
 	g.OPTIONS("/*any")
 
@@ -150,11 +150,11 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		ctx.JSON(200, vInfo)
 	})
 
-	g.Group("/").Use(authentication.RequireApplicationToken()).POST("/message", messageHandler.CreateMessage)
+	g.Group("/").Use(authentication.RequireApplicationToken).POST("/message", messageHandler.CreateMessage)
 
 	clientAuth := g.Group("")
 	{
-		clientAuth.Use(authentication.RequireClient())
+		clientAuth.Use(authentication.RequireClient)
 		app := clientAuth.Group("/application")
 		{
 			app.GET("", applicationHandler.GetApplications)
@@ -206,7 +206,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	authAdmin := g.Group("/user")
 	{
-		authAdmin.Use(authentication.RequireAdmin())
+		authAdmin.Use(authentication.RequireAdmin)
 
 		authAdmin.GET("", userHandler.GetUsers)
 
