@@ -111,6 +111,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		oidcGroup := g.Group("/auth/oidc")
 		oidcGroup.GET("/login", oidcHandler.LoginHandler())
 		oidcGroup.GET("/callback", oidcHandler.CallbackHandler())
+		oidcGroup.POST("/external/authorize", oidcHandler.ExternalAuthorizeHandler)
+		oidcGroup.POST("/external/token", oidcHandler.ExternalTokenHandler)
 	}
 
 	g.Match([]string{"GET", "HEAD"}, "/health", healthHandler.Health)

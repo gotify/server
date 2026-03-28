@@ -4,10 +4,13 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
@@ -58,7 +61,16 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 		PasswordStrength:   conf.PassStrength,
 		SecureCookie:       conf.Server.SecureCookie,
 		AutoRegister:       conf.OIDC.AutoRegister,
+		pendingSessions:    make(map[string]*pendingOIDCSession),
 	}
+}
+
+const pendingSessionMaxAge = 10 * time.Minute
+
+type pendingOIDCSession struct {
+	RedirectURI string
+	ClientName  string
+	CreatedAt   time.Time
 }
 
 // OIDCAPI provides handlers for OIDC authentication.
@@ -70,6 +82,32 @@ type OIDCAPI struct {
 	PasswordStrength   int
 	SecureCookie       bool
 	AutoRegister       bool
+	pendingSessions    map[string]*pendingOIDCSession
+	pendingSessionsMu  sync.Mutex
+}
+
+func (a *OIDCAPI) storePendingSession(state string, session *pendingOIDCSession) {
+	a.pendingSessionsMu.Lock()
+	defer a.pendingSessionsMu.Unlock()
+	for s, sess := range a.pendingSessions {
+		if time.Since(sess.CreatedAt) > pendingSessionMaxAge {
+			delete(a.pendingSessions, s)
+		}
+	}
+	a.pendingSessions[state] = session
+}
+
+func (a *OIDCAPI) popPendingSession(state string) (*pendingOIDCSession, bool) {
+	a.pendingSessionsMu.Lock()
+	session, ok := a.pendingSessions[state]
+	if ok {
+		delete(a.pendingSessions, state)
+	}
+	a.pendingSessionsMu.Unlock()
+	if !ok || time.Since(session.CreatedAt) > pendingSessionMaxAge {
+		return nil, false
+	}
+	return session, true
 }
 
 // swagger:operation GET /auth/oidc/login oidc oidcLogin
@@ -156,6 +194,124 @@ func (a *OIDCAPI) CallbackHandler() gin.HandlerFunc {
 		w.WriteHeader(http.StatusTemporaryRedirect)
 	}
 	return gin.WrapF(rp.CodeExchangeHandler(rp.UserinfoCallback(callback), a.Provider))
+}
+
+// swagger:operation POST /auth/oidc/external/authorize oidc externalAuthorize
+//
+// Initiate the OIDC authorization flow for a native app.
+//
+// The app generates a PKCE code_verifier and code_challenge, then calls this
+// endpoint. The server forwards the code_challenge to the OIDC provider and
+// returns the authorization URL for the app to open in a browser.
+//
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	parameters:
+//	- name: body
+//	  in: body
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/OIDCExternalAuthorizeRequest"
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/OIDCExternalAuthorizeResponse"
+//	  default:
+//	    description: Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
+func (a *OIDCAPI) ExternalAuthorizeHandler(ctx *gin.Context) {
+	var req model.OIDCExternalAuthorizeRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	state, err := a.generateState(req.Name)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	a.storePendingSession(state, &pendingOIDCSession{
+		RedirectURI: req.RedirectURI, ClientName: req.Name, CreatedAt: time.Now(),
+	})
+	authOpts := []rp.AuthURLOpt{
+		rp.AuthURLOpt(rp.WithURLParam("redirect_uri", req.RedirectURI)),
+		rp.WithCodeChallenge(req.CodeChallenge),
+	}
+	ctx.JSON(http.StatusOK, &model.OIDCExternalAuthorizeResponse{
+		AuthorizeURL: rp.AuthURL(state, a.Provider, authOpts...),
+		State:        state,
+	})
+}
+
+// swagger:operation POST /auth/oidc/external/token oidc externalToken
+//
+// Exchange an authorization code for a gotify client token.
+//
+// After the user authenticates with the OIDC provider and the app receives
+// the authorization code via redirect, the app calls this endpoint with the
+// code and PKCE code_verifier. The server exchanges the code with the OIDC
+// provider and returns a gotify client token.
+//
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	parameters:
+//	- name: body
+//	  in: body
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/OIDCExternalTokenRequest"
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/OIDCExternalTokenResponse"
+//	  default:
+//	    description: Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
+func (a *OIDCAPI) ExternalTokenHandler(ctx *gin.Context) {
+	var req model.OIDCExternalTokenRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	session, ok := a.popPendingSession(req.State)
+	if !ok {
+		ctx.AbortWithError(http.StatusBadRequest, errors.New("unknown or expired state"))
+		return
+	}
+	exchangeOpts := []rp.CodeExchangeOpt{
+		rp.CodeExchangeOpt(rp.WithURLParam("redirect_uri", session.RedirectURI)),
+		rp.WithCodeVerifier(req.CodeVerifier),
+	}
+	tokens, err := rp.CodeExchange[*oidc.IDTokenClaims](ctx.Request.Context(), req.Code, a.Provider, exchangeOpts...)
+	if err != nil {
+		ctx.AbortWithError(http.StatusUnauthorized, fmt.Errorf("token exchange failed: %w", err))
+		return
+	}
+	info, err := rp.Userinfo[*oidc.UserInfo](ctx.Request.Context(), tokens.AccessToken, tokens.TokenType, tokens.IDTokenClaims.GetSubject(), a.Provider)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to get user info: %w", err))
+		return
+	}
+	user, status, resolveErr := a.resolveUser(info)
+	if resolveErr != nil {
+		ctx.AbortWithError(status, resolveErr)
+		return
+	}
+	client, err := a.createClient(session.ClientName, user.ID)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, &model.OIDCExternalTokenResponse{
+		Token: client.Token,
+		User:  &model.UserExternal{ID: user.ID, Name: user.Name, Admin: user.Admin},
+	})
 }
 
 func (a *OIDCAPI) generateState(name string) (string, error) {

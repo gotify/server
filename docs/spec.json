@@ -624,6 +624,86 @@
         }
       }
     },
+    "/auth/oidc/external/authorize": {
+      "post": {
+        "description": "The app generates a PKCE code_verifier and code_challenge, then calls this\nendpoint. The server forwards the code_challenge to the OIDC provider and\nreturns the authorization URL for the app to open in a browser.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "oidc"
+        ],
+        "summary": "Initiate the OIDC authorization flow for a native app.",
+        "operationId": "externalAuthorize",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OIDCExternalAuthorizeRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/OIDCExternalAuthorizeResponse"
+            }
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/auth/oidc/external/token": {
+      "post": {
+        "description": "After the user authenticates with the OIDC provider and the app receives\nthe authorization code via redirect, the app calls this endpoint with the\ncode and PKCE code_verifier. The server exchanges the code with the OIDC\nprovider and returns a gotify client token.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "oidc"
+        ],
+        "summary": "Exchange an authorization code for a gotify client token.",
+        "operationId": "externalToken",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OIDCExternalTokenRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/OIDCExternalTokenResponse"
+            }
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/auth/oidc/login": {
       "get": {
         "description": "Redirects the user to the OIDC provider's authorization endpoint.\nAfter authentication, the provider redirects back to the callback endpoint.",
@@ -2498,6 +2578,112 @@
         }
       },
       "x-go-name": "MessageExternal",
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "OIDCExternalAuthorizeRequest": {
+      "description": "Used to initiate the OIDC authorization flow for an external client.",
+      "type": "object",
+      "title": "OIDCExternalAuthorizeRequest Model",
+      "required": [
+        "code_challenge",
+        "redirect_uri",
+        "name"
+      ],
+      "properties": {
+        "code_challenge": {
+          "description": "The PKCE code challenge (S256).",
+          "type": "string",
+          "x-go-name": "CodeChallenge",
+          "example": "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+        },
+        "name": {
+          "description": "The client name to display in gotify.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Android Phone"
+        },
+        "redirect_uri": {
+          "description": "The app's redirect URI.",
+          "type": "string",
+          "x-go-name": "RedirectURI",
+          "example": "gotify://oidc/callback"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "OIDCExternalAuthorizeResponse": {
+      "description": "Returned after initiating the OIDC authorization flow.",
+      "type": "object",
+      "title": "OIDCExternalAuthorizeResponse Model",
+      "required": [
+        "authorize_url",
+        "state"
+      ],
+      "properties": {
+        "authorize_url": {
+          "description": "The URL to open in the browser to authenticate with the OIDC provider.",
+          "type": "string",
+          "x-go-name": "AuthorizeURL",
+          "example": "https://auth.example.com/authorize?client_id=gotify\u0026..."
+        },
+        "state": {
+          "description": "The state parameter to send back with the token exchange request.",
+          "type": "string",
+          "x-go-name": "State",
+          "example": "Android Phone:a1b2c3d4e5f6"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "OIDCExternalTokenRequest": {
+      "description": "Used to exchange an authorization code for a gotify client token.",
+      "type": "object",
+      "title": "OIDCExternalTokenRequest Model",
+      "required": [
+        "code",
+        "state",
+        "code_verifier"
+      ],
+      "properties": {
+        "code": {
+          "description": "The authorization code from the OIDC provider.",
+          "type": "string",
+          "x-go-name": "Code"
+        },
+        "code_verifier": {
+          "description": "The PKCE code verifier.",
+          "type": "string",
+          "x-go-name": "CodeVerifier",
+          "example": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+        },
+        "state": {
+          "description": "The state from the authorize response.",
+          "type": "string",
+          "x-go-name": "State",
+          "example": "Android Phone:a1b2c3d4e5f6"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "OIDCExternalTokenResponse": {
+      "description": "Returned after a successful token exchange.",
+      "type": "object",
+      "title": "OIDCExternalTokenResponse Model",
+      "required": [
+        "token",
+        "user"
+      ],
+      "properties": {
+        "token": {
+          "description": "The gotify client token for API authentication.",
+          "type": "string",
+          "x-go-name": "Token",
+          "example": "CWH0wZ5r0Mbac.r"
+        },
+        "user": {
+          "$ref": "#/definitions/User"
+        }
+      },
       "x-go-package": "github.com/gotify/server/v2/model"
     },
     "PagedMessages": {
