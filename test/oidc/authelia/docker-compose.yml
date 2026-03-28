@@ -1,0 +1,13 @@
+services:
+  authelia:
+    container_name: 'authelia'
+    image: 'docker.io/authelia/authelia:latest'
+    restart: 'unless-stopped'
+    environment:
+      - PUID=1000
+      - PGID=1000
+    ports:
+      - 9091:9091
+    volumes:
+      - './config:/config'
+      - './secrets:/secrets'

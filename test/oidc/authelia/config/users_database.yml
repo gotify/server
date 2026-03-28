@@ -1,0 +1,5 @@
+users:
+  user:
+    displayname: "user"
+    password: "$2a$10$JoPsdyz7c9Q1bqhw1.bHrefdNlOWY0/22VQZh33X9vDEl3Du1utqe" # password
+    email: user@gotify.net

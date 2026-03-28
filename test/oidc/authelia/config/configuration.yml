@@ -1,0 +1,125 @@
+# yamllint disable rule:comments-indentation
+---
+theme: 'auto'
+
+server:
+  tls:
+    key: '/config/key'
+    certificate: '/config/cert'
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
+
+authentication_backend:
+  file:
+    path: '/config/users_database.yml'
+    password:
+      algorithm: 'bcrypt'
+      bcrypt:
+        variant: 'standard'
+        cost: 12
+access_control:
+  default_policy: 'one_factor'
+
+session:
+  secret: 'a_very_important_secret'
+  cookies:
+    - name: 'authelia_session'
+      domain: '127.0.0.1'
+      authelia_url: 'https://127.0.0.1:9091'
+
+storage:
+  encryption_key: 'a_very_important_secret'
+  local:
+    path: '/config/db.sqlite3'
+
+notifier:
+  filesystem:
+    filename: '/config/notification.txt'
+
+identity_providers:
+  oidc:
+    jwks:
+    - algorithm: 'RS256'
+      use: 'sig'
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        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
+        1+nG9oQcrdep1QE+8byjndJp/i6IBRU=
+        -----END PRIVATE KEY-----
+
+    enable_client_debug_messages: true
+    clients:
+      - client_id: 'gotify'
+        client_name: 'gotify'
+        client_secret: '$pbkdf2-sha512$310000$PeubGcDkDhxS.WUNH6h04g$SQKuwJmUkPtQVWMz9nJoEUdvkYjRdkWEQO73zLiK4JRLapTWD9DYAHIt25h/FT1Nv059YSiMUpRUBbheSVJBAQ' # secret
+        public: false
+        authorization_policy: 'one_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
+        consent_mode: implicit
+        redirect_uris:
+          - 'http://127.0.0.1:8080/auth/oidc/callback'
+          - 'http://127.0.0.1:5173/auth/oidc/callback'
+          - 'http://localhost:8080/auth/oidc/callback'
+          - 'http://localhost:5173/auth/oidc/callback'
+          - 'gotify://oidc/callback'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+        response_types:
+          - 'code'
+        grant_types:
+          - 'authorization_code'
+        access_token_signed_response_alg: 'none'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
