@@ -145,7 +145,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	g.OPTIONS("/*any")
 
-	// swagger:operation GET /version version getVersion
+	// swagger:operation GET /version info getVersion
 	//
 	// Get version information.
 	//
@@ -158,6 +158,21 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	//         $ref: "#/definitions/VersionInfo"
 	g.GET("version", func(ctx *gin.Context) {
 		ctx.JSON(200, vInfo)
+	})
+
+	// swagger:operation GET /gotifyinfo info getInfo
+	//
+	// Get gotify information.
+	//
+	// ---
+	// produces: [application/json]
+	// responses:
+	//   200:
+	//     description: Ok
+	//     schema:
+	//         $ref: "#/definitions/GotifyInfo"
+	g.GET("gotifyinfo", func(ctx *gin.Context) {
+		ctx.JSON(200, &model.GotifyInfo{Version: vInfo.Version, Oidc: conf.OIDC.Enabled, Register: conf.Registration})
 	})
 
 	g.Group("/").Use(authentication.RequireApplicationToken).POST("/message", messageHandler.CreateMessage)

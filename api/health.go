@@ -16,7 +16,7 @@ type HealthAPI struct {
 }
 
 // Health returns health information.
-// swagger:operation GET /health health getHealth
+// swagger:operation GET /health info getHealth
 //
 // Get health information.
 //

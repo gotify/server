@@ -1025,13 +1025,33 @@
         }
       }
     },
+    "/gotifyinfo": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "info"
+        ],
+        "summary": "Get gotify information.",
+        "operationId": "getInfo",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/GotifyInfo"
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "produces": [
           "application/json"
         ],
         "tags": [
-          "health"
+          "info"
         ],
         "summary": "Get health information.",
         "operationId": "getHealth",
@@ -2101,7 +2121,7 @@
           "application/json"
         ],
         "tags": [
-          "version"
+          "info"
         ],
         "summary": "Get version information.",
         "operationId": "getVersion",
@@ -2350,6 +2370,36 @@
           "type": "string",
           "x-go-name": "ErrorDescription",
           "example": "you need to provide a valid access token or user credentials to access this api"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "GotifyInfo": {
+      "description": "GotifyInfo Model",
+      "type": "object",
+      "required": [
+        "version",
+        "register",
+        "oidc"
+      ],
+      "properties": {
+        "oidc": {
+          "description": "If oidc is enabled.",
+          "type": "boolean",
+          "x-go-name": "Oidc",
+          "example": true
+        },
+        "register": {
+          "description": "If registration is enabled.",
+          "type": "boolean",
+          "x-go-name": "Register",
+          "example": true
+        },
+        "version": {
+          "description": "The current version.",
+          "type": "string",
+          "x-go-name": "Version",
+          "example": "5.2.6"
         }
       },
       "x-go-package": "github.com/gotify/server/v2/model"
