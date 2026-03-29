@@ -7,7 +7,7 @@ import (
 
 var (
 	tokenCharacters   = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_")
-	randomTokenLength = 14
+	randomTokenLength = 22 // ~2^132.5 keyspace (7.65e+39)
 	applicationPrefix = "A"
 	clientPrefix      = "C"
 	pluginPrefix      = "P"
