@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -138,11 +137,12 @@ func (a *OIDCAPI) LoginHandler() gin.HandlerFunc {
 			http.Error(w, "invalid client name", http.StatusBadRequest)
 			return
 		}
-		state, err := a.generateState(clientName)
+		state, err := a.generateState()
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to generate state: %v", err), http.StatusInternalServerError)
 			return
 		}
+		a.storePendingSession(state, &pendingOIDCSession{ClientName: clientName, CreatedAt: time.Now()})
 		rp.AuthURLHandler(func() string { return state }, a.Provider)(w, r)
 	})
 }
@@ -180,8 +180,12 @@ func (a *OIDCAPI) CallbackHandler() gin.HandlerFunc {
 			http.Error(w, err.Error(), status)
 			return
 		}
-		clientName, _, _ := strings.Cut(state, ":")
-		client, err := a.createClient(clientName, user.ID)
+		session, ok := a.popPendingSession(state)
+		if !ok {
+			http.Error(w, "unknown or expired state", http.StatusBadRequest)
+			return
+		}
+		client, err := a.createClient(session.ClientName, user.ID)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to create client: %v", err), http.StatusInternalServerError)
 			return
@@ -228,7 +232,7 @@ func (a *OIDCAPI) ExternalAuthorizeHandler(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	state, err := a.generateState(req.Name)
+	state, err := a.generateState()
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -314,12 +318,12 @@ func (a *OIDCAPI) ExternalTokenHandler(ctx *gin.Context) {
 	})
 }
 
-func (a *OIDCAPI) generateState(name string) (string, error) {
+func (a *OIDCAPI) generateState() (string, error) {
 	nonce := make([]byte, 20)
 	if _, err := rand.Read(nonce); err != nil {
 		return "", err
 	}
-	return name + ":" + hex.EncodeToString(nonce), nil
+	return hex.EncodeToString(nonce), nil
 }
 
 // resolveUser looks up or creates a user from OIDC userinfo claims.

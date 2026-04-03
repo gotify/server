@@ -55,8 +55,8 @@ func (s *OIDCSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *OIDCSuite) Test_GenerateState_Unique() {
-	s1, _ := s.a.generateState("app")
-	s2, _ := s.a.generateState("app")
+	s1, _ := s.a.generateState()
+	s2, _ := s.a.generateState()
 	assert.NotEqual(s.T(), s1, s2)
 }
 
