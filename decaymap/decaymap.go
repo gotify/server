@@ -7,7 +7,7 @@ import (
 
 // DecayMap is a coarse-grained paired map that bulk-frees outdated entries.
 type DecayMap[K comparable, V any] struct {
-	mu         sync.RWMutex
+	mu         sync.Mutex
 	maps       [2]map[K]V
 	epoch      time.Time
 	lastInsert time.Time
@@ -24,16 +24,21 @@ func NewDecayMap[K comparable, V any](epoch time.Time, period time.Duration) *De
 	}
 }
 
-// Attempts to retrieve a value from the store, does not guarantee the value is unexpired.
-func (m *DecayMap[K, V]) Get(key K) (res V, ok bool) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	res, ok = m.maps[0][key]
+// Attempts to retrieve and remove a value from the store, does not guarantee the value is unexpired.
+func (m *DecayMap[K, V]) Pop(key K) (V, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	res, ok := m.maps[0][key]
 	if ok {
-		return
+		delete(m.maps[0], key)
+		return res, ok
 	}
 	res, ok = m.maps[1][key]
-	return
+	if ok {
+		delete(m.maps[1], key)
+		return res, ok
+	}
+	return res, ok
 }
 
 // Sets a value in the store, overwriting the existing value if exists.

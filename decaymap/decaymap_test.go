@@ -1,39 +1,41 @@
-
 package decaymap
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDecayMap2(t *testing.T) {
+func TestDecayMap(t *testing.T) {
 	epoch := time.Now()
-	dm := NewDecayMap[string, string](epoch, 10*time.Millisecond)
+	dm := NewDecayMap[string, string](epoch, 10*time.Second)
 
-	now := epoch
-	for ts := 0; ts < 100; ts++ {
-		dm.Set(now, fmt.Sprintf("key%d", ts), fmt.Sprintf("value%d", ts))
-		for backts := 0; backts < ts; backts++ {
-			res, ok := dm.Get(fmt.Sprintf("key%d", backts))
-			if ts-backts <= 10 {
-				assert.True(t, ok)
-				assert.Equal(t, fmt.Sprintf("value%d", backts), res)
-			} else if ts-backts >= 20 {
-				assert.False(t, ok)
-				assert.Equal(t, "", res)
-			}
-		}
-		now = now.Add(1 * time.Millisecond)
-	}
+	dm.Set(epoch.Add(1*time.Second), "11", "value11")
+	dm.Set(epoch.Add(2*time.Second), "12", "value12")
+	dm.Set(epoch.Add(3*time.Second), "13", "value13")
 
-	now = now.Add(20 * time.Millisecond)
-	dm.Set(now, "dummy", "dummy") // rachet internal state
-	for ts := 0; ts < 100; ts++ {
-		res, ok := dm.Get(fmt.Sprintf("key%d", ts))
-		assert.False(t, ok)
-		assert.Equal(t, "", res)
-	}
+	value, ok := dm.Pop("11")
+	assert.True(t, ok)
+	assert.Equal(t, "value11", value)
+
+	_, ok = dm.Pop("11")
+	assert.False(t, ok)
+
+	dm.Set(epoch.Add(11*time.Second), "21", "value21")
+	dm.Set(epoch.Add(12*time.Second), "22", "value22")
+	dm.Set(epoch.Add(13*time.Second), "23", "value23")
+
+	value, ok = dm.Pop("21")
+	assert.True(t, ok)
+	assert.Equal(t, "value21", value)
+
+	value, ok = dm.Pop("12")
+	assert.True(t, ok)
+	assert.Equal(t, "value12", value)
+
+	dm.Set(epoch.Add(21*time.Second), "31", "value31")
+
+	_, ok = dm.Pop("13")
+	assert.False(t, ok)
 }

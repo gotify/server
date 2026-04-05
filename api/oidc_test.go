@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/v2/decaymap"
 	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/test"
 	"github.com/gotify/server/v2/test/testdb"
@@ -46,7 +47,7 @@ func (s *OIDCSuite) BeforeTest(suiteName, testName string) {
 		UserChangeNotifier: notifier,
 		UsernameClaim:      "preferred_username",
 		AutoRegister:       true,
-		pendingSessions:    make(map[string]*pendingOIDCSession),
+		pendingSessions:    decaymap.NewDecayMap[string, *pendingOIDCSession](time.Now(), pendingSessionMaxAge),
 	}
 }
 
@@ -58,48 +59,6 @@ func (s *OIDCSuite) Test_GenerateState_Unique() {
 	s1, _ := s.a.generateState()
 	s2, _ := s.a.generateState()
 	assert.NotEqual(s.T(), s1, s2)
-}
-
-func (s *OIDCSuite) Test_StoreAndPopPendingSession() {
-	session := &pendingOIDCSession{RedirectURI: "app://cb", ClientName: "phone", CreatedAt: time.Now()}
-	s.a.storePendingSession("state1", session)
-
-	got, ok := s.a.popPendingSession("state1")
-	assert.True(s.T(), ok)
-	assert.Equal(s.T(), "app://cb", got.RedirectURI)
-
-	// second pop returns nothing (consumed)
-	_, ok = s.a.popPendingSession("state1")
-	assert.False(s.T(), ok)
-}
-
-func (s *OIDCSuite) Test_PopPendingSession_UnknownState() {
-	_, ok := s.a.popPendingSession("doesnotexist")
-	assert.False(s.T(), ok)
-}
-
-func (s *OIDCSuite) Test_PopPendingSession_Expired() {
-	session := &pendingOIDCSession{RedirectURI: "x", ClientName: "x", CreatedAt: time.Now().Add(-11 * time.Minute)}
-	s.a.storePendingSession("old", session)
-
-	_, ok := s.a.popPendingSession("old")
-	assert.False(s.T(), ok)
-}
-
-func (s *OIDCSuite) Test_StorePendingSession_PrunesExpired() {
-	expired := &pendingOIDCSession{CreatedAt: time.Now().Add(-11 * time.Minute)}
-	s.a.pendingSessions["stale"] = expired
-
-	fresh := &pendingOIDCSession{CreatedAt: time.Now()}
-	s.a.storePendingSession("fresh", fresh)
-
-	s.a.pendingSessionsMu.Lock()
-	_, staleExists := s.a.pendingSessions["stale"]
-	_, freshExists := s.a.pendingSessions["fresh"]
-	s.a.pendingSessionsMu.Unlock()
-
-	assert.False(s.T(), staleExists)
-	assert.True(s.T(), freshExists)
 }
 
 func (s *OIDCSuite) Test_ResolveUser_ExistingUser() {
@@ -224,7 +183,7 @@ func (s *OIDCSuite) Test_ExternalTokenHandler_InvalidJSON() {
 
 func (s *OIDCSuite) Test_ExternalTokenHandler_UnknownState() {
 	s.ctx.Request = httptest.NewRequest("POST", "/auth/oidc/external/token", strings.NewReader(
-		`{"code":"abc","state":"bogus:1234","code_verifier":"v"}`,
+		`{"code":"abc","state":"bogus","code_verifier":"v"}`,
 	))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 

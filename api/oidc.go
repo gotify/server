@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/config"
 	"github.com/gotify/server/v2/database"
+	"github.com/gotify/server/v2/decaymap"
 	"github.com/gotify/server/v2/model"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
 	httphelper "github.com/zitadel/oidc/v3/pkg/http"
@@ -60,7 +60,7 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 		PasswordStrength:   conf.PassStrength,
 		SecureCookie:       conf.Server.SecureCookie,
 		AutoRegister:       conf.OIDC.AutoRegister,
-		pendingSessions:    make(map[string]*pendingOIDCSession),
+		pendingSessions:    decaymap.NewDecayMap[string, *pendingOIDCSession](time.Now(), pendingSessionMaxAge),
 	}
 }
 
@@ -81,32 +81,7 @@ type OIDCAPI struct {
 	PasswordStrength   int
 	SecureCookie       bool
 	AutoRegister       bool
-	pendingSessions    map[string]*pendingOIDCSession
-	pendingSessionsMu  sync.Mutex
-}
-
-func (a *OIDCAPI) storePendingSession(state string, session *pendingOIDCSession) {
-	a.pendingSessionsMu.Lock()
-	defer a.pendingSessionsMu.Unlock()
-	for s, sess := range a.pendingSessions {
-		if time.Since(sess.CreatedAt) > pendingSessionMaxAge {
-			delete(a.pendingSessions, s)
-		}
-	}
-	a.pendingSessions[state] = session
-}
-
-func (a *OIDCAPI) popPendingSession(state string) (*pendingOIDCSession, bool) {
-	a.pendingSessionsMu.Lock()
-	session, ok := a.pendingSessions[state]
-	if ok {
-		delete(a.pendingSessions, state)
-	}
-	a.pendingSessionsMu.Unlock()
-	if !ok || time.Since(session.CreatedAt) > pendingSessionMaxAge {
-		return nil, false
-	}
-	return session, true
+	pendingSessions    *decaymap.DecayMap[string, *pendingOIDCSession]
 }
 
 // swagger:operation GET /auth/oidc/login oidc oidcLogin
@@ -142,7 +117,7 @@ func (a *OIDCAPI) LoginHandler() gin.HandlerFunc {
 			http.Error(w, fmt.Sprintf("failed to generate state: %v", err), http.StatusInternalServerError)
 			return
 		}
-		a.storePendingSession(state, &pendingOIDCSession{ClientName: clientName, CreatedAt: time.Now()})
+		a.pendingSessions.Set(time.Now(), state, &pendingOIDCSession{ClientName: clientName, CreatedAt: time.Now()})
 		rp.AuthURLHandler(func() string { return state }, a.Provider)(w, r)
 	})
 }
@@ -237,7 +212,7 @@ func (a *OIDCAPI) ExternalAuthorizeHandler(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	a.storePendingSession(state, &pendingOIDCSession{
+	a.pendingSessions.Set(time.Now(), state, &pendingOIDCSession{
 		RedirectURI: req.RedirectURI, ClientName: req.Name, CreatedAt: time.Now(),
 	})
 	authOpts := []rp.AuthURLOpt{
@@ -363,4 +338,12 @@ func (a *OIDCAPI) createClient(name string, userID uint) (*model.Client, error) 
 		UserID: userID,
 	}
 	return client, a.DB.CreateClient(client)
+}
+
+func (a *OIDCAPI) popPendingSession(key string) (*pendingOIDCSession, bool) {
+	session, ok := a.pendingSessions.Pop(key)
+	if ok && time.Since(session.CreatedAt) < pendingSessionMaxAge {
+		return session, true
+	}
+	return nil, false
 }
