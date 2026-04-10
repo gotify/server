@@ -118,18 +118,9 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 func (a *SessionAPI) Logout(ctx *gin.Context) {
 	auth.SetCookie(ctx.Writer, "", -1, a.SecureCookie)
 
-	tokenID := auth.TryGetTokenID(ctx)
-	if tokenID == "" {
-		ctx.AbortWithError(400, errors.New("no client auth provided"))
-		return
-	}
-	client, err := a.DB.GetClientByToken(tokenID)
-	if err != nil {
-		ctx.AbortWithError(500, err)
-		return
-	}
+	client := auth.GetClient(ctx)
 	if client == nil {
-		ctx.Status(200)
+		ctx.AbortWithError(403, errors.New("no client auth provided"))
 		return
 	}
 

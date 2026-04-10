@@ -109,11 +109,10 @@ func (s *SessionSuite) Test_Login_WrongPassword() {
 }
 
 func (s *SessionSuite) Test_Logout_Success() {
-	builder := s.db.User(5)
-	builder.ClientWithToken(1, "Ctesttoken12345")
+	client := s.db.User(5).NewClientWithToken(1, "Ctesttoken12345")
 
 	s.ctx.Request = httptest.NewRequest("POST", "/auth/logout", nil)
-	auth.RegisterClient(s.ctx, &model.Client{UserID: 5, Token: "Ctesttoken12345"})
+	auth.RegisterClient(s.ctx, client)
 
 	s.a.Logout(s.ctx)
 

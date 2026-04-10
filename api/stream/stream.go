@@ -147,7 +147,11 @@ func (a *API) Handle(ctx *gin.Context) {
 		return
 	}
 
-	client := newClient(conn, auth.GetUserID(ctx), auth.TryGetTokenID(ctx), a.remove)
+	var token string
+	if c := auth.GetClient(ctx); c != nil {
+		token = c.Token
+	}
+	client := newClient(conn, auth.GetUserID(ctx), token, a.remove)
 	a.register(client)
 	go client.startReading(a.pongTimeout)
 	go client.startWriteHandler(a.pingPeriod)

@@ -2,11 +2,12 @@ package auth
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
+	"testing/iotest"
 
-	"github.com/gotify/server/v2/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,7 +33,7 @@ func TestGenerateNotExistingToken(t *testing.T) {
 
 func TestBadCryptoReaderPanics(t *testing.T) {
 	assert.Panics(t, func() {
-		randReader = test.UnreadableReader()
+		randReader = iotest.ErrReader(errors.New("this reader cannot be read"))
 		defer func() {
 			randReader = rand.Reader
 		}()

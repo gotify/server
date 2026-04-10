@@ -24,7 +24,6 @@ type MessageDatabase interface {
 	DeleteMessagesByUser(userID uint) error
 	DeleteMessagesByApplication(applicationID uint) error
 	CreateMessage(message *model.Message) error
-	GetApplicationByToken(token string) (*model.Application, error)
 }
 
 var timeNow = time.Now
@@ -364,10 +363,7 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	message := model.MessageExternal{}
 	if err := ctx.Bind(&message); err == nil {
-		application, err := a.DB.GetApplicationByToken(auth.TryGetTokenID(ctx))
-		if success := successOrAbort(ctx, 500, err); !success {
-			return
-		}
+		application := auth.GetApplication(ctx)
 		message.ApplicationID = application.ID
 		if strings.TrimSpace(message.Title) == "" {
 			message.Title = application.Name

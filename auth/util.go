@@ -59,15 +59,13 @@ func TryGetUserID(ctx *gin.Context) *uint {
 	}
 }
 
-// TryGetTokenID returns the tokenID or an empty string if no token-based
-// authentication was registered.
-func TryGetTokenID(ctx *gin.Context) string {
-	info := getInfo(ctx)
-	switch {
-	case info.client != nil:
-		return info.client.Token
-	case info.app != nil:
-		return info.app.Token
-	}
-	return ""
+// GetApplication returns the authenticated application or nil if no application
+// was registered.
+func GetApplication(ctx *gin.Context) *model.Application {
+	return getInfo(ctx).app
+}
+
+// GetClient returns the authenticated client or nil if no client was registered.
+func GetClient(ctx *gin.Context) *model.Client {
+	return getInfo(ctx).client
 }
