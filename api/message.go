@@ -364,7 +364,7 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	message := model.MessageExternal{}
 	if err := ctx.Bind(&message); err == nil {
-		application, err := a.DB.GetApplicationByToken(auth.GetTokenID(ctx))
+		application, err := a.DB.GetApplicationByToken(auth.TryGetTokenID(ctx))
 		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}

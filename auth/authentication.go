@@ -70,7 +70,6 @@ func (a *Auth) RequireApplicationToken(ctx *gin.Context) {
 
 func (a *Auth) Optional(ctx *gin.Context) {
 	if !a.evaluate(ctx, a.user(false), a.client(false)) {
-		RegisterAuthentication(ctx, nil, 0, "")
 		ctx.Next()
 	}
 }
@@ -116,7 +115,7 @@ func (a *Auth) user(requireAdmin bool) func(ctx *gin.Context) (authState, error)
 			if user, err := a.DB.GetUserByName(name); err != nil {
 				return authStateSkip, err
 			} else if user != nil && password.ComparePassword(user.Pass, []byte(pass)) {
-				RegisterAuthentication(ctx, user, user.ID, "")
+				RegisterUser(ctx, user)
 
 				if requireAdmin && !user.Admin {
 					return authStateForbidden, nil
@@ -141,7 +140,7 @@ func (a *Auth) client(requireAdmin bool) func(ctx *gin.Context) (authState, erro
 		if client == nil {
 			return authStateSkip, nil
 		}
-		RegisterAuthentication(ctx, nil, client.UserID, client.Token)
+		RegisterClient(ctx, client)
 
 		now := time.Now()
 		if client.LastUsed == nil || client.LastUsed.Add(5*time.Minute).Before(now) {
@@ -177,7 +176,7 @@ func (a *Auth) application(ctx *gin.Context) (authState, error) {
 	if app == nil {
 		return authStateSkip, nil
 	}
-	RegisterAuthentication(ctx, nil, app.UserID, app.Token)
+	RegisterApplication(ctx, app)
 
 	now := time.Now()
 	if app.LastUsed == nil || app.LastUsed.Add(5*time.Minute).Before(now) {

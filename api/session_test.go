@@ -113,8 +113,7 @@ func (s *SessionSuite) Test_Logout_Success() {
 	builder.ClientWithToken(1, "Ctesttoken12345")
 
 	s.ctx.Request = httptest.NewRequest("POST", "/auth/logout", nil)
-	test.WithUser(s.ctx, 5)
-	s.ctx.Set("tokenid", "Ctesttoken12345")
+	auth.RegisterClient(s.ctx, &model.Client{UserID: 5, Token: "Ctesttoken12345"})
 
 	s.a.Logout(s.ctx)
 
