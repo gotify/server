@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http/httptest"
+	"testing/iotest"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -27,13 +28,7 @@ func JSONEquals(t assert.TestingT, obj interface{}, expected string) {
 	assert.JSONEq(t, expected, objJSON)
 }
 
-type unreadableReader struct{}
-
-func (c unreadableReader) Read([]byte) (int, error) {
-	return 0, errors.New("this reader cannot be read")
-}
-
 // UnreadableReader returns an unreadable reader, used to mock IO issues.
 func UnreadableReader() io.Reader {
-	return unreadableReader{}
+	return iotest.ErrReader(errors.New("this reader cannot be read"))
 }
