@@ -43,7 +43,7 @@ type SessionAPI struct {
 //	  200:
 //	    description: Ok
 //	    schema:
-//	        $ref: "#/definitions/UserExternal"
+//	        $ref: "#/definitions/CurrentUser"
 //	    headers:
 //	      Set-Cookie:
 //	        type: string
@@ -85,10 +85,12 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 
 	auth.SetCookie(ctx.Writer, client.Token, auth.CookieMaxAge, a.SecureCookie)
 
-	ctx.JSON(200, &model.UserExternal{
-		ID:    user.ID,
-		Name:  user.Name,
-		Admin: user.Admin,
+	ctx.JSON(200, &model.CurrentUserExternal{
+		ID:            user.ID,
+		Name:          user.Name,
+		Admin:         user.Admin,
+		ClientID:      client.ID,
+		ElevatedUntil: client.ElevatedUntil,
 	})
 }
 

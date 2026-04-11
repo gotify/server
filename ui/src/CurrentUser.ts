@@ -3,7 +3,7 @@ import * as config from './config';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
 import {observable, runInAction, action} from 'mobx';
-import {IUser} from './types';
+import {ICurrentUser} from './types';
 
 export class CurrentUser {
     private reconnectTimeoutId: number | null = null;
@@ -11,7 +11,7 @@ export class CurrentUser {
     @observable accessor loggedIn = false;
     @observable accessor refreshKey = 0;
     @observable accessor authenticating = true;
-    @observable accessor user: IUser = {name: 'unknown', admin: false, id: -1};
+    @observable accessor user: ICurrentUser = {name: 'unknown', admin: false, id: -1};
     @observable accessor connectionErrorMessage: string | null = null;
 
     public constructor(private readonly snack: SnackReporter) {}
@@ -58,7 +58,7 @@ export class CurrentUser {
                 headers: {Authorization: 'Basic ' + btoa(username + ':' + password)},
             })
             .then(
-                action((resp: AxiosResponse<IUser>) => {
+                action((resp: AxiosResponse<ICurrentUser>) => {
                     this.snack(`A client named '${name}' was created for your session.`);
                     this.user = resp.data;
                     this.loggedIn = true;
@@ -75,7 +75,7 @@ export class CurrentUser {
             );
     };
 
-    public tryAuthenticate = async (): Promise<AxiosResponse<IUser>> => {
+    public tryAuthenticate = async (): Promise<AxiosResponse<ICurrentUser>> => {
         return axios
             .create()
             .get(config.get('url') + 'current/user')

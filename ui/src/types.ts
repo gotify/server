@@ -62,6 +62,11 @@ export interface IUser {
     admin: boolean;
 }
 
+export interface ICurrentUser extends IUser {
+    clientId?: number;
+    elevatedUntil?: string;
+}
+
 export interface IVersion {
     version: string;
     commit: string;

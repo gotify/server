@@ -126,7 +126,17 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 	if success := successOrAbort(ctx, 500, err); !success {
 		return
 	}
-	ctx.JSON(200, toExternalUser(user))
+	result := &model.CurrentUserExternal{
+		ID:    user.ID,
+		Name:  user.Name,
+		Admin: user.Admin,
+	}
+	client := auth.GetClient(ctx)
+	if client != nil {
+		result.ClientID = client.ID
+		result.ElevatedUntil = client.ElevatedUntil
+	}
+	ctx.JSON(200, result)
 }
 
 // CreateUser create a user.
