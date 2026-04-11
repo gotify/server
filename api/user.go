@@ -69,6 +69,8 @@ type UserAPI struct {
 //
 // Return all users.
 //
+// Requires elevated authentication.
+//
 //	---
 //	produces: [application/json]
 //	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
@@ -104,6 +106,8 @@ func (a *UserAPI) GetUsers(ctx *gin.Context) {
 // swagger:operation GET /current/user user currentUser
 //
 // Return the current user.
+//
+// Requires elevated authentication.
 //
 //	---
 //	produces: [application/json]
@@ -146,6 +150,8 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 //
 // With enabled registration: non admin users can be created without authentication.
 // With disabled registrations: users can only be created by admin users.
+//
+// Requires elevated authentication.
 //
 //	---
 //	consumes: [application/json]
@@ -233,6 +239,8 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 //
 // Get a user.
 //
+// Requires elevated authentication.
+//
 //	---
 //	consumes: [application/json]
 //	produces: [application/json]
@@ -283,6 +291,8 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 // swagger:operation DELETE /user/{id} user deleteUser
 //
 // Deletes a user.
+//
+// Requires elevated authentication.
 //
 //	---
 //	produces: [application/json]
@@ -344,6 +354,8 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 //
 // Update the password of the current user.
 //
+// Requires elevated authentication.
+//
 //	---
 //	consumes: [application/json]
 //	produces: [application/json]
@@ -386,6 +398,8 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 // swagger:operation POST /user/{id} user updateUser
 //
 // Update a user.
+//
+// Requires elevated authentication.
 //
 //	---
 //	consumes: [application/json]

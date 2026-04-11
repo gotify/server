@@ -193,6 +193,8 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 //
 // Delete a client.
 //
+// Requires elevated authentication.
+//
 //	---
 //	consumes: [application/json]
 //	produces: [application/json]
@@ -241,6 +243,8 @@ func (a *ClientAPI) DeleteClient(ctx *gin.Context) {
 // swagger:operation POST /client:elevate client elevateClient
 //
 // Elevate a client session.
+//
+// Requires elevated authentication.
 //
 //	---
 //	consumes: [application/json]
