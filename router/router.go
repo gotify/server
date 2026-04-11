@@ -113,6 +113,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		oidcGroup.GET("/callback", oidcHandler.CallbackHandler())
 		oidcGroup.POST("/external/authorize", oidcHandler.ExternalAuthorizeHandler)
 		oidcGroup.POST("/external/token", oidcHandler.ExternalTokenHandler)
+		oidcGroup.GET("/elevate", oidcHandler.ElevateHandler)
 	}
 
 	g.Match([]string{"GET", "HEAD"}, "/health", healthHandler.Health)
@@ -214,6 +215,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 			client.PUT("/:id", clientHandler.UpdateClient)
 		}
+		client.POST("/client:elevate", clientHandler.ElevateClient)
 
 		message := clientAuth.Group("/message")
 		{

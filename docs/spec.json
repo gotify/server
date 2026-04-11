@@ -702,8 +702,49 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "ok"
+          },
           "307": {
             "description": "Redirect to UI"
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/auth/oidc/elevate": {
+      "get": {
+        "description": "Redirects the user to the OIDC provider's authorization endpoint. After\nsuccessful authentication, the referenced client session is elevated for\nthe requested duration.",
+        "tags": [
+          "oidc"
+        ],
+        "summary": "Start the OIDC flow to elevate an existing client session (browser).",
+        "operationId": "oidcElevate",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "the client id to elevate",
+            "name": "id",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "how long the elevation should last, in seconds",
+            "name": "durationSeconds",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to OIDC provider"
           },
           "default": {
             "description": "Error",
@@ -1073,6 +1114,69 @@
           },
           "403": {
             "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/client:elevate": {
+      "post": {
+        "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "client"
+        ],
+        "summary": "Elevate a client session.",
+        "operationId": "elevateClient",
+        "parameters": [
+          {
+            "description": "the elevation request",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ElevateRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ok"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -2432,6 +2536,13 @@
         "name"
       ],
       "properties": {
+        "elevatedUntil": {
+          "description": "The time until which this client's session is elevated.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "ElevatedUntil",
+          "readOnly": true
+        },
         "id": {
           "description": "The client id.",
           "type": "integer",
@@ -2508,6 +2619,31 @@
           "type": "string",
           "x-go-name": "Pass",
           "example": "nrocinu"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "ElevateRequest": {
+      "type": "object",
+      "title": "ElevateRequest parameters for client elevation.",
+      "required": [
+        "id",
+        "durationSeconds"
+      ],
+      "properties": {
+        "durationSeconds": {
+          "description": "How long the elevation should last, in seconds.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DurationSeconds",
+          "example": 900
+        },
+        "id": {
+          "description": "The client ID to elevate.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID",
+          "example": 5
         }
       },
       "x-go-package": "github.com/gotify/server/v2/model"

@@ -1,7 +1,9 @@
 package api
 
 import (
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
@@ -16,6 +18,7 @@ type ClientDatabase interface {
 	GetClientsByUser(userID uint) ([]*model.Client, error)
 	DeleteClientByID(id uint) error
 	UpdateClient(client *model.Client) error
+	UpdateClientElevatedUntil(id uint, t *time.Time) error
 }
 
 // The ClientAPI provides handlers for managing clients and applications.
@@ -233,6 +236,61 @@ func (a *ClientAPI) DeleteClient(ctx *gin.Context) {
 			ctx.AbortWithError(404, fmt.Errorf("client with id %d doesn't exists", id))
 		}
 	})
+}
+
+// swagger:operation POST /client:elevate client elevateClient
+//
+// Elevate a client session.
+//
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	parameters:
+//	- name: body
+//	  in: body
+//	  description: the elevation request
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/ElevateRequest"
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	responses:
+//	  204:
+//	    description: Ok
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+func (a *ClientAPI) ElevateClient(ctx *gin.Context) {
+	var params model.ElevateRequest
+	if err := ctx.Bind(&params); err != nil {
+		return
+	}
+
+	client, err := a.DB.GetClientByID(params.ID)
+	if err != nil {
+		ctx.AbortWithError(500, err)
+		return
+	}
+	if client == nil || client.UserID != auth.GetUserID(ctx) {
+		ctx.AbortWithError(404, errors.New("client not found"))
+		return
+	}
+
+	elevatedUntil := time.Now().Add(time.Duration(params.DurationSeconds) * time.Second)
+	if err := a.DB.UpdateClientElevatedUntil(client.ID, &elevatedUntil); err != nil {
+		ctx.AbortWithError(500, err)
+		return
+	}
+
+	ctx.Status(204)
 }
 
 func (a *ClientAPI) clientExists(token string) bool {
