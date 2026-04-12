@@ -15,6 +15,7 @@ export interface IClient {
     token: string;
     name: string;
     lastUsed: string | null;
+    elevatedUntil?: string;
 }
 
 export interface IPlugin {

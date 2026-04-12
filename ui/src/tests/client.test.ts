@@ -19,8 +19,10 @@ enum Col {
     Name = 1,
     Token = 2,
     LastSeen = 3,
-    Edit = 4,
-    Delete = 5,
+    ElevationEnds = 4,
+    Elevate = 5,
+    Edit = 6,
+    Delete = 7,
 }
 
 const waitForClient =
