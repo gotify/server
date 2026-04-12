@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
@@ -74,10 +75,12 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 		return
 	}
 
+	elevatedUntil := time.Now().Add(model.DefaultElevationDuration)
 	client := model.Client{
-		Name:   clientParams.Name,
-		Token:  auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
-		UserID: user.ID,
+		Name:          clientParams.Name,
+		Token:         auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
+		UserID:        user.ID,
+		ElevatedUntil: &elevatedUntil,
 	}
 	if success := successOrAbort(ctx, 500, a.DB.CreateClient(&client)); !success {
 		return

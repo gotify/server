@@ -417,10 +417,12 @@ func (a *OIDCAPI) resolveUser(info *oidc.UserInfo) (*model.User, int, error) {
 }
 
 func (a *OIDCAPI) createClient(name string, userID uint) (*model.Client, error) {
+	elevatedUntil := time.Now().Add(model.DefaultElevationDuration)
 	client := &model.Client{
-		Name:   name,
-		Token:  auth.GenerateNotExistingToken(generateClientToken, func(t string) bool { c, _ := a.DB.GetClientByToken(t); return c != nil }),
-		UserID: userID,
+		Name:          name,
+		Token:         auth.GenerateNotExistingToken(generateClientToken, func(t string) bool { c, _ := a.DB.GetClientByToken(t); return c != nil }),
+		UserID:        userID,
+		ElevatedUntil: &elevatedUntil,
 	}
 	return client, a.DB.CreateClient(client)
 }

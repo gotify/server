@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // ElevateRequest parameters for client elevation.
 //
 // swagger:model ElevateRequest
@@ -15,3 +17,5 @@ type ElevateRequest struct {
 	// example: 900
 	DurationSeconds int `form:"durationSeconds" query:"durationSeconds" json:"durationSeconds" binding:"required"`
 }
+
+var DefaultElevationDuration = time.Hour
