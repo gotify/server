@@ -4,6 +4,7 @@ export interface IConfig {
     url: string;
     register: boolean;
     version: IVersion;
+    oidc: boolean;
 }
 
 declare global {
@@ -16,6 +17,7 @@ const config: IConfig = {
     url: 'unset',
     register: false,
     version: {commit: 'unknown', buildDate: 'unknown', version: 'unknown'},
+    oidc: false,
     ...window.config,
 };
 

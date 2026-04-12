@@ -74,7 +74,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			db.UpdateClientTokensLastUsed(connectedTokens, &now)
 		}
 	}()
-	authentication := auth.Auth{DB: db}
+	authentication := auth.Auth{DB: db, SecureCookie: conf.Server.SecureCookie}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
 	healthHandler := api.HealthAPI{DB: db}
 	clientHandler := api.ClientAPI{
@@ -86,6 +86,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		DB:       db,
 		ImageDir: conf.UploadedImagesDir,
 	}
+	sessionHandler := api.SessionAPI{DB: db, NotifyDeleted: streamHandler.NotifyDeletedClient, SecureCookie: conf.Server.SecureCookie}
 	userChangeNotifier := new(api.UserChangeNotifier)
 	userHandler := api.UserAPI{DB: db, PasswordStrength: conf.PassStrength, UserChangeNotifier: userChangeNotifier, Registration: conf.Registration}
 
@@ -103,7 +104,16 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	userChangeNotifier.OnUserDeleted(pluginManager.RemoveUser)
 	userChangeNotifier.OnUserAdded(pluginManager.InitializeForUserID)
 
-	ui.Register(g, *vInfo, conf.Registration)
+	ui.Register(g, *vInfo, conf.Registration, conf.OIDC.Enabled)
+
+	if conf.OIDC.Enabled {
+		oidcHandler := api.NewOIDC(conf, db, userChangeNotifier)
+		oidcGroup := g.Group("/auth/oidc")
+		oidcGroup.GET("/login", oidcHandler.LoginHandler())
+		oidcGroup.GET("/callback", oidcHandler.CallbackHandler())
+		oidcGroup.POST("/external/authorize", oidcHandler.ExternalAuthorizeHandler)
+		oidcGroup.POST("/external/token", oidcHandler.ExternalTokenHandler)
+	}
 
 	g.Match([]string{"GET", "HEAD"}, "/health", healthHandler.Health)
 	g.GET("/swagger", docs.Serve)
@@ -120,8 +130,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	g.Use(cors.New(auth.CorsConfig(conf)))
 
 	{
-		g.GET("/plugin", authentication.RequireClient(), pluginHandler.GetPlugins)
-		pluginRoute := g.Group("/plugin/", authentication.RequireClient())
+		g.GET("/plugin", authentication.RequireClient, pluginHandler.GetPlugins)
+		pluginRoute := g.Group("/plugin/", authentication.RequireClient)
 		{
 			pluginRoute.GET("/:id/config", pluginHandler.GetConfig)
 			pluginRoute.POST("/:id/config", pluginHandler.UpdateConfig)
@@ -131,11 +141,13 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		}
 	}
 
-	g.Group("/user").Use(authentication.Optional()).POST("", userHandler.CreateUser)
+	g.Group("/user").Use(authentication.Optional).POST("", userHandler.CreateUser)
+
+	g.POST("/auth/local/login", sessionHandler.Login)
 
 	g.OPTIONS("/*any")
 
-	// swagger:operation GET /version version getVersion
+	// swagger:operation GET /version info getVersion
 	//
 	// Get version information.
 	//
@@ -150,11 +162,26 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		ctx.JSON(200, vInfo)
 	})
 
-	g.Group("/").Use(authentication.RequireApplicationToken()).POST("/message", messageHandler.CreateMessage)
+	// swagger:operation GET /gotifyinfo info getInfo
+	//
+	// Get gotify information.
+	//
+	// ---
+	// produces: [application/json]
+	// responses:
+	//   200:
+	//     description: Ok
+	//     schema:
+	//         $ref: "#/definitions/GotifyInfo"
+	g.GET("gotifyinfo", func(ctx *gin.Context) {
+		ctx.JSON(200, &model.GotifyInfo{Version: vInfo.Version, Oidc: conf.OIDC.Enabled, Register: conf.Registration})
+	})
+
+	g.Group("/").Use(authentication.RequireApplicationToken).POST("/message", messageHandler.CreateMessage)
 
 	clientAuth := g.Group("")
 	{
-		clientAuth.Use(authentication.RequireClient())
+		clientAuth.Use(authentication.RequireClient)
 		app := clientAuth.Group("/application")
 		{
 			app.GET("", applicationHandler.GetApplications)
@@ -202,11 +229,13 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		clientAuth.GET("current/user", userHandler.GetCurrentUser)
 
 		clientAuth.POST("current/user/password", userHandler.ChangePassword)
+
+		clientAuth.POST("/auth/local/logout", sessionHandler.Logout)
 	}
 
 	authAdmin := g.Group("/user")
 	{
-		authAdmin.Use(authentication.RequireAdmin())
+		authAdmin.Use(authentication.RequireAdmin)
 
 		authAdmin.GET("", userHandler.GetUsers)
 

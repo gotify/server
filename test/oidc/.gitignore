@@ -1,0 +1,4 @@
+/dex/config/dex.db
+/authelia/config/*
+!/authelia/config/configuration.yml
+!/authelia/config/users_database.yml

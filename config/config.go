@@ -42,6 +42,7 @@ type Configuration struct {
 		}
 
 		TrustedProxies []string
+		SecureCookie   bool `default:"false"`
 	}
 	Database struct {
 		Dialect    string `default:"sqlite3"`
@@ -55,6 +56,16 @@ type Configuration struct {
 	UploadedImagesDir string `default:"data/images"`
 	PluginsDir        string `default:"data/plugins"`
 	Registration      bool   `default:"false"`
+	OIDC              struct {
+		Enabled       bool   `default:"false"`
+		Issuer        string `default:""`
+		ClientID      string `default:""`
+		ClientSecret  string `default:""`
+		UsernameClaim string `default:"preferred_username"`
+		RedirectURL   string `default:""`
+		AutoRegister  bool   `default:"true"`
+		Scopes        []string
+	}
 }
 
 func configFiles() []string {

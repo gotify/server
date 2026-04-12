@@ -3,13 +3,13 @@
 
 server:
   keepaliveperiodseconds: 0 # 0 = use Go default (15s); -1 = disable keepalive; set the interval in which keepalive packets will be sent. Only change this value if you know what you are doing.
-  listenaddr: "" # the address to bind on, leave empty to bind on all addresses. Prefix with "unix:" to create a unix socket. Example: "unix:/tmp/gotify.sock".
+  listenaddr: '' # the address to bind on, leave empty to bind on all addresses. Prefix with "unix:" to create a unix socket. Example: "unix:/tmp/gotify.sock".
   port: 80 # the port the HTTP server will listen on
 
   ssl:
     enabled: false # if https should be enabled
     redirecttohttps: true # redirect to https if site is accessed by http
-    listenaddr: "" # the address to bind on, leave empty to bind on all addresses. Prefix with "unix:" to create a unix socket. Example: "unix:/tmp/gotify.sock".
+    listenaddr: '' # the address to bind on, leave empty to bind on all addresses. Prefix with "unix:" to create a unix socket. Example: "unix:/tmp/gotify.sock".
     port: 443 # the https port
     certfile: # the cert file (leave empty when using letsencrypt)
     certkey: # the cert key (leave empty when using letsencrypt)
@@ -18,44 +18,51 @@ server:
       accepttos: false # if you accept the tos from letsencrypt
       cache: data/certs # the directory of the cache from letsencrypt
       directoryurl: # override the directory url of the ACME server
-                    # Let's Encrypt highly recommend testing against their staging environment before using their production environment.
-                    # Staging server has high rate limits for testing and debugging, issued certificates are not valid
-                    # example: https://acme-staging-v02.api.letsencrypt.org/directory
+        # Let's Encrypt highly recommend testing against their staging environment before using their production environment.
+        # Staging server has high rate limits for testing and debugging, issued certificates are not valid
+        # example: https://acme-staging-v02.api.letsencrypt.org/directory
       hosts: # the hosts for which letsencrypt should request certificates
-#      - mydomain.tld
-#      - myotherdomain.tld
-
+#       - mydomain.tld
+#       - myotherdomain.tld
   responseheaders: # response headers are added to every response (default: none)
-#    X-Custom-Header: "custom value"
-#
+#   X-Custom-Header: "custom value"
+
   trustedproxies: # IPs or IP ranges of trusted proxies. Used to obtain the remote ip via the X-Forwarded-For header. (configure 127.0.0.1 to trust sockets)
 #   - 127.0.0.1/32
 #   - ::1
+  securecookie: false # If the secure flag should be set on cookies. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie#secure
 
   cors: # Sets cors headers only when needed and provides support for multiple allowed origins. Overrides Access-Control-* Headers in response headers.
     alloworigins:
-#      - ".+.example.com"
-#      - "otherdomain.com"
+#     - '.+.example.com'
+#     - 'otherdomain.com'
     allowmethods:
-#      - "GET"
-#      - "POST"
+#     - "GET"
+#     - "POST"
     allowheaders:
-#      - "Authorization"
-#      - "content-type"
+#     - "Authorization"
+#     - "content-type"
   stream:
     pingperiodseconds: 45 # the interval in which websocket pings will be sent. Only change this value if you know what you are doing.
     allowedorigins: # allowed origins for websocket connections (same origin is always allowed)
-#      - ".+.example.com"
-#      - "otherdomain.com"
+#     - ".+.example.com"
+#     - "otherdomain.com"
+oidc:
+  enabled: false # Enable OpenID Connect login, allowing users to authenticate via an external identity provider (e.g. Keycloak, Authelia, Google).
+  issuer: # The OIDC issuer URL. This is the base URL of your identity provider, used to discover endpoints. Example: "https://auth.example.com/realms/myrealm"
+  clientid: # The client ID registered with your identity provider for this application.
+  clientsecret: # The client secret for the registered client.
+  redirecturl: http://gotify.example.org/auth/oidc/callback # The callback URL that the identity provider redirects to after authentication. Must match exactly what is configured in your identity provider.
+  autoregister: true # If true, automatically create a new user on first OIDC login. If false, only existing users can log in via OIDC.
+  usernameclaim: preferred_username # The OIDC claim used to determine the username. Common values: "preferred_username" or "email".
 
 database: # for database see (configure database section)
   dialect: sqlite3
   connection: data/gotify.db
-
-defaultuser: # on database creation, gotify creates an admin user
+defaultuser: # on database creation, gotify creates an admin user (these values will only be used for the first start, if you want to edit the user after the first start use the WebUI)
   name: admin # the username of the default user
   pass: admin # the password of the default user
 passstrength: 10 # the bcrypt password strength (higher = better but also slower)
 uploadedimagesdir: data/images # the directory for storing uploaded images
-pluginsdir: data/plugins # the directory where plugin resides
+pluginsdir: data/plugins # the directory where plugin resides (leave empty to disable plugins)
 registration: false # enable registrations

@@ -1,4 +1,5 @@
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import React from 'react';
@@ -80,6 +81,24 @@ const Login = observer(() => {
                             Login
                         </Button>
                     </form>
+                    {config.get('oidc') && (
+                        <>
+                            <Divider style={{marginTop: 15, marginBottom: 15}}>or</Divider>
+                            <Button
+                                component="a"
+                                href={
+                                    config.get('url') +
+                                    'auth/oidc/login?name=' +
+                                    encodeURIComponent(currentUser.createClientName())
+                                }
+                                variant="outlined"
+                                size="large"
+                                color="primary"
+                                style={{marginBottom: 5}}>
+                                Login with OIDC
+                            </Button>
+                        </>
+                    )}
                 </Container>
             </Grid>
             {registerDialog && (

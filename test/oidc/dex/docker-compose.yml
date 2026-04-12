@@ -1,0 +1,9 @@
+services:
+  dex:
+    image: ghcr.io/dexidp/dex:latest
+    command: dex serve /config/dex.conf
+    user: '1000'
+    ports:
+      - 5556:5556
+    volumes:
+      - ./config/:/config

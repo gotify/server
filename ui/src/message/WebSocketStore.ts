@@ -14,13 +14,13 @@ export class WebSocketStore {
     ) {}
 
     public listen = (callback: (msg: IMessage) => void) => {
-        if (!this.currentUser.token() || this.wsActive) {
+        if (!this.currentUser.loggedIn || this.wsActive) {
             return;
         }
         this.wsActive = true;
 
         const wsUrl = config.get('url').replace('http', 'ws').replace('https', 'wss');
-        const ws = new WebSocket(wsUrl + 'stream?token=' + this.currentUser.token());
+        const ws = new WebSocket(wsUrl + 'stream');
 
         ws.onerror = (e) => {
             this.wsActive = false;
@@ -31,6 +31,9 @@ export class WebSocketStore {
 
         ws.onclose = () => {
             this.wsActive = false;
+            if (!this.currentUser.loggedIn) {
+                return;
+            }
             this.currentUser
                 .tryAuthenticate()
                 .then(() => {

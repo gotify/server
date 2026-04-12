@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -27,7 +28,7 @@ type AuthenticationSuite struct {
 func (s *AuthenticationSuite) SetupSuite() {
 	mode.Set(mode.TestDev)
 	s.DB = testdb.NewDB(s.T())
-	s.auth = &Auth{s.DB}
+	s.auth = &Auth{DB: s.DB}
 
 	s.DB.CreateUser(&model.User{
 		Name:         "existing",
@@ -82,7 +83,7 @@ func (s *AuthenticationSuite) assertQueryRequest(key, value string, f fMiddlewar
 	recorder := httptest.NewRecorder()
 	ctx, _ = gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest("GET", fmt.Sprintf("/?%s=%s", key, value), nil)
-	f()(ctx)
+	f(ctx)
 	assert.Equal(s.T(), code, recorder.Code)
 	return ctx
 }
@@ -91,7 +92,7 @@ func (s *AuthenticationSuite) TestNothingProvided() {
 	recorder := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest("GET", "/", nil)
-	s.auth.RequireApplicationToken()(ctx)
+	s.auth.RequireApplicationToken(ctx)
 	assert.Equal(s.T(), 401, recorder.Code)
 }
 
@@ -210,14 +211,43 @@ func (s *AuthenticationSuite) TestOptionalAuth() {
 	assert.Equal(s.T(), uint(2), *TryGetUserID(ctx))
 }
 
+func (s *AuthenticationSuite) TestCookieToken() {
+	// not existing token
+	s.assertCookieRequest("ergerogerg", s.auth.RequireApplicationToken, 401)
+	s.assertCookieRequest("ergerogerg", s.auth.RequireClient, 401)
+	s.assertCookieRequest("ergerogerg", s.auth.RequireAdmin, 401)
+
+	// apptoken
+	s.assertCookieRequest("apptoken", s.auth.RequireApplicationToken, 200)
+	s.assertCookieRequest("apptoken", s.auth.RequireClient, 401)
+	s.assertCookieRequest("apptoken", s.auth.RequireAdmin, 401)
+
+	// clienttoken
+	s.assertCookieRequest("clienttoken", s.auth.RequireApplicationToken, 401)
+	s.assertCookieRequest("clienttoken", s.auth.RequireClient, 200)
+	s.assertCookieRequest("clienttoken", s.auth.RequireAdmin, 403)
+	s.assertCookieRequest("clienttoken_admin", s.auth.RequireClient, 200)
+	s.assertCookieRequest("clienttoken_admin", s.auth.RequireAdmin, 200)
+}
+
+func (s *AuthenticationSuite) assertCookieRequest(token string, f fMiddleware, code int) (ctx *gin.Context) {
+	recorder := httptest.NewRecorder()
+	ctx, _ = gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("GET", "/", nil)
+	ctx.Request.AddCookie(&http.Cookie{Name: cookieName, Value: token})
+	f(ctx)
+	assert.Equal(s.T(), code, recorder.Code)
+	return ctx
+}
+
 func (s *AuthenticationSuite) assertHeaderRequest(key, value string, f fMiddleware, code int) (ctx *gin.Context) {
 	recorder := httptest.NewRecorder()
 	ctx, _ = gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest("GET", "/", nil)
 	ctx.Request.Header.Set(key, value)
-	f()(ctx)
+	f(ctx)
 	assert.Equal(s.T(), code, recorder.Code)
 	return ctx
 }
 
-type fMiddleware func() gin.HandlerFunc
+type fMiddleware gin.HandlerFunc
