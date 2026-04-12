@@ -87,6 +87,7 @@ const Clients = observer(() => {
                     text={'Delete ' + toDeleteClient.name + '?'}
                     fClose={() => setToDeleteClient(undefined)}
                     fOnSubmit={() => clientStore.remove(toDeleteClient.id)}
+                    requireElevated
                 />
             )}
         </DefaultPage>

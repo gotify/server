@@ -45,6 +45,22 @@ export const registerReactions = (stores: StoreMapping) => {
         }
     );
 
+    let elevationTimerId: number | undefined = undefined;
+    reaction(
+        () => stores.currentUser.user.elevatedUntil,
+        () => {
+            window.clearTimeout(elevationTimerId);
+            const disableAfter = stores.elevateStore.refreshElevated();
+            if (disableAfter > 0) {
+                elevationTimerId = window.setTimeout(
+                    () => stores.elevateStore.refreshElevated(),
+                    disableAfter
+                );
+            }
+        },
+        {fireImmediately: true}
+    );
+
     reaction(
         () => stores.currentUser.connectionErrorMessage,
         (connectionErrorMessage) => {

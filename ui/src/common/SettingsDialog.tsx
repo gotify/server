@@ -8,6 +8,7 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import {observer} from 'mobx-react-lite';
 import {useStores} from '../stores';
+import ElevationForm from './ElevationForm';
 
 interface IProps {
     fClose: VoidFunction;
@@ -15,9 +16,14 @@ interface IProps {
 
 const SettingsDialog = observer(({fClose}: IProps) => {
     const [pass, setPass] = useState('');
-    const {currentUser} = useStores();
+    const {currentUser, elevateStore} = useStores();
 
-    const submitAndClose = async () => {
+    const handleClose = () => {
+        elevateStore.cleanupOidcElevate();
+        fClose();
+    };
+
+    const submitAndClose = () => {
         currentUser.changePassword(pass);
         fClose();
     };
@@ -25,36 +31,42 @@ const SettingsDialog = observer(({fClose}: IProps) => {
     return (
         <Dialog
             open={true}
-            onClose={fClose}
+            onClose={handleClose}
             aria-labelledby="form-dialog-title"
             id="changepw-dialog">
             <DialogTitle id="form-dialog-title">Change Password</DialogTitle>
             <DialogContent>
-                <TextField
-                    className="newpass"
-                    autoFocus
-                    margin="dense"
-                    type="password"
-                    label="New Password *"
-                    value={pass}
-                    onChange={(e) => setPass(e.target.value)}
-                    fullWidth
-                />
+                {elevateStore.elevated ? (
+                    <TextField
+                        className="newpass"
+                        autoFocus
+                        margin="dense"
+                        type="password"
+                        label="New Password *"
+                        value={pass}
+                        onChange={(e) => setPass(e.target.value)}
+                        fullWidth
+                    />
+                ) : (
+                    <ElevationForm />
+                )}
             </DialogContent>
             <DialogActions>
-                <Button onClick={fClose}>Cancel</Button>
-                <Tooltip title={pass.length !== 0 ? '' : 'Password is required'}>
-                    <div>
-                        <Button
-                            className="change"
-                            disabled={pass.length === 0}
-                            onClick={submitAndClose}
-                            color="primary"
-                            variant="contained">
-                            Change
-                        </Button>
-                    </div>
-                </Tooltip>
+                <Button onClick={handleClose}>Cancel</Button>
+                {elevateStore.elevated && (
+                    <Tooltip title={pass.length !== 0 ? '' : 'Password is required'}>
+                        <div>
+                            <Button
+                                className="change"
+                                disabled={pass.length === 0}
+                                onClick={submitAndClose}
+                                color="primary"
+                                variant="contained">
+                                Change
+                            </Button>
+                        </div>
+                    </Tooltip>
+                )}
             </DialogActions>
         </Dialog>
     );

@@ -3,6 +3,7 @@ import {UserStore} from './user/UserStore';
 import {SnackManager} from './snack/SnackManager';
 import {MessagesStore} from './message/MessagesStore';
 import {CurrentUser} from './CurrentUser';
+import {ElevateStore} from './ElevateStore';
 import {ClientStore} from './client/ClientStore';
 import {AppStore} from './application/AppStore';
 import {WebSocketStore} from './message/WebSocketStore';
@@ -13,6 +14,7 @@ export interface StoreMapping {
     snackManager: SnackManager;
     messagesStore: MessagesStore;
     currentUser: CurrentUser;
+    elevateStore: ElevateStore;
     clientStore: ClientStore;
     appStore: AppStore;
     pluginStore: PluginStore;

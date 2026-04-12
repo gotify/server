@@ -179,6 +179,7 @@ const Applications = observer(() => {
                     text={'Delete ' + toDeleteApp.name + '?'}
                     fClose={() => setToDeleteApp(undefined)}
                     fOnSubmit={() => appStore.remove(toDeleteApp.id)}
+                    requireElevated
                 />
             )}
             {toDeleteImage != null && (
