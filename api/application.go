@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -329,6 +330,18 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 			return
 		}
 		if app != nil && app.UserID == auth.GetUserID(ctx) {
+			// https://gin-gonic.com/en/docs/routing/upload-file/limit-bytes/
+			ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, MaxUploadSize)
+			if err := ctx.Request.ParseMultipartForm(MaxUploadSize); err != nil {
+				log.Println("error parsing multipart form", err)
+				if _, ok := err.(*http.MaxBytesError); ok {
+					ctx.AbortWithError(http.StatusRequestEntityTooLarge, fmt.Errorf("file too large (max: %d bytes)", MaxUploadSize))
+					return
+				}
+				ctx.AbortWithError(http.StatusBadRequest, err)
+				return
+			}
+
 			file, err := ctx.FormFile("file")
 			if err == http.ErrMissingFile {
 				ctx.AbortWithError(400, errors.New("file with key 'file' must be present"))

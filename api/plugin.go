@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/location"
@@ -385,8 +386,13 @@ func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 		}
 
 		newConf := instance.DefaultConfig()
-		newconfBytes, err := io.ReadAll(ctx.Request.Body)
+		bodyReader := http.MaxBytesReader(ctx.Writer, ctx.Request.Body, MaxUploadSize)
+		newconfBytes, err := io.ReadAll(bodyReader)
 		if err != nil {
+			if _, ok := err.(*http.MaxBytesError); ok {
+				ctx.AbortWithError(http.StatusRequestEntityTooLarge, errors.New("file too large"))
+				return
+			}
 			ctx.AbortWithError(500, err)
 			return
 		}

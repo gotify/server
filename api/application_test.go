@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
@@ -336,6 +337,46 @@ func (s *ApplicationSuite) Test_UploadAppImage_NoImageProvided_expectBadRequest(
 	assert.Equal(s.T(), s.ctx.Errors[0].Err, errors.New("file with key 'file' must be present"))
 }
 
+func (s *ApplicationSuite) Test_UploadAppImage_FileTooLarge_expectBadRequest() {
+	s.db.User(5).App(1)
+	testImageFileData, err := os.ReadFile("../test/assets/image.png")
+	assert.Nil(s.T(), err)
+
+	tempFile, err := os.CreateTemp("", "test-image-*.png")
+	assert.Nil(s.T(), err)
+	defer os.Remove(tempFile.Name())
+	totalSize := 0
+	for totalSize <= MaxUploadSize {
+		_, err := tempFile.Write(testImageFileData)
+		assert.Nil(s.T(), err)
+		totalSize += len(testImageFileData)
+	}
+	_, err = tempFile.Seek(0, io.SeekStart)
+	assert.Nil(s.T(), err)
+
+	cType, buffer, err := upload(map[string]*os.File{"file": tempFile})
+	assert.Nil(s.T(), err)
+	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant", &buffer)
+	s.ctx.Request.Header.Set("Content-Type", cType)
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	s.a.UploadApplicationImage(s.ctx)
+
+	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
+		imgName := app.Image
+
+		assert.Equal(s.T(), http.StatusRequestEntityTooLarge, s.recorder.Code)
+		_, err = os.Stat(imgName)
+		assert.True(s.T(), os.IsNotExist(err))
+
+		s.a.DeleteApplication(s.ctx)
+
+		_, err = os.Stat(imgName)
+		assert.True(s.T(), os.IsNotExist(err))
+	}
+}
+
 func (s *ApplicationSuite) Test_UploadAppImage_OtherErrors_expectServerError() {
 	s.db.User(5).App(1)
 	var b bytes.Buffer
@@ -349,8 +390,7 @@ func (s *ApplicationSuite) Test_UploadAppImage_OtherErrors_expectServerError() {
 
 	s.a.UploadApplicationImage(s.ctx)
 
-	assert.Equal(s.T(), 500, s.recorder.Code)
-	assert.Error(s.T(), s.ctx.Errors[0].Err, "multipart: NextPart: EOF")
+	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {

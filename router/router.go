@@ -66,6 +66,11 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	}
 	streamHandler := stream.New(
 		time.Duration(conf.Server.Stream.PingPeriodSeconds)*time.Second, 15*time.Second, conf.Server.Stream.AllowedOrigins)
+	// a global catch-all truncation for all requests with 1M headroom
+	g.Use(func(ctx *gin.Context) {
+		ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, api.MaxBodySize)
+		ctx.Next()
+	})
 	go func() {
 		ticker := time.NewTicker(5 * time.Minute)
 		for range ticker.C {

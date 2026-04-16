@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -491,6 +493,32 @@ func (s *PluginSuite) Test_UpdateConfig() {
 		err := yaml.Unmarshal(pluginFromDBBytes, pluginFromDB)
 		assert.Nil(s.T(), err)
 		assert.Equal(s.T(), newConfig, pluginFromDB, "config should be updated in database")
+	}
+}
+
+func (s *PluginSuite) Test_UpdateConfig_tooBig_expect413() {
+	conf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(s.T(), err)
+	inst, err := s.manager.Instance(conf.ID)
+	assert.Nil(s.T(), err)
+	mockInst := inst.(*mock.PluginInstance)
+
+	newConfig := &mock.PluginConfig{
+		TestKey: strings.Repeat("a", MaxUploadSize+1),
+	}
+	newConfigYAML, err := yaml.Marshal(newConfig)
+	assert.Nil(s.T(), err)
+
+	{
+		test.WithUser(s.ctx, 1)
+
+		s.ctx.Request = httptest.NewRequest("POST", fmt.Sprintf("/plugin/%d/config", conf.ID), bytes.NewReader(newConfigYAML))
+		s.ctx.Header("Content-Type", "application/x-yaml")
+		s.ctx.Params = gin.Params{{Key: "id", Value: fmt.Sprint(conf.ID)}}
+		s.a.UpdateConfig(s.ctx)
+
+		assert.Equal(s.T(), http.StatusRequestEntityTooLarge, s.recorder.Code)
+		assert.NotEqual(s.T(), newConfig, mockInst.Config, "config should not be received by plugin")
 	}
 }
 
