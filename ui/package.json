@@ -10,6 +10,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@fontsource/roboto": "^5.2.10",
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "@uiw/codemirror-theme-material": "^4.24.2",
@@ -33,7 +34,6 @@
     "remark-gfm": "^4.0.1",
     "remove-markdown": "^0.6.2",
     "tss-react": "^4.9.19",
-    "typeface-roboto": "1.1.13",
     "vite": "^7.0.6",
     "vitest": "^4.0.0"
   },

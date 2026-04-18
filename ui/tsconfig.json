@@ -10,6 +10,7 @@
     "moduleResolution": "bundler",
     "rootDir": "src",
     "forceConsistentCasingInFileNames": true,
+    "noUncheckedSideEffectImports": false,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
