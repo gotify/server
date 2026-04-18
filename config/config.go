@@ -66,6 +66,10 @@ type Configuration struct {
 		AutoRegister  bool   `default:"true"`
 		Scopes        []string
 	}
+	Quota struct {
+		Clients      uint32 `default:"1024"`
+		Applications uint32 `default:"1024"`
+	}
 }
 
 func configFiles() []string {

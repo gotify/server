@@ -103,15 +103,15 @@ func (s *DatabaseSuite) TestUserPlugins() {
 
 func (s *DatabaseSuite) TestDeleteUserDeletesApplicationsAndClientsAndPluginConfs() {
 	require.NoError(s.T(), s.db.CreateUser(&model.User{Name: "nicories", ID: 10}))
-	require.NoError(s.T(), s.db.CreateApplication(&model.Application{ID: 100, Token: "apptoken", UserID: 10}))
+	require.NoError(s.T(), s.db.CreateApplication(&model.Application{ID: 100, Token: "apptoken", UserID: 10}, 0))
 	require.NoError(s.T(), s.db.CreateMessage(&model.Message{ID: 1000, ApplicationID: 100}))
-	require.NoError(s.T(), s.db.CreateClient(&model.Client{ID: 10000, Token: "clienttoken", UserID: 10}))
+	require.NoError(s.T(), s.db.CreateClient(&model.Client{ID: 10000, Token: "clienttoken", UserID: 10}, 0))
 	require.NoError(s.T(), s.db.CreatePluginConf(&model.PluginConf{ID: 1000, Token: "plugintoken", UserID: 10}))
 
 	require.NoError(s.T(), s.db.CreateUser(&model.User{Name: "nicories2", ID: 20}))
-	require.NoError(s.T(), s.db.CreateApplication(&model.Application{ID: 200, Token: "apptoken2", UserID: 20}))
+	require.NoError(s.T(), s.db.CreateApplication(&model.Application{ID: 200, Token: "apptoken2", UserID: 20}, 0))
 	require.NoError(s.T(), s.db.CreateMessage(&model.Message{ID: 2000, ApplicationID: 200}))
-	require.NoError(s.T(), s.db.CreateClient(&model.Client{ID: 20000, Token: "clienttoken2", UserID: 20}))
+	require.NoError(s.T(), s.db.CreateClient(&model.Client{ID: 20000, Token: "clienttoken2", UserID: 20}, 0))
 	require.NoError(s.T(), s.db.CreatePluginConf(&model.PluginConf{ID: 2000, Token: "plugintoken2", UserID: 20}))
 
 	require.NoError(s.T(), s.db.DeleteUserByID(10))

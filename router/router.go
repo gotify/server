@@ -86,10 +86,12 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		DB:            db,
 		ImageDir:      conf.UploadedImagesDir,
 		NotifyDeleted: streamHandler.NotifyDeletedClient,
+		Quota:         conf.Quota.Clients,
 	}
 	applicationHandler := api.ApplicationAPI{
 		DB:       db,
 		ImageDir: conf.UploadedImagesDir,
+		Quota:    conf.Quota.Applications,
 	}
 	sessionHandler := api.SessionAPI{DB: db, NotifyDeleted: streamHandler.NotifyDeletedClient, SecureCookie: conf.Server.SecureCookie}
 	userChangeNotifier := new(api.UserChangeNotifier)

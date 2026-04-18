@@ -103,7 +103,7 @@ func (ab *AppClientBuilder) NewInternalAppWithToken(id uint, token string) *mode
 
 func (ab *AppClientBuilder) newAppWithToken(id uint, token string, internal bool) *model.Application {
 	application := &model.Application{ID: id, UserID: ab.userID, Token: token, Internal: internal}
-	ab.db.CreateApplication(application)
+	ab.db.CreateApplication(application, 0)
 	return application
 }
 
@@ -134,14 +134,14 @@ func (ab *AppClientBuilder) NewInternalAppWithTokenAndName(id uint, token, name 
 
 func (ab *AppClientBuilder) newAppWithTokenAndName(id uint, token, name string, internal bool) *model.Application {
 	application := &model.Application{ID: id, UserID: ab.userID, Token: token, Name: name, Internal: internal}
-	ab.db.CreateApplication(application)
+	ab.db.CreateApplication(application, 0)
 	return application
 }
 
 // AppWithTokenAndDefaultPriority creates an application with a token and defaultPriority and returns a message builder.
 func (ab *AppClientBuilder) AppWithTokenAndDefaultPriority(id uint, token string, defaultPriority int) *MessageBuilder {
 	application := &model.Application{ID: id, UserID: ab.userID, Token: token, DefaultPriority: defaultPriority}
-	ab.db.CreateApplication(application)
+	ab.db.CreateApplication(application, 0)
 	return &MessageBuilder{db: ab.db, appID: id}
 }
 
@@ -159,7 +159,7 @@ func (ab *AppClientBuilder) ClientWithToken(id uint, token string) *AppClientBui
 // NewClientWithToken creates a client with a token and returns the client.
 func (ab *AppClientBuilder) NewClientWithToken(id uint, token string) *model.Client {
 	client := &model.Client{ID: id, Token: token, UserID: ab.userID}
-	ab.db.CreateClient(client)
+	ab.db.CreateClient(client, 0)
 	return client
 }
 

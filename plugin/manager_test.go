@@ -376,7 +376,7 @@ func TestNewManager_InternalApplicationManagement(t *testing.T) {
 			Internal: true,
 			Name:     "obsolete plugin application",
 			UserID:   1,
-		})
+		}, 0)
 
 		if app, err := db.GetApplicationByToken("Ainternal_obsolete"); assert.NoError(t, err) {
 			assert.True(t, app.Internal)
@@ -394,7 +394,7 @@ func TestNewManager_InternalApplicationManagement(t *testing.T) {
 			Internal: true,
 			Name:     "not loaded plugin application",
 			UserID:   1,
-		}))
+		}, 0))
 		if app, err := db.GetApplicationByToken("Ainternal_not_loaded"); assert.NoError(t, err) {
 			assert.NoError(t, db.CreatePluginConf(&model.PluginConf{
 				ApplicationID: app.ID,
@@ -420,7 +420,7 @@ func TestNewManager_InternalApplicationManagement(t *testing.T) {
 			Internal: false,
 			Name:     "not loaded plugin application",
 			UserID:   1,
-		}))
+		}, 0))
 		if app, err := db.GetApplicationByToken("Ainternal_loaded"); assert.NoError(t, err) {
 			assert.NoError(t, db.CreatePluginConf(&model.PluginConf{
 				ApplicationID: app.ID,

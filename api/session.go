@@ -12,7 +12,7 @@ import (
 // SessionDatabase is the interface for session-related database access.
 type SessionDatabase interface {
 	GetUserByName(name string) (*model.User, error)
-	CreateClient(client *model.Client) error
+	CreateClient(client *model.Client, quota uint32) error
 	GetClientByToken(token string) (*model.Client, error)
 	DeleteClientByID(id uint) error
 }
@@ -52,7 +52,7 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 		Token:  auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
 		UserID: user.ID,
 	}
-	if success := successOrAbort(ctx, 500, a.DB.CreateClient(&client)); !success {
+	if success := successOrAbort(ctx, 500, a.DB.CreateClient(&client, 0)); !success {
 		return
 	}
 

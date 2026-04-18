@@ -25,7 +25,7 @@ func (s *DatabaseSuite) TestApplication() {
 	}
 
 	app := &model.Application{UserID: user.ID, Token: "C0000000000", Name: "backupserver"}
-	s.db.CreateApplication(app)
+	s.db.CreateApplication(app, 0)
 
 	if apps, err := s.db.GetApplicationsByUser(user.ID); assert.NoError(s.T(), err) {
 		assert.Len(s.T(), apps, 1)
@@ -70,8 +70,8 @@ func (s *DatabaseSuite) TestApplication() {
 }
 
 func (s *DatabaseSuite) TestDeleteAppDeletesMessages() {
-	assert.NoError(s.T(), s.db.CreateApplication(&model.Application{ID: 55, Token: "token"}))
-	assert.NoError(s.T(), s.db.CreateApplication(&model.Application{ID: 66, Token: "token2"}))
+	assert.NoError(s.T(), s.db.CreateApplication(&model.Application{ID: 55, Token: "token"}, 0))
+	assert.NoError(s.T(), s.db.CreateApplication(&model.Application{ID: 66, Token: "token2"}, 0))
 	assert.NoError(s.T(), s.db.CreateMessage(&model.Message{ID: 12, ApplicationID: 55}))
 	assert.NoError(s.T(), s.db.CreateMessage(&model.Message{ID: 13, ApplicationID: 66}))
 	assert.NoError(s.T(), s.db.CreateMessage(&model.Message{ID: 14, ApplicationID: 55}))

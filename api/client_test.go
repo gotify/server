@@ -1,6 +1,8 @@
 package api
 
 import (
+	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -44,7 +46,7 @@ func (s *ClientSuite) BeforeTest(suiteName, testName string) {
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	withURL(s.ctx, "http", "example.com")
 	s.notified = false
-	s.a = &ClientAPI{DB: s.db, NotifyDeleted: s.notify}
+	s.a = &ClientAPI{DB: s.db, NotifyDeleted: s.notify, Quota: 128}
 }
 
 func (s *ClientSuite) notify(uint, string) {
@@ -143,6 +145,39 @@ func (s *ClientSuite) Test_CreateClient_withExistingToken() {
 	expected := &model.Client{ID: 2, Token: secondClientToken, Name: "custom_name", UserID: 5}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	test.BodyEquals(s.T(), expected, s.recorder)
+}
+
+func (s *ClientSuite) Test_CreateClient_quotaRotationWorks() {
+	user := s.db.User(5)
+	for i := uint(0); i < uint(s.a.Quota); i++ {
+		user.ClientWithToken(100+i, fmt.Sprintf("client%d", i))
+	}
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=custom_name")
+
+	baseCount, err := s.db.CountClientsByUserID(s.db.DB, 5)
+	assert.NoError(s.T(), err)
+
+	s.a.CreateClient(s.ctx)
+
+	userCount, err := s.db.CountClientsByUserID(s.db.DB, 5)
+	assert.NoError(s.T(), err)
+
+	assert.Equal(s.T(), baseCount, userCount)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+}
+
+func (s *ClientSuite) Test_CreateClient_rejectTooLargeClient() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData(fmt.Sprintf("name=%s", strings.Repeat("a", MaxApplicationClientEntrySize+1)))
+
+	s.a.CreateClient(s.ctx)
+
+	assert.Equal(s.T(), http.StatusUnprocessableEntity, s.recorder.Code)
 }
 
 func (s *ClientSuite) Test_GetClients() {

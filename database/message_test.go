@@ -19,7 +19,7 @@ func (s *DatabaseSuite) TestMessage() {
 	assert.NotEqual(s.T(), 0, user.ID)
 
 	backupServer := &model.Application{UserID: user.ID, Token: "A0000000000", Name: "backupserver"}
-	s.db.CreateApplication(backupServer)
+	s.db.CreateApplication(backupServer, 0)
 	assert.NotEqual(s.T(), 0, backupServer.ID)
 
 	msgs, err := s.db.GetMessagesByUser(user.ID)
@@ -49,7 +49,7 @@ func (s *DatabaseSuite) TestMessage() {
 	assertEquals(s.T(), msgs[0], backupdone)
 
 	loginServer := &model.Application{UserID: user.ID, Token: "A0000000001", Name: "loginserver"}
-	require.NoError(s.T(), s.db.CreateApplication(loginServer))
+	require.NoError(s.T(), s.db.CreateApplication(loginServer, 0))
 	assert.NotEqual(s.T(), 0, loginServer.ID)
 
 	logindone := &model.Message{ApplicationID: loginServer.ID, Message: "login done", Title: "login", Priority: 1, Date: time.Now()}
@@ -153,8 +153,8 @@ func (s *DatabaseSuite) TestGetMessagesSince() {
 
 	app := &model.Application{UserID: user.ID, Token: "A0000000000"}
 	app2 := &model.Application{UserID: user.ID, Token: "A0000000001"}
-	require.NoError(s.T(), s.db.CreateApplication(app))
-	require.NoError(s.T(), s.db.CreateApplication(app2))
+	require.NoError(s.T(), s.db.CreateApplication(app, 0))
+	require.NoError(s.T(), s.db.CreateApplication(app2, 0))
 
 	curDate := time.Now()
 	for i := 1; i <= 500; i++ {

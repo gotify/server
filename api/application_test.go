@@ -56,7 +56,7 @@ func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
 	s.db = testdb.NewDB(s.T())
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
 	withURL(s.ctx, "http", "example.com")
-	s.a = &ApplicationAPI{DB: s.db}
+	s.a = &ApplicationAPI{DB: s.db, Quota: 128}
 }
 
 func (s *ApplicationSuite) AfterTest(suiteName, testName string) {
@@ -171,6 +171,29 @@ func (s *ApplicationSuite) Test_CreateApplication_onlyRequiredParameters() {
 	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
 		assert.Contains(s.T(), app, expected)
 	}
+}
+
+func (s *ApplicationSuite) Test_CreateApplication_tooBigApplicationEntry_expectBadRequest() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData(fmt.Sprintf("name=%s", strings.Repeat("a", MaxApplicationClientEntrySize+1)))
+	s.a.CreateApplication(s.ctx)
+
+	assert.Equal(s.T(), http.StatusUnprocessableEntity, s.recorder.Code)
+}
+
+func (s *ApplicationSuite) Test_CreateApplication_quotaExceeded_expectBadRequest() {
+	user := s.db.User(5)
+	for i := uint(0); i < uint(s.a.Quota); i++ {
+		user.AppWithToken(100+i, fmt.Sprintf("app%d", i))
+	}
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=custom_name")
+	s.a.CreateApplication(s.ctx)
+
+	assert.Equal(s.T(), http.StatusUnprocessableEntity, s.recorder.Code)
 }
 
 func (s *ApplicationSuite) Test_CreateApplication_returnsApplicationWithID() {
@@ -424,7 +447,7 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageA
 	firstGeneratedImageName := firstApplicationToken[1:] + ".png"
 	secondGeneratedImageName := secondApplicationToken[1:] + ".png"
 	s.db.User(5)
-	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: existingImageName})
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: existingImageName}, 0)
 
 	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
 	assert.Nil(s.T(), err)
@@ -450,7 +473,7 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageA
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage() {
 	s.db.User(5)
-	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: "existing.png"})
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: "existing.png"}, 0)
 
 	fakeImage(s.T(), "existing.png")
 	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
@@ -541,7 +564,7 @@ func (s *ApplicationSuite) Test_RemoveAppImage_expectSuccess() {
 	s.db.User(5)
 
 	imageFile := "existing.png"
-	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: imageFile})
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: imageFile}, 0)
 	fakeImage(s.T(), imageFile)
 
 	test.WithUser(s.ctx, 5)

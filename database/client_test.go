@@ -24,7 +24,7 @@ func (s *DatabaseSuite) TestClient() {
 	}
 
 	client := &model.Client{UserID: user.ID, Token: "C0000000000", Name: "android"}
-	assert.NoError(s.T(), s.db.CreateClient(client))
+	assert.NoError(s.T(), s.db.CreateClient(client, 0))
 
 	if clients, err := s.db.GetClientsByUser(user.ID); assert.NoError(s.T(), err) {
 		assert.Len(s.T(), clients, 1)

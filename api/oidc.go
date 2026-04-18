@@ -337,7 +337,7 @@ func (a *OIDCAPI) createClient(name string, userID uint) (*model.Client, error) 
 		Token:  auth.GenerateNotExistingToken(generateClientToken, func(t string) bool { c, _ := a.DB.GetClientByToken(t); return c != nil }),
 		UserID: userID,
 	}
-	return client, a.DB.CreateClient(client)
+	return client, a.DB.CreateClient(client, 0)
 }
 
 func (a *OIDCAPI) popPendingSession(key string) (*pendingOIDCSession, bool) {

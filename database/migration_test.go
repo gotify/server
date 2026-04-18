@@ -66,7 +66,7 @@ func (s *MigrationSuite) TestMigration() {
 			UserID:      user.ID,
 			Description: "this is a test application",
 			Name:        "test application",
-		}))
+		}, 0))
 	}
 	if app, err := db.GetApplicationByToken("A1234"); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), "test application", app.Name)

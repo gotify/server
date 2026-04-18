@@ -36,7 +36,7 @@ func (d *GormDatabase) GetApplicationByID(id uint) (*model.Application, error) {
 }
 
 // CreateApplication creates an application.
-func (d *GormDatabase) CreateApplication(application *model.Application) error {
+func (d *GormDatabase) CreateApplication(application *model.Application, quota uint32) error {
 	return d.DB.Transaction(func(tx *gorm.DB) error {
 		if application.SortKey == "" {
 			sortKey := ""
@@ -47,6 +47,17 @@ func (d *GormDatabase) CreateApplication(application *model.Application) error {
 			application.SortKey, err = fracdex.KeyBetween(sortKey, "")
 			if err != nil {
 				return err
+			}
+		}
+
+		if quota > 0 {
+			var count int64
+			err := tx.Model(&model.Application{}).Where("user_id = ?", application.UserID).Count(&count).Error
+			if err != nil {
+				return err
+			}
+			if uint64(count) >= uint64(quota) {
+				return ErrQuotaExceeded
 			}
 		}
 

@@ -79,13 +79,13 @@ func TestMigrateSortKey(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
 
-	err = db.CreateApplication(&model.Application{Name: "one", Token: "one", UserID: 1})
+	err = db.CreateApplication(&model.Application{Name: "one", Token: "one", UserID: 1}, 0)
 	assert.NoError(t, err)
-	err = db.CreateApplication(&model.Application{Name: "two", Token: "two", UserID: 1})
+	err = db.CreateApplication(&model.Application{Name: "two", Token: "two", UserID: 1}, 0)
 	assert.NoError(t, err)
-	err = db.CreateApplication(&model.Application{Name: "three", Token: "three", UserID: 1})
+	err = db.CreateApplication(&model.Application{Name: "three", Token: "three", UserID: 1}, 0)
 	assert.NoError(t, err)
-	err = db.CreateApplication(&model.Application{Name: "one-other", Token: "one-other", UserID: 2})
+	err = db.CreateApplication(&model.Application{Name: "one-other", Token: "one-other", UserID: 2}, 0)
 	assert.NoError(t, err)
 
 	err = db.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Model(new(model.Application)).UpdateColumn("sort_key", nil).Error

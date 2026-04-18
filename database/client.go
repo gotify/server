@@ -33,9 +33,40 @@ func (d *GormDatabase) GetClientByToken(token string) (*model.Client, error) {
 	return nil, err
 }
 
+func (d *GormDatabase) CountClientsByUserID(tx *gorm.DB, userID uint) (int64, error) {
+	var count int64
+	err := tx.Model(&model.Client{}).Where("user_id = ?", userID).Count(&count).Error
+	return count, err
+}
+
 // CreateClient creates a client.
-func (d *GormDatabase) CreateClient(client *model.Client) error {
-	return d.DB.Create(client).Error
+func (d *GormDatabase) CreateClient(client *model.Client, quota uint32) error {
+	txn := d.DB.Begin()
+	defer txn.Rollback()
+	res := txn.Create(client)
+	if res.Error != nil {
+		return res.Error
+	}
+	if quota > 0 {
+		count, err := d.CountClientsByUserID(txn, client.UserID)
+		if err != nil {
+			return err
+		}
+		if uint64(count) > uint64(quota) {
+			// quota exceeded, delete the oldest client
+			var oldestClient model.Client
+			err := txn.Where("user_id = ?", client.UserID).Order("last_used ASC").First(&oldestClient).Error
+			qe := ErrQuotaExceeded
+			if err != nil {
+				return qe
+			}
+			err = txn.Delete(&oldestClient).Error
+			if err != nil {
+				return qe
+			}
+		}
+	}
+	return txn.Commit().Error
 }
 
 // GetClientsByUser returns all clients from a user.

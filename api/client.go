@@ -1,16 +1,19 @@
 package api
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
+	"github.com/gotify/server/v2/database"
 	"github.com/gotify/server/v2/model"
 )
 
 // The ClientDatabase interface for encapsulating database access.
 type ClientDatabase interface {
-	CreateClient(client *model.Client) error
+	CreateClient(client *model.Client, quota uint32) error
 	GetClientByToken(token string) (*model.Client, error)
 	GetClientByID(id uint) (*model.Client, error)
 	GetClientsByUser(userID uint) ([]*model.Client, error)
@@ -23,6 +26,7 @@ type ClientAPI struct {
 	DB            ClientDatabase
 	ImageDir      string
 	NotifyDeleted func(uint, string)
+	Quota         uint32
 }
 
 // Client Params Model
@@ -36,6 +40,10 @@ type ClientParams struct {
 	// required: true
 	// example: My Client
 	Name string `form:"name" query:"name" json:"name" binding:"required"`
+}
+
+func (p *ClientParams) EffectiveSize() uint64 {
+	return uint64(len(p.Name))
 }
 
 // UpdateClient updates a client by its id.
@@ -90,6 +98,10 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 		if client != nil && client.UserID == auth.GetUserID(ctx) {
 			newValues := ClientParams{}
 			if err := ctx.Bind(&newValues); err == nil {
+				if newValues.EffectiveSize() > MaxApplicationClientEntrySize {
+					ctx.AbortWithError(http.StatusUnprocessableEntity, fmt.Errorf("client entry too large (max: %d bytes)", MaxApplicationClientEntrySize))
+					return
+				}
 				client.Name = newValues.Name
 
 				if success := successOrAbort(ctx, 500, a.DB.UpdateClient(client)); !success {
@@ -136,18 +148,33 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 //	    description: Forbidden
 //	    schema:
 //	        $ref: "#/definitions/Error"
+//	  422:
+//	    description: Unprocessable Entity
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ClientAPI) CreateClient(ctx *gin.Context) {
 	clientParams := ClientParams{}
 	if err := ctx.Bind(&clientParams); err == nil {
+		if clientParams.EffectiveSize() > MaxApplicationClientEntrySize {
+			ctx.AbortWithError(http.StatusUnprocessableEntity, fmt.Errorf("client entry too large (max: %d bytes)", MaxApplicationClientEntrySize))
+			return
+		}
 		client := model.Client{
 			Name:   clientParams.Name,
 			Token:  auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
 			UserID: auth.GetUserID(ctx),
 		}
 
-		if success := successOrAbort(ctx, 500, a.DB.CreateClient(&client)); !success {
+		dbErr := a.DB.CreateClient(&client, a.Quota)
+		if dbErr != nil {
+			if errors.Is(dbErr, database.ErrQuotaExceeded) {
+				ctx.AbortWithError(http.StatusUnprocessableEntity, fmt.Errorf("quota exceeded"))
+				return
+			}
+			ctx.AbortWithError(500, dbErr)
 			return
 		}
+
 		ctx.JSON(200, client)
 	}
 }

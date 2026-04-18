@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
+	"github.com/gotify/server/v2/database"
 	"github.com/gotify/server/v2/model"
 	"github.com/h2non/filetype"
 	"gorm.io/gorm"
@@ -18,7 +18,7 @@ import (
 
 // The ApplicationDatabase interface for encapsulating database access.
 type ApplicationDatabase interface {
-	CreateApplication(application *model.Application) error
+	CreateApplication(application *model.Application, quota uint32) error
 	GetApplicationByToken(token string) (*model.Application, error)
 	GetApplicationByID(id uint) (*model.Application, error)
 	GetApplicationsByUser(userID uint) ([]*model.Application, error)
@@ -30,6 +30,7 @@ type ApplicationDatabase interface {
 type ApplicationAPI struct {
 	DB       ApplicationDatabase
 	ImageDir string
+	Quota    uint32
 }
 
 // Application Params Model
@@ -55,6 +56,10 @@ type ApplicationParams struct {
 	//
 	// example: a1
 	SortKey string `form:"sortKey" query:"sortKey" json:"sortKey"`
+}
+
+func (p *ApplicationParams) EffectiveSize() uint64 {
+	return uint64(len(p.Name)) + uint64(len(p.Description)) + uint64(len(p.SortKey))
 }
 
 // CreateApplication creates an application and returns the access token.
@@ -90,9 +95,17 @@ type ApplicationParams struct {
 //	    description: Forbidden
 //	    schema:
 //	        $ref: "#/definitions/Error"
+//	  422:
+//	    description: Unprocessable Entity
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 	applicationParams := ApplicationParams{}
 	if err := ctx.Bind(&applicationParams); err == nil {
+		if applicationParams.EffectiveSize() > MaxApplicationClientEntrySize {
+			ctx.AbortWithError(http.StatusUnprocessableEntity, fmt.Errorf("application entry too large (max: %d bytes)", MaxApplicationClientEntrySize))
+			return
+		}
 		app := model.Application{
 			Name:            applicationParams.Name,
 			Description:     applicationParams.Description,
@@ -103,7 +116,7 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 			Internal:        false,
 		}
 
-		if err := a.DB.CreateApplication(&app); err != nil {
+		if err := a.DB.CreateApplication(&app, a.Quota); err != nil {
 			handleApplicationError(ctx, err)
 			return
 		}
@@ -248,6 +261,10 @@ func (a *ApplicationAPI) DeleteApplication(ctx *gin.Context) {
 //	    description: Not Found
 //	    schema:
 //	        $ref: "#/definitions/Error"
+//	  422:
+//	    description: Unprocessable Entity
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		app, err := a.DB.GetApplicationByID(id)
@@ -257,6 +274,10 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 		if app != nil && app.UserID == auth.GetUserID(ctx) {
 			applicationParams := ApplicationParams{}
 			if err := ctx.Bind(&applicationParams); err == nil {
+				if applicationParams.EffectiveSize() > MaxApplicationClientEntrySize {
+					ctx.AbortWithError(http.StatusUnprocessableEntity, fmt.Errorf("application entry too large (max: %d bytes)", MaxApplicationClientEntrySize))
+					return
+				}
 				app.Description = applicationParams.Description
 				app.Name = applicationParams.Name
 				app.DefaultPriority = applicationParams.DefaultPriority
@@ -333,7 +354,6 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 			// https://gin-gonic.com/en/docs/routing/upload-file/limit-bytes/
 			ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, MaxUploadSize)
 			if err := ctx.Request.ParseMultipartForm(MaxUploadSize); err != nil {
-				log.Println("error parsing multipart form", err)
 				if _, ok := err.(*http.MaxBytesError); ok {
 					ctx.AbortWithError(http.StatusRequestEntityTooLarge, fmt.Errorf("file too large (max: %d bytes)", MaxUploadSize))
 					return
@@ -496,6 +516,8 @@ func ValidApplicationImageExt(ext string) bool {
 func handleApplicationError(ctx *gin.Context, err error) {
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		ctx.AbortWithError(400, errors.New("sort key is not unique"))
+	} else if errors.Is(err, database.ErrQuotaExceeded) {
+		ctx.AbortWithError(http.StatusUnprocessableEntity, fmt.Errorf("quota exceeded"))
 	} else {
 		ctx.AbortWithError(500, err)
 	}

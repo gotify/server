@@ -66,3 +66,6 @@ passstrength: 10 # the bcrypt password strength (higher = better but also slower
 uploadedimagesdir: data/images # the directory for storing uploaded images
 pluginsdir: data/plugins # the directory where plugin resides (leave empty to disable plugins)
 registration: false # enable registrations
+quota:
+  clients: 1024 # the maximum number of clients a non-admin user can have
+  applications: 1024 # the maximum number of applications a non-admin user can have

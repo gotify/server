@@ -32,7 +32,7 @@ type Database interface {
 	GetPluginConfByID(id uint) (*model.PluginConf, error)
 	GetPluginConfByToken(token string) (*model.PluginConf, error)
 	GetUserByID(id uint) (*model.User, error)
-	CreateApplication(application *model.Application) error
+	CreateApplication(application *model.Application, quota uint32) error
 	UpdateApplication(app *model.Application) error
 	GetApplicationsByUser(userID uint) ([]*model.Application, error)
 	GetApplicationByToken(token string) (*model.Application, error)
@@ -413,7 +413,7 @@ func (m *Manager) createPluginConf(instance compat.PluginInstance, info compat.I
 			Internal:    true,
 			Description: fmt.Sprintf("auto generated application for %s", info.ModulePath),
 		}
-		if err := m.db.CreateApplication(app); err != nil {
+		if err := m.db.CreateApplication(app, 0); err != nil {
 			return nil, err
 		}
 		pluginConf.ApplicationID = app.ID
