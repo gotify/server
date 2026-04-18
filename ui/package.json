@@ -59,7 +59,7 @@
     "puppeteer": "^24.15.0",
     "rimraf": "^6.0.1",
     "tree-kill": "^1.2.0",
-    "typescript": "^5.9.2",
+    "typescript": "^6.0.0",
     "typescript-eslint": "^8.38.0",
     "wait-on": "^9.0.0"
   },
