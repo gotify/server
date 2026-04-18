@@ -46,8 +46,8 @@ const ElevateClientDialog = observer(({clientName, clientId, fClose}: IProps) =>
     };
 
     return (
-        <Dialog open={true} onClose={handleClose} aria-labelledby="elevate-client-dialog-title">
-            <DialogTitle id="elevate-client-dialog-title">Elevate Client: {clientName}</DialogTitle>
+        <Dialog open={true} onClose={handleClose} className="elevate-client-dialog">
+            <DialogTitle>Elevate Client: {clientName}</DialogTitle>
             <DialogContent>
                 {needsElevation ? (
                     <ElevationForm />
@@ -55,6 +55,7 @@ const ElevateClientDialog = observer(({clientName, clientId, fClose}: IProps) =>
                     <FormControl fullWidth style={{marginTop: 8}}>
                         <InputLabel id="elevate-duration-label">Duration</InputLabel>
                         <Select
+                            className="elevate-duration"
                             labelId="elevate-duration-label"
                             label="Duration"
                             value={durationSeconds}
@@ -69,9 +70,16 @@ const ElevateClientDialog = observer(({clientName, clientId, fClose}: IProps) =>
                 )}
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
+                <Button className="elevate-cancel" onClick={handleClose}>
+                    Cancel
+                </Button>
                 {!needsElevation && (
-                    <Button onClick={handleConfirm} autoFocus color="primary" variant="contained">
+                    <Button
+                        className="elevate-confirm"
+                        onClick={handleConfirm}
+                        autoFocus
+                        color="primary"
+                        variant="contained">
                         Elevate
                     </Button>
                 )}

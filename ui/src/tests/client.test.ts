@@ -1,6 +1,6 @@
 import {Page} from 'puppeteer';
 import {newTest, GotifyTest} from './setup';
-import {count, innerText, waitForExists, waitToDisappear, clearField} from './utils';
+import {count, innerText, waitForExists, waitToDisappear, clearField, ClientCol} from './utils';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import * as auth from './authentication';
 
@@ -15,26 +15,16 @@ beforeAll(async () => {
 
 afterAll(async () => await gotify.close());
 
-enum Col {
-    Name = 1,
-    Token = 2,
-    LastSeen = 3,
-    ElevationEnds = 4,
-    Elevate = 5,
-    Edit = 6,
-    Delete = 7,
-}
-
 const waitForClient =
     (name: string, row: number): (() => Promise<void>) =>
     async () => {
-        await waitForExists(page, $table.cell(row, Col.Name), name);
+        await waitForExists(page, $table.cell(row, ClientCol.Name), name);
     };
 
 const updateClient =
     (id: number, data: {name?: string}): (() => Promise<void>) =>
     async () => {
-        await page.click($table.cell(id, Col.Edit, '.edit'));
+        await page.click($table.cell(id, ClientCol.Edit, '.edit'));
         await page.waitForSelector($dialog.selector());
         if (data.name) {
             const nameSelector = $dialog.input('.name');
@@ -79,21 +69,23 @@ describe('Client', () => {
 
         expect(await count(page, $table.rows())).toBe(3);
 
-        expect(await innerText(page, $table.cell(1, Col.Name))).toContain('chrome');
-        expect(await innerText(page, $table.cell(2, Col.Name))).toBe('phone');
-        expect(await innerText(page, $table.cell(3, Col.Name))).toBe('desktop app');
+        expect(await innerText(page, $table.cell(1, ClientCol.Name))).toContain('chrome');
+        expect(await innerText(page, $table.cell(2, ClientCol.Name))).toBe('phone');
+        expect(await innerText(page, $table.cell(3, ClientCol.Name))).toBe('desktop app');
     });
     it('updates client', updateClient(1, {name: 'firefox'}));
     it('has updated client name', waitForClient('firefox', 1));
     it('shows token', async () => {
-        await page.click($table.cell(3, Col.Token, '.toggle-visibility'));
-        expect((await innerText(page, $table.cell(3, Col.Token))).startsWith('C')).toBeTruthy();
+        await page.click($table.cell(3, ClientCol.Token, '.toggle-visibility'));
+        expect(
+            (await innerText(page, $table.cell(3, ClientCol.Token))).startsWith('C')
+        ).toBeTruthy();
     });
     it('shows last seen', async () => {
-        expect(await innerText(page, $table.cell(3, Col.LastSeen))).toBeTruthy();
+        expect(await innerText(page, $table.cell(3, ClientCol.LastSeen))).toBeTruthy();
     });
     it('deletes client', async () => {
-        await page.click($table.cell(2, Col.Delete, '.delete'));
+        await page.click($table.cell(2, ClientCol.Delete, '.delete'));
 
         await page.waitForSelector(selector.$confirmDialog.selector());
         await page.click(selector.$confirmDialog.button('.confirm'));
@@ -104,7 +96,7 @@ describe('Client', () => {
         expect(await count(page, $table.rows())).toBe(2);
     });
     it('deletes own client', async () => {
-        await page.click($table.cell(1, Col.Delete, '.delete'));
+        await page.click($table.cell(1, ClientCol.Delete, '.delete'));
 
         // confirm delete
         await page.waitForSelector(selector.$confirmDialog.selector());

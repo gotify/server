@@ -35,6 +35,7 @@ const ElevationForm = observer(() => {
                     Complete sign-in in the new tab, then close it to continue.
                 </Typography>
                 <Button
+                    className="elevation-oidc-cancel"
                     variant="outlined"
                     fullWidth
                     onClick={() => elevateStore.cleanupOidcElevate()}>
@@ -57,6 +58,7 @@ const ElevationForm = observer(() => {
                     margin="dense"
                     type="password"
                     label="Password"
+                    className="elevation-password"
                     value={password}
                     onChange={(e) => {
                         setPassword(e.target.value);
@@ -68,6 +70,7 @@ const ElevationForm = observer(() => {
                 />
                 <Button
                     type="submit"
+                    className="elevation-submit"
                     disabled={password.length === 0}
                     color="primary"
                     variant="contained"
@@ -80,6 +83,7 @@ const ElevationForm = observer(() => {
                 <>
                     <Divider sx={{my: 2}}>or</Divider>
                     <Button
+                        className="elevation-oidc"
                         variant="contained"
                         color="primary"
                         fullWidth
