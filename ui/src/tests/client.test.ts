@@ -56,6 +56,7 @@ describe('Client', () => {
         expect(page.url()).toContain('/clients');
     });
     it('has one client (the current session)', async () => {
+        await page.waitForSelector($table.row(1));
         expect(await count(page, $table.rows())).toBe(1);
     });
     describe('create clients', () => {
