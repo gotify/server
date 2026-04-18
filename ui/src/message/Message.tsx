@@ -240,10 +240,10 @@ const HeaderWide = ({
                 ) : null}
             </div>
             <div className={classes.headerTitle}>
-                <Typography className="title" variant="h5" lineHeight={1.2}>
+                <Typography className="title" variant="h5" sx={{lineHeight: 1.2}}>
                     {title}
                 </Typography>
-                <Typography variant="subtitle1" fontSize={12} style={{opacity: 0.7}}>
+                <Typography variant="subtitle1" sx={{fontSize: 12, opacity: 0.7}}>
                     {appName}
                 </Typography>
             </div>
@@ -272,10 +272,10 @@ const HeaderSmall = ({
     return (
         <div className={classes.header}>
             <div className={classes.headerTitle}>
-                <Typography className="title" variant="h5" lineHeight={1.2}>
+                <Typography className="title" variant="h5" sx={{lineHeight: 1.2}}>
                     {title}
                 </Typography>
-                <Typography variant="subtitle1" fontSize={12} style={{opacity: 0.7}}>
+                <Typography variant="subtitle1" sx={{fontSize: 12, opacity: 0.7}}>
                     {appName}
                 </Typography>
                 <Typography variant="body1" className={classes.date}>
