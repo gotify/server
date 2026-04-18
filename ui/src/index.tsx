@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {createRoot} from 'react-dom/client';
-import 'typeface-roboto';
+import '@fontsource/roboto';
 import {initAxios} from './apiAuth';
 import * as config from './config';
 import Layout from './layout/Layout';

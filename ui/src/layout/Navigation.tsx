@@ -1,5 +1,5 @@
 import Divider from '@mui/material/Divider';
-import Drawer from '@mui/material/Drawer';
+import Drawer, {DrawerProps} from '@mui/material/Drawer';
 import {Theme} from '@mui/material/styles';
 import React from 'react';
 import {Link} from 'react-router-dom';
@@ -14,7 +14,6 @@ import {
     Avatar,
     ListItemButton,
 } from '@mui/material';
-import {DrawerProps} from '@mui/material/Drawer/Drawer';
 import CloseIcon from '@mui/icons-material/Close';
 import {makeStyles} from 'tss-react/mui';
 import {useStores} from '../stores';
