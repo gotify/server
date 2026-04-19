@@ -587,6 +587,96 @@
         }
       }
     },
+    "/auth/local/login": {
+      "post": {
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "summary": "Authenticate via basic auth and create a session.",
+        "operationId": "localLogin",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the client name to create",
+            "name": "name",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/UserExternal"
+            },
+            "headers": {
+              "Set-Cookie": {
+                "type": "string",
+                "description": "session cookie"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "description": "Clears the session cookie and deletes the associated client.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "summary": "End the current session.",
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "headers": {
+              "Set-Cookie": {
+                "type": "string",
+                "description": "cleared session cookie"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/auth/oidc/callback": {
       "get": {
         "description": "Exchanges the authorization code for tokens, resolves the user,\ncreates a gotify client, sets a session cookie, and redirects to the UI.",

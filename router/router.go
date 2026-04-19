@@ -230,7 +230,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 		clientAuth.POST("current/user/password", userHandler.ChangePassword)
 
-		clientAuth.POST("/auth/local/logout", sessionHandler.Logout)
+		clientAuth.POST("/auth/logout", sessionHandler.Logout)
 	}
 
 	authAdmin := g.Group("/user")
