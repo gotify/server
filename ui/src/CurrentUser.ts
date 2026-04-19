@@ -119,9 +119,7 @@ export class CurrentUser {
             runInAction(() => {
                 this.loggedIn = false;
             });
-            await axios
-                .post(config.get('url') + 'auth/local/logout')
-                .catch(() => Promise.resolve());
+            await axios.post(config.get('url') + 'auth/logout').catch(() => Promise.resolve());
         }
     };
 

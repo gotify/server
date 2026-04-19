@@ -24,7 +24,34 @@ type SessionAPI struct {
 	SecureCookie  bool
 }
 
-// Login authenticates via basic auth, creates a client, sets an HttpOnly cookie, and returns user info.
+// swagger:operation POST /auth/local/login auth localLogin
+//
+// Authenticate via basic auth and create a session.
+//
+//	---
+//	consumes: [application/x-www-form-urlencoded]
+//	produces: [application/json]
+//	security:
+//	- basicAuth: []
+//	parameters:
+//	- name: name
+//	  in: formData
+//	  description: the client name to create
+//	  required: true
+//	  type: string
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/UserExternal"
+//	    headers:
+//	      Set-Cookie:
+//	        type: string
+//	        description: session cookie
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *SessionAPI) Login(ctx *gin.Context) {
 	name, pass, ok := ctx.Request.BasicAuth()
 	if !ok {
@@ -65,7 +92,29 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 	})
 }
 
-// Logout deletes the client for the current session and clears the cookie.
+// swagger:operation POST /auth/logout auth logout
+//
+// End the current session.
+//
+// Clears the session cookie and deletes the associated client.
+//
+//	---
+//	produces: [application/json]
+//	security:
+//	- clientTokenHeader: []
+//	- clientTokenQuery: []
+//	- basicAuth: []
+//	responses:
+//	  200:
+//	    description: Ok
+//	    headers:
+//	      Set-Cookie:
+//	        type: string
+//	        description: cleared session cookie
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *SessionAPI) Logout(ctx *gin.Context) {
 	auth.SetCookie(ctx.Writer, "", -1, a.SecureCookie)
 
