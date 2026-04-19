@@ -43,7 +43,7 @@ type SessionAPI struct {
 //	  200:
 //	    description: Ok
 //	    schema:
-//	        $ref: "#/definitions/UserExternal"
+//	        $ref: "#/definitions/User"
 //	    headers:
 //	      Set-Cookie:
 //	        type: string
