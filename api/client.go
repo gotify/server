@@ -185,6 +185,12 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 	if success := successOrAbort(ctx, 500, err); !success {
 		return
 	}
+	now := time.Now()
+	for _, client := range clients {
+		if client.ElevatedUntil != nil && !now.Before(*client.ElevatedUntil) {
+			client.ElevatedUntil = nil
+		}
+	}
 	ctx.JSON(200, clients)
 }
 
