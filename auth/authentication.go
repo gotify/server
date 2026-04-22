@@ -44,26 +44,26 @@ type Auth struct {
 
 // RequireElevatedAdmin requires an elevated client token or basic auth, the user must be an admin.
 func (a *Auth) RequireAdmin(ctx *gin.Context) {
-	a.evaluateOr401(ctx, a.user(true), a.client(true, true))
+	a.evaluateOr401(ctx, a.handleUser(a.checkUserAdmin), a.handleClient(a.checkClientAdmin, a.checkClientElevated))
 }
 
 // RequireClient returns a gin middleware which requires a client token or basic authentication header to be supplied
 // with the request.
 func (a *Auth) RequireClient(ctx *gin.Context) {
-	a.evaluateOr401(ctx, a.user(false), a.client(false, false))
+	a.evaluateOr401(ctx, a.handleUser(), a.handleClient())
 }
 
 // RequireElevatedClient requires an elevated client token or basic auth.
 func (a *Auth) RequireElevatedClient(ctx *gin.Context) {
-	a.evaluateOr401(ctx, a.user(false), a.client(false, true))
+	a.evaluateOr401(ctx, a.handleUser(), a.handleClient(a.checkClientElevated))
 }
 
 // RequireApplicationToken returns a gin middleware which requires an application token to be supplied with the request.
 func (a *Auth) RequireApplicationToken(ctx *gin.Context) {
-	if a.evaluate(ctx, a.application) {
+	if a.evaluate(ctx, a.handleApplication) {
 		return
 	}
-	state, err := a.user(false)(ctx)
+	state, err := a.handleUser()(ctx)
 	if err != nil {
 		ctx.AbortWithError(500, err)
 	}
@@ -76,7 +76,7 @@ func (a *Auth) RequireApplicationToken(ctx *gin.Context) {
 }
 
 func (a *Auth) Optional(ctx *gin.Context) {
-	if !a.evaluate(ctx, a.user(false), a.client(false, false)) {
+	if !a.evaluate(ctx, a.handleUser(), a.handleClient()) {
 		ctx.Next()
 	}
 }
@@ -119,7 +119,7 @@ func (a *Auth) abort403(ctx *gin.Context) {
 	ctx.AbortWithError(403, errors.New("you are not allowed to access this api"))
 }
 
-func (a *Auth) user(requireAdmin bool) func(ctx *gin.Context) (authState, error) {
+func (a *Auth) handleUser(checks ...func(*model.User) (authState, error)) func(ctx *gin.Context) (authState, error) {
 	return func(ctx *gin.Context) (authState, error) {
 		if name, pass, ok := ctx.Request.BasicAuth(); ok {
 			if user, err := a.DB.GetUserByName(name); err != nil {
@@ -127,9 +127,12 @@ func (a *Auth) user(requireAdmin bool) func(ctx *gin.Context) (authState, error)
 			} else if user != nil && password.ComparePassword(user.Pass, []byte(pass)) {
 				RegisterUser(ctx, user)
 
-				if requireAdmin && !user.Admin {
-					return authStateForbidden, nil
+				for _, check := range checks {
+					if state, err := check(user); err != nil || state != authStateOk {
+						return state, err
+					}
 				}
+
 				return authStateOk, nil
 			}
 		}
@@ -137,7 +140,7 @@ func (a *Auth) user(requireAdmin bool) func(ctx *gin.Context) (authState, error)
 	}
 }
 
-func (a *Auth) client(requireAdmin, requireElevated bool) func(ctx *gin.Context) (authState, error) {
+func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) func(ctx *gin.Context) (authState, error) {
 	return func(ctx *gin.Context) (authState, error) {
 		token, isCookie := a.readTokenFromRequest(ctx)
 		if token == "" {
@@ -162,23 +165,17 @@ func (a *Auth) client(requireAdmin, requireElevated bool) func(ctx *gin.Context)
 			}
 		}
 
-		if requireAdmin {
-			if user, err := a.DB.GetUserByID(client.UserID); err != nil {
-				return authStateSkip, err
-			} else if !user.Admin {
-				return authStateForbidden, nil
+		for _, check := range checks {
+			if state, err := check(client); err != nil || state != authStateOk {
+				return state, err
 			}
-		}
-
-		if requireElevated && (client.ElevatedUntil == nil || !now.Before(*client.ElevatedUntil)) {
-			return authStateNotElevated, nil
 		}
 
 		return authStateOk, nil
 	}
 }
 
-func (a *Auth) application(ctx *gin.Context) (authState, error) {
+func (a *Auth) handleApplication(ctx *gin.Context) (authState, error) {
 	token, isCookie := a.readTokenFromRequest(ctx)
 	if token == "" {
 		return authStateSkip, nil
@@ -247,4 +244,27 @@ func (a *Auth) tokenFromAuthorizationHeader(ctx *gin.Context) string {
 	}
 
 	return authHeader[len(prefix):]
+}
+
+func (a *Auth) checkClientAdmin(client *model.Client) (authState, error) {
+	if user, err := a.DB.GetUserByID(client.UserID); err != nil {
+		return authStateSkip, err
+	} else if !user.Admin {
+		return authStateForbidden, nil
+	}
+	return authStateOk, nil
+}
+
+func (a *Auth) checkClientElevated(client *model.Client) (authState, error) {
+	if client.ElevatedUntil == nil || !timeNow().Before(*client.ElevatedUntil) {
+		return authStateNotElevated, nil
+	}
+	return authStateOk, nil
+}
+
+func (a *Auth) checkUserAdmin(user *model.User) (authState, error) {
+	if !user.Admin {
+		return authStateForbidden, nil
+	}
+	return authStateOk, nil
 }
