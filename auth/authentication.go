@@ -42,7 +42,7 @@ type Auth struct {
 	SecureCookie bool
 }
 
-// RequireElevatedAdmin requires an elevated client token or basic auth, the user must be an admin.
+// RequireAdmin requires an elevated client token or basic auth, the user must be an admin.
 func (a *Auth) RequireAdmin(ctx *gin.Context) {
 	a.evaluateOr401(ctx, a.handleUser(a.checkUserAdmin), a.handleClient(a.checkClientAdmin, a.checkClientElevated))
 }
