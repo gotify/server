@@ -136,7 +136,7 @@ const Row = ({name, value, lastUsed, elevatedUntil, fEdit, fDelete, fElevate}: I
         </TableCell>
         <TableCell>
             {elevatedUntil && Date.parse(elevatedUntil) > Date.now() ? (
-                <TimeAgo date={elevatedUntil} formatter={TimeAgoFormatter.long} />
+                <TimeAgo date={elevatedUntil} formatter={TimeAgoFormatter.longMinutes} />
             ) : (
                 '-'
             )}
