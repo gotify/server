@@ -62,3 +62,8 @@ func (d *GormDatabase) UpdateClient(client *model.Client) error {
 func (d *GormDatabase) UpdateClientTokensLastUsed(tokens []string, t *time.Time) error {
 	return d.DB.Model(&model.Client{}).Where("token IN (?)", tokens).Update("last_used", t).Error
 }
+
+// UpdateClientElevatedUntil updates the elevated_until timestamp of a client by token.
+func (d *GormDatabase) UpdateClientElevatedUntil(id uint, t *time.Time) error {
+	return d.DB.Model(&model.Client{}).Where("id = ?", id).Update("elevated_until", t).Error
+}

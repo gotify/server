@@ -67,3 +67,13 @@ export const clearField = async (element: ElementHandle | Page, selector: string
     await elementHandle.click({clickCount: 3});
     await elementHandle.press('Backspace');
 };
+
+export enum ClientCol {
+    Name = 1,
+    Token = 2,
+    LastSeen = 3,
+    ElevationEnds = 4,
+    Elevate = 5,
+    Edit = 6,
+    Delete = 7,
+}

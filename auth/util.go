@@ -5,14 +5,37 @@ import (
 	"github.com/gotify/server/v2/model"
 )
 
-// RegisterAuthentication registers the user id, user and or token.
-func RegisterAuthentication(ctx *gin.Context, user *model.User, userID uint, tokenID string) {
-	ctx.Set("user", user)
-	ctx.Set("userid", userID)
-	ctx.Set("tokenid", tokenID)
+const authKey = "auth"
+
+type authentication struct {
+	client *model.Client
+	app    *model.Application
+	user   *model.User
 }
 
-// GetUserID returns the user id which was previously registered by RegisterAuthentication.
+// RegisterUser stores the authenticated user on the gin context.
+func RegisterUser(ctx *gin.Context, user *model.User) {
+	ctx.Set(authKey, &authentication{user: user})
+}
+
+// RegisterClient stores the authenticated client on the gin context.
+func RegisterClient(ctx *gin.Context, client *model.Client) {
+	ctx.Set(authKey, &authentication{client: client})
+}
+
+// RegisterApplication stores the authenticated application on the gin context.
+func RegisterApplication(ctx *gin.Context, app *model.Application) {
+	ctx.Set(authKey, &authentication{app: app})
+}
+
+func getInfo(ctx *gin.Context) *authentication {
+	if v, ok := ctx.Get(authKey); ok {
+		return v.(*authentication)
+	}
+	return &authentication{}
+}
+
+// GetUserID returns the user id which was previously registered by one of the Register* functions.
 func GetUserID(ctx *gin.Context) uint {
 	id := TryGetUserID(ctx)
 	if id == nil {
@@ -23,23 +46,26 @@ func GetUserID(ctx *gin.Context) uint {
 
 // TryGetUserID returns the user id or nil if one is not set.
 func TryGetUserID(ctx *gin.Context) *uint {
-	user := ctx.MustGet("user").(*model.User)
-	if user == nil {
-		userID := ctx.MustGet("userid").(uint)
-		if userID == 0 {
-			return nil
-		}
-		return &userID
+	info := getInfo(ctx)
+	switch {
+	case info.user != nil:
+		return &info.user.ID
+	case info.client != nil:
+		return &info.client.UserID
+	case info.app != nil:
+		return &info.app.UserID
+	default:
+		return nil
 	}
-
-	return &user.ID
 }
 
-// GetTokenID returns the tokenID.
-func GetTokenID(ctx *gin.Context) string {
-	return ctx.MustGet("tokenid").(string)
+// GetApplication returns the authenticated application or nil if no application
+// was registered.
+func GetApplication(ctx *gin.Context) *model.Application {
+	return getInfo(ctx).app
 }
 
-func TryGetTokenID(ctx *gin.Context) string {
-	return ctx.GetString("tokenid")
+// GetClient returns the authenticated client or nil if no client was registered.
+func GetClient(ctx *gin.Context) *model.Client {
+	return getInfo(ctx).client
 }

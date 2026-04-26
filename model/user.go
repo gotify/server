@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // The User holds information about the credentials of a user and its application and client tokens.
 type User struct {
 	ID           uint   `gorm:"primaryKey;autoIncrement"`
@@ -78,6 +80,37 @@ type UpdateUserExternal struct {
 	//
 	// example: nrocinu
 	Pass string `json:"pass,omitempty" form:"pass" query:"pass"`
+}
+
+// CurrentUserExternal Model
+//
+// swagger:model CurrentUser
+type CurrentUserExternal struct {
+	// The user id.
+	//
+	// read only: true
+	// required: true
+	// example: 25
+	ID uint `json:"id"`
+	// The user name. For login.
+	//
+	// required: true
+	// example: unicorn
+	Name string `json:"name"`
+	// If the user is an administrator.
+	//
+	// required: true
+	// example: true
+	Admin bool `json:"admin"`
+	// The client id of the current session.
+	//
+	// read only: true
+	// example: 5
+	ClientID uint `json:"clientId,omitempty"`
+	// The time until which the session is elevated.
+	//
+	// read only: true
+	ElevatedUntil *time.Time `json:"elevatedUntil,omitempty"`
 }
 
 // UserExternalPass Model

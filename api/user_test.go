@@ -426,16 +426,16 @@ func (s *UserSuite) Test_UpdatePassword_EmptyPassword() {
 
 func (s *UserSuite) loginAdmin() {
 	s.db.CreateUser(&model.User{ID: 1, Name: "admin", Admin: true})
-	auth.RegisterAuthentication(s.ctx, nil, 1, "")
+	auth.RegisterUser(s.ctx, &model.User{ID: 1, Admin: true})
 }
 
 func (s *UserSuite) loginUser() {
 	s.db.CreateUser(&model.User{ID: 1, Name: "user", Admin: false})
-	auth.RegisterAuthentication(s.ctx, nil, 1, "")
+	auth.RegisterUser(s.ctx, &model.User{ID: 1})
 }
 
 func (s *UserSuite) noLogin() {
-	auth.RegisterAuthentication(s.ctx, nil, 0, "")
+	// No authentication is registered
 }
 
 func externalOf(user *model.User) *model.UserExternal {

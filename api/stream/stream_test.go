@@ -49,7 +49,7 @@ func TestWriteMessageFails(t *testing.T) {
 	defer leaktest.Check(t)()
 
 	server, api := bootTestServer(func(context *gin.Context) {
-		auth.RegisterAuthentication(context, nil, 1, "")
+		auth.RegisterClient(context, &model.Client{UserID: 1})
 	})
 	defer server.Close()
 	defer api.Close()
@@ -206,7 +206,7 @@ func TestDeleteMultipleClients(t *testing.T) {
 	tokens := []string{"1-1", "1-2", "1-2", "1-3", "2-1", "2-2", "3"}
 	i := 0
 	server, api := bootTestServer(func(context *gin.Context) {
-		auth.RegisterAuthentication(context, nil, userIDs[i], tokens[i])
+		auth.RegisterClient(context, &model.Client{UserID: userIDs[i], Token: tokens[i]})
 		i++
 	})
 	defer server.Close()
@@ -269,7 +269,7 @@ func TestDeleteUser(t *testing.T) {
 	tokens := []string{"1-1", "1-2", "1-2", "1-3", "2-1", "2-2", "3"}
 	i := 0
 	server, api := bootTestServer(func(context *gin.Context) {
-		auth.RegisterAuthentication(context, nil, userIDs[i], tokens[i])
+		auth.RegisterClient(context, &model.Client{UserID: userIDs[i], Token: tokens[i]})
 		i++
 	})
 	defer server.Close()
@@ -331,7 +331,7 @@ func TestCollectConnectedClientTokens(t *testing.T) {
 	tokens := []string{"1-1", "1-2", "1-2", "2-1", "2-2"}
 	i := 0
 	server, api := bootTestServer(func(context *gin.Context) {
-		auth.RegisterAuthentication(context, nil, userIDs[i], tokens[i])
+		auth.RegisterClient(context, &model.Client{UserID: userIDs[i], Token: tokens[i]})
 		i++
 	})
 	defer server.Close()
@@ -367,7 +367,7 @@ func TestMultipleClients(t *testing.T) {
 	userIDs := []uint{1, 1, 1, 2, 2, 3}
 	i := 0
 	server, api := bootTestServer(func(context *gin.Context) {
-		auth.RegisterAuthentication(context, nil, userIDs[i], "t"+fmt.Sprint(userIDs[i]))
+		auth.RegisterClient(context, &model.Client{UserID: userIDs[i], Token: "t" + fmt.Sprint(userIDs[i])})
 		i++
 	})
 	defer server.Close()
@@ -605,7 +605,7 @@ func wsURL(httpURL string) string {
 
 func staticUserID() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		auth.RegisterAuthentication(context, nil, 1, "customtoken")
+		auth.RegisterClient(context, &model.Client{UserID: 1, Token: "customtoken"})
 	}
 }
 

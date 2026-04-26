@@ -38,4 +38,15 @@ export class ClientStore extends BaseStore<IClient> {
         await this.createNoNotifcation(name);
         this.snack('Client added');
     };
+
+    @action
+    public elevate = async (id: number, durationSeconds: number): Promise<void> => {
+        await axios.post(`${config.get('url')}client/${id}/elevate`, {durationSeconds});
+        await this.refresh();
+        if (durationSeconds < 0) {
+            this.snack('Canceled client elevation');
+        } else {
+            this.snack('Client elevated');
+        }
+    };
 }

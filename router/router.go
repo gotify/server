@@ -113,6 +113,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		oidcGroup.GET("/callback", oidcHandler.CallbackHandler())
 		oidcGroup.POST("/external/authorize", oidcHandler.ExternalAuthorizeHandler)
 		oidcGroup.POST("/external/token", oidcHandler.ExternalTokenHandler)
+		oidcGroup.GET("/elevate", oidcHandler.ElevateHandler)
 	}
 
 	g.Match([]string{"GET", "HEAD"}, "/health", healthHandler.Health)
@@ -185,21 +186,14 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		app := clientAuth.Group("/application")
 		{
 			app.GET("", applicationHandler.GetApplications)
-
 			app.POST("", applicationHandler.CreateApplication)
-
 			app.POST("/:id/image", applicationHandler.UploadApplicationImage)
-
 			app.DELETE("/:id/image", applicationHandler.RemoveApplicationImage)
-
 			app.PUT("/:id", applicationHandler.UpdateApplication)
-
-			app.DELETE("/:id", applicationHandler.DeleteApplication)
 
 			tokenMessage := app.Group("/:id/message")
 			{
 				tokenMessage.GET("", messageHandler.GetMessagesWithApplication)
-
 				tokenMessage.DELETE("", messageHandler.DeleteMessageWithApplication)
 			}
 		}
@@ -207,42 +201,37 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		client := clientAuth.Group("/client")
 		{
 			client.GET("", clientHandler.GetClients)
-
 			client.POST("", clientHandler.CreateClient)
-
-			client.DELETE("/:id", clientHandler.DeleteClient)
-
 			client.PUT("/:id", clientHandler.UpdateClient)
 		}
 
 		message := clientAuth.Group("/message")
 		{
 			message.GET("", messageHandler.GetMessages)
-
 			message.DELETE("", messageHandler.DeleteMessages)
-
 			message.DELETE("/:id", messageHandler.DeleteMessage)
 		}
 
 		clientAuth.GET("/stream", streamHandler.Handle)
-
 		clientAuth.GET("current/user", userHandler.GetCurrentUser)
-
-		clientAuth.POST("current/user/password", userHandler.ChangePassword)
-
 		clientAuth.POST("/auth/logout", sessionHandler.Logout)
+	}
+
+	clientElevated := g.Group("")
+	{
+		clientElevated.Use(authentication.RequireElevatedClient)
+		clientElevated.POST("/client/:id/elevate", clientHandler.ElevateClient)
+		clientElevated.DELETE("/application/:id", applicationHandler.DeleteApplication)
+		clientElevated.DELETE("/client/:id", clientHandler.DeleteClient)
+		clientElevated.POST("/current/user/password", userHandler.ChangePassword)
 	}
 
 	authAdmin := g.Group("/user")
 	{
 		authAdmin.Use(authentication.RequireAdmin)
-
 		authAdmin.GET("", userHandler.GetUsers)
-
 		authAdmin.DELETE("/:id", userHandler.DeleteUserByID)
-
 		authAdmin.GET("/:id", userHandler.GetUserByID)
-
 		authAdmin.POST("/:id", userHandler.UpdateUserByID)
 	}
 	return g, streamHandler.Close

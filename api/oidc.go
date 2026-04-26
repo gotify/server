@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -70,6 +71,12 @@ type pendingOIDCSession struct {
 	RedirectURI string
 	ClientName  string
 	CreatedAt   time.Time
+	Elevate     *pendingElevation
+}
+
+type pendingElevation struct {
+	ClientID        uint `form:"id" binding:"required"`
+	DurationSeconds int  `form:"durationSeconds" binding:"required"`
 }
 
 // OIDCAPI provides handlers for OIDC authentication.
@@ -122,6 +129,48 @@ func (a *OIDCAPI) LoginHandler() gin.HandlerFunc {
 	})
 }
 
+// swagger:operation GET /auth/oidc/elevate oidc oidcElevate
+//
+// Start the OIDC flow to elevate an existing client session (browser).
+//
+// Redirects the user to the OIDC provider's authorization endpoint. After
+// successful authentication, the referenced client session is elevated for
+// the requested duration.
+//
+//	---
+//	parameters:
+//	- name: id
+//	  in: query
+//	  description: the client id to elevate
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	- name: durationSeconds
+//	  in: query
+//	  description: how long the elevation should last, in seconds
+//	  required: true
+//	  type: integer
+//	responses:
+//	  302:
+//	    description: Redirect to OIDC provider
+//	  default:
+//	    description: Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
+func (a *OIDCAPI) ElevateHandler(ctx *gin.Context) {
+	var elevate pendingElevation
+	if err := ctx.BindQuery(&elevate); err != nil {
+		return
+	}
+	state, err := a.generateState()
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	a.pendingSessions.Set(time.Now(), state, &pendingOIDCSession{CreatedAt: time.Now(), Elevate: &elevate})
+	rp.AuthURLHandler(func() string { return state }, a.Provider)(ctx.Writer, ctx.Request)
+}
+
 // swagger:operation GET /auth/oidc/callback oidc oidcCallback
 //
 // Handle the OIDC provider callback (browser).
@@ -142,6 +191,8 @@ func (a *OIDCAPI) LoginHandler() gin.HandlerFunc {
 //	  required: true
 //	  type: string
 //	responses:
+//	  200:
+//	    description: ok
 //	  307:
 //	    description: Redirect to UI
 //	  default:
@@ -160,6 +211,12 @@ func (a *OIDCAPI) CallbackHandler() gin.HandlerFunc {
 			http.Error(w, "unknown or expired state", http.StatusBadRequest)
 			return
 		}
+
+		if session.Elevate != nil {
+			a.handleElevationCallback(w, session.Elevate, user)
+			return
+		}
+
 		client, err := a.createClient(session.ClientName, user.ID)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to create client: %v", err), http.StatusInternalServerError)
@@ -173,6 +230,39 @@ func (a *OIDCAPI) CallbackHandler() gin.HandlerFunc {
 		w.WriteHeader(http.StatusTemporaryRedirect)
 	}
 	return gin.WrapF(rp.CodeExchangeHandler(rp.UserinfoCallback(callback), a.Provider))
+}
+
+func (a *OIDCAPI) handleElevationCallback(w http.ResponseWriter, elevate *pendingElevation, user *model.User) {
+	client, err := a.DB.GetClientByID(elevate.ClientID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("database error: %v", err), http.StatusInternalServerError)
+		return
+	}
+	if client == nil || client.UserID != user.ID {
+		http.Error(w, "client not found", http.StatusNotFound)
+		return
+	}
+	elevatedUntil := time.Now().Add(time.Duration(elevate.DurationSeconds) * time.Second)
+	if err := a.DB.UpdateClientElevatedUntil(client.ID, &elevatedUntil); err != nil {
+		http.Error(w, fmt.Sprintf("failed to elevate session: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// The UI rechecks the authentication when the tab is closed.
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("content-type", "text/html")
+	io.WriteString(w, `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gotify Session Elevation</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+</head>
+<body>
+  <h1 style="text-align:center">Gotify session elevation successful. Close this tab to continue.</h1>
+  <script>window.close();</script>
+</body>
+</html>`)
 }
 
 // swagger:operation POST /auth/oidc/external/authorize oidc externalAuthorize
@@ -332,10 +422,12 @@ func (a *OIDCAPI) resolveUser(info *oidc.UserInfo) (*model.User, int, error) {
 }
 
 func (a *OIDCAPI) createClient(name string, userID uint) (*model.Client, error) {
+	elevatedUntil := time.Now().Add(model.DefaultElevationDuration)
 	client := &model.Client{
-		Name:   name,
-		Token:  auth.GenerateNotExistingToken(generateClientToken, func(t string) bool { c, _ := a.DB.GetClientByToken(t); return c != nil }),
-		UserID: userID,
+		Name:          name,
+		Token:         auth.GenerateNotExistingToken(generateClientToken, func(t string) bool { c, _ := a.DB.GetClientByToken(t); return c != nil }),
+		UserID:        userID,
+		ElevatedUntil: &elevatedUntil,
 	}
 	return client, a.DB.CreateClient(client)
 }

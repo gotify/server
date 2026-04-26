@@ -1,10 +1,12 @@
 package api
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/mode"
@@ -164,7 +166,7 @@ func (s *ClientSuite) Test_DeleteClient_expectNotFound() {
 
 	test.WithUser(s.ctx, 5)
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: "8"}}
+	s.ctx.AddParam("id", "8")
 
 	s.a.DeleteClient(s.ctx)
 
@@ -176,7 +178,7 @@ func (s *ClientSuite) Test_DeleteClient() {
 
 	test.WithUser(s.ctx, 5)
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: "8"}}
+	s.ctx.AddParam("id", "8")
 
 	assert.False(s.T(), s.notified)
 
@@ -223,9 +225,88 @@ func (s *ClientSuite) Test_UpdateClient_WithMissingAttributes_expectBadRequest()
 	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
+func (s *ClientSuite) Test_ElevateClient_expectSuccess() {
+	s.db.User(5).Client(8)
+
+	test.WithUser(s.ctx, 5)
+	s.withElevateRequest(8, 900)
+
+	before := time.Now()
+	s.a.ElevateClient(s.ctx)
+	after := time.Now()
+
+	assert.Equal(s.T(), 204, s.ctx.Writer.Status())
+	client, err := s.db.GetClientByID(8)
+	assert.NoError(s.T(), err)
+	assert.NotNil(s.T(), client.ElevatedUntil)
+	assert.WithinRange(s.T(), *client.ElevatedUntil, before.Add(15*time.Minute), after.Add(15*time.Minute))
+}
+
+func (s *ClientSuite) Test_ElevateClient_expectNotFoundOnMissingClient() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.withElevateRequest(8, 900)
+
+	s.a.ElevateClient(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+}
+
+func (s *ClientSuite) Test_ElevateClient_expectNotFoundOnCurrentUserIsNotOwner() {
+	s.db.User(5).Client(8)
+	s.db.User(2)
+
+	test.WithUser(s.ctx, 2)
+	s.withElevateRequest(8, 900)
+
+	s.a.ElevateClient(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+	client, err := s.db.GetClientByID(8)
+	assert.NoError(s.T(), err)
+	assert.Nil(s.T(), client.ElevatedUntil)
+}
+
+func (s *ClientSuite) Test_ElevateClient_expectBadRequestOnMissingID() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.withElevateBody(`{"durationSeconds":900}`)
+
+	s.a.ElevateClient(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
+func (s *ClientSuite) Test_ElevateClient_expectBadRequestOnMissingDuration() {
+	s.db.User(5).Client(8)
+
+	test.WithUser(s.ctx, 5)
+	s.ctx.AddParam("id", "8")
+	s.withElevateBody(`{}`)
+
+	s.a.ElevateClient(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	client, err := s.db.GetClientByID(8)
+	assert.NoError(s.T(), err)
+	assert.Nil(s.T(), client.ElevatedUntil)
+}
+
 func (s *ClientSuite) withFormData(formData string) {
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(formData))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+}
+
+func (s *ClientSuite) withElevateRequest(id uint, durationSeconds int) {
+	s.ctx.AddParam("id", fmt.Sprintf("%d", id))
+	s.withElevateBody(fmt.Sprintf(`{"durationSeconds":%d}`, durationSeconds))
+}
+
+func (s *ClientSuite) withElevateBody(body string) {
+	s.ctx.Request = httptest.NewRequest("POST", "/client/ignored/elevate", strings.NewReader(body))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
 }
 
 func withURL(ctx *gin.Context, scheme, host string) {

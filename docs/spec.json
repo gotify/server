@@ -231,6 +231,7 @@
             "basicAuth": []
           }
         ],
+        "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
         ],
@@ -618,7 +619,7 @@
           "200": {
             "description": "Ok",
             "schema": {
-              "$ref": "#/definitions/UserExternal"
+              "$ref": "#/definitions/CurrentUser"
             },
             "headers": {
               "Set-Cookie": {
@@ -702,8 +703,49 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "ok"
+          },
           "307": {
             "description": "Redirect to UI"
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/auth/oidc/elevate": {
+      "get": {
+        "description": "Redirects the user to the OIDC provider's authorization endpoint. After\nsuccessful authentication, the referenced client session is elevated for\nthe requested duration.",
+        "tags": [
+          "oidc"
+        ],
+        "summary": "Start the OIDC flow to elevate an existing client session (browser).",
+        "operationId": "oidcElevate",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "the client id to elevate",
+            "name": "id",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "how long the elevation should last, in seconds",
+            "name": "durationSeconds",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to OIDC provider"
           },
           "default": {
             "description": "Error",
@@ -1034,6 +1076,7 @@
             "basicAuth": []
           }
         ],
+        "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
         ],
@@ -1086,6 +1129,78 @@
         }
       }
     },
+    "/client/{id}/elevate": {
+      "post": {
+        "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "description": "Requires elevated authentication.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "client"
+        ],
+        "summary": "Elevate a client session.",
+        "operationId": "elevateClient",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "the client id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "the elevation request",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ElevateRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ok"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/current/user": {
       "get": {
         "security": [
@@ -1102,6 +1217,7 @@
             "basicAuth": []
           }
         ],
+        "description": "Requires elevated authentication.",
         "produces": [
           "application/json"
         ],
@@ -1148,6 +1264,7 @@
             "basicAuth": []
           }
         ],
+        "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
         ],
@@ -1975,6 +2092,7 @@
             "basicAuth": []
           }
         ],
+        "description": "Requires elevated authentication.",
         "produces": [
           "application/json"
         ],
@@ -2022,7 +2140,7 @@
             "basicAuth": []
           }
         ],
-        "description": "With enabled registration: non admin users can be created without authentication.\nWith disabled registrations: users can only be created by admin users.",
+        "description": "With enabled registration: non admin users can be created without authentication.\nWith disabled registrations: users can only be created by admin users.\n\nRequires elevated authentication.",
         "consumes": [
           "application/json"
         ],
@@ -2089,6 +2207,7 @@
             "basicAuth": []
           }
         ],
+        "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
         ],
@@ -2158,6 +2277,7 @@
             "basicAuth": []
           }
         ],
+        "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
         ],
@@ -2236,6 +2356,7 @@
             "basicAuth": []
           }
         ],
+        "description": "Requires elevated authentication.",
         "produces": [
           "application/json"
         ],
@@ -2432,6 +2553,13 @@
         "name"
       ],
       "properties": {
+        "elevatedUntil": {
+          "description": "The time until which this client's session is elevated.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "ElevatedUntil",
+          "readOnly": true
+        },
         "id": {
           "description": "The client id.",
           "type": "integer",
@@ -2508,6 +2636,71 @@
           "type": "string",
           "x-go-name": "Pass",
           "example": "nrocinu"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "CurrentUser": {
+      "description": "CurrentUserExternal Model",
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "admin"
+      ],
+      "properties": {
+        "admin": {
+          "description": "If the user is an administrator.",
+          "type": "boolean",
+          "x-go-name": "Admin",
+          "example": true
+        },
+        "clientId": {
+          "description": "The client id of the current session.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ClientID",
+          "readOnly": true,
+          "example": 5
+        },
+        "elevatedUntil": {
+          "description": "The time until which the session is elevated.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "ElevatedUntil",
+          "readOnly": true
+        },
+        "id": {
+          "description": "The user id.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID",
+          "readOnly": true,
+          "example": 25
+        },
+        "name": {
+          "description": "The user name. For login.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "unicorn"
+        }
+      },
+      "x-go-name": "CurrentUserExternal",
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "ElevateRequest": {
+      "type": "object",
+      "title": "ElevateRequest parameters for client elevation.",
+      "required": [
+        "durationSeconds"
+      ],
+      "properties": {
+        "durationSeconds": {
+          "description": "How long the elevation should last, in seconds.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DurationSeconds",
+          "example": 900
         }
       },
       "x-go-package": "github.com/gotify/server/v2/model"

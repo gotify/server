@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
@@ -43,7 +44,7 @@ type SessionAPI struct {
 //	  200:
 //	    description: Ok
 //	    schema:
-//	        $ref: "#/definitions/UserExternal"
+//	        $ref: "#/definitions/CurrentUser"
 //	    headers:
 //	      Set-Cookie:
 //	        type: string
@@ -74,10 +75,12 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 		return
 	}
 
+	elevatedUntil := time.Now().Add(model.DefaultElevationDuration)
 	client := model.Client{
-		Name:   clientParams.Name,
-		Token:  auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
-		UserID: user.ID,
+		Name:          clientParams.Name,
+		Token:         auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
+		UserID:        user.ID,
+		ElevatedUntil: &elevatedUntil,
 	}
 	if success := successOrAbort(ctx, 500, a.DB.CreateClient(&client)); !success {
 		return
@@ -85,10 +88,12 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 
 	auth.SetCookie(ctx.Writer, client.Token, auth.CookieMaxAge, a.SecureCookie)
 
-	ctx.JSON(200, &model.UserExternal{
-		ID:    user.ID,
-		Name:  user.Name,
-		Admin: user.Admin,
+	ctx.JSON(200, &model.CurrentUserExternal{
+		ID:            user.ID,
+		Name:          user.Name,
+		Admin:         user.Admin,
+		ClientID:      client.ID,
+		ElevatedUntil: client.ElevatedUntil,
 	})
 }
 
@@ -118,18 +123,9 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 func (a *SessionAPI) Logout(ctx *gin.Context) {
 	auth.SetCookie(ctx.Writer, "", -1, a.SecureCookie)
 
-	tokenID := auth.TryGetTokenID(ctx)
-	if tokenID == "" {
-		ctx.AbortWithError(400, errors.New("no client auth provided"))
-		return
-	}
-	client, err := a.DB.GetClientByToken(tokenID)
-	if err != nil {
-		ctx.AbortWithError(500, err)
-		return
-	}
+	client := auth.GetClient(ctx)
 	if client == nil {
-		ctx.Status(200)
+		ctx.AbortWithError(403, errors.New("no client auth provided"))
 		return
 	}
 

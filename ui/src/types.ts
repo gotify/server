@@ -15,6 +15,7 @@ export interface IClient {
     token: string;
     name: string;
     lastUsed: string | null;
+    elevatedUntil?: string;
 }
 
 export interface IPlugin {
@@ -60,6 +61,11 @@ export interface IUser {
     id: number;
     name: string;
     admin: boolean;
+}
+
+export interface ICurrentUser extends IUser {
+    clientId?: number;
+    elevatedUntil?: string;
 }
 
 export interface IVersion {

@@ -31,4 +31,8 @@ type Client struct {
 	// read only: true
 	// example: 2019-01-01T00:00:00Z
 	LastUsed *time.Time `json:"lastUsed"`
+	// The time until which this client's session is elevated.
+	//
+	// read only: true
+	ElevatedUntil *time.Time `json:"elevatedUntil,omitempty"`
 }

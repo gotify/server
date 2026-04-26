@@ -322,8 +322,7 @@ func (s *MessageSuite) Test_CreateMessage_onJson_allParams() {
 	timeNow = func() time.Time { return t }
 	defer func() { timeNow = time.Now }()
 
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithToken(7, "app-token")
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithToken(7, "app-token"))
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": 1}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
@@ -344,8 +343,7 @@ func (s *MessageSuite) Test_CreateMessage_WithDefaultPriority() {
 	timeNow = func() time.Time { return t }
 	defer func() { timeNow = time.Now }()
 
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithTokenAndDefaultPriority(8, "app-token", 5)
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithTokenAndDefaultPriority(8, "app-token", 5))
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle", "message": "mymessage"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
@@ -365,8 +363,7 @@ func (s *MessageSuite) Test_CreateMessage_WithTitle() {
 	timeNow = func() time.Time { return t }
 	defer func() { timeNow = time.Now }()
 
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithToken(5, "app-token")
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithToken(5, "app-token"))
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle", "message": "mymessage"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 
@@ -382,8 +379,7 @@ func (s *MessageSuite) Test_CreateMessage_WithTitle() {
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenNoMessage() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithToken(1, "app-token")
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithToken(1, "app-token"))
 
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
@@ -398,8 +394,7 @@ func (s *MessageSuite) Test_CreateMessage_failWhenNoMessage() {
 }
 
 func (s *MessageSuite) Test_CreateMessage_WithoutTitle() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithTokenAndName(8, "app-token", "Application name"))
 
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"message": "mymessage"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
@@ -415,8 +410,7 @@ func (s *MessageSuite) Test_CreateMessage_WithoutTitle() {
 }
 
 func (s *MessageSuite) Test_CreateMessage_WithBlankTitle() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithTokenAndName(8, "app-token", "Application name"))
 
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"message": "mymessage", "title": "  "}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
@@ -432,8 +426,7 @@ func (s *MessageSuite) Test_CreateMessage_WithBlankTitle() {
 }
 
 func (s *MessageSuite) Test_CreateMessage_IgnoreID() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithTokenAndName(8, "app-token", "Application name"))
 
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"message": "mymessage", "id": 1337}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
@@ -448,8 +441,7 @@ func (s *MessageSuite) Test_CreateMessage_IgnoreID() {
 }
 
 func (s *MessageSuite) Test_CreateMessage_WithExtras() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithTokenAndName(8, "app-token", "Application name")
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithTokenAndName(8, "app-token", "Application name"))
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	timeNow = func() time.Time { return t }
@@ -487,8 +479,7 @@ func (s *MessageSuite) Test_CreateMessage_WithExtras() {
 }
 
 func (s *MessageSuite) Test_CreateMessage_failWhenPriorityNotNumber() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithToken(8, "app-token")
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithToken(8, "app-token"))
 
 	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle", "message": "mymessage", "priority": "asd"}`))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
@@ -503,8 +494,7 @@ func (s *MessageSuite) Test_CreateMessage_failWhenPriorityNotNumber() {
 }
 
 func (s *MessageSuite) Test_CreateMessage_onQueryData() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithToken(2, "app-token")
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithToken(2, "app-token"))
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	timeNow = func() time.Time { return t }
@@ -526,8 +516,7 @@ func (s *MessageSuite) Test_CreateMessage_onQueryData() {
 }
 
 func (s *MessageSuite) Test_CreateMessage_onFormData() {
-	auth.RegisterAuthentication(s.ctx, nil, 4, "app-token")
-	s.db.User(4).AppWithToken(99, "app-token")
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithToken(99, "app-token"))
 
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 	timeNow = func() time.Time { return t }

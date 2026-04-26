@@ -23,32 +23,54 @@ func (s *UtilSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
 }
 
-func (s *UtilSuite) Test_getID() {
-	s.expectUserIDWith(&model.User{ID: 2}, 0, 2)
-	s.expectUserIDWith(nil, 5, 5)
+func (s *UtilSuite) Test_getUserID() {
+	s.expectUserID(func(ctx *gin.Context) { RegisterUser(ctx, &model.User{ID: 2}) }, 2)
+	s.expectUserID(func(ctx *gin.Context) { RegisterClient(ctx, &model.Client{UserID: 5}) }, 5)
+	s.expectUserID(func(ctx *gin.Context) { RegisterApplication(ctx, &model.Application{UserID: 7}) }, 7)
+
 	assert.Panics(s.T(), func() {
-		s.expectUserIDWith(nil, 0, 0)
+		s.expectUserID(func(ctx *gin.Context) {}, 0)
 	})
-	s.expectTryUserIDWith(nil, 0, nil)
+
+	s.expectTryUserID(func(ctx *gin.Context) {}, nil)
 }
 
-func (s *UtilSuite) Test_getToken() {
+func (s *UtilSuite) Test_GetApplication() {
+	app := &model.Application{Token: "atoken"}
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-	RegisterAuthentication(ctx, nil, 1, "asdasda")
-	actualID := GetTokenID(ctx)
-	assert.Equal(s.T(), "asdasda", actualID)
+	RegisterApplication(ctx, app)
+	assert.Same(s.T(), app, GetApplication(ctx))
+
+	ctx, _ = gin.CreateTestContext(httptest.NewRecorder())
+	RegisterUser(ctx, &model.User{ID: 1})
+	assert.Nil(s.T(), GetApplication(ctx))
+
+	ctx, _ = gin.CreateTestContext(httptest.NewRecorder())
+	assert.Nil(s.T(), GetApplication(ctx))
 }
 
-func (s *UtilSuite) expectUserIDWith(user *model.User, tokenUserID, expectedID uint) {
+func (s *UtilSuite) Test_GetClient() {
+	client := &model.Client{Token: "ctoken"}
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-	RegisterAuthentication(ctx, user, tokenUserID, "")
-	actualID := GetUserID(ctx)
-	assert.Equal(s.T(), expectedID, actualID)
+	RegisterClient(ctx, client)
+	assert.Same(s.T(), client, GetClient(ctx))
+
+	ctx, _ = gin.CreateTestContext(httptest.NewRecorder())
+	RegisterUser(ctx, &model.User{ID: 1})
+	assert.Nil(s.T(), GetClient(ctx))
+
+	ctx, _ = gin.CreateTestContext(httptest.NewRecorder())
+	assert.Nil(s.T(), GetClient(ctx))
 }
 
-func (s *UtilSuite) expectTryUserIDWith(user *model.User, tokenUserID uint, expectedID *uint) {
+func (s *UtilSuite) expectUserID(register func(*gin.Context), expectedID uint) {
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-	RegisterAuthentication(ctx, user, tokenUserID, "")
-	actualID := TryGetUserID(ctx)
-	assert.Equal(s.T(), expectedID, actualID)
+	register(ctx)
+	assert.Equal(s.T(), expectedID, GetUserID(ctx))
+}
+
+func (s *UtilSuite) expectTryUserID(register func(*gin.Context), expectedID *uint) {
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	register(ctx)
+	assert.Equal(s.T(), expectedID, TryGetUserID(ctx))
 }

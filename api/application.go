@@ -151,6 +151,8 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 //
 // Delete an application.
 //
+// Requires elevated authentication.
+//
 //	---
 //	consumes: [application/json]
 //	produces: [application/json]

@@ -6,6 +6,7 @@ import * as config from './config';
 import Layout from './layout/Layout';
 import {unregister} from './registerServiceWorker';
 import {CurrentUser} from './CurrentUser';
+import {ElevateStore} from './ElevateStore';
 import {AppStore} from './application/AppStore';
 import {WebSocketStore} from './message/WebSocketStore';
 import {SnackManager} from './snack/SnackManager';
@@ -30,6 +31,7 @@ const initStores = (): StoreMapping => {
     const userStore = new UserStore(snackManager.snack);
     const messagesStore = new MessagesStore(appStore, snackManager.snack);
     const currentUser = new CurrentUser(snackManager.snack);
+    const elevateStore = new ElevateStore(snackManager.snack, currentUser);
     const clientStore = new ClientStore(snackManager.snack);
     const wsStore = new WebSocketStore(snackManager.snack, currentUser);
     const pluginStore = new PluginStore(snackManager.snack);
@@ -41,6 +43,7 @@ const initStores = (): StoreMapping => {
         userStore,
         messagesStore,
         currentUser,
+        elevateStore,
         clientStore,
         wsStore,
         pluginStore,

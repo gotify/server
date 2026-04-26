@@ -4,6 +4,8 @@ import {
     StyledEngineProvider,
     Theme,
     useMediaQuery,
+    Paper,
+    Box,
 } from '@mui/material';
 import {makeStyles} from 'tss-react/mui';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -13,6 +15,7 @@ import Header from './Header';
 import Navigation from './Navigation';
 import ScrollUpButton from '../common/ScrollUpButton';
 import SettingsDialog from '../common/SettingsDialog';
+import ElevationForm from '../common/ElevationForm';
 import * as config from '../config';
 import Applications from '../application/Applications';
 import Clients from '../client/Clients';
@@ -26,6 +29,7 @@ import {useStores} from '../stores';
 import {SnackbarProvider} from 'notistack';
 import LoadingSpinner from '../common/LoadingSpinner';
 import {isThemeKey, ThemeKey} from './theme';
+import DefaultPage from '../common/DefaultPage';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     content: {
@@ -91,6 +95,8 @@ const Layout = observer(() => {
         </RequireAuth>
     );
 
+    const elevated = (children: React.ReactNode) => <RequireElevation>{children}</RequireElevation>;
+
     return (
         <StyledEngineProvider injectFirst>
             <ThemeProvider theme={theme}>
@@ -138,7 +144,10 @@ const Layout = observer(() => {
                                             element={authed(<Applications />)}
                                         />
                                         <Route path="/clients" element={authed(<Clients />)} />
-                                        <Route path="/users" element={authed(<Users />)} />
+                                        <Route
+                                            path="/users"
+                                            element={authed(elevated(<Users />))}
+                                        />
                                         <Route path="/plugins" element={authed(<Plugins />)} />
                                         <Route
                                             path="/plugins/:id"
@@ -188,5 +197,23 @@ const RequireAuth: React.FC<
     }
     return <>{children}</>;
 };
+
+export const RequireElevation = observer(({children}: React.PropsWithChildren) => {
+    const {elevateStore} = useStores();
+
+    if (elevateStore.elevated) {
+        return <>{children}</>;
+    }
+
+    return (
+        <DefaultPage title="Authentication Required" maxWidth={400}>
+            <Paper elevation={6}>
+                <Box sx={{padding: 2}}>
+                    <ElevationForm />
+                </Box>
+            </Paper>
+        </DefaultPage>
+    );
+});
 
 export default Layout;
