@@ -6,11 +6,6 @@ import "time"
 //
 // swagger:model ElevateRequest
 type ElevateRequest struct {
-	// The client ID to elevate.
-	//
-	// required: true
-	// example: 5
-	ID uint `form:"id" query:"id" json:"id" binding:"required"`
 	// How long the elevation should last, in seconds.
 	//
 	// required: true

@@ -71,7 +71,12 @@ type pendingOIDCSession struct {
 	RedirectURI string
 	ClientName  string
 	CreatedAt   time.Time
-	Elevate     *model.ElevateRequest
+	Elevate     *pendingElevation
+}
+
+type pendingElevation struct {
+	ClientID        uint `form:"id" binding:"required"`
+	DurationSeconds int  `form:"durationSeconds" binding:"required"`
 }
 
 // OIDCAPI provides handlers for OIDC authentication.
@@ -153,7 +158,7 @@ func (a *OIDCAPI) LoginHandler() gin.HandlerFunc {
 //	    schema:
 //	        $ref: "#/definitions/Error"
 func (a *OIDCAPI) ElevateHandler(ctx *gin.Context) {
-	var elevate model.ElevateRequest
+	var elevate pendingElevation
 	if err := ctx.BindQuery(&elevate); err != nil {
 		return
 	}
@@ -227,8 +232,8 @@ func (a *OIDCAPI) CallbackHandler() gin.HandlerFunc {
 	return gin.WrapF(rp.CodeExchangeHandler(rp.UserinfoCallback(callback), a.Provider))
 }
 
-func (a *OIDCAPI) handleElevationCallback(w http.ResponseWriter, elevate *model.ElevateRequest, user *model.User) {
-	client, err := a.DB.GetClientByID(elevate.ID)
+func (a *OIDCAPI) handleElevationCallback(w http.ResponseWriter, elevate *pendingElevation, user *model.User) {
+	client, err := a.DB.GetClientByID(elevate.ClientID)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("database error: %v", err), http.StatusInternalServerError)
 		return

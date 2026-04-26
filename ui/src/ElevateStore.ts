@@ -33,9 +33,9 @@ export class ElevateStore {
 
     public localElevate = async (password: string, durationSeconds: number): Promise<void> => {
         await axios.create().request({
-            url: config.get('url') + 'client:elevate',
+            url: `${config.get('url')}client/${this.currentUser.user.clientId}/elevate`,
             method: 'POST',
-            data: {id: this.currentUser.user.clientId, durationSeconds},
+            data: {durationSeconds},
             headers: {
                 Authorization: 'Basic ' + btoa(this.currentUser.user.name + ':' + password),
             },

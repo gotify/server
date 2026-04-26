@@ -246,7 +246,7 @@ func (a *ClientAPI) DeleteClient(ctx *gin.Context) {
 	})
 }
 
-// swagger:operation POST /client:elevate client elevateClient
+// swagger:operation POST /client/{id}/elevate client elevateClient
 //
 // Elevate a client session.
 //
@@ -256,6 +256,12 @@ func (a *ClientAPI) DeleteClient(ctx *gin.Context) {
 //	consumes: [application/json]
 //	produces: [application/json]
 //	parameters:
+//	- name: id
+//	  in: path
+//	  description: the client id
+//	  required: true
+//	  type: integer
+//	  format: int64
 //	- name: body
 //	  in: body
 //	  description: the elevation request
@@ -279,28 +285,30 @@ func (a *ClientAPI) DeleteClient(ctx *gin.Context) {
 //	    schema:
 //	        $ref: "#/definitions/Error"
 func (a *ClientAPI) ElevateClient(ctx *gin.Context) {
-	var params model.ElevateRequest
-	if err := ctx.Bind(&params); err != nil {
-		return
-	}
+	withID(ctx, "id", func(id uint) {
+		var params model.ElevateRequest
+		if err := ctx.Bind(&params); err != nil {
+			return
+		}
 
-	client, err := a.DB.GetClientByID(params.ID)
-	if err != nil {
-		ctx.AbortWithError(500, err)
-		return
-	}
-	if client == nil || client.UserID != auth.GetUserID(ctx) {
-		ctx.AbortWithError(404, errors.New("client not found"))
-		return
-	}
+		client, err := a.DB.GetClientByID(id)
+		if err != nil {
+			ctx.AbortWithError(500, err)
+			return
+		}
+		if client == nil || client.UserID != auth.GetUserID(ctx) {
+			ctx.AbortWithError(404, errors.New("client not found"))
+			return
+		}
 
-	elevatedUntil := time.Now().Add(time.Duration(params.DurationSeconds) * time.Second)
-	if err := a.DB.UpdateClientElevatedUntil(client.ID, &elevatedUntil); err != nil {
-		ctx.AbortWithError(500, err)
-		return
-	}
+		elevatedUntil := time.Now().Add(time.Duration(params.DurationSeconds) * time.Second)
+		if err := a.DB.UpdateClientElevatedUntil(client.ID, &elevatedUntil); err != nil {
+			ctx.AbortWithError(500, err)
+			return
+		}
 
-	ctx.Status(204)
+		ctx.Status(204)
+	})
 }
 
 func (a *ClientAPI) clientExists(token string) bool {

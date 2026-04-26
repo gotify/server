@@ -41,7 +41,7 @@ export class ClientStore extends BaseStore<IClient> {
 
     @action
     public elevate = async (id: number, durationSeconds: number): Promise<void> => {
-        await axios.post(`${config.get('url')}client:elevate`, {id, durationSeconds});
+        await axios.post(`${config.get('url')}client/${id}/elevate`, {durationSeconds});
         await this.refresh();
         if (durationSeconds < 0) {
             this.snack('Canceled client elevation');

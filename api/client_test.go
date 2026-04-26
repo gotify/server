@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -165,7 +166,7 @@ func (s *ClientSuite) Test_DeleteClient_expectNotFound() {
 
 	test.WithUser(s.ctx, 5)
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: "8"}}
+	s.ctx.AddParam("id", "8")
 
 	s.a.DeleteClient(s.ctx)
 
@@ -177,7 +178,7 @@ func (s *ClientSuite) Test_DeleteClient() {
 
 	test.WithUser(s.ctx, 5)
 	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
-	s.ctx.Params = gin.Params{{Key: "id", Value: "8"}}
+	s.ctx.AddParam("id", "8")
 
 	assert.False(s.T(), s.notified)
 
@@ -228,7 +229,7 @@ func (s *ClientSuite) Test_ElevateClient_expectSuccess() {
 	s.db.User(5).Client(8)
 
 	test.WithUser(s.ctx, 5)
-	s.withJSONBody(`{"id":8,"durationSeconds":900}`)
+	s.withElevateRequest(8, 900)
 
 	before := time.Now()
 	s.a.ElevateClient(s.ctx)
@@ -245,7 +246,7 @@ func (s *ClientSuite) Test_ElevateClient_expectNotFoundOnMissingClient() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
-	s.withJSONBody(`{"id":8,"durationSeconds":900}`)
+	s.withElevateRequest(8, 900)
 
 	s.a.ElevateClient(s.ctx)
 
@@ -257,7 +258,7 @@ func (s *ClientSuite) Test_ElevateClient_expectNotFoundOnCurrentUserIsNotOwner()
 	s.db.User(2)
 
 	test.WithUser(s.ctx, 2)
-	s.withJSONBody(`{"id":8,"durationSeconds":900}`)
+	s.withElevateRequest(8, 900)
 
 	s.a.ElevateClient(s.ctx)
 
@@ -271,7 +272,7 @@ func (s *ClientSuite) Test_ElevateClient_expectBadRequestOnMissingID() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
-	s.withJSONBody(`{"durationSeconds":900}`)
+	s.withElevateBody(`{"durationSeconds":900}`)
 
 	s.a.ElevateClient(s.ctx)
 
@@ -282,7 +283,8 @@ func (s *ClientSuite) Test_ElevateClient_expectBadRequestOnMissingDuration() {
 	s.db.User(5).Client(8)
 
 	test.WithUser(s.ctx, 5)
-	s.withJSONBody(`{"id":8}`)
+	s.ctx.AddParam("id", "8")
+	s.withElevateBody(`{}`)
 
 	s.a.ElevateClient(s.ctx)
 
@@ -297,8 +299,13 @@ func (s *ClientSuite) withFormData(formData string) {
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 }
 
-func (s *ClientSuite) withJSONBody(body string) {
-	s.ctx.Request = httptest.NewRequest("POST", "/client:elevate", strings.NewReader(body))
+func (s *ClientSuite) withElevateRequest(id uint, durationSeconds int) {
+	s.ctx.AddParam("id", fmt.Sprintf("%d", id))
+	s.withElevateBody(fmt.Sprintf(`{"durationSeconds":%d}`, durationSeconds))
+}
+
+func (s *ClientSuite) withElevateBody(body string) {
+	s.ctx.Request = httptest.NewRequest("POST", "/client/ignored/elevate", strings.NewReader(body))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
 }
 

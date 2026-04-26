@@ -1129,7 +1129,7 @@
         }
       }
     },
-    "/client:elevate": {
+    "/client/{id}/elevate": {
       "post": {
         "security": [
           {
@@ -1158,6 +1158,14 @@
         "summary": "Elevate a client session.",
         "operationId": "elevateClient",
         "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "the client id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
           {
             "description": "the elevation request",
             "name": "body",
@@ -2684,7 +2692,6 @@
       "type": "object",
       "title": "ElevateRequest parameters for client elevation.",
       "required": [
-        "id",
         "durationSeconds"
       ],
       "properties": {
@@ -2694,13 +2701,6 @@
           "format": "int64",
           "x-go-name": "DurationSeconds",
           "example": 900
-        },
-        "id": {
-          "description": "The client ID to elevate.",
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "ID",
-          "example": 5
         }
       },
       "x-go-package": "github.com/gotify/server/v2/model"
