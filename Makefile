@@ -111,13 +111,13 @@ build-docker-multiarch-master:
 	docker buildx build --sbom=true --provenance=true \
 		$(if $(DOCKER_BUILD_PUSH),--push) \
 		--label org.opencontainers.image.revision=$(shell git rev-parse HEAD) \
-		--label org.opencontainers.image.version=$(shell git describe --tags) \
+		--label org.opencontainers.image.version=master-$(shell git rev-parse --short HEAD) \
 		--label org.opencontainers.image.created=$(shell date -u +%Y-%m-%dT%H:%M:%SZ) \
 		-t gotify/server:master \
 		-t ghcr.io/gotify/server:master \
 		--build-arg RUN_TESTS=$(DOCKER_TEST_LEVEL) \
 		--build-arg GO_VERSION=$(GO_VERSION) \
-		--build-arg LD_FLAGS="-w -s -X main.Version=$(shell git describe --tags) -X main.BuildDate=$(shell date "+%F-%T") -X main.Commit=$(shell git rev-parse --verify HEAD) -X main.Mode=prod" \
+		--build-arg LD_FLAGS="-w -s -X main.Version=master-$(shell git rev-parse --short HEAD) -X main.BuildDate=$(shell date "+%F-%T") -X main.Commit=$(shell git rev-parse --verify HEAD) -X main.Mode=prod" \
 		--platform linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/riscv64 \
 		-f docker/Dockerfile .
 
