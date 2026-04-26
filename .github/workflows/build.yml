@@ -12,8 +12,6 @@ jobs:
         with:
           node-version: '24'
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
       - run: (cd ui && yarn)
       - run: make build-js
       - uses: golangci/golangci-lint-action@v9
