@@ -112,7 +112,11 @@ const Header = ({
                         </Typography>
                     </Link>
                     <a
-                        href={'https://github.com/gotify/server/releases/tag/v' + version}
+                        href={
+                            version.startsWith('master-')
+                                ? `https://github.com/gotify/server/commit/${version.replace('master-', '')}`
+                                : `https://github.com/gotify/server/releases/tag/v${version}`
+                        }
                         className={classes.link}>
                         <Typography variant="button" color="inherit">
                             @{version}
