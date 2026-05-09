@@ -16,18 +16,24 @@ import AddEditDialog from './AddEditUserDialog';
 import {IUser} from '../types';
 import {useStores} from '../stores';
 import {observer} from 'mobx-react-lite';
+import TimeAgo from 'react-timeago';
+import {TimeAgoFormatter} from '../common/TimeAgoFormatter';
 
 interface IRowProps {
     name: string;
     admin: boolean;
+    createdAt: string;
     fDelete: VoidFunction;
     fEdit: VoidFunction;
 }
 
-const UserRow: React.FC<IRowProps> = ({name, admin, fDelete, fEdit}) => (
+const UserRow: React.FC<IRowProps> = ({name, admin, createdAt, fDelete, fEdit}) => (
     <TableRow>
         <TableCell>{name}</TableCell>
         <TableCell>{admin ? 'Yes' : 'No'}</TableCell>
+        <TableCell>
+            <TimeAgo date={createdAt} formatter={TimeAgoFormatter.long} />
+        </TableCell>
         <TableCell align="right" padding="none">
             <IconButton onClick={fEdit} className="edit" size="large">
                 <Edit />
@@ -65,6 +71,7 @@ const Users = observer(() => {
                             <TableRow style={{textAlign: 'center'}}>
                                 <TableCell>Username</TableCell>
                                 <TableCell>Admin</TableCell>
+                                <TableCell>Created</TableCell>
                                 <TableCell />
                             </TableRow>
                         </TableHead>
@@ -74,6 +81,7 @@ const Users = observer(() => {
                                     key={user.id}
                                     name={user.name}
                                     admin={user.admin}
+                                    createdAt={user.createdAt}
                                     fDelete={() => setDeleteUser(user)}
                                     fEdit={() => setEditUser(user)}
                                 />

@@ -11,6 +11,8 @@ import Settings from '@mui/icons-material/Settings';
 import {Switch, Button} from '@mui/material';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
+import TimeAgo from 'react-timeago';
+import {TimeAgoFormatter} from '../common/TimeAgoFormatter';
 import {observer} from 'mobx-react-lite';
 import {IPlugin} from '../types';
 import {useStores} from '../stores';
@@ -30,6 +32,7 @@ const Plugins = observer(() => {
                                 <TableCell>Enabled</TableCell>
                                 <TableCell>Name</TableCell>
                                 <TableCell>Token</TableCell>
+                                <TableCell>Created</TableCell>
                                 <TableCell>Details</TableCell>
                             </TableRow>
                         </TableHead>
@@ -41,6 +44,7 @@ const Plugins = observer(() => {
                                     token={plugin.token}
                                     name={plugin.name}
                                     enabled={plugin.enabled}
+                                    createdAt={plugin.createdAt}
                                     fToggleStatus={() =>
                                         pluginStore.changeEnabledState(plugin.id, !plugin.enabled)
                                     }
@@ -59,32 +63,38 @@ interface IRowProps {
     name: string;
     token: string;
     enabled: boolean;
+    createdAt: string;
     fToggleStatus: VoidFunction;
 }
 
-const Row: React.FC<IRowProps> = observer(({name, id, token, enabled, fToggleStatus}) => (
-    <TableRow>
-        <TableCell>{id}</TableCell>
-        <TableCell>
-            <Switch
-                checked={enabled}
-                onClick={fToggleStatus}
-                className="switch"
-                data-enabled={enabled}
-            />
-        </TableCell>
-        <TableCell>{name}</TableCell>
-        <TableCell>
-            <CopyableSecret value={token} style={{display: 'flex', alignItems: 'center'}} />
-        </TableCell>
-        <TableCell align="right" padding="none">
-            <Link to={'/plugins/' + id}>
-                <Button>
-                    <Settings />
-                </Button>
-            </Link>
-        </TableCell>
-    </TableRow>
-));
+const Row: React.FC<IRowProps> = observer(
+    ({name, id, token, enabled, createdAt, fToggleStatus}) => (
+        <TableRow>
+            <TableCell>{id}</TableCell>
+            <TableCell>
+                <Switch
+                    checked={enabled}
+                    onClick={fToggleStatus}
+                    className="switch"
+                    data-enabled={enabled}
+                />
+            </TableCell>
+            <TableCell>{name}</TableCell>
+            <TableCell>
+                <CopyableSecret value={token} style={{display: 'flex', alignItems: 'center'}} />
+            </TableCell>
+            <TableCell>
+                <TimeAgo date={createdAt} formatter={TimeAgoFormatter.long} />
+            </TableCell>
+            <TableCell align="right" padding="none">
+                <Link to={'/plugins/' + id}>
+                    <Button>
+                        <Settings />
+                    </Button>
+                </Link>
+            </TableCell>
+        </TableRow>
+    )
+);
 
 export default Plugins;

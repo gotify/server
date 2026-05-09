@@ -73,7 +73,8 @@ export enum ClientCol {
     Token = 2,
     LastSeen = 3,
     ElevationEnds = 4,
-    Elevate = 5,
-    Edit = 6,
-    Delete = 7,
+    Created = 5,
+    Elevate = 6,
+    Edit = 7,
+    Delete = 8,
 }

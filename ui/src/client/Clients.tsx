@@ -57,6 +57,7 @@ const Clients = observer(() => {
                                 <TableCell style={{width: 200}}>Token</TableCell>
                                 <TableCell>Last Used</TableCell>
                                 <TableCell>Elevation ends</TableCell>
+                                <TableCell>Created</TableCell>
                                 <TableCell />
                                 <TableCell />
                                 <TableCell />
@@ -68,6 +69,7 @@ const Clients = observer(() => {
                                     key={client.id}
                                     name={client.name}
                                     value={client.token}
+                                    createdAt={client.createdAt}
                                     lastUsed={client.lastUsed}
                                     elevatedUntil={client.elevatedUntil}
                                     fEdit={() => setToUpdateClient(client)}
@@ -115,6 +117,7 @@ const Clients = observer(() => {
 interface IRowProps {
     name: string;
     value: string;
+    createdAt: string;
     lastUsed: string | null;
     elevatedUntil?: string;
     fEdit: VoidFunction;
@@ -122,7 +125,16 @@ interface IRowProps {
     fElevate: VoidFunction;
 }
 
-const Row = ({name, value, lastUsed, elevatedUntil, fEdit, fDelete, fElevate}: IRowProps) => (
+const Row = ({
+    name,
+    value,
+    createdAt,
+    lastUsed,
+    elevatedUntil,
+    fEdit,
+    fDelete,
+    fElevate,
+}: IRowProps) => (
     <TableRow>
         <TableCell>{name}</TableCell>
         <TableCell>
@@ -140,6 +152,9 @@ const Row = ({name, value, lastUsed, elevatedUntil, fEdit, fDelete, fElevate}: I
             ) : (
                 '-'
             )}
+        </TableCell>
+        <TableCell>
+            <TimeAgo date={createdAt} formatter={TimeAgoFormatter.long} />
         </TableCell>
         <TableCell align="right" padding="none">
             <Tooltip title="Elevate">

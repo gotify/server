@@ -32,6 +32,8 @@ import * as config from '../config';
 import {UpdateApplicationDialog} from './UpdateApplicationDialog';
 import {IApplication} from '../types';
 import {LastUsedCell} from '../common/LastUsedCell';
+import TimeAgo from 'react-timeago';
+import {TimeAgoFormatter} from '../common/TimeAgoFormatter';
 import {useStores} from '../stores';
 import {observer} from 'mobx-react-lite';
 import {makeStyles} from 'tss-react/mui';
@@ -126,6 +128,7 @@ const Applications = observer(() => {
                                     <TableCell>Token</TableCell>
                                     <TableCell>Description</TableCell>
                                     <TableCell>Priority</TableCell>
+                                    <TableCell>Created</TableCell>
                                     <TableCell>Last Used</TableCell>
                                     <TableCell />
                                     <TableCell />
@@ -258,6 +261,9 @@ const Row = ({app, fDelete, fUpload, fDeleteImage, fEdit}: IRowProps) => {
             </TableCell>
             <TableCell>{app.description}</TableCell>
             <TableCell>{app.defaultPriority}</TableCell>
+            <TableCell>
+                <TimeAgo date={app.createdAt} formatter={TimeAgoFormatter.long} />
+            </TableCell>
             <TableCell>
                 <LastUsedCell lastUsed={app.lastUsed} />
             </TableCell>

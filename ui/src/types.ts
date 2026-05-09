@@ -8,6 +8,7 @@ export interface IApplication {
     internal: boolean;
     defaultPriority: number;
     lastUsed: string | null;
+    createdAt: string;
 }
 
 export interface IClient {
@@ -16,6 +17,7 @@ export interface IClient {
     name: string;
     lastUsed: string | null;
     elevatedUntil?: string;
+    createdAt: string;
 }
 
 export interface IPlugin {
@@ -28,6 +30,7 @@ export interface IPlugin {
     website?: string;
     license?: string;
     capabilities: Array<'webhooker' | 'displayer' | 'configurer' | 'messenger' | 'storager'>;
+    createdAt: string;
 }
 
 export interface IMessage {
@@ -61,6 +64,7 @@ export interface IUser {
     id: number;
     name: string;
     admin: boolean;
+    createdAt: string;
 }
 
 export interface ICurrentUser extends IUser {

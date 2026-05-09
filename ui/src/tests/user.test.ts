@@ -17,7 +17,8 @@ afterAll(async () => await gotify.close());
 enum Col {
     Name = 1,
     Admin = 2,
-    EditDelete = 3,
+    Created = 3,
+    EditDelete = 4,
 }
 
 const $table = selector.table('#user-table');
@@ -81,7 +82,7 @@ describe('User', () => {
         it('changed jmattheis', hasUser('jmattheis', true, 3));
 
         it('changes name of nicories', async () => {
-            await page.click($table.cell(2, 3, '.edit'));
+            await page.click($table.cell(2, Col.EditDelete, '.edit'));
 
             await page.waitForSelector($dialog.selector());
 
