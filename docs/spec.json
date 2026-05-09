@@ -2578,6 +2578,21 @@
           "x-go-name": "ElevatedUntil",
           "readOnly": true
         },
+        "expiresAfterInactivitySeconds": {
+          "description": "The number of seconds of inactivity after which the client is removed.\n0 means the client never expires.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ExpiresAfterInactivitySeconds",
+          "example": 2592000
+        },
+        "expiresAt": {
+          "description": "The time at which this client will expire due to inactivity, or null if it never expires.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "ExpiresAt",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
+        },
         "id": {
           "description": "The client id.",
           "type": "integer",
@@ -2618,6 +2633,13 @@
         "name"
       ],
       "properties": {
+        "expiresAfterInactivitySeconds": {
+          "description": "The number of seconds of inactivity after which the client is removed.\n0 (or omitted) means the client never expires.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ExpiresAfterInactivitySeconds",
+          "example": 2592000
+        },
         "name": {
           "description": "The client name",
           "type": "string",

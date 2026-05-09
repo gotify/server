@@ -59,8 +59,8 @@ func (s *ClientSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *ClientSuite) Test_ensureClientHasCorrectJsonRepresentation() {
-	actual := &model.Client{ID: 1, UserID: 2, Token: "Casdasfgeeg", Name: "myclient", CreatedAt: testdb.Date}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Casdasfgeeg","name":"myclient","createdAt":"2020-01-01T00:00:00Z","lastUsed":null}`)
+	actual := &model.Client{ID: 1, UserID: 2, Token: "Casdasfgeeg", Name: "myclient", CreatedAt: testdb.Now}
+	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Casdasfgeeg","name":"myclient","createdAt":"2020-01-01T00:00:00Z","lastUsed":null,"expiresAfterInactivitySeconds":0}`)
 }
 
 func (s *ClientSuite) Test_CreateClient_mapAllParameters() {
@@ -187,6 +187,34 @@ func (s *ClientSuite) Test_DeleteClient() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	s.db.AssertClientNotExist(8)
 	assert.True(s.T(), s.notified)
+}
+
+func (s *ClientSuite) Test_CreateClient_acceptsExpiresAfterInactivitySeconds() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=custom_name&expiresAfterInactivitySeconds=3600")
+
+	s.a.CreateClient(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	if client, err := s.db.GetClientByID(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), uint(3600), client.ExpiresAfterInactivitySeconds)
+	}
+}
+
+func (s *ClientSuite) Test_UpdateClient_updatesExpiresAfterInactivitySeconds() {
+	s.db.User(5).NewClientWithToken(1, firstClientToken)
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=firefox&expiresAfterInactivitySeconds=7200")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	s.a.UpdateClient(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	if client, err := s.db.GetClientByID(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), uint(7200), client.ExpiresAfterInactivitySeconds)
+	}
 }
 
 func (s *ClientSuite) Test_UpdateClient_expectSuccess() {
