@@ -6,18 +6,20 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
+import {NumberField} from '../common/NumberField';
 
 interface IProps {
     fClose: VoidFunction;
-    fOnSubmit: (name: string) => Promise<void>;
+    fOnSubmit: (name: string, expiresAfterInactivitySeconds: number) => Promise<void>;
 }
 
 const AddClientDialog = ({fClose, fOnSubmit}: IProps) => {
     const [name, setName] = useState('');
+    const [expiresAfter, setExpiresAfter] = useState(0);
 
     const submitEnabled = name.length !== 0;
     const submitAndClose = async () => {
-        await fOnSubmit(name);
+        await fOnSubmit(name, Math.max(0, expiresAfter));
         fClose();
     };
 
@@ -33,6 +35,14 @@ const AddClientDialog = ({fClose, fOnSubmit}: IProps) => {
                     type="email"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    fullWidth
+                />
+                <NumberField
+                    margin="dense"
+                    className="expires-after"
+                    label="Expires after inactivity (seconds, 0 = never)"
+                    value={expiresAfter}
+                    onChange={(value) => setExpiresAfter(value)}
                     fullWidth
                 />
             </DialogContent>

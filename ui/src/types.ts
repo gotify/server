@@ -18,6 +18,8 @@ export interface IClient {
     lastUsed: string | null;
     elevatedUntil?: string;
     createdAt: string;
+    expiresAfterInactivitySeconds: number;
+    expiresAt: string | null;
 }
 
 export interface IPlugin {

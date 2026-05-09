@@ -58,6 +58,7 @@ const Clients = observer(() => {
                                 <TableCell>Last Used</TableCell>
                                 <TableCell>Elevation ends</TableCell>
                                 <TableCell>Created</TableCell>
+                                <TableCell>Expires in</TableCell>
                                 <TableCell />
                                 <TableCell />
                                 <TableCell />
@@ -72,6 +73,7 @@ const Clients = observer(() => {
                                     createdAt={client.createdAt}
                                     lastUsed={client.lastUsed}
                                     elevatedUntil={client.elevatedUntil}
+                                    expiresAt={client.expiresAt}
                                     fEdit={() => setToUpdateClient(client)}
                                     fDelete={() => setToDeleteClient(client)}
                                     fElevate={() => setToElevateClient(client)}
@@ -90,8 +92,13 @@ const Clients = observer(() => {
             {toUpdateClient != null && (
                 <UpdateClientDialog
                     fClose={() => setToUpdateClient(undefined)}
-                    fOnSubmit={(name) => clientStore.update(toUpdateClient.id, name)}
+                    fOnSubmit={(name, expiresAfterInactivitySeconds) =>
+                        clientStore.update(toUpdateClient.id, name, expiresAfterInactivitySeconds)
+                    }
                     initialName={toUpdateClient.name}
+                    initialExpiresAfterInactivitySeconds={
+                        toUpdateClient.expiresAfterInactivitySeconds
+                    }
                 />
             )}
             {toDeleteClient != null && (
@@ -120,6 +127,7 @@ interface IRowProps {
     createdAt: string;
     lastUsed: string | null;
     elevatedUntil?: string;
+    expiresAt: string | null;
     fEdit: VoidFunction;
     fDelete: VoidFunction;
     fElevate: VoidFunction;
@@ -131,6 +139,7 @@ const Row = ({
     createdAt,
     lastUsed,
     elevatedUntil,
+    expiresAt,
     fEdit,
     fDelete,
     fElevate,
@@ -155,6 +164,13 @@ const Row = ({
         </TableCell>
         <TableCell>
             <TimeAgo date={createdAt} formatter={TimeAgoFormatter.long} />
+        </TableCell>
+        <TableCell className="expires-in">
+            {expiresAt ? (
+                <TimeAgo date={expiresAt} formatter={TimeAgoFormatter.longMinutes} />
+            ) : (
+                '-'
+            )}
         </TableCell>
         <TableCell align="right" padding="none">
             <Tooltip title="Elevate">
