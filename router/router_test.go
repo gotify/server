@@ -369,7 +369,7 @@ func (s *IntegrationSuite) TestPluginLoadFail_expectPanic() {
 func (s *IntegrationSuite) TestAuthentication() {
 	req := s.newRequest("GET", "current/user", "")
 	req.SetBasicAuth("admin", "pw")
-	doRequestAndExpect(s.T(), req, 200, `{"id": 1, "name": "admin", "admin": true}`)
+	doRequestAndExpect(s.T(), req, 200, `{"id": 1, "name": "admin", "admin": true, "createdAt":"2020-01-01T00:00:00Z"}`)
 
 	req = s.newRequest("GET", "current/user", "")
 	req.SetBasicAuth("jmattheis", "pw")
@@ -377,7 +377,7 @@ func (s *IntegrationSuite) TestAuthentication() {
 
 	req = s.newRequest("POST", "user", `{"name": "normal", "pass": "secret"}`)
 	req.SetBasicAuth("admin", "pw")
-	doRequestAndExpect(s.T(), req, 200, `{"id": 2, "name": "normal", "admin": false}`)
+	doRequestAndExpect(s.T(), req, 200, `{"id": 2, "name": "normal", "admin": false, "createdAt":"2020-01-01T00:00:00Z"}`)
 
 	req = s.newRequest("POST", "user", `{"name": "normal2", "pass": "secret"}`)
 	req.SetBasicAuth("normal", "secret")
@@ -389,7 +389,7 @@ func (s *IntegrationSuite) TestAuthentication() {
 
 	req = s.newRequest("GET", "current/user", "")
 	req.SetBasicAuth("normal", "secret")
-	doRequestAndExpect(s.T(), req, 200, `{"id": 2, "name": "normal", "admin": false}`)
+	doRequestAndExpect(s.T(), req, 200, `{"id": 2, "name": "normal", "admin": false, "createdAt":"2020-01-01T00:00:00Z"}`)
 
 	req = s.newRequest("POST", "client", `{"name": "android-client"}`)
 	req.SetBasicAuth("normal", "secret")

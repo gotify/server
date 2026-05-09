@@ -43,7 +43,7 @@ func (s *MigrationSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *MigrationSuite) TestMigration() {
-	db, err := New("sqlite3", s.tmpDir.Path("test_obsolete.db"), "admin", "admin", 6, true)
+	db, err := New("sqlite3", s.tmpDir.Path("test_obsolete.db"), "admin", "admin", 6, true, fixedNow)
 	assert.Nil(s.T(), err)
 	defer db.Close()
 

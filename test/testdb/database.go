@@ -10,6 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var Now = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+func nowFunc() time.Time { return Now }
+
 // Database is the wrapper for the gorm database with sleek helper methods.
 type Database struct {
 	*database.GormDatabase
@@ -30,7 +34,7 @@ type MessageBuilder struct {
 
 // NewDBWithDefaultUser creates a new test db instance with the default user.
 func NewDBWithDefaultUser(t *testing.T) *Database {
-	db, err := database.New("sqlite3", fmt.Sprintf("file:%s?mode=memory&cache=shared", fmt.Sprint(time.Now().UnixNano())), "admin", "pw", 5, true)
+	db, err := database.New("sqlite3", fmt.Sprintf("file:%s?mode=memory&cache=shared", fmt.Sprint(time.Now().UnixNano())), "admin", "pw", 5, true, nowFunc)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
 	return &Database{GormDatabase: db, t: t}
@@ -38,7 +42,7 @@ func NewDBWithDefaultUser(t *testing.T) *Database {
 
 // NewDB creates a new test db instance.
 func NewDB(t *testing.T) *Database {
-	db, err := database.New("sqlite3", fmt.Sprintf("file:%s?mode=memory&cache=shared", fmt.Sprint(time.Now().UnixNano())), "admin", "pw", 5, false)
+	db, err := database.New("sqlite3", fmt.Sprintf("file:%s?mode=memory&cache=shared", fmt.Sprint(time.Now().UnixNano())), "admin", "pw", 5, false, nowFunc)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
 	return &Database{GormDatabase: db, t: t}
