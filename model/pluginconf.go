@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // PluginConf holds information about the plugin.
 type PluginConf struct {
 	ID            uint `gorm:"primaryKey;autoIncrement"`
@@ -8,6 +10,7 @@ type PluginConf struct {
 	Token         string `gorm:"type:varchar(180);uniqueIndex:uix_plugin_confs_token"`
 	ApplicationID uint
 	Enabled       bool
+	CreatedAt     time.Time
 	Config        []byte
 	Storage       []byte
 }
@@ -24,6 +27,12 @@ type PluginConfExternal struct {
 	// required: true
 	// example: 25
 	ID uint `json:"id"`
+	// The date the plugin was created.
+	//
+	// read only: true
+	// required: true
+	// example: 2019-01-01T00:00:00Z
+	CreatedAt time.Time `json:"createdAt"`
 	// The plugin name.
 	//
 	// read only: true

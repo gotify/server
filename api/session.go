@@ -92,6 +92,7 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 		ID:            user.ID,
 		Name:          user.Name,
 		Admin:         user.Admin,
+		CreatedAt:     user.CreatedAt,
 		ClientID:      client.ID,
 		ElevatedUntil: client.ElevatedUntil,
 	})

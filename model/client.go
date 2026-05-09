@@ -26,6 +26,12 @@ type Client struct {
 	// required: true
 	// example: Android Phone
 	Name string `gorm:"type:text" form:"name" query:"name" json:"name" binding:"required"`
+	// The date the client was created.
+	//
+	// read only: true
+	// required: true
+	// example: 2019-01-01T00:00:00Z
+	CreatedAt time.Time `json:"createdAt"`
 	// The last time the client token was used.
 	//
 	// read only: true

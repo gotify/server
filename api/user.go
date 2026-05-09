@@ -132,9 +132,10 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 		return
 	}
 	result := &model.CurrentUserExternal{
-		ID:    user.ID,
-		Name:  user.Name,
-		Admin: user.Admin,
+		ID:        user.ID,
+		Name:      user.Name,
+		Admin:     user.Admin,
+		CreatedAt: user.CreatedAt,
 	}
 	client := auth.GetClient(ctx)
 	if client != nil {
@@ -460,10 +461,11 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 					return
 				}
 				internal := &model.User{
-					ID:    oldUser.ID,
-					Name:  user.Name,
-					Admin: user.Admin,
-					Pass:  oldUser.Pass,
+					ID:        oldUser.ID,
+					Name:      user.Name,
+					Admin:     user.Admin,
+					Pass:      oldUser.Pass,
+					CreatedAt: oldUser.CreatedAt,
 				}
 				if user.Pass != "" {
 					internal.Pass = password.CreatePassword(user.Pass, a.PasswordStrength)
@@ -481,8 +483,9 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 
 func toExternalUser(internal *model.User) *model.UserExternal {
 	return &model.UserExternal{
-		Name:  internal.Name,
-		Admin: internal.Admin,
-		ID:    internal.ID,
+		Name:      internal.Name,
+		Admin:     internal.Admin,
+		ID:        internal.ID,
+		CreatedAt: internal.CreatedAt,
 	}
 }
