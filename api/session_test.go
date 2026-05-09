@@ -90,6 +90,7 @@ func (s *SessionSuite) Test_Login_Success() {
 	assert.NoError(s.T(), err)
 	assert.Len(s.T(), clients, 1)
 	assert.Equal(s.T(), "test-browser", clients[0].Name)
+	assert.Equal(s.T(), uint(auth.CookieMaxAge), clients[0].ExpiresAfterInactivitySeconds)
 }
 
 func (s *SessionSuite) Test_Login_WrongPassword() {

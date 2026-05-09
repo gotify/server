@@ -77,10 +77,11 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 
 	elevatedUntil := time.Now().Add(model.DefaultElevationDuration)
 	client := model.Client{
-		Name:          clientParams.Name,
-		Token:         auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
-		UserID:        user.ID,
-		ElevatedUntil: &elevatedUntil,
+		Name:                          clientParams.Name,
+		Token:                         auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
+		UserID:                        user.ID,
+		ElevatedUntil:                 &elevatedUntil,
+		ExpiresAfterInactivitySeconds: auth.CookieMaxAge,
 	}
 	if success := successOrAbort(ctx, 500, a.DB.CreateClient(&client)); !success {
 		return
