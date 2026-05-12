@@ -80,6 +80,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
         },
         '& pre': {
             overflow: 'auto',
+            maxWidth: '100%',
             borderRadius: '0.25em',
             backgroundColor:
                 theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
@@ -168,6 +169,10 @@ const Message = ({
                 style={{
                     display: 'flex',
                     flexWrap: 'wrap',
+                    width: 'fit-content',
+                    minWidth: 'min(700px, 100%)',
+                    maxWidth: '100%',
+                    margin: '0 auto',
                     borderLeftColor: priorityColor(priority),
                     borderLeftWidth: 6,
                     borderLeftStyle: 'solid',

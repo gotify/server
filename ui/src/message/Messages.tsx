@@ -115,6 +115,7 @@ const Messages = observer(() => {
     return (
         <DefaultPage
             title={name}
+            maxWidth={1600}
             rightControl={
                 <div>
                     {app && (
