@@ -3,7 +3,6 @@ package runner
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gotify/server/v2/config"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -33,7 +33,7 @@ func Run(router http.Handler, conf *config.Configuration) error {
 		if conf.Server.SSL.LetsEncrypt.Enabled {
 			applyLetsEncrypt(s, conf)
 		} else if conf.Server.SSL.CertFile == "" || conf.Server.SSL.CertKey == "" {
-			log.Fatalln("CertFile and CertKey must be set to use HTTPS when LetsEncrypt is disabled, please set GOTIFY_SERVER_SSL_CERTFILE and GOTIFY_SERVER_SSL_CERTKEY")
+			log.Fatal().Msg("CertFile and CertKey must be set to use HTTPS when LetsEncrypt is disabled, please set GOTIFY_SERVER_SSL_CERTFILE and GOTIFY_SERVER_SSL_CERTKEY")
 		}
 
 		httpsListener, err := startListening("TLS connection", conf.Server.SSL.ListenAddr, conf.Server.SSL.Port, conf.Server.KeepAlivePeriodSeconds)
@@ -53,7 +53,7 @@ func Run(router http.Handler, conf *config.Configuration) error {
 	}()
 
 	err = <-shutdown
-	fmt.Println("Shutting down:", err)
+	log.Info().Err(err).Msg("Shutting down")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -85,7 +85,11 @@ func startListening(connectionType, listenAddr string, port, keepAlive int) (net
 
 	l, err := lc.Listen(context.Background(), network, addr)
 	if err == nil {
-		fmt.Println("Started listening for", connectionType, "on", l.Addr().Network(), l.Addr().String())
+		log.Info().
+			Str("connection_type", connectionType).
+			Str("network", l.Addr().Network()).
+			Str("address", l.Addr().String()).
+			Msg("Listen")
 	}
 	return l, err
 }
@@ -105,11 +109,26 @@ type LoggingRoundTripper struct {
 func (l *LoggingRoundTripper) RoundTrip(r *http.Request) (resp *http.Response, err error) {
 	resp, err = l.RoundTripper.RoundTrip(r)
 	if resp.StatusCode == 429 {
-		log.Printf("%s Rate Limited: Retry-After %s on %s %s\n", l.Name, resp.Header.Get("Retry-After"), r.Method, r.URL.String())
+		log.Warn().
+			Str("client", l.Name).
+			Str("retry_after", resp.Header.Get("Retry-After")).
+			Str("method", r.Method).
+			Str("url", r.URL.String()).
+			Msg("Rate limited")
 	} else if resp.StatusCode >= 400 {
-		log.Printf("%s Request Failed: Unexpected status code %d on %s %s\n", l.Name, resp.StatusCode, r.Method, r.URL.String())
+		log.Warn().
+			Str("client", l.Name).
+			Int("status_code", resp.StatusCode).
+			Str("method", r.Method).
+			Str("url", r.URL.String()).
+			Msg("Request failed: unexpected status code")
 	} else if err != nil {
-		log.Printf("%s Request Failed: %s on %s %s\n", l.Name, err.Error(), r.Method, r.URL.String())
+		log.Warn().
+			Str("client", l.Name).
+			Err(err).
+			Str("method", r.Method).
+			Str("url", r.URL.String()).
+			Msg("Request failed")
 	}
 	return resp, err
 }
@@ -128,7 +147,7 @@ func applyLetsEncrypt(s *http.Server, conf *config.Configuration) {
 		Client: acmeClient,
 		Prompt: func(tosURL string) bool {
 			if !conf.Server.SSL.LetsEncrypt.AcceptTOS {
-				log.Fatalf("Let's Encrypt TOS must be accepted to use Let's Encrypt, please acknowledge TOS at %s and set GOTIFY_SERVER_SSL_LETSENCRYPT_ACCEPTTOS=true\n", tosURL)
+				log.Fatal().Str("tos_url", tosURL).Msg("Let's Encrypt TOS must be accepted to use Let's Encrypt, please acknowledge TOS and set GOTIFY_SERVER_SSL_LETSENCRYPT_ACCEPTTOS=true")
 			}
 			return true
 		},

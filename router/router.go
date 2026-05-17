@@ -2,7 +2,6 @@ package router
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -22,6 +21,7 @@ import (
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/plugin"
 	"github.com/gotify/server/v2/ui"
+	"github.com/rs/zerolog/log"
 )
 
 // Create creates the gin engine with all routes.
@@ -40,7 +40,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		}
 	})
 
-	g.Use(gin.LoggerWithFormatter(logFormatter), gin.Recovery(), gerror.Handler(), location.Default())
+	g.Use(accessLogger(), gin.Recovery(), gerror.Handler(), location.Default())
 	g.NoRoute(gerror.NotFound())
 
 	if conf.Server.SSL.Enabled && conf.Server.SSL.RedirectToHTTPS {
@@ -73,14 +73,14 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			connectedTokens := streamHandler.CollectConnectedClientTokens()
 			now := time.Now()
 			if err := db.UpdateClientTokensLastUsedAndExpiresAt(connectedTokens, &now); err != nil {
-				log.Println("Error updating last used", err)
+				log.Error().Err(err).Msg("Error updating last used")
 			}
 			if expired, err := db.CleanupExpiredClients(now); err == nil {
 				for _, c := range expired {
 					streamHandler.NotifyDeletedClient(c.UserID, c.Token)
 				}
 			} else {
-				log.Println("Error cleaning up expired clients", err)
+				log.Error().Err(err).Msg("Error cleaning up expired clients")
 			}
 		}
 	}()
@@ -249,31 +249,52 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 var tokenRegexp = regexp.MustCompile("token=[^&]+")
 
-func logFormatter(param gin.LogFormatterParams) string {
-	if (param.ClientIP == "127.0.0.1" || param.ClientIP == "::1") && param.Path == "/health" {
-		return ""
-	}
+func accessLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
 
-	var statusColor, methodColor, resetColor string
-	if param.IsOutputColor() {
-		statusColor = param.StatusCodeColor()
-		methodColor = param.MethodColor()
-		resetColor = param.ResetColor()
-	}
+		rawQuery := c.Request.URL.RawQuery
+		path := c.Request.URL.Path
 
-	if param.Latency > time.Minute {
-		param.Latency = param.Latency - param.Latency%time.Second
+		c.Next()
+
+		clientIP := c.ClientIP()
+		if (clientIP == "127.0.0.1" || clientIP == "::1") && path == "/health" {
+			return
+		}
+
+		if rawQuery != "" {
+			path = path + "?" + rawQuery
+		}
+		path = tokenRegexp.ReplaceAllString(path, "token=[masked]")
+
+		latency := time.Since(start)
+		if latency > time.Minute {
+			latency = latency - latency%time.Second
+		}
+
+		status := c.Writer.Status()
+		evt := log.Info()
+		switch {
+		case status >= 500:
+			evt = log.Error()
+		case status >= 400:
+			evt = log.Warn()
+		}
+
+		evt.
+			Int("status", status).
+			Str("duration", latency.String()).
+			Str("ip", clientIP).
+			Str("method", c.Request.Method).
+			Str("path", path)
+
+		if errs := c.Errors.ByType(gin.ErrorTypePrivate).String(); errs != "" {
+			evt.Str("errors", strings.TrimSpace(errs))
+		}
+
+		evt.Msg("HTTP")
 	}
-	path := tokenRegexp.ReplaceAllString(param.Path, "token=[masked]")
-	return fmt.Sprintf("%v |%s %3d %s| %13v | %15s |%s %-7s %s %#v\n%s",
-		param.TimeStamp.Format(time.RFC3339),
-		statusColor, param.StatusCode, resetColor,
-		param.Latency,
-		param.ClientIP,
-		methodColor, param.Method, resetColor,
-		path,
-		param.ErrorMessage,
-	)
 }
 
 type onlyImageFS struct {
