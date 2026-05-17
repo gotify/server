@@ -81,12 +81,12 @@ describe('Client', () => {
     });
     it('shows expires after for new clients', async () => {
         expect(await innerText(page, $table.cell(2, ClientCol.ExpiresIn))).toBe('-');
-        expect(await innerText(page, $table.cell(3, ClientCol.ExpiresIn))).toBe('in 1 hour');
+        expect(await innerText(page, $table.cell(3, ClientCol.ExpiresIn))).toBe('59m');
     });
     it('updates client', updateClient(1, {name: 'firefox', expiresAfter: 60 * 60 * 10}));
     it('has updated client name', waitForClient('firefox', 1));
     it('has updated expires after', async () => {
-        expect(await innerText(page, $table.cell(1, ClientCol.ExpiresIn))).toBe('in 10 hours');
+        expect(await innerText(page, $table.cell(1, ClientCol.ExpiresIn))).toBe('9h 59m');
     });
     it('shows token', async () => {
         await page.click($table.cell(3, ClientCol.Token, '.toggle-visibility'));

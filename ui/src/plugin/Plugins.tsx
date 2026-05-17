@@ -11,8 +11,7 @@ import Settings from '@mui/icons-material/Settings';
 import {Switch, Button} from '@mui/material';
 import DefaultPage from '../common/DefaultPage';
 import CopyableSecret from '../common/CopyableSecret';
-import TimeAgo from 'react-timeago';
-import {TimeAgoFormatter} from '../common/TimeAgoFormatter';
+import {formatDate} from '../common/TimeAgoFormatter';
 import {observer} from 'mobx-react-lite';
 import {IPlugin} from '../types';
 import {useStores} from '../stores';
@@ -83,9 +82,7 @@ const Row: React.FC<IRowProps> = observer(
             <TableCell>
                 <CopyableSecret value={token} style={{display: 'flex', alignItems: 'center'}} />
             </TableCell>
-            <TableCell>
-                <TimeAgo date={createdAt} formatter={TimeAgoFormatter.long} />
-            </TableCell>
+            <TableCell title={createdAt}>{formatDate(createdAt)}</TableCell>
             <TableCell align="right" padding="none">
                 <Link to={'/plugins/' + id}>
                     <Button>

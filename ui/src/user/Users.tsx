@@ -16,8 +16,7 @@ import AddEditDialog from './AddEditUserDialog';
 import {IUser} from '../types';
 import {useStores} from '../stores';
 import {observer} from 'mobx-react-lite';
-import TimeAgo from 'react-timeago';
-import {TimeAgoFormatter} from '../common/TimeAgoFormatter';
+import {formatDate} from '../common/TimeAgoFormatter';
 
 interface IRowProps {
     name: string;
@@ -31,9 +30,7 @@ const UserRow: React.FC<IRowProps> = ({name, admin, createdAt, fDelete, fEdit}) 
     <TableRow>
         <TableCell>{name}</TableCell>
         <TableCell>{admin ? 'Yes' : 'No'}</TableCell>
-        <TableCell>
-            <TimeAgo date={createdAt} formatter={TimeAgoFormatter.long} />
-        </TableCell>
+        <TableCell title={createdAt}>{formatDate(createdAt)}</TableCell>
         <TableCell align="right" padding="none">
             <IconButton onClick={fEdit} className="edit" size="large">
                 <Edit />

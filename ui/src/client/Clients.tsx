@@ -12,7 +12,6 @@ import Edit from '@mui/icons-material/Edit';
 import Security from '@mui/icons-material/Security';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
-import TimeAgo from 'react-timeago';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import AddClientDialog from './AddClientDialog';
@@ -21,7 +20,8 @@ import ElevateClientDialog from './ElevateClientDialog';
 import {IClient} from '../types';
 import CopyableSecret from '../common/CopyableSecret';
 import {LastUsedCell} from '../common/LastUsedCell';
-import {TimeAgoFormatter} from '../common/TimeAgoFormatter';
+import {formatDate} from '../common/TimeAgoFormatter';
+import {RemainingTime} from '../common/RemainingTime';
 import {observer} from 'mobx-react-lite';
 import {useStores} from '../stores';
 
@@ -55,10 +55,10 @@ const Clients = observer(() => {
                             <TableRow style={{textAlign: 'center'}}>
                                 <TableCell>Name</TableCell>
                                 <TableCell style={{width: 200}}>Token</TableCell>
-                                <TableCell>Last Used</TableCell>
                                 <TableCell>Elevation ends</TableCell>
-                                <TableCell>Created</TableCell>
                                 <TableCell>Expires in</TableCell>
+                                <TableCell>Last Used</TableCell>
+                                <TableCell>Created</TableCell>
                                 <TableCell />
                                 <TableCell />
                                 <TableCell />
@@ -152,26 +152,22 @@ const Row = ({
                 style={{display: 'flex', alignItems: 'center', width: 250}}
             />
         </TableCell>
+        <TableCell align="right" title={elevatedUntil}>
+            <RemainingTime
+                until={
+                    elevatedUntil && Date.parse(elevatedUntil) > Date.now()
+                        ? elevatedUntil
+                        : undefined
+                }
+            />
+        </TableCell>
+        <TableCell align="right" className="expires-in" title={expiresAt ?? undefined}>
+            <RemainingTime until={expiresAt} />
+        </TableCell>
         <TableCell>
             <LastUsedCell lastUsed={lastUsed} />
         </TableCell>
-        <TableCell>
-            {elevatedUntil && Date.parse(elevatedUntil) > Date.now() ? (
-                <TimeAgo date={elevatedUntil} formatter={TimeAgoFormatter.longMinutes} />
-            ) : (
-                '-'
-            )}
-        </TableCell>
-        <TableCell>
-            <TimeAgo date={createdAt} formatter={TimeAgoFormatter.long} />
-        </TableCell>
-        <TableCell className="expires-in">
-            {expiresAt ? (
-                <TimeAgo date={expiresAt} formatter={TimeAgoFormatter.longMinutes} />
-            ) : (
-                '-'
-            )}
-        </TableCell>
+        <TableCell title={createdAt}>{formatDate(createdAt)}</TableCell>
         <TableCell align="right" padding="none">
             <Tooltip title="Elevate">
                 <IconButton onClick={fElevate} className="elevate">
