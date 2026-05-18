@@ -20,8 +20,9 @@ enum Col {
     Description = 5,
     DefaultPriority = 6,
     LastUsed = 7,
-    EditUpdate = 8,
-    EditDelete = 9,
+    Created = 8,
+    EditUpdate = 9,
+    EditDelete = 10,
 }
 
 const hiddenToken = '•••••••••••••••';

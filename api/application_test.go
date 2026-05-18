@@ -78,6 +78,7 @@ func (s *ApplicationSuite) Test_CreateApplication_mapAllParameters() {
 		Name:        "custom_name",
 		Description: "description_text",
 		SortKey:     "a5",
+		CreatedAt:   testdb.Now,
 	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
@@ -96,8 +97,9 @@ func (s *ApplicationSuite) Test_ensureApplicationHasCorrectJsonRepresentation() 
 		Internal:    true,
 		LastUsed:    nil,
 		SortKey:     "a1",
+		CreatedAt:   testdb.Now,
 	}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true, "defaultPriority":0, "lastUsed":null, "sortKey":"a1"}`)
+	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true, "defaultPriority":0, "createdAt":"2020-01-01T00:00:00Z", "lastUsed":null, "sortKey":"a1"}`)
 }
 
 func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {
@@ -129,19 +131,19 @@ func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInPar
 
 	s.a.CreateApplication(s.ctx)
 
-	expectedJSONValue, _ := json.Marshal(&model.Application{
+	expected := &model.Application{
 		ID:          1,
 		Token:       firstApplicationToken,
-		UserID:      5,
 		Name:        "name",
 		Description: "description",
 		Internal:    false,
 		Image:       "static/defaultapp.png",
 		SortKey:     "a5",
-	})
+		CreatedAt:   testdb.Now,
+	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	assert.Equal(s.T(), string(expectedJSONValue), s.recorder.Body.String())
+	test.BodyEquals(s.T(), expected, s.recorder)
 }
 
 func (s *ApplicationSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwner() {
@@ -165,7 +167,7 @@ func (s *ApplicationSuite) Test_CreateApplication_onlyRequiredParameters() {
 	s.withFormData("name=custom_name")
 	s.a.CreateApplication(s.ctx)
 
-	expected := &model.Application{ID: 1, Token: firstApplicationToken, Name: "custom_name", UserID: 5, SortKey: "a0"}
+	expected := &model.Application{ID: 1, Token: firstApplicationToken, Name: "custom_name", UserID: 5, SortKey: "a0", CreatedAt: testdb.Now}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
 		assert.Contains(s.T(), app, expected)
@@ -181,12 +183,12 @@ func (s *ApplicationSuite) Test_CreateApplication_returnsApplicationWithID() {
 	s.a.CreateApplication(s.ctx)
 
 	expected := &model.Application{
-		ID:      1,
-		Token:   firstApplicationToken,
-		Name:    "custom_name",
-		Image:   "static/defaultapp.png",
-		UserID:  5,
-		SortKey: "a0",
+		ID:        1,
+		Token:     firstApplicationToken,
+		Name:      "custom_name",
+		Image:     "static/defaultapp.png",
+		SortKey:   "a0",
+		CreatedAt: testdb.Now,
 	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	test.BodyEquals(s.T(), expected, s.recorder)
@@ -201,7 +203,7 @@ func (s *ApplicationSuite) Test_CreateApplication_withExistingToken() {
 
 	s.a.CreateApplication(s.ctx)
 
-	expected := &model.Application{ID: 2, Token: secondApplicationToken, Name: "custom_name", UserID: 5, SortKey: "a0"}
+	expected := &model.Application{ID: 2, Token: secondApplicationToken, Name: "custom_name", UserID: 5, SortKey: "a0", CreatedAt: testdb.Now}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
 		assert.Contains(s.T(), app, expected)
@@ -530,6 +532,7 @@ func (s *ApplicationSuite) Test_UpdateApplicationNameAndDescription_expectSucces
 		Name:        "new_name",
 		Description: "new_description_text",
 		SortKey:     "a0",
+		CreatedAt:   testdb.Now,
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -553,6 +556,7 @@ func (s *ApplicationSuite) Test_UpdateApplicationName_expectSuccess() {
 		Name:        "new_name",
 		Description: "",
 		SortKey:     "a0",
+		CreatedAt:   testdb.Now,
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -577,6 +581,7 @@ func (s *ApplicationSuite) Test_UpdateApplicationDefaultPriority_expectSuccess()
 		Description:     "",
 		DefaultPriority: 4,
 		SortKey:         "a0",
+		CreatedAt:       testdb.Now,
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)

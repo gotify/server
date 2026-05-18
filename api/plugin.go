@@ -72,6 +72,7 @@ func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 			info := c.Manager.PluginInfo(conf.ModulePath)
 			result = append(result, model.PluginConfExternal{
 				ID:           conf.ID,
+				CreatedAt:    conf.CreatedAt,
 				Name:         info.String(),
 				Token:        conf.Token,
 				ModulePath:   conf.ModulePath,

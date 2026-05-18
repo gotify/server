@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -71,7 +72,16 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		for range ticker.C {
 			connectedTokens := streamHandler.CollectConnectedClientTokens()
 			now := time.Now()
-			db.UpdateClientTokensLastUsed(connectedTokens, &now)
+			if err := db.UpdateClientTokensLastUsedAndExpiresAt(connectedTokens, &now); err != nil {
+				log.Println("Error updating last used", err)
+			}
+			if expired, err := db.CleanupExpiredClients(now); err == nil {
+				for _, c := range expired {
+					streamHandler.NotifyDeletedClient(c.UserID, c.Token)
+				}
+			} else {
+				log.Println("Error cleaning up expired clients", err)
+			}
 		}
 	}()
 	authentication := auth.Auth{DB: db, SecureCookie: conf.Server.SecureCookie}

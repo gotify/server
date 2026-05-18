@@ -41,11 +41,15 @@ func (s *DatabaseSuite) Test_Users() {
 	newUserActual := s.db.NewUser(2)
 	s.db.NewUserWithName(3, "tom")
 
-	newUserExpected := &model.User{ID: 2, Name: "user2"}
+	newUserExpected := &model.User{ID: 2, Name: "user2", CreatedAt: testdb.Now}
 
 	assert.Equal(s.T(), newUserExpected, newUserActual)
 
-	users := []*model.User{{ID: 1, Name: "user1"}, {ID: 2, Name: "user2"}, {ID: 3, Name: "tom"}}
+	users := []*model.User{
+		{ID: 1, Name: "user1", CreatedAt: testdb.Now},
+		{ID: 2, Name: "user2", CreatedAt: testdb.Now},
+		{ID: 3, Name: "tom", CreatedAt: testdb.Now},
+	}
 
 	if usersActual, err := s.db.GetUsers(); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), users, usersActual)
@@ -67,15 +71,18 @@ func (s *DatabaseSuite) Test_Clients() {
 
 	s.db.User(2).Client(5)
 
-	newClientExpected := &model.Client{ID: 2, Token: "asdf", UserID: 1}
+	newClientExpected := &model.Client{ID: 2, Token: "asdf", UserID: 1, CreatedAt: testdb.Now}
 
 	assert.Equal(s.T(), newClientExpected, newClientActual)
 
-	userOneExpected := []*model.Client{{ID: 1, Token: "client1", UserID: 1}, {ID: 2, Token: "asdf", UserID: 1}}
+	userOneExpected := []*model.Client{
+		{ID: 1, Token: "client1", UserID: 1, CreatedAt: testdb.Now},
+		{ID: 2, Token: "asdf", UserID: 1, CreatedAt: testdb.Now},
+	}
 	if clients, err := s.db.GetClientsByUser(1); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), userOneExpected, clients)
 	}
-	userTwoExpected := []*model.Client{{ID: 5, Token: "client5", UserID: 2}}
+	userTwoExpected := []*model.Client{{ID: 5, Token: "client5", UserID: 2, CreatedAt: testdb.Now}}
 	if clients, err := s.db.GetClientsByUser(2); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), userTwoExpected, clients)
 	}
@@ -100,31 +107,31 @@ func (s *DatabaseSuite) Test_Apps() {
 
 	s.db.User(2).InternalApp(5)
 
-	newAppExpected := &model.Application{ID: 2, Token: "asdf", UserID: 1, SortKey: "a1"}
-	newInternalAppExpected := &model.Application{ID: 3, Token: "qwer", UserID: 1, Internal: true, SortKey: "a2"}
+	newAppExpected := &model.Application{ID: 2, Token: "asdf", UserID: 1, SortKey: "a1", CreatedAt: testdb.Now}
+	newInternalAppExpected := &model.Application{ID: 3, Token: "qwer", UserID: 1, Internal: true, SortKey: "a2", CreatedAt: testdb.Now}
 
 	assert.Equal(s.T(), newAppExpected, newAppActual)
 	assert.Equal(s.T(), newInternalAppExpected, newInternalAppActual)
 
 	userOneExpected := []*model.Application{
-		{ID: 1, Token: "app1", UserID: 1, SortKey: "a0"},
-		{ID: 2, Token: "asdf", UserID: 1, SortKey: "a1"},
-		{ID: 3, Token: "qwer", UserID: 1, Internal: true, SortKey: "a2"},
+		{ID: 1, Token: "app1", UserID: 1, SortKey: "a0", CreatedAt: testdb.Now},
+		{ID: 2, Token: "asdf", UserID: 1, SortKey: "a1", CreatedAt: testdb.Now},
+		{ID: 3, Token: "qwer", UserID: 1, Internal: true, SortKey: "a2", CreatedAt: testdb.Now},
 	}
 	if app, err := s.db.GetApplicationsByUser(1); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), userOneExpected, app)
 	}
-	userTwoExpected := []*model.Application{{ID: 5, Token: "app5", UserID: 2, Internal: true, SortKey: "a0"}}
+	userTwoExpected := []*model.Application{{ID: 5, Token: "app5", UserID: 2, Internal: true, SortKey: "a0", CreatedAt: testdb.Now}}
 	if app, err := s.db.GetApplicationsByUser(2); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), userTwoExpected, app)
 	}
 
 	newAppWithName := userBuilder.NewAppWithTokenAndName(7, "test-token", "app name")
-	newAppWithNameExpected := &model.Application{ID: 7, Token: "test-token", UserID: 1, Name: "app name", SortKey: "a3"}
+	newAppWithNameExpected := &model.Application{ID: 7, Token: "test-token", UserID: 1, Name: "app name", SortKey: "a3", CreatedAt: testdb.Now}
 	assert.Equal(s.T(), newAppWithNameExpected, newAppWithName)
 
 	newInternalAppWithName := userBuilder.NewInternalAppWithTokenAndName(8, "test-tokeni", "app name")
-	newInternalAppWithNameExpected := &model.Application{ID: 8, Token: "test-tokeni", UserID: 1, Name: "app name", Internal: true, SortKey: "a4"}
+	newInternalAppWithNameExpected := &model.Application{ID: 8, Token: "test-tokeni", UserID: 1, Name: "app name", Internal: true, SortKey: "a4", CreatedAt: testdb.Now}
 	assert.Equal(s.T(), newInternalAppWithNameExpected, newInternalAppWithName)
 
 	userBuilder.AppWithTokenAndName(9, "test-token-2", "app name")

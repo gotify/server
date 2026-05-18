@@ -32,6 +32,7 @@ import * as config from '../config';
 import {UpdateApplicationDialog} from './UpdateApplicationDialog';
 import {IApplication} from '../types';
 import {LastUsedCell} from '../common/LastUsedCell';
+import {formatDate} from '../common/TimeAgoFormatter';
 import {useStores} from '../stores';
 import {observer} from 'mobx-react-lite';
 import {makeStyles} from 'tss-react/mui';
@@ -127,6 +128,7 @@ const Applications = observer(() => {
                                     <TableCell>Description</TableCell>
                                     <TableCell>Priority</TableCell>
                                     <TableCell>Last Used</TableCell>
+                                    <TableCell>Created</TableCell>
                                     <TableCell />
                                     <TableCell />
                                 </TableRow>
@@ -261,6 +263,7 @@ const Row = ({app, fDelete, fUpload, fDeleteImage, fEdit}: IRowProps) => {
             <TableCell>
                 <LastUsedCell lastUsed={app.lastUsed} />
             </TableCell>
+            <TableCell title={app.createdAt}>{formatDate(app.createdAt)}</TableCell>
             <TableCell align="right" padding="none">
                 <IconButton onClick={fEdit} className="edit">
                     <Edit />

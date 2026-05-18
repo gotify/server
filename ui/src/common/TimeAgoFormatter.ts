@@ -11,3 +11,5 @@ export const TimeAgoFormatter = {
     narrow: makeIntlFormatter({style: 'narrow', locale: 'en'}),
     longMinutes: longMinutesFormatter,
 } as const satisfies Record<string, Formatter>;
+
+export const formatDate = (date: string): string => date.slice(0, 10);

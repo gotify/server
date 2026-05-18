@@ -8,6 +8,7 @@ type User struct {
 	Name         string `gorm:"type:varchar(180);uniqueIndex:uix_users_name"`
 	Pass         []byte
 	Admin        bool
+	CreatedAt    time.Time
 	Applications []Application
 	Clients      []Client
 	Plugins      []PluginConf
@@ -35,6 +36,12 @@ type UserExternal struct {
 	// required: true
 	// example: true
 	Admin bool `json:"admin" form:"admin" query:"admin"`
+	// The date the user was created.
+	//
+	// read only: true
+	// required: true
+	// example: 2019-01-01T00:00:00Z
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 // CreateUserExternal Model
@@ -102,6 +109,12 @@ type CurrentUserExternal struct {
 	// required: true
 	// example: true
 	Admin bool `json:"admin"`
+	// The date the user was created.
+	//
+	// read only: true
+	// required: true
+	// example: 2019-01-01T00:00:00Z
+	CreatedAt time.Time `json:"createdAt"`
 	// The client id of the current session.
 	//
 	// read only: true

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/gotify/server/v2/config"
 	"github.com/gotify/server/v2/database"
@@ -39,7 +40,7 @@ func main() {
 		panic(err)
 	}
 
-	db, err := database.New(conf.Database.Dialect, conf.Database.Connection, conf.DefaultUser.Name, conf.DefaultUser.Pass, conf.PassStrength, true)
+	db, err := database.New(conf.Database.Dialect, conf.Database.Connection, conf.DefaultUser.Name, conf.DefaultUser.Pass, conf.PassStrength, true, time.Now)
 	if err != nil {
 		panic(err)
 	}

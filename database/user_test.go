@@ -52,7 +52,7 @@ func (s *DatabaseSuite) TestUser() {
 
 	tom, err := s.db.GetUserByID(nicories.ID)
 	require.NoError(s.T(), err)
-	assert.Equal(s.T(), &model.User{ID: nicories.ID, Name: "tom", Pass: []byte{12}, Admin: true}, tom)
+	assert.Equal(s.T(), &model.User{ID: nicories.ID, Name: "tom", Pass: []byte{12}, Admin: true, CreatedAt: now}, tom)
 
 	users, err = s.db.GetUsers()
 	require.NoError(s.T(), err)

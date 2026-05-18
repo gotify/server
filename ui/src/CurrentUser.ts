@@ -11,7 +11,12 @@ export class CurrentUser {
     @observable accessor loggedIn = false;
     @observable accessor refreshKey = 0;
     @observable accessor authenticating = true;
-    @observable accessor user: ICurrentUser = {name: 'unknown', admin: false, id: -1};
+    @observable accessor user: ICurrentUser = {
+        name: 'unknown',
+        admin: false,
+        id: -1,
+        createdAt: '',
+    };
     @observable accessor connectionErrorMessage: string | null = null;
 
     public constructor(private readonly snack: SnackReporter) {}

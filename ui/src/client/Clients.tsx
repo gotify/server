@@ -12,7 +12,6 @@ import Edit from '@mui/icons-material/Edit';
 import Security from '@mui/icons-material/Security';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
-import TimeAgo from 'react-timeago';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
 import AddClientDialog from './AddClientDialog';
@@ -21,7 +20,8 @@ import ElevateClientDialog from './ElevateClientDialog';
 import {IClient} from '../types';
 import CopyableSecret from '../common/CopyableSecret';
 import {LastUsedCell} from '../common/LastUsedCell';
-import {TimeAgoFormatter} from '../common/TimeAgoFormatter';
+import {formatDate} from '../common/TimeAgoFormatter';
+import {RemainingTime} from '../common/RemainingTime';
 import {observer} from 'mobx-react-lite';
 import {useStores} from '../stores';
 
@@ -55,8 +55,10 @@ const Clients = observer(() => {
                             <TableRow style={{textAlign: 'center'}}>
                                 <TableCell>Name</TableCell>
                                 <TableCell style={{width: 200}}>Token</TableCell>
-                                <TableCell>Last Used</TableCell>
                                 <TableCell>Elevation ends</TableCell>
+                                <TableCell>Expires in</TableCell>
+                                <TableCell>Last Used</TableCell>
+                                <TableCell>Created</TableCell>
                                 <TableCell />
                                 <TableCell />
                                 <TableCell />
@@ -68,8 +70,10 @@ const Clients = observer(() => {
                                     key={client.id}
                                     name={client.name}
                                     value={client.token}
+                                    createdAt={client.createdAt}
                                     lastUsed={client.lastUsed}
                                     elevatedUntil={client.elevatedUntil}
+                                    expiresAt={client.expiresAt}
                                     fEdit={() => setToUpdateClient(client)}
                                     fDelete={() => setToDeleteClient(client)}
                                     fElevate={() => setToElevateClient(client)}
@@ -88,8 +92,13 @@ const Clients = observer(() => {
             {toUpdateClient != null && (
                 <UpdateClientDialog
                     fClose={() => setToUpdateClient(undefined)}
-                    fOnSubmit={(name) => clientStore.update(toUpdateClient.id, name)}
+                    fOnSubmit={(name, expiresAfterInactivitySeconds) =>
+                        clientStore.update(toUpdateClient.id, name, expiresAfterInactivitySeconds)
+                    }
                     initialName={toUpdateClient.name}
+                    initialExpiresAfterInactivitySeconds={
+                        toUpdateClient.expiresAfterInactivitySeconds
+                    }
                 />
             )}
             {toDeleteClient != null && (
@@ -115,14 +124,26 @@ const Clients = observer(() => {
 interface IRowProps {
     name: string;
     value: string;
+    createdAt: string;
     lastUsed: string | null;
     elevatedUntil?: string;
+    expiresAt: string | null;
     fEdit: VoidFunction;
     fDelete: VoidFunction;
     fElevate: VoidFunction;
 }
 
-const Row = ({name, value, lastUsed, elevatedUntil, fEdit, fDelete, fElevate}: IRowProps) => (
+const Row = ({
+    name,
+    value,
+    createdAt,
+    lastUsed,
+    elevatedUntil,
+    expiresAt,
+    fEdit,
+    fDelete,
+    fElevate,
+}: IRowProps) => (
     <TableRow>
         <TableCell>{name}</TableCell>
         <TableCell>
@@ -131,16 +152,22 @@ const Row = ({name, value, lastUsed, elevatedUntil, fEdit, fDelete, fElevate}: I
                 style={{display: 'flex', alignItems: 'center', width: 250}}
             />
         </TableCell>
+        <TableCell align="right" title={elevatedUntil}>
+            <RemainingTime
+                until={
+                    elevatedUntil && Date.parse(elevatedUntil) > Date.now()
+                        ? elevatedUntil
+                        : undefined
+                }
+            />
+        </TableCell>
+        <TableCell align="right" className="expires-in" title={expiresAt ?? undefined}>
+            <RemainingTime until={expiresAt} />
+        </TableCell>
         <TableCell>
             <LastUsedCell lastUsed={lastUsed} />
         </TableCell>
-        <TableCell>
-            {elevatedUntil && Date.parse(elevatedUntil) > Date.now() ? (
-                <TimeAgo date={elevatedUntil} formatter={TimeAgoFormatter.longMinutes} />
-            ) : (
-                '-'
-            )}
-        </TableCell>
+        <TableCell title={createdAt}>{formatDate(createdAt)}</TableCell>
         <TableCell align="right" padding="none">
             <Tooltip title="Elevate">
                 <IconButton onClick={fElevate} className="elevate">

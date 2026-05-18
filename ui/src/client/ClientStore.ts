@@ -20,22 +20,35 @@ export class ClientStore extends BaseStore<IClient> {
     }
 
     @action
-    public update = async (id: number, name: string): Promise<void> => {
-        await axios.put(`${config.get('url')}client/${id}`, {name});
+    public update = async (
+        id: number,
+        name: string,
+        expiresAfterInactivitySeconds: number
+    ): Promise<void> => {
+        await axios.put(`${config.get('url')}client/${id}`, {
+            name,
+            expiresAfterInactivitySeconds,
+        });
         await this.refresh();
         this.snack('Client updated');
     };
 
     @action
-    public createNoNotifcation = async (name: string): Promise<IClient> => {
-        const client = await axios.post(`${config.get('url')}client`, {name});
+    public createNoNotifcation = async (
+        name: string,
+        expiresAfterInactivitySeconds = 0
+    ): Promise<IClient> => {
+        const client = await axios.post(`${config.get('url')}client`, {
+            name,
+            expiresAfterInactivitySeconds,
+        });
         await this.refresh();
         return client.data;
     };
 
     @action
-    public create = async (name: string): Promise<void> => {
-        await this.createNoNotifcation(name);
+    public create = async (name: string, expiresAfterInactivitySeconds = 0): Promise<void> => {
+        await this.createNoNotifcation(name, expiresAfterInactivitySeconds);
         this.snack('Client added');
     };
 

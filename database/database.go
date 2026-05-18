@@ -24,7 +24,7 @@ import (
 var mkdirAll = os.MkdirAll
 
 // New creates a new wrapper for the gorm database framework.
-func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUserIfNotExist bool) (*GormDatabase, error) {
+func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUserIfNotExist bool, now func() time.Time) (*GormDatabase, error) {
 	createDirectoryIfSqlite(dialect, connection)
 
 	dbLogger := logger.New(log.New(os.Stderr, "\r\n", log.LstdFlags), logger.Config{
@@ -37,6 +37,7 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 		Logger:                                   dbLogger,
 		DisableForeignKeyConstraintWhenMigrating: true,
 		TranslateError:                           true,
+		NowFunc:                                  now,
 	}
 
 	var db *gorm.DB
@@ -94,7 +95,26 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 		return nil, err
 	}
 
+	if err := db.Transaction(func(tx *gorm.DB) error { return fillMissingCreatedAt(tx, now()) }, &sql.TxOptions{Isolation: sql.LevelSerializable}); err != nil {
+		return nil, err
+	}
+
 	return &GormDatabase{DB: db}, nil
+}
+
+func fillMissingCreatedAt(db *gorm.DB, now time.Time) error {
+	models := []any{
+		new(model.User),
+		new(model.Application),
+		new(model.Client),
+		new(model.PluginConf),
+	}
+	for _, m := range models {
+		if err := db.Model(m).Where("created_at IS NULL").UpdateColumn("created_at", now).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func fillMissingSortKeys(db *gorm.DB) error {

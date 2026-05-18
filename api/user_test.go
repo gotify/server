@@ -176,7 +176,7 @@ func (s *UserSuite) Test_CreateUser() {
 	s.a.CreateUser(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	user := &model.UserExternal{ID: 2, Name: "tom", Admin: true}
+	user := &model.UserExternal{ID: 2, Name: "tom", Admin: true, CreatedAt: testdb.Now}
 	test.BodyEquals(s.T(), user, s.recorder)
 
 	if created, err := s.db.GetUserByName("tom"); assert.NoError(s.T(), err) {
@@ -439,5 +439,5 @@ func (s *UserSuite) noLogin() {
 }
 
 func externalOf(user *model.User) *model.UserExternal {
-	return &model.UserExternal{Name: user.Name, Admin: user.Admin, ID: user.ID}
+	return &model.UserExternal{Name: user.Name, Admin: user.Admin, ID: user.ID, CreatedAt: user.CreatedAt}
 }

@@ -14,6 +14,10 @@ import (
 	"gorm.io/gorm"
 )
 
+var now = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+func fixedNow() time.Time { return now }
+
 func TestDatabaseSuite(t *testing.T) {
 	suite.Run(t, new(DatabaseSuite))
 }
@@ -26,7 +30,7 @@ type DatabaseSuite struct {
 
 func (s *DatabaseSuite) BeforeTest(suiteName, testName string) {
 	s.tmpDir = test.NewTmpDir("gotify_databasesuite")
-	db, err := New("sqlite3", s.tmpDir.Path("testdb.db"), "defaultUser", "defaultPass", 5, true)
+	db, err := New("sqlite3", s.tmpDir.Path("testdb.db"), "defaultUser", "defaultPass", 5, true, fixedNow)
 	assert.Nil(s.T(), err)
 	s.db = db
 }
@@ -39,7 +43,7 @@ func (s *DatabaseSuite) AfterTest(suiteName, testName string) {
 func TestInvalidDialect(t *testing.T) {
 	tmpDir := test.NewTmpDir("gotify_testinvaliddialect")
 	defer tmpDir.Clean()
-	_, err := New("asdf", tmpDir.Path("testdb.db"), "defaultUser", "defaultPass", 5, true)
+	_, err := New("asdf", tmpDir.Path("testdb.db"), "defaultUser", "defaultPass", 5, true, fixedNow)
 	assert.Error(t, err)
 }
 
@@ -47,7 +51,7 @@ func TestCreateSqliteFolder(t *testing.T) {
 	tmpDir := test.NewTmpDir("gotify_testcreatesqlitefolder")
 	defer tmpDir.Clean()
 
-	db, err := New("sqlite3", tmpDir.Path("somepath/testdb.db"), "defaultUser", "defaultPass", 5, true)
+	db, err := New("sqlite3", tmpDir.Path("somepath/testdb.db"), "defaultUser", "defaultPass", 5, true, fixedNow)
 	assert.Nil(t, err)
 	assert.DirExists(t, tmpDir.Path("somepath"))
 	db.Close()
@@ -57,7 +61,7 @@ func TestWithAlreadyExistingSqliteFolder(t *testing.T) {
 	tmpDir := test.NewTmpDir("gotify_testwithexistingfolder")
 	defer tmpDir.Clean()
 
-	db, err := New("sqlite3", tmpDir.Path("somepath/testdb.db"), "defaultUser", "defaultPass", 5, true)
+	db, err := New("sqlite3", tmpDir.Path("somepath/testdb.db"), "defaultUser", "defaultPass", 5, true, fixedNow)
 	assert.Nil(t, err)
 	assert.DirExists(t, tmpDir.Path("somepath"))
 	db.Close()
@@ -70,12 +74,12 @@ func TestPanicsOnMkdirError(t *testing.T) {
 		return errors.New("ERROR")
 	}
 	assert.Panics(t, func() {
-		New("sqlite3", tmpDir.Path("somepath/test.db"), "defaultUser", "defaultPass", 5, true)
+		New("sqlite3", tmpDir.Path("somepath/test.db"), "defaultUser", "defaultPass", 5, true, fixedNow)
 	})
 }
 
 func TestMigrateSortKey(t *testing.T) {
-	db, err := New("sqlite3", fmt.Sprintf("file:%s?mode=memory&cache=shared", fmt.Sprint(time.Now().UnixNano())), "admin", "pw", 5, true)
+	db, err := New("sqlite3", fmt.Sprintf("file:%s?mode=memory&cache=shared", fmt.Sprint(time.Now().UnixNano())), "admin", "pw", 5, true, fixedNow)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
 

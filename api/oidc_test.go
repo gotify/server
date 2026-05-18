@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/decaymap"
 	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/test"
@@ -153,6 +154,7 @@ func (s *OIDCSuite) Test_CreateClient() {
 	assert.Equal(s.T(), "MyPhone", client.Name)
 	assert.Equal(s.T(), "Ctesttoken00001", client.Token)
 	assert.Equal(s.T(), uint(1), client.UserID)
+	assert.Equal(s.T(), uint(auth.CookieMaxAge), client.ExpiresAfterInactivitySeconds)
 
 	dbClient, err := s.db.GetClientByToken("Ctesttoken00001")
 	assert.NoError(s.T(), err)

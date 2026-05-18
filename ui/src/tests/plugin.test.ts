@@ -27,7 +27,8 @@ enum Col {
     SetEnabled = 2,
     Name = 3,
     Token = 4,
-    Details = 5,
+    Created = 5,
+    Details = 6,
 }
 
 const hiddenToken = '•••••••••••••••';

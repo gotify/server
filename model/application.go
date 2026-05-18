@@ -49,6 +49,12 @@ type Application struct {
 	// required: false
 	// example: 4
 	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`
+	// The date the application was created.
+	//
+	// read only: true
+	// required: true
+	// example: 2019-01-01T00:00:00Z
+	CreatedAt time.Time `json:"createdAt"`
 	// The last time the application token was used.
 	//
 	// read only: true

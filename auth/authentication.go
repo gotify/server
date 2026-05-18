@@ -32,7 +32,7 @@ type Database interface {
 	GetClientByToken(token string) (*model.Client, error)
 	GetUserByName(name string) (*model.User, error)
 	GetUserByID(id uint) (*model.User, error)
-	UpdateClientTokensLastUsed(tokens []string, t *time.Time) error
+	UpdateClientTokensLastUsedAndExpiresAt(tokens []string, t *time.Time) error
 	UpdateApplicationTokenLastUsed(token string, t *time.Time) error
 }
 
@@ -157,7 +157,7 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 
 		now := timeNow()
 		if client.LastUsed == nil || client.LastUsed.Add(5*time.Minute).Before(now) {
-			if err := a.DB.UpdateClientTokensLastUsed([]string{client.Token}, &now); err != nil {
+			if err := a.DB.UpdateClientTokensLastUsedAndExpiresAt([]string{client.Token}, &now); err != nil {
 				return authStateSkip, err
 			}
 			if isCookie {

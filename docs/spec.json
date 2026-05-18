@@ -2439,9 +2439,18 @@
         "description",
         "internal",
         "image",
+        "createdAt",
         "sortKey"
       ],
       "properties": {
+        "createdAt": {
+          "description": "The date the application was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
+        },
         "defaultPriority": {
           "description": "The default priority of messages sent by this application. Defaults to 0.",
           "type": "integer",
@@ -2550,15 +2559,39 @@
       "required": [
         "id",
         "token",
-        "name"
+        "name",
+        "createdAt"
       ],
       "properties": {
+        "createdAt": {
+          "description": "The date the client was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
+        },
         "elevatedUntil": {
           "description": "The time until which this client's session is elevated.",
           "type": "string",
           "format": "date-time",
           "x-go-name": "ElevatedUntil",
           "readOnly": true
+        },
+        "expiresAfterInactivitySeconds": {
+          "description": "The number of seconds of inactivity after which the client is removed.\n0 means the client never expires.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ExpiresAfterInactivitySeconds",
+          "example": 2592000
+        },
+        "expiresAt": {
+          "description": "The time at which this client will expire due to inactivity, or null if it never expires.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "ExpiresAt",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
         },
         "id": {
           "description": "The client id.",
@@ -2600,6 +2633,13 @@
         "name"
       ],
       "properties": {
+        "expiresAfterInactivitySeconds": {
+          "description": "The number of seconds of inactivity after which the client is removed.\n0 (or omitted) means the client never expires.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ExpiresAfterInactivitySeconds",
+          "example": 2592000
+        },
         "name": {
           "description": "The client name",
           "type": "string",
@@ -2646,7 +2686,8 @@
       "required": [
         "id",
         "name",
-        "admin"
+        "admin",
+        "createdAt"
       ],
       "properties": {
         "admin": {
@@ -2662,6 +2703,14 @@
           "x-go-name": "ClientID",
           "readOnly": true,
           "example": 5
+        },
+        "createdAt": {
+          "description": "The date the user was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
         },
         "elevatedUntil": {
           "description": "The time until which the session is elevated.",
@@ -3046,6 +3095,7 @@
       "title": "PluginConfExternal Model",
       "required": [
         "id",
+        "createdAt",
         "name",
         "token",
         "modulePath",
@@ -3071,6 +3121,14 @@
             "webhook",
             "display"
           ]
+        },
+        "createdAt": {
+          "description": "The date the plugin was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
         },
         "enabled": {
           "description": "Whether the plugin instance is enabled.",
@@ -3161,7 +3219,8 @@
       "required": [
         "id",
         "name",
-        "admin"
+        "admin",
+        "createdAt"
       ],
       "properties": {
         "admin": {
@@ -3169,6 +3228,14 @@
           "type": "boolean",
           "x-go-name": "Admin",
           "example": true
+        },
+        "createdAt": {
+          "description": "The date the user was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "readOnly": true,
+          "example": "2019-01-01T00:00:00Z"
         },
         "id": {
           "description": "The user id.",
