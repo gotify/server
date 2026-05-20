@@ -75,6 +75,11 @@ func (a *Auth) RequireApplicationToken(ctx *gin.Context) {
 	a.abort401(ctx)
 }
 
+// RequireAny requires client, application, or basic auth.
+func (a *Auth) RequireApplicationOrClient(ctx *gin.Context) {
+	a.evaluateOr401(ctx, a.handleApplication, a.handleClient(), a.handleUser())
+}
+
 func (a *Auth) Optional(ctx *gin.Context) {
 	if !a.evaluate(ctx, a.handleUser(), a.handleClient()) {
 		ctx.Next()

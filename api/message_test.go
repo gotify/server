@@ -536,6 +536,119 @@ func (s *MessageSuite) Test_CreateMessage_onFormData() {
 	assert.Equal(s.T(), uint(1), s.notifiedMessage.ID)
 }
 
+func (s *MessageSuite) Test_CreateMessage_clientToken_usesBodyAppId() {
+	t, _ := time.Parse("2006/01/02", "2017/01/02")
+	timeNow = func() time.Time { return t }
+	defer func() { timeNow = time.Now }()
+
+	user := s.db.User(4)
+	user.NewAppWithToken(7, "app-token")
+	auth.RegisterClient(s.ctx, user.NewClientWithToken(1, "client-token"))
+
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"appid": 7, "title": "mytitle", "message": "mymessage", "priority": 1}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateMessage(s.ctx)
+
+	msgs, err := s.db.GetMessagesByApplication(7)
+	assert.NoError(s.T(), err)
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: intPtr(1), Date: t}
+	assert.Len(s.T(), msgs, 1)
+	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), expected, s.notifiedMessage)
+}
+
+func (s *MessageSuite) Test_CreateMessage_clientToken_missingAppId_400() {
+	user := s.db.User(4)
+	user.NewAppWithToken(7, "app-token")
+	auth.RegisterClient(s.ctx, user.NewClientWithToken(1, "client-token"))
+
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"title": "mytitle", "message": "mymessage"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateMessage(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	assert.Nil(s.T(), s.notifiedMessage)
+	if msgs, err := s.db.GetMessagesByApplication(7); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), msgs)
+	}
+}
+
+func (s *MessageSuite) Test_CreateMessage_clientToken_appNotOwned_400() {
+	s.db.User(5).NewAppWithToken(7, "other-app-token")
+	auth.RegisterClient(s.ctx, s.db.User(4).NewClientWithToken(1, "client-token"))
+
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"appid": 7, "message": "mymessage"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateMessage(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	assert.Nil(s.T(), s.notifiedMessage)
+	if msgs, err := s.db.GetMessagesByApplication(7); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), msgs)
+	}
+}
+
+func (s *MessageSuite) Test_CreateMessage_clientToken_unknownAppId_400() {
+	auth.RegisterClient(s.ctx, s.db.User(4).NewClientWithToken(1, "client-token"))
+
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"appid": 999, "message": "mymessage"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateMessage(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	assert.Nil(s.T(), s.notifiedMessage)
+}
+
+func (s *MessageSuite) Test_CreateMessage_basicAuth_usesBodyAppId() {
+	t, _ := time.Parse("2006/01/02", "2017/01/02")
+	timeNow = func() time.Time { return t }
+	defer func() { timeNow = time.Now }()
+
+	s.db.User(4).NewAppWithToken(7, "app-token")
+	test.WithUser(s.ctx, 4)
+
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"appid": 7, "title": "mytitle", "message": "mymessage", "priority": 1}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateMessage(s.ctx)
+
+	msgs, err := s.db.GetMessagesByApplication(7)
+	assert.NoError(s.T(), err)
+	expected := &model.MessageExternal{ID: 1, ApplicationID: 7, Title: "mytitle", Message: "mymessage", Priority: intPtr(1), Date: t}
+	assert.Len(s.T(), msgs, 1)
+	assert.Equal(s.T(), expected, toExternalMessage(msgs[0]))
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.Equal(s.T(), expected, s.notifiedMessage)
+}
+
+func (s *MessageSuite) Test_CreateMessage_appToken_ignoresBodyAppId() {
+	t, _ := time.Parse("2006/01/02", "2017/01/02")
+	timeNow = func() time.Time { return t }
+	defer func() { timeNow = time.Now }()
+
+	user := s.db.User(4)
+	user.NewAppWithToken(7, "other-app-token")
+	auth.RegisterApplication(s.ctx, user.NewAppWithToken(8, "app-token"))
+
+	s.ctx.Request = httptest.NewRequest("POST", "/message", strings.NewReader(`{"appid": 7, "title": "mytitle", "message": "mymessage", "priority": 1}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.CreateMessage(s.ctx)
+
+	msgs, err := s.db.GetMessagesByApplication(8)
+	assert.NoError(s.T(), err)
+	assert.Len(s.T(), msgs, 1)
+	if msgs7, err := s.db.GetMessagesByApplication(7); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), msgs7)
+	}
+	assert.Equal(s.T(), 200, s.recorder.Code)
+}
+
 func (s *MessageSuite) withURL(scheme, host, path, query string) {
 	s.ctx.Request.URL = &url.URL{Path: path, RawQuery: query}
 	s.ctx.Set("location", &url.URL{Scheme: scheme, Host: host})

@@ -1438,9 +1438,21 @@
           },
           {
             "appTokenQuery": []
+          },
+          {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
           }
         ],
-        "description": "__NOTE__: This API ONLY accepts an application token as authentication.",
+        "description": "__NOTE__: When authenticating with a client token or basic auth, the request body\nmust include \"appid\" referencing an application owned by the authenticated user.\nWhen authenticating with an application token, the application is derived from the\ntoken and any \"appid\" in the body is ignored.",
         "consumes": [
           "application/json"
         ],
