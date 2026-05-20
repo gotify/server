@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -11,6 +10,9 @@ import (
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/router"
 	"github.com/gotify/server/v2/runner"
+	"github.com/mattn/go-isatty"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -25,10 +27,12 @@ var (
 )
 
 func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339, NoColor: noColor()})
+
 	vInfo := &model.VersionInfo{Version: Version, Commit: Commit, BuildDate: BuildDate}
 	mode.Set(Mode)
 
-	fmt.Println("Starting Gotify version", vInfo.Version+"@"+BuildDate)
+	log.Info().Str("version", vInfo.Version).Str("build_date", BuildDate).Msg("Gotify")
 	conf := config.Get()
 
 	if conf.PluginsDir != "" {
@@ -50,7 +54,17 @@ func main() {
 	defer closeable()
 
 	if err := runner.Run(engine, conf); err != nil {
-		fmt.Println("Server error: ", err)
+		log.Error().Err(err).Msg("Server error")
 		os.Exit(1)
 	}
+}
+
+func noColor() bool {
+	// https://no-color.org/
+	if os.Getenv("NO_COLOR") == "1" {
+		return true
+	}
+
+	isTTY := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd())
+	return !isTTY
 }

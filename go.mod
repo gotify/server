@@ -13,6 +13,7 @@ require (
 	github.com/jinzhu/configor v1.2.2
 	github.com/mattn/go-isatty v0.0.20
 	github.com/robfig/cron v1.2.0
+	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.11.1
 	github.com/zitadel/oidc/v3 v3.45.5
 	golang.org/x/crypto v0.48.0
@@ -53,6 +54,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-sqlite3 v1.14.32 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect

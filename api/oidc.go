@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/gotify/server/v2/database"
 	"github.com/gotify/server/v2/decaymap"
 	"github.com/gotify/server/v2/model"
+	"github.com/rs/zerolog/log"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
 	httphelper "github.com/zitadel/oidc/v3/pkg/http"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
@@ -30,7 +30,7 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 
 	cookieKey := make([]byte, 32)
 	if _, err := rand.Read(cookieKey); err != nil {
-		log.Fatalf("failed to generate OIDC cookie key: %v", err)
+		log.Fatal().Err(err).Msg("failed to generate OIDC cookie key")
 	}
 	cookieHandlerOpt := []httphelper.CookieHandlerOpt{}
 	if !conf.Server.SecureCookie {
@@ -50,7 +50,7 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 		opts...,
 	)
 	if err != nil {
-		log.Fatalf("failed to initialize OIDC provider: %v", err)
+		log.Fatal().Err(err).Msg("failed to initialize OIDC provider")
 	}
 
 	return &OIDCAPI{
@@ -415,7 +415,7 @@ func (a *OIDCAPI) resolveUser(info *oidc.UserInfo) (*model.User, int, error) {
 			return nil, http.StatusInternalServerError, fmt.Errorf("failed to create user: %w", err)
 		}
 		if err := a.UserChangeNotifier.fireUserAdded(user.ID); err != nil {
-			log.Printf("Could not notify user change: %v\n", err)
+			log.Error().Err(err).Uint("user_id", user.ID).Msg("Could not notify user change")
 		}
 	}
 	return user, 0, nil

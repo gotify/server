@@ -1,11 +1,11 @@
 package stream
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/v2/model"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -115,5 +115,5 @@ func printWebSocketError(prefix string, err error) {
 		return
 	}
 
-	fmt.Println("WebSocket:", prefix, err)
+	log.Warn().Err(err).Msgf("WebSocket %s", prefix)
 }

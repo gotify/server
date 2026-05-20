@@ -3,8 +3,6 @@ package database
 import (
 	"database/sql"
 	"errors"
-	"fmt"
-	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -14,6 +12,7 @@ import (
 	"github.com/gotify/server/v2/fracdex"
 	"github.com/gotify/server/v2/model"
 	"github.com/mattn/go-isatty"
+	"github.com/rs/zerolog/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -21,13 +20,20 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+// gormLogWriter routes gorm logger output through zerolog.
+type gormLogWriter struct{}
+
+func (gormLogWriter) Printf(format string, args ...interface{}) {
+	log.Warn().Str("component", "gorm").Msgf(format, args...)
+}
+
 var mkdirAll = os.MkdirAll
 
 // New creates a new wrapper for the gorm database framework.
 func New(dialect, connection, defaultUser, defaultPass string, strength int, createDefaultUserIfNotExist bool, now func() time.Time) (*GormDatabase, error) {
 	createDirectoryIfSqlite(dialect, connection)
 
-	dbLogger := logger.New(log.New(os.Stderr, "\r\n", log.LstdFlags), logger.Config{
+	dbLogger := logger.New(gormLogWriter{}, logger.Config{
 		SlowThreshold:             200 * time.Millisecond,
 		LogLevel:                  logger.Warn,
 		IgnoreRecordNotFoundError: true,
@@ -131,7 +137,7 @@ func fillMissingSortKeys(db *gorm.DB) error {
 	if err := db.Order("user_id, sort_key, id ASC").Find(&apps).Error; err != nil && err != gorm.ErrRecordNotFound {
 		return err
 	}
-	fmt.Println("Migrating", len(apps), "application sort keys")
+	log.Info().Int("count", len(apps)).Msg("Migrating application sort keys")
 
 	sortKey := ""
 	currentUser := uint(math.MaxUint)

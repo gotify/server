@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"plugin"
@@ -18,6 +17,7 @@ import (
 	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/plugin/compat"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -155,7 +155,7 @@ func (m *Manager) PluginInfo(modulePath string) compat.Info {
 	if p, ok := m.plugins[modulePath]; ok {
 		return p.PluginInfo()
 	}
-	fmt.Println("Could not get plugin info for", modulePath)
+	log.Warn().Str("module_path", modulePath).Msg("Could not get plugin info")
 	return compat.Info{
 		Name:        "UNKNOWN",
 		ModulePath:  modulePath,
@@ -237,7 +237,7 @@ func (m *Manager) loadPlugins(directory string) error {
 
 		pluginPath := filepath.Join(directory, "./", name)
 
-		fmt.Println("Loading plugin", pluginPath)
+		log.Info().Str("path", pluginPath).Msg("Loading plugin")
 		pRaw, err := plugin.Open(pluginPath)
 		if err != nil {
 			return pluginFileLoadError{name, err}
@@ -355,7 +355,7 @@ func (m *Manager) initializeSingleUserPlugin(userCtx compat.UserContext, p compa
 		if err != nil {
 			// Single user plugin cannot be enabled
 			// Don't panic, disable for now and wait for user to update config
-			log.Printf("Plugin initialize failed for user %s: %s. Disabling now...", userCtx.Name, err.Error())
+			log.Warn().Err(err).Str("user", userCtx.Name).Msg("Plugin initialize failed, disabling now")
 			pluginConf.Enabled = false
 			m.db.UpdatePluginConf(pluginConf)
 		}
@@ -374,7 +374,10 @@ func (m *Manager) initializeConfigurerForSingleUserPlugin(instance compat.Plugin
 	if yaml.Unmarshal(pluginConf.Config, c) != nil || instance.ValidateAndSetConfig(c) != nil {
 		pluginConf.Enabled = false
 
-		log.Printf("Plugin %s for user %d failed to initialize because it rejected the current config. It might be outdated. A default config is used and the user would need to enable it again.", pluginConf.ModulePath, pluginConf.UserID)
+		log.Warn().
+			Str("module_path", pluginConf.ModulePath).
+			Uint("user_id", pluginConf.UserID).
+			Msg("Plugin failed to initialize because it rejected the current config. It might be outdated. A default config is used and the user would need to enable it again.")
 		newConf := bytes.NewBufferString("# Plugin initialization failed because it rejected the current config. It might be outdated.\r\n# A default plugin configuration is used:\r\n")
 
 		d, _ := yaml.Marshal(c)
