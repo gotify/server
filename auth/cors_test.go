@@ -50,24 +50,3 @@ func TestEmptyCorsConfigWithResponseHeaders(t *testing.T) {
 		AllowBrowserExtensions: true,
 	}, actual)
 }
-
-func TestDevCorsConfig(t *testing.T) {
-	mode.Set(mode.Dev)
-	serverConf := config.Configuration{}
-	serverConf.Server.Cors.AllowOrigins = []string{"http://test.com"}
-	serverConf.Server.Cors.AllowHeaders = []string{"content-type"}
-	serverConf.Server.Cors.AllowMethods = []string{"GET"}
-
-	actual := CorsConfig(&serverConf)
-
-	assert.Equal(t, cors.Config{
-		AllowHeaders: []string{
-			"X-Gotify-Key", "Authorization", "Content-Type", "Upgrade", "Origin",
-			"Connection", "Accept-Encoding", "Accept-Language", "Host",
-		},
-		AllowMethods:           []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"},
-		MaxAge:                 12 * time.Hour,
-		AllowAllOrigins:        true,
-		AllowBrowserExtensions: true,
-	}, actual)
-}

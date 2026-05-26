@@ -59,17 +59,6 @@ func (s *IntegrationSuite) TestVersionInfo() {
 	doRequestAndExpect(s.T(), req, 200, `{"version":"1.0.0", "commit":"asdasds", "buildDate":"2018-02-20-17:30:47"}`)
 }
 
-func (s *IntegrationSuite) TestHeaderInDev() {
-	mode.Set(mode.TestDev)
-	req := s.newRequest("GET", "version", "")
-	// Needs an origin to indicate that it is a CORS request
-	req.Header.Add("Origin", "some-origin")
-
-	res, err := client.Do(req)
-	assert.Nil(s.T(), err)
-	assert.NotEmpty(s.T(), res.Header.Get("Access-Control-Allow-Origin"))
-}
-
 func (s *IntegrationSuite) TestHeaderInProd() {
 	mode.Set(mode.Prod)
 	req := s.newRequest("GET", "version", "")

@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/v2/auth"
-	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
 )
 
@@ -214,9 +213,6 @@ func newUpgrader(allowedWebSocketOrigins []string) *websocket.Upgrader {
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 		CheckOrigin: func(r *http.Request) bool {
-			if mode.IsDev() {
-				return true
-			}
 			return isAllowedOrigin(r, compiledAllowedOrigins)
 		},
 	}

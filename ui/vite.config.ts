@@ -40,13 +40,11 @@ export default defineConfig({
         proxy: {
             '^/(application|message|client|current|user|plugin|version|image|auth)': {
                 target: `http://localhost:${GOTIFY_SERVER_PORT}/`,
-                changeOrigin: true,
                 secure: false,
             },
             '/stream': {
-                target: `ws://localhost:${GOTIFY_SERVER_PORT}/`,
+                target: `http://localhost:${GOTIFY_SERVER_PORT}/`,
                 ws: true,
-                rewriteWsOrigin: true,
             },
         },
         cors: false,
