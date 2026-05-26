@@ -14,6 +14,7 @@ type Configuration struct {
 		KeepAlivePeriodSeconds int
 		ListenAddr             string `default:""`
 		Port                   int    `default:"80"`
+		Title                  string `default:"Gotify"`
 
 		SSL struct {
 			Enabled         bool   `default:"false"`

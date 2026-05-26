@@ -75,6 +75,7 @@ const Layout = observer(() => {
         [paletteMode]
     );
     const {version} = config.get('version');
+    React.useEffect(() => { document.title = config.get('title'); }, []);
     const [navOpen, setNavOpen] = React.useState(false);
     const [showSettings, setShowSettings] = React.useState(false);
 

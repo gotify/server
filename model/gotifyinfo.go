@@ -19,4 +19,9 @@ type GotifyInfo struct {
 	// required: true
 	// example: true
 	Oidc bool `json:"oidc"`
+	// The instance title.
+	//
+	// required: true
+	// example: Gotify
+	Title string `json:"title"`
 }

@@ -114,7 +114,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	userChangeNotifier.OnUserDeleted(pluginManager.RemoveUser)
 	userChangeNotifier.OnUserAdded(pluginManager.InitializeForUserID)
 
-	ui.Register(g, *vInfo, conf.Registration, conf.OIDC.Enabled)
+	ui.Register(g, *vInfo, conf.Registration, conf.OIDC.Enabled, conf.Server.Title)
 
 	if conf.OIDC.Enabled {
 		oidcHandler := api.NewOIDC(conf, db, userChangeNotifier)
@@ -185,7 +185,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	//     schema:
 	//         $ref: "#/definitions/GotifyInfo"
 	g.GET("gotifyinfo", func(ctx *gin.Context) {
-		ctx.JSON(200, &model.GotifyInfo{Version: vInfo.Version, Oidc: conf.OIDC.Enabled, Register: conf.Registration})
+		ctx.JSON(200, &model.GotifyInfo{Version: vInfo.Version, Title: conf.Server.Title, Oidc: conf.OIDC.Enabled, Register: conf.Registration})
 	})
 
 	g.Group("/").Use(authentication.RequireApplicationToken).POST("/message", messageHandler.CreateMessage)

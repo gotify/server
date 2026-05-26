@@ -5,6 +5,7 @@ export interface IConfig {
     register: boolean;
     version: IVersion;
     oidc: boolean;
+    title: string;
 }
 
 declare global {
@@ -18,6 +19,7 @@ const config: IConfig = {
     register: false,
     version: {commit: 'unknown', buildDate: 'unknown', version: 'unknown'},
     oidc: false,
+    title: 'Gotify',
     ...window.config,
 };
 

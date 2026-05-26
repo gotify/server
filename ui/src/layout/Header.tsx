@@ -17,6 +17,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Apps from '@mui/icons-material/Apps';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import React, {CSSProperties} from 'react';
+import * as config from '../config';
 import {Link} from 'react-router-dom';
 import {useMediaQuery} from '@mui/material';
 import {ThemeKey} from './theme';
@@ -108,7 +109,7 @@ const Header = ({
                 <div className={classes.title}>
                     <Link to="/" className={classes.link}>
                         <Typography variant="h5" className={classes.titleName} color="inherit">
-                            Gotify
+                            {config.get('title')}
                         </Typography>
                     </Link>
                     <a

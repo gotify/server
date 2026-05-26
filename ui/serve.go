@@ -19,11 +19,12 @@ type uiConfig struct {
 	Register bool              `json:"register"`
 	Version  model.VersionInfo `json:"version"`
 	OIDC     bool              `json:"oidc"`
+	Title    string            `json:"title"`
 }
 
 // Register registers the ui on the root path.
-func Register(r *gin.Engine, version model.VersionInfo, register, oidcEnabled bool) {
-	uiConfigBytes, err := json.Marshal(uiConfig{Version: version, Register: register, OIDC: oidcEnabled})
+func Register(r *gin.Engine, version model.VersionInfo, register, oidcEnabled bool, title string) {
+	uiConfigBytes, err := json.Marshal(uiConfig{Version: version, Register: register, OIDC: oidcEnabled, Title: title})
 	if err != nil {
 		panic(err)
 	}
