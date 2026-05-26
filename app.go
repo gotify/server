@@ -27,13 +27,21 @@ var (
 )
 
 func main() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339, NoColor: noColor()})
-
 	vInfo := &model.VersionInfo{Version: Version, Commit: Commit, BuildDate: BuildDate}
 	mode.Set(Mode)
 
+	conf, futureLogs := config.Get()
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339, NoColor: noColor(conf.NoColor)}).Level(zerolog.Level(conf.LogLevel))
 	log.Info().Str("version", vInfo.Version).Str("build_date", BuildDate).Msg("Gotify")
-	conf := config.Get()
+
+	exit := false
+	for _, futureLog := range futureLogs {
+		log.WithLevel(futureLog.Level).Msg(futureLog.Msg)
+		exit = exit || futureLog.Level == zerolog.FatalLevel || futureLog.Level == zerolog.PanicLevel
+	}
+	if exit {
+		os.Exit(1)
+	}
 
 	if conf.PluginsDir != "" {
 		if err := os.MkdirAll(conf.PluginsDir, 0o755); err != nil {
@@ -59,9 +67,9 @@ func main() {
 	}
 }
 
-func noColor() bool {
+func noColor(noColorEnv string) bool {
 	// https://no-color.org/
-	if os.Getenv("NO_COLOR") == "1" {
+	if noColorEnv == "1" {
 		return true
 	}
 
