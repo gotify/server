@@ -23,11 +23,6 @@ import (
 )
 
 func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNotifier *UserChangeNotifier) *OIDCAPI {
-	scopes := conf.OIDC.Scopes
-	if len(scopes) == 0 {
-		scopes = []string{"openid", "profile", "email"}
-	}
-
 	cookieKey := make([]byte, 32)
 	if _, err := rand.Read(cookieKey); err != nil {
 		log.Fatal().Err(err).Msg("failed to generate OIDC cookie key")
@@ -46,7 +41,7 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 		conf.OIDC.ClientID,
 		conf.OIDC.ClientSecret,
 		conf.OIDC.RedirectURL,
-		scopes,
+		conf.OIDC.Scopes,
 		opts...,
 	)
 	if err != nil {

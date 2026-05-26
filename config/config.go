@@ -113,6 +113,7 @@ func Get() (*Configuration, []FutureLog) {
 		OIDC: OIDC{
 			UsernameClaim: "preferred_username",
 			AutoRegister:  true,
+			Scopes:        []string{"openid", "profile", "email"},
 		},
 	}
 
