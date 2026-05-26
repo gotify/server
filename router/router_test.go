@@ -385,7 +385,7 @@ func (s *IntegrationSuite) TestAuthentication() {
 
 	req = s.newRequest("POST", "message", `{"message": "backup done", "title": "backup"}`)
 	req.SetBasicAuth("normal", "secret")
-	doRequestAndExpect(s.T(), req, 403, forbiddenJSON)
+	doRequestAndExpect(s.T(), req, 400, `{"error":"Bad Request", "errorCode":400, "errorDescription":"appid is required when not authenticating with an application token"}`)
 
 	req = s.newRequest("GET", "current/user", "")
 	req.SetBasicAuth("normal", "secret")

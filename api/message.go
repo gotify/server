@@ -325,17 +325,20 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 	})
 }
 
-// CreateMessage creates a message, authentication via application-token is required.
+// CreateMessage creates a message, authentication via application token, client token, or basic auth is required.
 // swagger:operation POST /message message createMessage
 //
 // Create a message.
 //
-// __NOTE__: This API ONLY accepts an application token as authentication.
+// __NOTE__: When authenticating with a client token or basic auth, the request body
+// must include "appid" referencing an application owned by the authenticated user.
+// When authenticating with an application token, the application is derived from the
+// token and any "appid" in the body is ignored.
 //
 //	---
 //	consumes: [application/json]
 //	produces: [application/json]
-//	security: [appTokenAuthorizationHeader: [], appTokenHeader: [], appTokenQuery: []]
+//	security: [appTokenAuthorizationHeader: [], appTokenHeader: [], appTokenQuery: [], clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 //	parameters:
 //	- name: body
 //	  in: body
@@ -362,26 +365,44 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 //	        $ref: "#/definitions/Error"
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	message := model.MessageExternal{}
-	if err := ctx.Bind(&message); err == nil {
-		application := auth.GetApplication(ctx)
-		message.ApplicationID = application.ID
-		if strings.TrimSpace(message.Title) == "" {
-			message.Title = application.Name
-		}
+	if err := ctx.Bind(&message); err != nil {
+		return
+	}
 
-		if message.Priority == nil {
-			message.Priority = &application.DefaultPriority
-		}
-
-		message.Date = timeNow()
-		message.ID = 0
-		msgInternal := toInternalMessage(&message)
-		if success := successOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
+	app := auth.GetApplication(ctx)
+	if app == nil {
+		if message.ApplicationID == 0 {
+			ctx.AbortWithError(400, errors.New("appid is required when not authenticating with an application token"))
 			return
 		}
-		a.Notifier.Notify(auth.GetUserID(ctx), toExternalMessage(msgInternal))
-		ctx.JSON(200, toExternalMessage(msgInternal))
+		fetchedApp, err := a.DB.GetApplicationByID(message.ApplicationID)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if fetchedApp == nil || fetchedApp.UserID != auth.GetUserID(ctx) {
+			ctx.AbortWithError(400, errors.New("appid not found"))
+			return
+		}
+		app = fetchedApp
 	}
+
+	message.ApplicationID = app.ID
+	if strings.TrimSpace(message.Title) == "" {
+		message.Title = app.Name
+	}
+
+	if message.Priority == nil {
+		message.Priority = &app.DefaultPriority
+	}
+
+	message.Date = timeNow()
+	message.ID = 0
+	msgInternal := toInternalMessage(&message)
+	if success := successOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
+		return
+	}
+	a.Notifier.Notify(auth.GetUserID(ctx), toExternalMessage(msgInternal))
+	ctx.JSON(200, toExternalMessage(msgInternal))
 }
 
 func toInternalMessage(msg *model.MessageExternal) *model.Message {

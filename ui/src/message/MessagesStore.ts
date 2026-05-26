@@ -141,15 +141,14 @@ export class MessagesStore {
         priority: number
     ): Promise<void> => {
         const app = this.appStore.getByID(appId);
-        const payload: Pick<IMessage, 'title' | 'message' | 'priority'> = {
+        const payload: Pick<IMessage, 'appid' | 'title' | 'message' | 'priority'> = {
+            appid: appId,
             message,
             priority,
             title,
         };
 
-        await axios.post(`${config.get('url')}message`, payload, {
-            headers: {'X-Gotify-Key': app.token},
-        });
+        await axios.post(`${config.get('url')}message`, payload);
         this.snack(`Message sent to ${app.name}`);
     };
 

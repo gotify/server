@@ -188,7 +188,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		ctx.JSON(200, &model.GotifyInfo{Version: vInfo.Version, Oidc: conf.OIDC.Enabled, Register: conf.Registration})
 	})
 
-	g.Group("/").Use(authentication.RequireApplicationToken).POST("/message", messageHandler.CreateMessage)
+	g.Group("/").Use(authentication.RequireApplicationOrClient).POST("/message", messageHandler.CreateMessage)
 
 	clientAuth := g.Group("")
 	{
