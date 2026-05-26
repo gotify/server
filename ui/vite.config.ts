@@ -2,6 +2,12 @@ import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 import babel from '@rolldown/plugin-babel';
 
+try {
+    process.loadEnvFile('../gotify-server.env');
+} catch {
+    // file is optional
+}
+
 const GOTIFY_SERVER_PORT = process.env.GOTIFY_SERVER_PORT ?? '80';
 
 function decoratorPreset(options: Record<string, unknown>) {
