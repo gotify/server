@@ -77,7 +77,7 @@ type PluginV1Instance struct {
 }
 
 // DefaultConfig see papiv1.Configurer.
-func (c *PluginV1Instance) DefaultConfig() interface{} {
+func (c *PluginV1Instance) DefaultConfig() any {
 	if c.configurer != nil {
 		return c.configurer.DefaultConfig()
 	}
@@ -85,7 +85,7 @@ func (c *PluginV1Instance) DefaultConfig() interface{} {
 }
 
 // ValidateAndSetConfig see papiv1.Configurer.
-func (c *PluginV1Instance) ValidateAndSetConfig(config interface{}) error {
+func (c *PluginV1Instance) ValidateAndSetConfig(config any) error {
 	if c.configurer != nil {
 		return c.configurer.ValidateAndSetConfig(config)
 	}

@@ -3,6 +3,7 @@ package mock
 import (
 	"errors"
 	"net/url"
+	"slices"
 
 	"github.com/gin-gonic/gin"
 
@@ -119,10 +120,8 @@ func (c *PluginInstance) RegisterWebhook(basePath string, mux *gin.RouterGroup) 
 // SetCapability changes the capability of this plugin
 func (c *PluginInstance) SetCapability(p compat.Capability, enable bool) {
 	if enable {
-		for _, cap := range c.capabilities {
-			if cap == p {
-				return
-			}
+		if slices.Contains(c.capabilities, p) {
+			return
 		}
 		c.capabilities = append(c.capabilities, p)
 	} else {
@@ -143,7 +142,7 @@ func (c *PluginInstance) Supports() compat.Capabilities {
 }
 
 // DefaultConfig implements compat.Configuror
-func (c *PluginInstance) DefaultConfig() interface{} {
+func (c *PluginInstance) DefaultConfig() any {
 	return &PluginConfig{
 		TestKey:    "default",
 		IsNotValid: false,
@@ -151,7 +150,7 @@ func (c *PluginInstance) DefaultConfig() interface{} {
 }
 
 // ValidateAndSetConfig implements compat.Configuror
-func (c *PluginInstance) ValidateAndSetConfig(config interface{}) error {
+func (c *PluginInstance) ValidateAndSetConfig(config any) error {
 	if (config.(*PluginConfig)).IsNotValid {
 		return errors.New("conf is not valid")
 	}
@@ -170,7 +169,7 @@ func (c *PluginInstance) TriggerMessage() {
 		Title:    "test message",
 		Message:  "test",
 		Priority: 2,
-		Extras: map[string]interface{}{
+		Extras: map[string]any{
 			"test::string": "test",
 		},
 	})

@@ -10,14 +10,11 @@ import (
 	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/decaymap"
 	"github.com/gotify/server/v2/mode"
-	"github.com/gotify/server/v2/test"
 	"github.com/gotify/server/v2/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
 )
-
-var origGenClientToken = generateClientToken
 
 func TestOIDCSuite(t *testing.T) {
 	suite.Run(t, new(OIDCSuite))
@@ -144,19 +141,17 @@ func (s *OIDCSuite) Test_ResolveUser_CustomClaim() {
 // --- createClient ---
 
 func (s *OIDCSuite) Test_CreateClient() {
-	generateClientToken = test.Tokens("Ctesttoken00001")
-	defer func() { generateClientToken = origGenClientToken }()
-
 	s.db.NewUser(1)
 	client, err := s.a.createClient("MyPhone", 1)
 
 	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), "MyPhone", client.Name)
-	assert.Equal(s.T(), "Ctesttoken00001", client.Token)
+	tokenParsed, err := auth.ParseEnhancedToken(client.Token)
+	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), uint(1), client.UserID)
 	assert.Equal(s.T(), uint(auth.CookieMaxAge), client.ExpiresAfterInactivitySeconds)
 
-	dbClient, err := s.db.GetClientByToken("Ctesttoken00001")
+	dbClient, err := s.db.GetClientByToken(tokenParsed.PublicForm())
 	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), dbClient)
 }

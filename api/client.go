@@ -150,9 +150,10 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 func (a *ClientAPI) CreateClient(ctx *gin.Context) {
 	clientParams := ClientParams{}
 	if err := ctx.Bind(&clientParams); err == nil {
+		tokenPublic, tokenPrivate := generateClientToken()
 		client := model.Client{
 			Name:   clientParams.Name,
-			Token:  auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
+			Token:  tokenPublic,
 			UserID: auth.GetUserID(ctx),
 		}
 		if clientParams.ExpiresAfterInactivitySeconds != nil {
@@ -162,6 +163,7 @@ func (a *ClientAPI) CreateClient(ctx *gin.Context) {
 		if success := successOrAbort(ctx, 500, a.DB.CreateClient(&client)); !success {
 			return
 		}
+		client.Token = tokenPrivate
 		ctx.JSON(200, client)
 	}
 }
@@ -320,9 +322,4 @@ func (a *ClientAPI) ElevateClient(ctx *gin.Context) {
 
 		ctx.Status(204)
 	})
-}
-
-func (a *ClientAPI) clientExists(token string) bool {
-	client, _ := a.DB.GetClientByToken(token)
-	return client != nil
 }

@@ -151,6 +151,13 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 		if token == "" {
 			return authStateSkip, nil
 		}
+		if strings.HasPrefix(token, enhancedTokenPrefix) {
+			complexToken, err := ParseEnhancedToken(token)
+			if err != nil || !complexToken.ValidateTimestamp(timeNow().Unix()) {
+				return authStateSkip, err
+			}
+			token = complexToken.PublicForm()
+		}
 		client, err := a.DB.GetClientByToken(token)
 		if err != nil {
 			return authStateSkip, err
@@ -166,7 +173,7 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 				return authStateSkip, err
 			}
 			if isCookie {
-				SetCookie(ctx.Writer, client.Token, CookieMaxAge, a.SecureCookie)
+				SetCookie(ctx.Writer, token, CookieMaxAge, a.SecureCookie)
 			}
 		}
 
@@ -185,6 +192,13 @@ func (a *Auth) handleApplication(ctx *gin.Context) (authState, error) {
 	if token == "" {
 		return authStateSkip, nil
 	}
+	if strings.HasPrefix(token, enhancedTokenPrefix) {
+		complexToken, err := ParseEnhancedToken(token)
+		if err != nil || !complexToken.ValidateTimestamp(timeNow().Unix()) {
+			return authStateSkip, err
+		}
+		token = complexToken.PublicForm()
+	}
 	app, err := a.DB.GetApplicationByToken(token)
 	if err != nil {
 		return authStateSkip, err
@@ -200,7 +214,7 @@ func (a *Auth) handleApplication(ctx *gin.Context) (authState, error) {
 			return authStateSkip, err
 		}
 		if isCookie {
-			SetCookie(ctx.Writer, app.Token, CookieMaxAge, a.SecureCookie)
+			SetCookie(ctx.Writer, token, CookieMaxAge, a.SecureCookie)
 		}
 	}
 

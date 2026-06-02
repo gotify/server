@@ -25,7 +25,7 @@ func (c *Plugin) Disable() error {
 }
 
 // NewGotifyPluginInstance creates a plugin instance for a user context.
-func NewGotifyPluginInstance(ctx plugin.UserContext) interface{} {
+func NewGotifyPluginInstance(ctx plugin.UserContext) any {
 	return &Plugin{}
 }
 

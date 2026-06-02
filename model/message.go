@@ -56,7 +56,7 @@ type MessageExternal struct {
 	// These namespaces are reserved and might be used in the official clients: gotify android ios web server client. Do not use them for other purposes.
 	//
 	// example: {"home::appliances::thermostat::change_temperature":{"temperature":23},"home::appliances::lighting::on":{"brightness":15}}
-	Extras map[string]interface{} `form:"-" query:"-" json:"extras,omitempty"`
+	Extras map[string]any `form:"-" query:"-" json:"extras,omitempty"`
 	// The date the message was created.
 	//
 	// read only: true

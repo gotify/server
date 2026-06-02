@@ -53,9 +53,9 @@ func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
 
 	actual := &model.PagedMessages{
 		Paging: model.Paging{Limit: 5, Since: 122, Size: 5, Next: "http://example.com/message?limit=5&since=122"},
-		Messages: []*model.MessageExternal{{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: intPtr(4), Extras: map[string]interface{}{
+		Messages: []*model.MessageExternal{{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: intPtr(4), Extras: map[string]any{
 			"test::string": "string",
-			"test::array":  []interface{}{1, 2, 3},
+			"test::array":  []any{1, 2, 3},
 			"test::int":    1,
 			"test::float":  0.5,
 		}}},
@@ -461,10 +461,10 @@ func (s *MessageSuite) Test_CreateMessage_WithExtras() {
 		Title:         "msg with extras",
 		Date:          t,
 		Priority:      intPtr(0),
-		Extras: map[string]interface{}{
-			"gotify::test": map[string]interface{}{
+		Extras: map[string]any{
+			"gotify::test": map[string]any{
 				"string": "test",
-				"array":  []interface{}{float64(1), float64(2), float64(3)},
+				"array":  []any{float64(1), float64(2), float64(3)},
 				"int":    float64(1),
 				"float":  float64(0.5),
 			},

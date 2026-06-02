@@ -433,7 +433,7 @@ func toExternalMessage(msg *model.Message) *model.MessageExternal {
 		Date:          msg.Date,
 	}
 	if len(msg.Extras) != 0 {
-		res.Extras = make(map[string]interface{})
+		res.Extras = make(map[string]any)
 		json.Unmarshal(msg.Extras, &res.Extras)
 	}
 	return res

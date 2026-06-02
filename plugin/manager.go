@@ -103,16 +103,6 @@ func NewManager(db Database, directory string, mux *gin.RouterGroup, notifier No
 // ErrAlreadyEnabledOrDisabled is returned on SetPluginEnabled call when a plugin is already enabled or disabled.
 var ErrAlreadyEnabledOrDisabled = errors.New("config is already enabled/disabled")
 
-func (m *Manager) applicationExists(token string) bool {
-	app, _ := m.db.GetApplicationByToken(token)
-	return app != nil
-}
-
-func (m *Manager) pluginConfExists(token string) bool {
-	pluginConf, _ := m.db.GetPluginConfByToken(token)
-	return pluginConf != nil
-}
-
 // SetPluginEnabled sets the plugins enabled state.
 func (m *Manager) SetPluginEnabled(pluginID uint, enabled bool) error {
 	instance, err := m.Instance(pluginID)
@@ -403,14 +393,15 @@ func (m *Manager) createPluginConf(instance compat.PluginInstance, info compat.I
 	pluginConf := &model.PluginConf{
 		UserID:     userID,
 		ModulePath: info.ModulePath,
-		Token:      auth.GenerateNotExistingToken(auth.GeneratePluginToken, m.pluginConfExists),
+		Token:      auth.GeneratePluginToken(),
 	}
 	if compat.HasSupport(instance, compat.Configurer) {
 		pluginConf.Config, _ = yaml.Marshal(instance.DefaultConfig())
 	}
 	if compat.HasSupport(instance, compat.Messenger) {
+		tokenPublic, _ := auth.GenerateApplicationToken()
 		app := &model.Application{
-			Token:       auth.GenerateNotExistingToken(auth.GenerateApplicationToken, m.applicationExists),
+			Token:       tokenPublic,
 			Name:        info.String(),
 			UserID:      userID,
 			Internal:    true,

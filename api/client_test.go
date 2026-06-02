@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -9,17 +11,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/test"
 	"github.com/gotify/server/v2/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-)
-
-var (
-	firstClientToken  = "Caaaaaaaaaaaaaa"
-	secondClientToken = "Cbbbbbbbbbbbbbb"
 )
 
 func TestClientSuite(t *testing.T) {
@@ -35,11 +33,7 @@ type ClientSuite struct {
 	notified bool
 }
 
-var originalGenerateClientToken func() string
-
 func (s *ClientSuite) BeforeTest(suiteName, testName string) {
-	originalGenerateClientToken = generateClientToken
-	generateClientToken = test.Tokens(firstClientToken, secondClientToken)
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())
@@ -54,7 +48,6 @@ func (s *ClientSuite) notify(uint, string) {
 }
 
 func (s *ClientSuite) AfterTest(suiteName, testName string) {
-	generateClientToken = originalGenerateClientToken
 	s.db.Close()
 }
 
@@ -71,10 +64,11 @@ func (s *ClientSuite) Test_CreateClient_mapAllParameters() {
 
 	s.a.CreateClient(s.ctx)
 
-	expected := &model.Client{ID: 1, Token: firstClientToken, UserID: 5, Name: "custom_name", CreatedAt: testdb.Now}
+	expected := &model.Client{ID: 1, UserID: 5, Name: "custom_name", CreatedAt: testdb.Now}
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	if clients, err := s.db.GetClientsByUser(5); assert.NoError(s.T(), err) {
-		assert.Contains(s.T(), clients, expected)
+	if client, err := s.db.GetClientByID(1); assert.NoError(s.T(), err) {
+		expected.Token = client.Token
+		assert.Equal(s.T(), expected, client)
 	}
 }
 
@@ -85,11 +79,12 @@ func (s *ClientSuite) Test_CreateClient_ignoresReadOnlyPropertiesInParams() {
 	s.withFormData("name=myclient&ID=45&Token=12341234&UserID=333")
 
 	s.a.CreateClient(s.ctx)
-	expected := &model.Client{ID: 1, UserID: 5, Token: firstClientToken, Name: "myclient", CreatedAt: testdb.Now}
+	expected := &model.Client{ID: 1, UserID: 5, Name: "myclient", CreatedAt: testdb.Now}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	if clients, err := s.db.GetClientsByUser(5); assert.NoError(s.T(), err) {
-		assert.Contains(s.T(), clients, expected)
+	if client, err := s.db.GetClientByID(1); assert.NoError(s.T(), err) {
+		expected.Token = client.Token
+		assert.Equal(s.T(), expected, client)
 	}
 }
 
@@ -129,22 +124,44 @@ func (s *ClientSuite) Test_CreateClient_returnsClientWithID() {
 
 	s.a.CreateClient(s.ctx)
 
-	expected := &model.Client{ID: 1, Token: firstClientToken, Name: "custom_name", CreatedAt: testdb.Now}
+	expected := &model.Client{ID: 1, Name: "custom_name", CreatedAt: testdb.Now}
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	test.BodyEquals(s.T(), expected, s.recorder)
+	bodyBytes, err := io.ReadAll(s.recorder.Body)
+	assert.Nil(s.T(), err)
+	var got model.Client
+	assert.Nil(s.T(), json.Unmarshal(bodyBytes, &got))
+	expected.Token = got.Token
+	assert.Equal(s.T(), expected, &got)
+	tokenParsed, err := auth.ParseEnhancedToken(got.Token)
+	assert.Nil(s.T(), err)
+	if client, err := s.db.GetClientByID(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), client.Token, tokenParsed.PublicForm())
+	}
 }
 
 func (s *ClientSuite) Test_CreateClient_withExistingToken() {
-	s.db.User(5).ClientWithToken(1, firstClientToken)
+	firstClientTokenPublic, _ := generateClientToken()
+	s.db.User(5).ClientWithToken(1, firstClientTokenPublic)
 
 	test.WithUser(s.ctx, 5)
 	s.withFormData("name=custom_name")
 
 	s.a.CreateClient(s.ctx)
 
-	expected := &model.Client{ID: 2, Token: secondClientToken, Name: "custom_name", CreatedAt: testdb.Now}
+	expected := &model.Client{ID: 2, Name: "custom_name", CreatedAt: testdb.Now}
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	test.BodyEquals(s.T(), expected, s.recorder)
+	bodyBytes, err := io.ReadAll(s.recorder.Body)
+	assert.Nil(s.T(), err)
+	var got model.Client
+	assert.Nil(s.T(), json.Unmarshal(bodyBytes, &got))
+	expected.Token = got.Token
+	assert.Equal(s.T(), expected, &got)
+	tokenParsed, err := auth.ParseEnhancedToken(got.Token)
+	assert.Nil(s.T(), err)
+	if client, err := s.db.GetClientByID(2); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), client.Token, tokenParsed.PublicForm())
+		assert.NotEqual(s.T(), tokenParsed.PublicForm(), firstClientTokenPublic)
+	}
 }
 
 func (s *ClientSuite) Test_GetClients() {
@@ -165,7 +182,7 @@ func (s *ClientSuite) Test_DeleteClient_expectNotFound() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
-	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
+	s.ctx.Request = httptest.NewRequest("DELETE", "/token/", nil)
 	s.ctx.AddParam("id", "8")
 
 	s.a.DeleteClient(s.ctx)
@@ -177,7 +194,7 @@ func (s *ClientSuite) Test_DeleteClient() {
 	s.db.User(5).Client(8)
 
 	test.WithUser(s.ctx, 5)
-	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstClientToken, nil)
+	s.ctx.Request = httptest.NewRequest("DELETE", "/token/", nil)
 	s.ctx.AddParam("id", "8")
 
 	assert.False(s.T(), s.notified)
@@ -204,7 +221,7 @@ func (s *ClientSuite) Test_CreateClient_acceptsExpiresAfterInactivitySeconds() {
 }
 
 func (s *ClientSuite) Test_UpdateClient_updatesExpiresAfterInactivitySeconds() {
-	s.db.User(5).NewClientWithToken(1, firstClientToken)
+	s.db.User(5).Client(1)
 
 	test.WithUser(s.ctx, 5)
 	s.withFormData("name=firefox&expiresAfterInactivitySeconds=7200")
@@ -218,7 +235,8 @@ func (s *ClientSuite) Test_UpdateClient_updatesExpiresAfterInactivitySeconds() {
 }
 
 func (s *ClientSuite) Test_UpdateClient_expectSuccess() {
-	s.db.User(5).NewClientWithToken(1, firstClientToken)
+	firstClientTokenPublic, _ := generateClientToken()
+	s.db.User(5).ClientWithToken(1, firstClientTokenPublic)
 
 	test.WithUser(s.ctx, 5)
 	s.withFormData("name=firefox")
@@ -227,7 +245,7 @@ func (s *ClientSuite) Test_UpdateClient_expectSuccess() {
 
 	expected := &model.Client{
 		ID:        1,
-		Token:     firstClientToken,
+		Token:     firstClientTokenPublic,
 		UserID:    5,
 		Name:      "firefox",
 		CreatedAt: testdb.Now,

@@ -76,9 +76,10 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 	}
 
 	elevatedUntil := time.Now().Add(model.DefaultElevationDuration)
+	tokenPublic, tokenPrivate := generateClientToken()
 	client := model.Client{
 		Name:                          clientParams.Name,
-		Token:                         auth.GenerateNotExistingToken(generateClientToken, a.clientExists),
+		Token:                         tokenPublic,
 		UserID:                        user.ID,
 		ElevatedUntil:                 &elevatedUntil,
 		ExpiresAfterInactivitySeconds: auth.CookieMaxAge,
@@ -87,7 +88,7 @@ func (a *SessionAPI) Login(ctx *gin.Context) {
 		return
 	}
 
-	auth.SetCookie(ctx.Writer, client.Token, auth.CookieMaxAge, a.SecureCookie)
+	auth.SetCookie(ctx.Writer, tokenPrivate, auth.CookieMaxAge, a.SecureCookie)
 
 	ctx.JSON(200, &model.CurrentUserExternal{
 		ID:            user.ID,
@@ -137,9 +138,4 @@ func (a *SessionAPI) Logout(ctx *gin.Context) {
 	}
 
 	ctx.Status(200)
-}
-
-func (a *SessionAPI) clientExists(token string) bool {
-	client, _ := a.DB.GetClientByToken(token)
-	return client != nil
 }
