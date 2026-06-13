@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gotify/server/v2/config"
+	"github.com/gotify/server/v2/config/migrate"
 	"github.com/gotify/server/v2/database"
 	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
@@ -60,6 +61,14 @@ func run(args []string, stdout, stderr io.Writer) int {
 		if ok {
 			fmt.Fprintln(stdout, b)
 		}
+		return 0
+	case "migrate-config":
+		content, err := migrate.Config(fs.Arg(1))
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintln(stdout, content)
 		return 0
 	default:
 		if command != "" {
