@@ -1,7 +1,12 @@
 package main
 
 import (
+	"errors"
+	"flag"
+	"fmt"
+	"io"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/gotify/server/v2/config"
@@ -27,7 +32,45 @@ var (
 )
 
 func main() {
+	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
+}
+
+func run(args []string, stdout, stderr io.Writer) int {
 	vInfo := &model.VersionInfo{Version: Version, Commit: Commit, BuildDate: BuildDate}
+	fs := flag.NewFlagSet("gotify", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	fs.Usage = func() { printUsage(stderr) }
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return 0
+		}
+		return 2
+	}
+
+	command := fs.Arg(0)
+	switch command {
+	case "serve", "":
+		return serve(vInfo)
+	case "version":
+		fmt.Fprintln(stdout, "Version:", vInfo.Version)
+		fmt.Fprintln(stdout, "Commit:", vInfo.Commit)
+		fmt.Fprintln(stdout, "Build Date:", vInfo.BuildDate)
+		fmt.Fprintln(stdout, "Go Build Info:")
+		b, ok := debug.ReadBuildInfo()
+		if ok {
+			fmt.Fprintln(stdout, b)
+		}
+		return 0
+	default:
+		if command != "" {
+			fmt.Fprintf(stderr, "gotify: unknown command %q\n\n", command)
+		}
+		printUsage(stderr)
+		return 2
+	}
+}
+
+func serve(vInfo *model.VersionInfo) int {
 	mode.Set(Mode)
 
 	conf, futureLogs := config.Get()
@@ -40,21 +83,24 @@ func main() {
 		exit = exit || futureLog.Level == zerolog.FatalLevel || futureLog.Level == zerolog.PanicLevel
 	}
 	if exit {
-		os.Exit(1)
+		return 1
 	}
 
 	if conf.PluginsDir != "" {
 		if err := os.MkdirAll(conf.PluginsDir, 0o755); err != nil {
-			panic(err)
+			log.Error().Err(err).Str("dir", conf.PluginsDir).Msg("Cannot create plugins directory")
+			return 1
 		}
 	}
 	if err := os.MkdirAll(conf.UploadedImagesDir, 0o755); err != nil {
-		panic(err)
+		log.Error().Err(err).Str("dir", conf.UploadedImagesDir).Msg("Cannot create uploaded images directory")
+		return 1
 	}
 
 	db, err := database.New(conf.Database.Dialect, conf.Database.Connection, conf.DefaultUser.Name, conf.DefaultUser.Pass, conf.PassStrength, true, time.Now)
 	if err != nil {
-		panic(err)
+		log.Error().Err(err).Msg("Cannot initialize database")
+		return 1
 	}
 	defer db.Close()
 
@@ -63,8 +109,20 @@ func main() {
 
 	if err := runner.Run(engine, conf); err != nil {
 		log.Error().Err(err).Msg("Server error")
-		os.Exit(1)
+		return 1
 	}
+	return 0
+}
+
+func printUsage(w io.Writer) {
+	fmt.Fprint(w, `Usage: gotify [flags] <command> [arguments]
+
+Commands:
+  serve                       Start the Gotify server.
+  migrate-config <file.yml>   Convert an old YAML config file to the new env
+                              format and print it to stdout.
+  version                     Show version information
+`)
 }
 
 func noColor(noColorEnv string) bool {
