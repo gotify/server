@@ -1,6 +1,7 @@
 package config
 
 const (
+	EnvLogLevel                         = "GOTIFY_LOGLEVEL"
 	EnvServerKeepAlivePeriodSeconds     = "GOTIFY_SERVER_KEEPALIVEPERIODSECONDS"
 	EnvServerListenAddr                 = "GOTIFY_SERVER_LISTENADDR"
 	EnvServerPort                       = "GOTIFY_SERVER_PORT"

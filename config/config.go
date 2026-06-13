@@ -125,6 +125,8 @@ func Get() (*Configuration, []FutureLog) {
 		}
 	}
 
+	add(parseLogLevel(&c.LogLevel, EnvLogLevel))
+
 	add(parseInt(&c.Server.KeepAlivePeriodSeconds, EnvServerKeepAlivePeriodSeconds))
 	add(parseString(&c.Server.ListenAddr, EnvServerListenAddr))
 	add(parseInt(&c.Server.Port, EnvServerPort))

@@ -101,3 +101,14 @@ func parseMap(target *map[string]string, env string) error {
 	*target = out
 	return nil
 }
+
+func parseLogLevel(target *LogLevel, env string) error {
+	raw, ok, err := lookupEnv(env)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	return target.Decode(raw)
+}
