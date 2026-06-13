@@ -64,7 +64,7 @@ export const clearField = async (element: ElementHandle | Page, selector: string
     await elementHandle.click();
     await elementHandle.focus();
     // click three times to select all
-    await elementHandle.click({clickCount: 3});
+    await elementHandle.click({count: 3});
     await elementHandle.press('Backspace');
 };
 
