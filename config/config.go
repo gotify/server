@@ -59,14 +59,15 @@ type DefaultUser struct {
 }
 
 type OIDC struct {
-	Enabled       bool
-	Issuer        string
-	ClientID      string
-	ClientSecret  string
-	UsernameClaim string
-	RedirectURL   string
-	AutoRegister  bool
-	Scopes        []string
+	Enabled        bool
+	Issuer         string
+	ClientID       string
+	ClientSecret   string
+	UsernameClaim  string
+	RedirectURL    string
+	AutoRegister   bool
+	LinkByUsername bool
+	Scopes         []string
 }
 
 type Configuration struct {
@@ -174,6 +175,7 @@ func Get() (*Configuration, []FutureLog) {
 	add(parseString(&c.OIDC.UsernameClaim, EnvOIDCUsernameClaim))
 	add(parseString(&c.OIDC.RedirectURL, EnvOIDCRedirectURL))
 	add(parseBool(&c.OIDC.AutoRegister, EnvOIDCAutoRegister))
+	add(parseBool(&c.OIDC.LinkByUsername, EnvOIDCLinkByUsername))
 	add(parseList(&c.OIDC.Scopes, EnvOIDCScopes))
 
 	add(parseString(&c.NoColor, EnvNoColor))

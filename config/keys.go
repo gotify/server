@@ -39,6 +39,7 @@ const (
 	EnvOIDCUsernameClaim                = "GOTIFY_OIDC_USERNAMECLAIM"
 	EnvOIDCRedirectURL                  = "GOTIFY_OIDC_REDIRECTURL"
 	EnvOIDCAutoRegister                 = "GOTIFY_OIDC_AUTOREGISTER"
+	EnvOIDCLinkByUsername               = "GOTIFY_OIDC_LINK_BY_USERNAME"
 	EnvOIDCScopes                       = "GOTIFY_OIDC_SCOPES"
 	EnvNoColor                          = "NOCOLOR"
 )
