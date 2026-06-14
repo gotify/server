@@ -175,6 +175,8 @@ func (s *ClientSuite) Test_GetClients() {
 	s.a.GetClients(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	first.Token = ""
+	second.Token = ""
 	test.BodyEquals(s.T(), []*model.Client{first, second}, s.recorder)
 }
 

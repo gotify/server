@@ -278,6 +278,8 @@ func (s *ApplicationSuite) Test_GetApplications() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	first.Image = "static/defaultapp.png"
 	second.Image = "static/defaultapp.png"
+	first.Token = ""
+	second.Token = ""
 	test.BodyEquals(s.T(), []*model.Application{first, second}, s.recorder)
 }
 
@@ -296,6 +298,8 @@ func (s *ApplicationSuite) Test_GetApplications_WithImage() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	first.Image = "image/abcd.jpg"
 	second.Image = "static/defaultapp.png"
+	first.Token = ""
+	second.Token = ""
 	test.BodyEquals(s.T(), []*model.Application{first, second}, s.recorder)
 }
 

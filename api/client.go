@@ -200,6 +200,7 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 	}
 	now := time.Now()
 	for _, client := range clients {
+		client.Token = ""
 		if client.ElevatedUntil != nil && !now.Before(*client.ElevatedUntil) {
 			client.ElevatedUntil = nil
 		}

@@ -148,6 +148,7 @@ func (a *Auth) handleUser(checks ...func(*model.User) (authState, error)) func(c
 func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) func(ctx *gin.Context) (authState, error) {
 	return func(ctx *gin.Context) (authState, error) {
 		token, isCookie := a.readTokenFromRequest(ctx)
+		originalToken := token
 		if token == "" {
 			return authStateSkip, nil
 		}
@@ -173,7 +174,7 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 				return authStateSkip, err
 			}
 			if isCookie {
-				SetCookie(ctx.Writer, token, CookieMaxAge, a.SecureCookie)
+				SetCookie(ctx.Writer, originalToken, CookieMaxAge, a.SecureCookie)
 			}
 		}
 
@@ -189,6 +190,7 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 
 func (a *Auth) handleApplication(ctx *gin.Context) (authState, error) {
 	token, isCookie := a.readTokenFromRequest(ctx)
+	originalToken := token
 	if token == "" {
 		return authStateSkip, nil
 	}
@@ -214,7 +216,7 @@ func (a *Auth) handleApplication(ctx *gin.Context) (authState, error) {
 			return authStateSkip, err
 		}
 		if isCookie {
-			SetCookie(ctx.Writer, token, CookieMaxAge, a.SecureCookie)
+			SetCookie(ctx.Writer, originalToken, CookieMaxAge, a.SecureCookie)
 		}
 	}
 

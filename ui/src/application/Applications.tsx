@@ -26,7 +26,6 @@ import {CSS} from '@dnd-kit/utilities';
 
 import ConfirmDialog from '../common/ConfirmDialog';
 import DefaultPage from '../common/DefaultPage';
-import CopyableSecret from '../common/CopyableSecret';
 import {AddApplicationDialog} from './AddApplicationDialog';
 import * as config from '../config';
 import {UpdateApplicationDialog} from './UpdateApplicationDialog';
@@ -124,7 +123,6 @@ const Applications = observer(() => {
                                     <TableCell padding="none" style={{width: 0}} />
                                     <TableCell padding="checkbox" style={{width: 80}} />
                                     <TableCell>Name</TableCell>
-                                    <TableCell>Token</TableCell>
                                     <TableCell>Description</TableCell>
                                     <TableCell>Priority</TableCell>
                                     <TableCell>Last Used</TableCell>
@@ -255,9 +253,6 @@ const Row = ({app, fDelete, fUpload, fDeleteImage, fEdit}: IRowProps) => {
                 </div>
             </TableCell>
             <TableCell>{app.name}</TableCell>
-            <TableCell>
-                <CopyableSecret value={app.token} style={{display: 'flex', alignItems: 'center'}} />
-            </TableCell>
             <TableCell>{app.description}</TableCell>
             <TableCell>{app.defaultPriority}</TableCell>
             <TableCell>

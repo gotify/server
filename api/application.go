@@ -143,6 +143,7 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 		return
 	}
 	for _, app := range apps {
+		app.Token = ""
 		withResolvedImage(app)
 	}
 	ctx.JSON(200, apps)
