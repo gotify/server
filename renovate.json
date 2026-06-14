@@ -8,6 +8,7 @@
   "labels": [
     "dependencies"
   ],
+  "rebaseWhen": "never",
   "reviewersFromCodeOwners": true,
   "enabledManagers": [
     "npm",
