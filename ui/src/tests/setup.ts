@@ -123,7 +123,7 @@ const buildGoExecutable = (filename: string): Promise<void> => {
 };
 
 const startGotify = (filename: string, port: number, pluginDir: string): ChildProcess => {
-    const gotify = spawn(filename, [], {
+    const gotify = spawn(filename, ['serve'], {
         env: {
             GOTIFY_SERVER_PORT: '' + port,
             GOTIFY_DATABASE_CONNECTION: 'file::memory:?mode=memory&cache=shared',
