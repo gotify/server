@@ -35,7 +35,11 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 	}
 	cookieHandler := httphelper.NewCookieHandler(cookieKey, cookieKey, cookieHandlerOpt...)
 
-	opts := []rp.Option{rp.WithCookieHandler(cookieHandler), rp.WithPKCE(cookieHandler)}
+	opts := []rp.Option{
+		rp.WithCookieHandler(cookieHandler),
+		rp.WithPKCE(cookieHandler),
+		rp.WithSigningAlgsFromDiscovery(),
+	}
 
 	provider, err := rp.NewRelyingPartyOIDC(
 		context.Background(),
