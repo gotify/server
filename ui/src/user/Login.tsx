@@ -85,6 +85,7 @@ const Login = observer(() => {
                         <>
                             <Divider style={{marginTop: 15, marginBottom: 15}}>or</Divider>
                             <Button
+                                id="oidc-login"
                                 component="a"
                                 href={
                                     config.get('url') +
