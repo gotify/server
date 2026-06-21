@@ -53,6 +53,8 @@ describe('Elevation', () => {
             await page.waitForSelector($clientDialog.selector());
             await page.type($clientDialog.input('.name'), 'test-client');
             await page.click($clientDialog.button('.create'));
+            await page.waitForSelector($clientDialog.button('.finish'));
+            await page.click($clientDialog.button('.finish'));
             await waitToDisappear(page, $clientDialog.selector());
             await page.waitForSelector($clientTable.row(2));
             expect(await count(page, $clientTable.rows())).toBe(2);
