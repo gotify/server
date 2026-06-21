@@ -73,7 +73,6 @@ export const newTest = async (
     const browser = await puppeteer.launch({
         headless: process.env.CI === 'true',
         args: [`--window-size=1920,1080`, '--no-sandbox'],
-        executablePath: '/usr/bin/chromium',
     });
     const page = await browser.newPage();
     await page.setViewport({width: 1920, height: 1080});

@@ -155,7 +155,7 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 		if strings.HasPrefix(token, enhancedTokenPrefix) {
 			complexToken, err := ParseEnhancedToken(token)
 			if err != nil || !complexToken.ValidateTimestamp(timeNow().Unix()) {
-				return authStateSkip, err
+				return authStateSkip, nil
 			}
 			token = complexToken.PublicForm()
 		}
@@ -197,7 +197,7 @@ func (a *Auth) handleApplication(ctx *gin.Context) (authState, error) {
 	if strings.HasPrefix(token, enhancedTokenPrefix) {
 		complexToken, err := ParseEnhancedToken(token)
 		if err != nil || !complexToken.ValidateTimestamp(timeNow().Unix()) {
-			return authStateSkip, err
+			return authStateSkip, nil
 		}
 		token = complexToken.PublicForm()
 	}

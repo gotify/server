@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -322,7 +321,6 @@ func (s *IntegrationSuite) TestSendMessage() {
 	token := &model.Application{}
 	json.NewDecoder(res.Body).Decode(token)
 	assert.Equal(s.T(), "backup-server", token.Name)
-	log.Printf("token: %s", token.Token)
 
 	req = s.newRequest("POST", "message", `{"message": "backup done", "title": "backup done"}`)
 	req.Header.Add("X-Gotify-Key", token.Token)

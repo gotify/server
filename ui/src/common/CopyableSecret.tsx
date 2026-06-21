@@ -21,7 +21,10 @@ const CopyableSecret = ({value, style}: IProps) => {
         <div style={style}>
             <IconButton
                 onClick={() =>
-                    copyToClipboard(value).finally(() => snackManager.snack('Copied to clipboard'))
+                    copyToClipboard(value).then(
+                        () => snackManager.snack('Copied to clipboard'),
+                        () => snackManager.snack('Cannot access clipboard.')
+                    )
                 }
                 title="Copy to clipboard"
                 size="large">

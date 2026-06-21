@@ -10,6 +10,7 @@ import {NumberField} from '../common/NumberField';
 import React, {useState} from 'react';
 import {Typography} from '@mui/material';
 import {copyToClipboard} from '../clipboard';
+import {useStores} from '../stores';
 
 interface IProps {
     fClose: VoidFunction;
@@ -21,6 +22,7 @@ export const AddApplicationDialog = ({fClose, fOnSubmit}: IProps) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [defaultPriority, setDefaultPriority] = useState(0);
+    const {snackManager} = useStores();
 
     const submitEnabled = name.length !== 0;
     const submitAndNext = async () => {
@@ -86,7 +88,15 @@ export const AddApplicationDialog = ({fClose, fOnSubmit}: IProps) => {
             </DialogContent>
             <DialogActions>
                 {returnToken ? (
-                    <Button onClick={() => copyToClipboard(returnToken)}>Copy to clipboard</Button>
+                    <Button
+                        onClick={() =>
+                            copyToClipboard(returnToken).then(
+                                () => snackManager.snack('Copied to clipboard'),
+                                () => snackManager.snack('Cannot access clipboard.')
+                            )
+                        }>
+                        Copy to clipboard
+                    </Button>
                 ) : (
                     <Button onClick={fClose}>Cancel</Button>
                 )}

@@ -3,7 +3,6 @@ package auth
 import (
 	"crypto/rand"
 	"errors"
-	"log"
 	"testing"
 	"testing/iotest"
 
@@ -12,7 +11,6 @@ import (
 
 func TestNewComplexToken(t *testing.T) {
 	token := NewEnhancedToken("A12")
-	log.Printf("token: %s", token.String())
 	canonicalizedExpected := token.PublicForm()
 	tokenParsed, err := ParseEnhancedToken(token.String())
 	assert.NoError(t, err)
