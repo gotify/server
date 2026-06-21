@@ -31,12 +31,22 @@ const AddClientDialog = ({fClose, fOnSubmit}: IProps) => {
             <DialogTitle id="form-dialog-title">Create a client</DialogTitle>
             <DialogContent>
                 {returnToken ? (
-                    <DialogContentText>
-                        Your token is:
-                        <Typography variant="body1" style={{fontFamily: 'monospace', fontSize: 16}}>
-                            {returnToken}
-                        </Typography>
-                    </DialogContentText>
+                    <>
+                        <DialogContentText>Your token will only be shown once.</DialogContentText>
+
+                        <span
+                            style={{padding: 16}}
+                            onClick={(e) => {
+                                window.getSelection()?.selectAllChildren(e.currentTarget);
+                            }}>
+                            <Typography
+                                className="token"
+                                variant="body1"
+                                style={{fontFamily: 'monospace', fontSize: 16}}>
+                                {returnToken}
+                            </Typography>
+                        </span>
+                    </>
                 ) : (
                     <>
                         <TextField
@@ -67,8 +77,8 @@ const AddClientDialog = ({fClose, fOnSubmit}: IProps) => {
                     <Button onClick={fClose}>Cancel</Button>
                 )}
                 {returnToken ? (
-                    <Button onClick={fClose} color="primary" variant="contained">
-                        Close
+                    <Button className="finish" onClick={fClose} color="primary" variant="contained">
+                        Finish
                     </Button>
                 ) : (
                     <Tooltip

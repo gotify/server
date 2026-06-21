@@ -13,6 +13,7 @@ export const form = (dialogSelector: string) => ({
     input: (selector: string) => `${dialogSelector} ${selector} input`,
     textarea: (selector: string) => `${dialogSelector} ${selector} textarea`,
     button: (selector: string) => `${dialogSelector} button${selector}`,
+    p: (selector: string) => `${dialogSelector} p${selector}`,
 });
 
 export const $confirmDialog = form('.confirm-dialog');

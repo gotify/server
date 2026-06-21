@@ -16,16 +16,13 @@ afterAll(async () => await gotify.close());
 
 enum Col {
     Name = 3,
-    Token = 4,
-    Description = 5,
-    DefaultPriority = 6,
-    LastUsed = 7,
-    Created = 8,
-    EditUpdate = 9,
-    EditDelete = 10,
+    Description = 4,
+    DefaultPriority = 5,
+    LastUsed = 6,
+    Created = 7,
+    EditUpdate = 8,
+    EditDelete = 9,
 }
-
-const hiddenToken = '•••••••••••••••';
 
 const $table = selector.table('#app-table');
 const $dialog = selector.form('#app-dialog');
@@ -34,7 +31,6 @@ const waitforApp =
     (name: string, description: string, row: number): (() => Promise<void>) =>
     async () => {
         await waitForExists(page, $table.cell(row, Col.Name), name);
-        expect(await innerText(page, $table.cell(row, Col.Token))).toBe(hiddenToken);
         expect(await innerText(page, $table.cell(row, Col.Description))).toBe(description);
     };
 
@@ -65,6 +61,11 @@ const createApp =
         await page.type($dialog.input('.name'), name);
         await page.type($dialog.textarea('.description'), description);
         await page.click($dialog.button('.create'));
+        await page.waitForSelector($dialog.button('.finish'));
+        await page.waitForSelector($dialog.p('.token'));
+        const token = await innerText(page, $dialog.p('.token'));
+        expect(token.startsWith('gtfy_app.')).toBeTruthy();
+        await page.click($dialog.button('.finish'));
         await waitToDisappear(page, $dialog.selector());
     };
 
@@ -93,12 +94,6 @@ describe('Application', () => {
         it('has server app', waitforApp('server', '#1', 1));
         it('has desktop app', waitforApp('desktop', '#2', 2));
         it('has raspberry app', waitforApp('raspberry', '#3', 3));
-        it('shows token', async () => {
-            await page.click($table.cell(3, Col.Token, '.toggle-visibility'));
-            const token = await innerText(page, $table.cell(3, Col.Token));
-            expect(token.startsWith('A')).toBeTruthy();
-            await page.click($table.cell(3, Col.Token, '.toggle-visibility'));
-        });
     });
     it('updates application', async () => {
         await updateApp(1, {name: 'server_linux'})();

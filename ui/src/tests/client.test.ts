@@ -27,7 +27,12 @@ interface ClientFields {
 }
 
 const fillClientDialog =
-    (opener: string, submit: string, data: ClientFields): (() => Promise<void>) =>
+    (
+        opener: string,
+        submit: string,
+        data: ClientFields,
+        hasToken: boolean
+    ): (() => Promise<void>) =>
     async () => {
         await page.click(opener);
         await page.waitForSelector($dialog.selector());
@@ -42,13 +47,21 @@ const fillClientDialog =
             await page.type(expiresSelector, data.expiresAfter.toString());
         }
         await page.click($dialog.button(submit));
+        if (hasToken) {
+            await page.waitForSelector($dialog.p('.token'));
+            const token = await innerText(page, $dialog.p('.token'));
+            expect(token.startsWith('gtfy_client.')).toBeTruthy();
+            await page.waitForSelector($dialog.button('.finish'));
+            await page.click($dialog.button('.finish'));
+        }
         await waitToDisappear(page, $dialog.selector());
     };
 
-const createClient = (data: ClientFields) => fillClientDialog('#create-client', '.create', data);
+const createClient = (data: ClientFields) =>
+    fillClientDialog('#create-client', '.create', data, true);
 
 const updateClient = (id: number, data: ClientFields) =>
-    fillClientDialog($table.cell(id, ClientCol.Edit, '.edit'), '.update', data);
+    fillClientDialog($table.cell(id, ClientCol.Edit, '.edit'), '.update', data, false);
 
 const $table = selector.table('#client-table');
 const $dialog = selector.form('#client-dialog');
@@ -87,12 +100,6 @@ describe('Client', () => {
     it('has updated client name', waitForClient('firefox', 1));
     it('has updated expires after', async () => {
         expect(await innerText(page, $table.cell(1, ClientCol.ExpiresIn))).toBe('9h 59m');
-    });
-    it('shows token', async () => {
-        await page.click($table.cell(3, ClientCol.Token, '.toggle-visibility'));
-        expect(
-            (await innerText(page, $table.cell(3, ClientCol.Token))).startsWith('C')
-        ).toBeTruthy();
     });
     it('shows last seen', async () => {
         expect(await innerText(page, $table.cell(3, ClientCol.LastSeen))).toBeTruthy();
