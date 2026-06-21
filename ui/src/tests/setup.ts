@@ -7,12 +7,19 @@ import fs from 'fs';
 // @ts-expect-error no types
 import wait from 'wait-on';
 import kill from 'tree-kill';
+import {startDex, DexUser, DexInstance} from './dex';
 
 export interface GotifyTest {
     url: string;
     close: () => Promise<void>;
     browser: Browser;
     page: Page;
+}
+
+export interface OIDCOptions {
+    autoRegister?: boolean;
+    linkByUsername?: boolean;
+    users: DexUser[];
 }
 
 const windowsPrefix = process.platform === 'win32' ? '.exe' : '';
@@ -27,14 +34,39 @@ export const newPluginDir = async (plugins: string[]): Promise<string> => {
     return dir;
 };
 
-export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
+export interface NewTestOptions {
+    env?: Record<string, string>;
+    oidc?: OIDCOptions;
+}
+
+export const newTest = async (
+    pluginsDir = '',
+    options: NewTestOptions = {}
+): Promise<GotifyTest> => {
     const port = await getPort();
+
+    let dex: DexInstance | undefined;
+    let env = options.env ?? {};
+    if (options.oidc) {
+        const redirectURL = `http://localhost:${port}/auth/oidc/callback`;
+        dex = await startDex(redirectURL, options.oidc.users);
+        env = {
+            ...env,
+            GOTIFY_OIDC_ENABLED: 'true',
+            GOTIFY_OIDC_ISSUER: dex.issuer,
+            GOTIFY_OIDC_CLIENTID: 'gotify',
+            GOTIFY_OIDC_CLIENTSECRET: 'secret',
+            GOTIFY_OIDC_REDIRECTURL: redirectURL,
+            GOTIFY_OIDC_AUTOREGISTER: String(options.oidc.autoRegister ?? false),
+            GOTIFY_OIDC_LINK_BY_USERNAME: String(options.oidc.linkByUsername ?? false),
+        };
+    }
 
     const gotifyFile = testFilePath();
 
     await buildGoExecutable(gotifyFile);
 
-    const gotifyInstance = startGotify(gotifyFile, port, pluginsDir);
+    const gotifyInstance = startGotify(gotifyFile, port, pluginsDir, env);
 
     const gotifyURL = 'http://localhost:' + port;
     await waitForGotify('http-get://localhost:' + port);
@@ -56,6 +88,7 @@ export const newTest = async (pluginsDir = ''): Promise<GotifyTest> => {
                 ),
             ]);
             rimrafSync(gotifyFile, {maxRetries: 8});
+            dex?.close();
         },
         url: gotifyURL,
         browser,
@@ -123,14 +156,20 @@ const buildGoExecutable = (filename: string): Promise<void> => {
     }
 };
 
-const startGotify = (filename: string, port: number, pluginDir: string): ChildProcess => {
-    const gotify = spawn(filename, [], {
+const startGotify = (
+    filename: string,
+    port: number,
+    pluginDir: string,
+    extraEnv: Record<string, string> = {}
+): ChildProcess => {
+    const gotify = spawn(filename, ['serve'], {
         env: {
             GOTIFY_SERVER_PORT: '' + port,
             GOTIFY_DATABASE_CONNECTION: 'file::memory:?mode=memory&cache=shared',
             GOTIFY_PLUGINSDIR: pluginDir,
             NODE_ENV: process.env.NODE_ENV,
             PUBLIC_URL: process.env.PUBLIC_URL,
+            ...extraEnv,
         },
     });
     gotify.stdout.pipe(process.stdout);

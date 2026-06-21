@@ -2,6 +2,12 @@ import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 import babel from '@rolldown/plugin-babel';
 
+try {
+    process.loadEnvFile('../gotify-server.env');
+} catch {
+    // file is optional
+}
+
 const GOTIFY_SERVER_PORT = process.env.GOTIFY_SERVER_PORT ?? '80';
 
 function decoratorPreset(options: Record<string, unknown>) {
@@ -40,13 +46,11 @@ export default defineConfig({
         proxy: {
             '^/(application|message|client|current|user|plugin|version|image|auth)': {
                 target: `http://localhost:${GOTIFY_SERVER_PORT}/`,
-                changeOrigin: true,
                 secure: false,
             },
             '/stream': {
-                target: `ws://localhost:${GOTIFY_SERVER_PORT}/`,
+                target: `http://localhost:${GOTIFY_SERVER_PORT}/`,
                 ws: true,
-                rewriteWsOrigin: true,
             },
         },
         cors: false,

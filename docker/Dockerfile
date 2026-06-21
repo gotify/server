@@ -75,3 +75,4 @@ EXPOSE $GOTIFY_SERVER_EXPOSE
 COPY --from=builder /target /
 
 ENTRYPOINT ["./gotify-app"]
+CMD ["serve"]

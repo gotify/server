@@ -10,7 +10,7 @@ require (
 	github.com/gotify/location v0.0.0-20170722210143-03bc4ad20437
 	github.com/gotify/plugin-api v1.0.0
 	github.com/h2non/filetype v1.1.3
-	github.com/jinzhu/configor v1.2.2
+	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-isatty v0.0.20
 	github.com/robfig/cron v1.2.0
 	github.com/rs/zerolog v1.35.1
@@ -26,7 +26,6 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect

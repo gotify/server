@@ -18,6 +18,19 @@ func (d *GormDatabase) GetUserByName(name string) (*model.User, error) {
 	return nil, err
 }
 
+// GetUserByOIDC returns the user bound to the given oidc id or nil.
+func (d *GormDatabase) GetUserByOIDC(oidcID string) (*model.User, error) {
+	user := new(model.User)
+	err := d.DB.Where("oidc_id = ?", oidcID).Find(user).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	if user.OIDCID != nil && *user.OIDCID == oidcID {
+		return user, err
+	}
+	return nil, err
+}
+
 // GetUserByID returns the user by the given id or nil.
 func (d *GormDatabase) GetUserByID(id uint) (*model.User, error) {
 	user := new(model.User)

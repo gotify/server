@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,11 +25,6 @@ import (
 )
 
 func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNotifier *UserChangeNotifier) *OIDCAPI {
-	scopes := conf.OIDC.Scopes
-	if len(scopes) == 0 {
-		scopes = []string{"openid", "profile", "email"}
-	}
-
 	cookieKey := make([]byte, 32)
 	if _, err := rand.Read(cookieKey); err != nil {
 		log.Fatal().Err(err).Msg("failed to generate OIDC cookie key")
@@ -38,7 +35,11 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 	}
 	cookieHandler := httphelper.NewCookieHandler(cookieKey, cookieKey, cookieHandlerOpt...)
 
-	opts := []rp.Option{rp.WithCookieHandler(cookieHandler), rp.WithPKCE(cookieHandler)}
+	opts := []rp.Option{
+		rp.WithCookieHandler(cookieHandler),
+		rp.WithPKCE(cookieHandler),
+		rp.WithSigningAlgsFromDiscovery(),
+	}
 
 	provider, err := rp.NewRelyingPartyOIDC(
 		context.Background(),
@@ -46,7 +47,7 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 		conf.OIDC.ClientID,
 		conf.OIDC.ClientSecret,
 		conf.OIDC.RedirectURL,
-		scopes,
+		conf.OIDC.Scopes,
 		opts...,
 	)
 	if err != nil {
@@ -61,6 +62,7 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 		PasswordStrength:   conf.PassStrength,
 		SecureCookie:       conf.Server.SecureCookie,
 		AutoRegister:       conf.OIDC.AutoRegister,
+		LinkByUsername:     conf.OIDC.LinkByUsername,
 		pendingSessions:    decaymap.NewDecayMap[string, *pendingOIDCSession](time.Now(), pendingSessionMaxAge),
 	}
 }
@@ -88,6 +90,7 @@ type OIDCAPI struct {
 	PasswordStrength   int
 	SecureCookie       bool
 	AutoRegister       bool
+	LinkByUsername     bool
 	pendingSessions    *decaymap.DecayMap[string, *pendingOIDCSession]
 }
 
@@ -201,7 +204,7 @@ func (a *OIDCAPI) ElevateHandler(ctx *gin.Context) {
 //	        $ref: "#/definitions/Error"
 func (a *OIDCAPI) CallbackHandler() gin.HandlerFunc {
 	callback := func(w http.ResponseWriter, r *http.Request, tokens *oidc.Tokens[*oidc.IDTokenClaims], state string, provider rp.RelyingParty, info *oidc.UserInfo) {
-		user, status, err := a.resolveUser(info)
+		user, status, err := a.resolveUser(tokens.IDTokenClaims.GetIssuer(), info)
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return
@@ -367,7 +370,7 @@ func (a *OIDCAPI) ExternalTokenHandler(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to get user info: %w", err))
 		return
 	}
-	user, status, resolveErr := a.resolveUser(info)
+	user, status, resolveErr := a.resolveUser(tokens.IDTokenClaims.GetIssuer(), info)
 	if resolveErr != nil {
 		ctx.AbortWithError(status, resolveErr)
 		return
@@ -391,32 +394,83 @@ func (a *OIDCAPI) generateState() (string, error) {
 	return hex.EncodeToString(nonce), nil
 }
 
-// resolveUser looks up or creates a user from OIDC userinfo claims.
-func (a *OIDCAPI) resolveUser(info *oidc.UserInfo) (*model.User, int, error) {
+// resolveUser looks up, links, or creates the user bound to an OIDC identity.
+//
+//  1. Look up the user by OIDC id (<iss>#<sub>). If found, use it.
+//  2. Otherwise look up a user by the username claim. If one exists, link it to
+//     this OIDC identity, which requires GOTIFY_OIDC_LINK_BY_USERNAME and
+//     that the user is not already bound to a different identity.
+//  3. Otherwise auto-register a new user, which requires GOTIFY_OIDC_AUTOREGISTER.
+func (a *OIDCAPI) resolveUser(issuer string, info *oidc.UserInfo) (*model.User, int, error) {
+	if issuer == "" {
+		return nil, http.StatusInternalServerError, errors.New("issuer claim was empty")
+	}
+	if _, err := url.Parse(issuer); err != nil {
+		return nil, http.StatusInternalServerError, fmt.Errorf("issuer url %q is not a valid url: %w", issuer, err)
+	}
+	if strings.Contains(issuer, "#") {
+		return nil, http.StatusInternalServerError, fmt.Errorf("issuer url %q may not contain a fragment", issuer)
+	}
+	subject := info.GetSubject()
+	if subject == "" {
+		return nil, http.StatusInternalServerError, errors.New("subject claim was empty")
+	}
+	oidcID := issuer + "#" + subject
+
+	user, err := a.DB.GetUserByOIDC(oidcID)
+	if err != nil {
+		return nil, http.StatusInternalServerError, fmt.Errorf("database error: %w", err)
+	}
+	if user != nil {
+		return user, 0, nil
+	}
+
 	usernameRaw, ok := info.Claims[a.UsernameClaim]
 	if !ok {
 		return nil, http.StatusInternalServerError, fmt.Errorf("username claim %q is missing", a.UsernameClaim)
 	}
 	username := fmt.Sprint(usernameRaw)
 	if username == "" || usernameRaw == nil {
-		return nil, http.StatusInternalServerError, fmt.Errorf("username claim was empty")
+		return nil, http.StatusInternalServerError, errors.New("username claim was empty")
 	}
 
-	user, err := a.DB.GetUserByName(username)
+	byUsername, err := a.DB.GetUserByName(username)
 	if err != nil {
 		return nil, http.StatusInternalServerError, fmt.Errorf("database error: %w", err)
 	}
-	if user == nil {
-		if !a.AutoRegister {
-			return nil, http.StatusForbidden, fmt.Errorf("user does not exist and auto-registration is disabled")
-		}
-		user = &model.User{Name: username, Admin: false, Pass: nil}
-		if err := a.DB.CreateUser(user); err != nil {
-			return nil, http.StatusInternalServerError, fmt.Errorf("failed to create user: %w", err)
-		}
-		if err := a.UserChangeNotifier.fireUserAdded(user.ID); err != nil {
-			log.Error().Err(err).Uint("user_id", user.ID).Msg("Could not notify user change")
-		}
+	if byUsername != nil {
+		return a.linkExistingUser(byUsername, oidcID)
+	}
+	return a.registerUser(username, oidcID)
+}
+
+func (a *OIDCAPI) linkExistingUser(user *model.User, oidcID string) (*model.User, int, error) {
+	if !a.LinkByUsername {
+		log.Warn().Str("oidc_id", oidcID).Str("username", user.Name).Msgf("OIDC login rejected: a local user with the username already exists and %s is disabled", config.EnvOIDCLinkByUsername)
+		return nil, http.StatusForbidden, fmt.Errorf("a local user with the username %s already exists and linking by username is disabled", user.Name)
+	}
+	if user.OIDCID != nil {
+		log.Warn().Str("oidc_id", oidcID).Str("bound_oidc_id", *user.OIDCID).Str("username", user.Name).Msg("OIDC login rejected: the username is already bound to a different OIDC identity")
+		return nil, http.StatusForbidden, fmt.Errorf("the user %s is already bound to a different OIDC identity", user.Name)
+	}
+	user.OIDCID = &oidcID
+	if err := a.DB.UpdateUser(user); err != nil {
+		return nil, http.StatusInternalServerError, fmt.Errorf("failed to bind user to OIDC identity: %w", err)
+	}
+	return user, 0, nil
+}
+
+func (a *OIDCAPI) registerUser(username, oidcID string) (*model.User, int, error) {
+	if !a.AutoRegister {
+		return nil, http.StatusForbidden, errors.New("user does not exist and auto-registration is disabled")
+	}
+	user := &model.User{Name: username, Admin: false, Pass: nil, OIDCID: &oidcID}
+	if err := a.DB.CreateUser(user); err != nil {
+		return nil, http.StatusInternalServerError, fmt.Errorf("failed to create user: %w", err)
+	}
+	log.Info().Str("oidc_id", oidcID).Str("username", user.Name).Msg("OIDC auto registration")
+	if err := a.UserChangeNotifier.fireUserAdded(user.ID); err != nil {
+		log.Error().Err(err).Uint("user_id", user.ID).Msg("Could not notify user change")
 	}
 	return user, 0, nil
 }

@@ -12,6 +12,8 @@ type User struct {
 	Applications []Application
 	Clients      []Client
 	Plugins      []PluginConf
+	// Format: OIDC claims combined as "<iss>#<sub>".
+	OIDCID *string `gorm:"column:oidc_id;type:text;uniqueIndex:uix_users_oidc_id,length:512"`
 }
 
 // UserExternal Model
