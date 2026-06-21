@@ -17,7 +17,6 @@ type Client struct {
 	// The client token. Can be used as `clientToken`. See Authentication.
 	//
 	// read only: true
-	// required: true
 	// example: CWH0wZ5r0Mbac.r
 	Token  string `gorm:"type:varchar(180);uniqueIndex:uix_clients_token" json:"token"`
 	UserID uint   `gorm:"index" json:"-"`

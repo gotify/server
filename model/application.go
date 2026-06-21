@@ -17,7 +17,6 @@ type Application struct {
 	// The application token. Can be used as `appToken`. See Authentication.
 	//
 	// read only: true
-	// required: true
 	// example: AWH0wZ5r0Mbac.r
 	Token  string `gorm:"type:varchar(180);uniqueIndex:uix_applications_token" json:"token"`
 	UserID uint   `gorm:"index;uniqueIndex:uix_application_user_id_sort_key,priority:1" json:"-"`
