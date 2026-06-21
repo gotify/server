@@ -23,6 +23,20 @@
   "paths": {
     "/application": {
       "get": {
+        "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -56,7 +70,9 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "post": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -70,9 +86,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "post": {
+        ],
         "consumes": [
           "application/json"
         ],
@@ -120,7 +134,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/application/{id}": {
+      "put": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -134,11 +152,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/application/{id}": {
-      "put": {
+        ],
         "consumes": [
           "application/json"
         ],
@@ -200,7 +214,9 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "delete": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -214,9 +230,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "delete": {
+        ],
         "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
@@ -267,7 +281,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/application/{id}/image": {
+      "post": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -281,11 +299,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/application/{id}/image": {
-      "post": {
+        ],
         "consumes": [
           "multipart/form-data"
         ],
@@ -351,7 +365,9 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "delete": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -365,9 +381,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "delete": {
+        ],
         "consumes": [
           "application/json"
         ],
@@ -423,7 +437,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/application/{id}/message": {
+      "get": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -437,11 +455,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/application/{id}/message": {
-      "get": {
+        ],
         "produces": [
           "application/json"
         ],
@@ -508,7 +522,9 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "delete": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -522,9 +538,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "delete": {
+        ],
         "produces": [
           "application/json"
         ],
@@ -571,25 +585,16 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
-        "security": [
-          {
-            "clientTokenAuthorizationHeader": []
-          },
-          {
-            "clientTokenHeader": []
-          },
-          {
-            "clientTokenQuery": []
-          },
-          {
-            "basicAuth": []
-          }
-        ]
+        }
       }
     },
     "/auth/local/login": {
       "post": {
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
         "consumes": [
           "application/x-www-form-urlencoded"
         ],
@@ -629,16 +634,22 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
-        "security": [
-          {
-            "basicAuth": []
-          }
-        ]
+        }
       }
     },
     "/auth/logout": {
       "post": {
+        "security": [
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
         "description": "Clears the session cookie and deletes the associated client.",
         "produces": [
           "application/json"
@@ -664,18 +675,7 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
-        "security": [
-          {
-            "clientTokenHeader": []
-          },
-          {
-            "clientTokenQuery": []
-          },
-          {
-            "basicAuth": []
-          }
-        ]
+        }
       }
     },
     "/auth/oidc/callback": {
@@ -868,6 +868,20 @@
     },
     "/client": {
       "get": {
+        "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -901,7 +915,9 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "post": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -915,9 +931,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "post": {
+        ],
         "consumes": [
           "application/json"
         ],
@@ -965,7 +979,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/client/{id}": {
+      "put": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -979,11 +997,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/client/{id}": {
-      "put": {
+        ],
         "consumes": [
           "application/json"
         ],
@@ -1045,7 +1059,9 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "delete": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1059,9 +1075,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "delete": {
+        ],
         "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
@@ -1112,7 +1126,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/client/{id}/elevate": {
+      "post": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1126,11 +1144,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/client/{id}/elevate": {
-      "post": {
+        ],
         "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
@@ -1184,7 +1198,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/current/user": {
+      "get": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1198,11 +1216,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/current/user": {
-      "get": {
+        ],
         "description": "Requires elevated authentication.",
         "produces": [
           "application/json"
@@ -1231,7 +1245,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/current/user/password": {
+      "post": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1245,11 +1263,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/current/user/password": {
-      "post": {
+        ],
         "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
@@ -1295,21 +1309,7 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
-        "security": [
-          {
-            "clientTokenAuthorizationHeader": []
-          },
-          {
-            "clientTokenHeader": []
-          },
-          {
-            "clientTokenQuery": []
-          },
-          {
-            "basicAuth": []
-          }
-        ]
+        }
       }
     },
     "/gotifyinfo": {
@@ -1360,6 +1360,20 @@
     },
     "/message": {
       "get": {
+        "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -1412,8 +1426,19 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "post": {
         "security": [
+          {
+            "appTokenAuthorizationHeader": []
+          },
+          {
+            "appTokenHeader": []
+          },
+          {
+            "appTokenQuery": []
+          },
           {
             "clientTokenAuthorizationHeader": []
           },
@@ -1426,9 +1451,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "post": {
+        ],
         "description": "__NOTE__: When authenticating with a client token or basic auth, the request body\nmust include \"appid\" referencing an application owned by the authenticated user.\nWhen authenticating with an application token, the application is derived from the\ntoken and any \"appid\" in the body is ignored.",
         "consumes": [
           "application/json"
@@ -1477,17 +1500,10 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "delete": {
         "security": [
-          {
-            "appTokenAuthorizationHeader": []
-          },
-          {
-            "appTokenHeader": []
-          },
-          {
-            "appTokenQuery": []
-          },
           {
             "clientTokenAuthorizationHeader": []
           },
@@ -1500,9 +1516,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "delete": {
+        ],
         "produces": [
           "application/json"
         ],
@@ -1527,7 +1541,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/message/{id}": {
+      "delete": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1541,11 +1559,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/message/{id}": {
-      "delete": {
+        ],
         "produces": [
           "application/json"
         ],
@@ -1592,7 +1606,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugin": {
+      "get": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1606,11 +1624,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/plugin": {
-      "get": {
+        ],
         "consumes": [
           "application/json"
         ],
@@ -1656,7 +1670,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugin/{id}/config": {
+      "get": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1670,11 +1688,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/plugin/{id}/config": {
-      "get": {
+        ],
         "consumes": [
           "application/json"
         ],
@@ -1734,7 +1748,9 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "post": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1748,9 +1764,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "post": {
+        ],
         "consumes": [
           "application/x-yaml"
         ],
@@ -1806,7 +1820,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugin/{id}/disable": {
+      "post": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1820,11 +1838,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/plugin/{id}/disable": {
-      "post": {
+        ],
         "consumes": [
           "application/json"
         ],
@@ -1874,7 +1888,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugin/{id}/display": {
+      "get": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1888,11 +1906,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/plugin/{id}/display": {
-      "get": {
+        ],
         "consumes": [
           "application/json"
         ],
@@ -1945,7 +1959,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugin/{id}/enable": {
+      "post": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -1959,11 +1977,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/plugin/{id}/enable": {
-      "post": {
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2013,7 +2027,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/stream": {
+      "get": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -2027,11 +2045,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/stream": {
-      "get": {
+        ],
         "produces": [
           "application/json"
         ],
@@ -2071,7 +2085,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/user": {
+      "get": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -2085,11 +2103,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/user": {
-      "get": {
+        ],
         "description": "Requires elevated authentication.",
         "produces": [
           "application/json"
@@ -2121,7 +2135,9 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "post": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -2135,9 +2151,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "post": {
+        ],
         "description": "With enabled registration: non admin users can be created without authentication.\nWith disabled registrations: users can only be created by admin users.\n\nRequires elevated authentication.",
         "consumes": [
           "application/json"
@@ -2186,7 +2200,11 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      }
+    },
+    "/user/{id}": {
+      "get": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -2200,11 +2218,7 @@
           {
             "basicAuth": []
           }
-        ]
-      }
-    },
-    "/user/{id}": {
-      "get": {
+        ],
         "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
@@ -2258,7 +2272,9 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "post": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -2272,9 +2288,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "post": {
+        ],
         "description": "Requires elevated authentication.",
         "consumes": [
           "application/json"
@@ -2337,7 +2351,9 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
+        }
+      },
+      "delete": {
         "security": [
           {
             "clientTokenAuthorizationHeader": []
@@ -2351,9 +2367,7 @@
           {
             "basicAuth": []
           }
-        ]
-      },
-      "delete": {
+        ],
         "description": "Requires elevated authentication.",
         "produces": [
           "application/json"
@@ -2401,21 +2415,7 @@
               "$ref": "#/definitions/Error"
             }
           }
-        },
-        "security": [
-          {
-            "clientTokenAuthorizationHeader": []
-          },
-          {
-            "clientTokenHeader": []
-          },
-          {
-            "clientTokenQuery": []
-          },
-          {
-            "basicAuth": []
-          }
-        ]
+        }
       }
     },
     "/version": {
