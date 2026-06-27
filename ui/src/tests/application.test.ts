@@ -64,7 +64,7 @@ const createApp =
         await page.waitForSelector($dialog.button('.finish'));
         await page.waitForSelector($dialog.p('.token'));
         const token = await innerText(page, $dialog.p('.token'));
-        expect(token.startsWith('gtfy_app.')).toBeTruthy();
+        expect(token.startsWith('gtfya.')).toBeTruthy();
         await page.click($dialog.button('.finish'));
         await waitToDisappear(page, $dialog.selector());
     };

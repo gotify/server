@@ -50,7 +50,7 @@ const fillClientDialog =
         if (hasToken) {
             await page.waitForSelector($dialog.p('.token'));
             const token = await innerText(page, $dialog.p('.token'));
-            expect(token.startsWith('gtfy_client.')).toBeTruthy();
+            expect(token.startsWith('gtfyc.')).toBeTruthy();
             await page.waitForSelector($dialog.button('.finish'));
             await page.click($dialog.button('.finish'));
         }

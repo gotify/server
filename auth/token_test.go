@@ -3,6 +3,7 @@ package auth
 import (
 	"crypto/rand"
 	"errors"
+	"strings"
 	"testing"
 	"testing/iotest"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func TestNewComplexToken(t *testing.T) {
-	token := NewEnhancedToken("A12")
+	token := NewEnhancedToken("a")
 	canonicalizedExpected := token.PublicForm()
 	tokenParsed, err := ParseEnhancedToken(token.String())
 	assert.NoError(t, err)
@@ -32,11 +33,12 @@ func TestNewComplexToken(t *testing.T) {
 	assert.NoError(t, err)
 	canonicalizedActual = tokenParsed.PublicForm()
 	assert.Equal(t, canonicalizedExpected, canonicalizedActual)
-	tokenSignedStrMutated := tokenSignedStr[1:]
-	if tokenSignedStr[0] != 'A' {
-		tokenSignedStrMutated = "A" + tokenSignedStrMutated
+	var tokenSignedStrMutated string
+	lastDotIdx := strings.LastIndex(tokenSignedStr, ".")
+	if tokenSignedStr[lastDotIdx+1] != 'A' {
+		tokenSignedStrMutated = tokenSignedStr[:lastDotIdx+1] + "A" + tokenSignedStr[lastDotIdx+2:]
 	} else {
-		tokenSignedStrMutated = "B" + tokenSignedStrMutated
+		tokenSignedStrMutated = tokenSignedStr[:lastDotIdx+1] + "B" + tokenSignedStr[lastDotIdx+2:]
 	}
 	_, err = ParseEnhancedToken(tokenSignedStrMutated)
 	assert.ErrorIs(t, err, errInvalidToken)

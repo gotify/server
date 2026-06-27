@@ -90,6 +90,10 @@ func (a *Auth) evaluate(ctx *gin.Context, funcs ...func(ctx *gin.Context) (authS
 	for _, fn := range funcs {
 		state, err := fn(ctx)
 		if err != nil {
+			if errors.Is(err, errCannotParseToken) {
+				ctx.AbortWithError(401, err)
+				return true
+			}
 			ctx.AbortWithError(500, err)
 			return true
 		}
@@ -155,7 +159,7 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 		if strings.HasPrefix(token, enhancedTokenPrefix) {
 			complexToken, err := ParseEnhancedToken(token)
 			if err != nil || !complexToken.ValidateTimestamp(timeNow().Unix()) {
-				return authStateSkip, nil
+				return authStateSkip, err
 			}
 			token = complexToken.PublicForm()
 		}
@@ -197,7 +201,7 @@ func (a *Auth) handleApplication(ctx *gin.Context) (authState, error) {
 	if strings.HasPrefix(token, enhancedTokenPrefix) {
 		complexToken, err := ParseEnhancedToken(token)
 		if err != nil || !complexToken.ValidateTimestamp(timeNow().Unix()) {
-			return authStateSkip, nil
+			return authStateSkip, err
 		}
 		token = complexToken.PublicForm()
 	}
