@@ -1,5 +1,4 @@
 //go:build linux || darwin
-// +build linux darwin
 
 package plugin
 
@@ -306,13 +305,13 @@ func (s *ManagerSuite) TestRemoveUser_danglingConf_expectSuccess() {
 		ModulePath: mockPluginPath,
 		Enabled:    true,
 		UserID:     9,
-		Token:      auth.GenerateNotExistingToken(auth.GeneratePluginToken, s.manager.pluginConfExists),
+		Token:      auth.GeneratePluginToken(),
 	})
 	s.db.CreatePluginConf(&model.PluginConf{
 		ModulePath: examplePluginPath,
 		Enabled:    true,
 		UserID:     9,
-		Token:      auth.GenerateNotExistingToken(auth.GeneratePluginToken, s.manager.pluginConfExists),
+		Token:      auth.GeneratePluginToken(),
 	})
 	assert.Nil(s.T(), s.manager.RemoveUser(9))
 }

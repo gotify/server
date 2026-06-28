@@ -47,14 +47,14 @@ type Config struct {
 }
 
 // DefaultConfig implements plugin.Configurer
-func (c *EchoPlugin) DefaultConfig() interface{} {
+func (c *EchoPlugin) DefaultConfig() any {
 	return &Config{
 		MagicString: "hello world",
 	}
 }
 
 // ValidateAndSetConfig implements plugin.Configurer
-func (c *EchoPlugin) ValidateAndSetConfig(config interface{}) error {
+func (c *EchoPlugin) ValidateAndSetConfig(config any) error {
 	c.config = config.(*Config)
 	return nil
 }
@@ -86,7 +86,7 @@ func (c *EchoPlugin) RegisterWebhook(baseURL string, g *gin.RouterGroup) {
 			Title:    "Hello received",
 			Message:  fmt.Sprintf("echo server received a hello message %d times", conf.CalledTimes),
 			Priority: 2,
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"plugin::name": "echo",
 			},
 		})

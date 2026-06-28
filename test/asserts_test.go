@@ -18,7 +18,7 @@ type fakeTesting struct {
 	hasErrors bool
 }
 
-func (t *fakeTesting) Errorf(format string, args ...interface{}) {
+func (t *fakeTesting) Errorf(format string, args ...any) {
 	t.hasErrors = true
 }
 

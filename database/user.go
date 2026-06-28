@@ -45,7 +45,7 @@ func (d *GormDatabase) GetUserByID(id uint) (*model.User, error) {
 }
 
 // CountUser returns the user count which satisfies the given condition.
-func (d *GormDatabase) CountUser(condition ...interface{}) (int64, error) {
+func (d *GormDatabase) CountUser(condition ...any) (int64, error) {
 	c := int64(-1)
 	handle := d.DB.Model(new(model.User))
 	if len(condition) == 1 {

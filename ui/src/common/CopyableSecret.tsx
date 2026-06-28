@@ -5,6 +5,7 @@ import Copy from '@mui/icons-material/FileCopyOutlined';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import React, {CSSProperties} from 'react';
 import {useStores} from '../stores';
+import {copyToClipboard} from '../clipboard';
 
 interface IProps {
     value: string;
@@ -16,18 +17,17 @@ const CopyableSecret = ({value, style}: IProps) => {
     const text = visible ? value : '•••••••••••••••';
     const {snackManager} = useStores();
     const toggleVisibility = () => setVisible((b) => !b);
-    const copyToClipboard = async () => {
-        try {
-            await navigator.clipboard.writeText(value);
-            snackManager.snack('Copied to clipboard');
-        } catch (error) {
-            console.error('Failed to copy to clipboard:', error);
-            snackManager.snack('Failed to copy to clipboard');
-        }
-    };
     return (
         <div style={style}>
-            <IconButton onClick={copyToClipboard} title="Copy to clipboard" size="large">
+            <IconButton
+                onClick={() =>
+                    copyToClipboard(value).then(
+                        () => snackManager.snack('Copied to clipboard'),
+                        () => snackManager.snack('Cannot access clipboard.')
+                    )
+                }
+                title="Copy to clipboard"
+                size="large">
                 <Copy />
             </IconButton>
             <IconButton onClick={toggleVisibility} className="toggle-visibility" size="large">

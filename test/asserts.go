@@ -11,7 +11,7 @@ import (
 )
 
 // BodyEquals asserts the content from the response recorder with the encoded json of the provided instance.
-func BodyEquals(t assert.TestingT, obj interface{}, recorder *httptest.ResponseRecorder) {
+func BodyEquals(t assert.TestingT, obj any, recorder *httptest.ResponseRecorder) {
 	bytes, err := io.ReadAll(recorder.Body)
 	assert.Nil(t, err)
 	actual := string(bytes)
@@ -20,7 +20,7 @@ func BodyEquals(t assert.TestingT, obj interface{}, recorder *httptest.ResponseR
 }
 
 // JSONEquals asserts the content of the string with the encoded json of the provided instance.
-func JSONEquals(t assert.TestingT, obj interface{}, expected string) {
+func JSONEquals(t assert.TestingT, obj any, expected string) {
 	bytes, err := json.Marshal(obj)
 	assert.Nil(t, err)
 	objJSON := string(bytes)

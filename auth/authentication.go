@@ -90,6 +90,10 @@ func (a *Auth) evaluate(ctx *gin.Context, funcs ...func(ctx *gin.Context) (authS
 	for _, fn := range funcs {
 		state, err := fn(ctx)
 		if err != nil {
+			if errors.Is(err, errCannotParseToken) {
+				ctx.AbortWithError(401, err)
+				return true
+			}
 			ctx.AbortWithError(500, err)
 			return true
 		}
@@ -148,8 +152,16 @@ func (a *Auth) handleUser(checks ...func(*model.User) (authState, error)) func(c
 func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) func(ctx *gin.Context) (authState, error) {
 	return func(ctx *gin.Context) (authState, error) {
 		token, isCookie := a.readTokenFromRequest(ctx)
+		originalToken := token
 		if token == "" {
 			return authStateSkip, nil
+		}
+		if strings.HasPrefix(token, enhancedTokenPrefix) {
+			complexToken, err := ParseEnhancedToken(token)
+			if err != nil || !complexToken.ValidateTimestamp(timeNow().Unix()) {
+				return authStateSkip, err
+			}
+			token = complexToken.PublicForm()
 		}
 		client, err := a.DB.GetClientByToken(token)
 		if err != nil {
@@ -166,7 +178,7 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 				return authStateSkip, err
 			}
 			if isCookie {
-				SetCookie(ctx.Writer, client.Token, CookieMaxAge, a.SecureCookie)
+				SetCookie(ctx.Writer, originalToken, CookieMaxAge, a.SecureCookie)
 			}
 		}
 
@@ -182,8 +194,16 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 
 func (a *Auth) handleApplication(ctx *gin.Context) (authState, error) {
 	token, isCookie := a.readTokenFromRequest(ctx)
+	originalToken := token
 	if token == "" {
 		return authStateSkip, nil
+	}
+	if strings.HasPrefix(token, enhancedTokenPrefix) {
+		complexToken, err := ParseEnhancedToken(token)
+		if err != nil || !complexToken.ValidateTimestamp(timeNow().Unix()) {
+			return authStateSkip, err
+		}
+		token = complexToken.PublicForm()
 	}
 	app, err := a.DB.GetApplicationByToken(token)
 	if err != nil {
@@ -200,7 +220,7 @@ func (a *Auth) handleApplication(ctx *gin.Context) (authState, error) {
 			return authStateSkip, err
 		}
 		if isCookie {
-			SetCookie(ctx.Writer, app.Token, CookieMaxAge, a.SecureCookie)
+			SetCookie(ctx.Writer, originalToken, CookieMaxAge, a.SecureCookie)
 		}
 	}
 

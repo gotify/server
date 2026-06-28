@@ -18,7 +18,6 @@ import AddClientDialog from './AddClientDialog';
 import UpdateClientDialog from './UpdateClientDialog';
 import ElevateClientDialog from './ElevateClientDialog';
 import {IClient} from '../types';
-import CopyableSecret from '../common/CopyableSecret';
 import {LastUsedCell} from '../common/LastUsedCell';
 import {formatDate} from '../common/TimeAgoFormatter';
 import {RemainingTime} from '../common/RemainingTime';
@@ -54,7 +53,6 @@ const Clients = observer(() => {
                         <TableHead>
                             <TableRow style={{textAlign: 'center'}}>
                                 <TableCell>Name</TableCell>
-                                <TableCell style={{width: 200}}>Token</TableCell>
                                 <TableCell>Elevation ends</TableCell>
                                 <TableCell>Expires in</TableCell>
                                 <TableCell>Last Used</TableCell>
@@ -69,7 +67,6 @@ const Clients = observer(() => {
                                 <Row
                                     key={client.id}
                                     name={client.name}
-                                    value={client.token}
                                     createdAt={client.createdAt}
                                     lastUsed={client.lastUsed}
                                     elevatedUntil={client.elevatedUntil}
@@ -123,7 +120,6 @@ const Clients = observer(() => {
 
 interface IRowProps {
     name: string;
-    value: string;
     createdAt: string;
     lastUsed: string | null;
     elevatedUntil?: string;
@@ -135,7 +131,6 @@ interface IRowProps {
 
 const Row = ({
     name,
-    value,
     createdAt,
     lastUsed,
     elevatedUntil,
@@ -146,12 +141,6 @@ const Row = ({
 }: IRowProps) => (
     <TableRow>
         <TableCell>{name}</TableCell>
-        <TableCell>
-            <CopyableSecret
-                value={value}
-                style={{display: 'flex', alignItems: 'center', width: 250}}
-            />
-        </TableCell>
         <TableCell align="right" title={elevatedUntil}>
             <RemainingTime
                 until={

@@ -477,14 +477,19 @@ func (a *OIDCAPI) registerUser(username, oidcID string) (*model.User, int, error
 
 func (a *OIDCAPI) createClient(name string, userID uint) (*model.Client, error) {
 	elevatedUntil := time.Now().Add(model.DefaultElevationDuration)
+	tokenPublic, tokenPrivate := generateClientToken()
 	client := &model.Client{
 		Name:                          name,
-		Token:                         auth.GenerateNotExistingToken(generateClientToken, func(t string) bool { c, _ := a.DB.GetClientByToken(t); return c != nil }),
+		Token:                         tokenPublic,
 		UserID:                        userID,
 		ElevatedUntil:                 &elevatedUntil,
 		ExpiresAfterInactivitySeconds: auth.CookieMaxAge,
 	}
-	return client, a.DB.CreateClient(client)
+	if err := a.DB.CreateClient(client); err != nil {
+		return nil, err
+	}
+	client.Token = tokenPrivate
+	return client, nil
 }
 
 func (a *OIDCAPI) popPendingSession(key string) (*pendingOIDCSession, bool) {

@@ -23,7 +23,7 @@ import (
 // gormLogWriter routes gorm logger output through zerolog.
 type gormLogWriter struct{}
 
-func (gormLogWriter) Printf(format string, args ...interface{}) {
+func (gormLogWriter) Printf(format string, args ...any) {
 	log.Warn().Str("component", "gorm").Msgf(format, args...)
 }
 

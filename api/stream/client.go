@@ -16,7 +16,7 @@ var ping = func(conn *websocket.Conn) error {
 	return conn.WriteMessage(websocket.PingMessage, nil)
 }
 
-var writeJSON = func(conn *websocket.Conn, v interface{}) error {
+var writeJSON = func(conn *websocket.Conn, v any) error {
 	return conn.WriteJSON(v)
 }
 

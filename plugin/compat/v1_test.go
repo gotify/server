@@ -118,7 +118,7 @@ func (s *V1WrapperSuite) TestMessenger_sendMessageWithExtras() {
 		Title:    "test message",
 		Message:  "test",
 		Priority: 2,
-		Extras: map[string]interface{}{
+		Extras: map[string]any{
 			"test::string": "test",
 		},
 	}
@@ -127,7 +127,7 @@ func (s *V1WrapperSuite) TestMessenger_sendMessageWithExtras() {
 		Title:    "test message",
 		Message:  "test",
 		Priority: 2,
-		Extras: map[string]interface{}{
+		Extras: map[string]any{
 			"test::string": "test",
 		},
 	}, handler.msgSent)

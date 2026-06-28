@@ -47,9 +47,10 @@ export class ClientStore extends BaseStore<IClient> {
     };
 
     @action
-    public create = async (name: string, expiresAfterInactivitySeconds = 0): Promise<void> => {
-        await this.createNoNotifcation(name, expiresAfterInactivitySeconds);
+    public create = async (name: string, expiresAfterInactivitySeconds = 0): Promise<string> => {
+        const client = await this.createNoNotifcation(name, expiresAfterInactivitySeconds);
         this.snack('Client added');
+        return client.token;
     };
 
     @action

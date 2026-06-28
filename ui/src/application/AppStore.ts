@@ -88,14 +88,15 @@ export class AppStore extends BaseStore<IApplication> {
         name: string,
         description: string,
         defaultPriority: number
-    ): Promise<void> => {
-        await axios.post(`${config.get('url')}application`, {
+    ): Promise<string> => {
+        const response = await axios.post(`${config.get('url')}application`, {
             name,
             description,
             defaultPriority,
         });
         await this.refresh();
         this.snack('Application created');
+        return response.data.token;
     };
 
     public getName = (id: number): string => {

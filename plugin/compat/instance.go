@@ -2,6 +2,7 @@ package compat
 
 import (
 	"net/url"
+	"slices"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,9 +32,9 @@ type PluginInstance interface {
 	GetDisplay(location *url.URL) string
 
 	// DefaultConfig see Configurer
-	DefaultConfig() interface{}
+	DefaultConfig() any
 	// ValidateAndSetConfig see Configurer
-	ValidateAndSetConfig(c interface{}) error
+	ValidateAndSetConfig(c any) error
 
 	// SetMessageHandler see Messenger#SetMessageHandler
 	SetMessageHandler(h MessageHandler)
@@ -50,12 +51,7 @@ type PluginInstance interface {
 
 // HasSupport tests a PluginInstance for a capability.
 func HasSupport(p PluginInstance, toCheck Capability) bool {
-	for _, module := range p.Supports() {
-		if module == toCheck {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(p.Supports(), toCheck)
 }
 
 // Capabilities is a slice of module.
@@ -87,5 +83,5 @@ type Message struct {
 	Message  string
 	Title    string
 	Priority int
-	Extras   map[string]interface{}
+	Extras   map[string]any
 }

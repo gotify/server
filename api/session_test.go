@@ -12,7 +12,6 @@ import (
 	"github.com/gotify/server/v2/auth/password"
 	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
-	"github.com/gotify/server/v2/test"
 	"github.com/gotify/server/v2/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -55,10 +54,6 @@ func (s *SessionSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *SessionSuite) Test_Login_Success() {
-	originalGenerateClientToken := generateClientToken
-	defer func() { generateClientToken = originalGenerateClientToken }()
-	generateClientToken = test.Tokens("Ctesttoken12345")
-
 	s.ctx.Request = httptest.NewRequest("POST", "/auth/local/login", strings.NewReader("name=test-browser"))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	s.ctx.Request.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("testuser:testpass")))
@@ -77,7 +72,8 @@ func (s *SessionSuite) Test_Login_Success() {
 		}
 	}
 	assert.NotNil(s.T(), sessionCookie)
-	assert.Equal(s.T(), "Ctesttoken12345", sessionCookie.Value)
+	_, err := auth.ParseEnhancedToken(sessionCookie.Value)
+	assert.NoError(s.T(), err)
 	assert.True(s.T(), sessionCookie.HttpOnly)
 	assert.Equal(s.T(), "/", sessionCookie.Path)
 	assert.Equal(s.T(), http.SameSiteStrictMode, sessionCookie.SameSite)

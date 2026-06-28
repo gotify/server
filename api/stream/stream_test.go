@@ -40,7 +40,7 @@ func TestWriteMessageFails(t *testing.T) {
 	mode.Set(mode.TestDev)
 	oldWrite := writeJSON
 	// try emulate an write error, mostly this should kill the ReadMessage goroutine first but you'll never know.
-	writeJSON = func(conn *websocket.Conn, v interface{}) error {
+	writeJSON = func(conn *websocket.Conn, v any) error {
 		return errors.New("asd")
 	}
 	defer func() {
@@ -610,7 +610,7 @@ func staticUserID() gin.HandlerFunc {
 }
 
 func waitForConnectedClients(api *API, count int) {
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		if countClients(api) == count {
 			// ok
 			return

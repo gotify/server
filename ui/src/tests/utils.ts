@@ -70,12 +70,11 @@ export const clearField = async (element: ElementHandle | Page, selector: string
 
 export enum ClientCol {
     Name = 1,
-    Token = 2,
-    ElevationEnds = 3,
-    ExpiresIn = 4,
-    LastSeen = 5,
-    Created = 6,
-    Elevate = 7,
-    Edit = 8,
-    Delete = 9,
+    ElevationEnds = 2,
+    ExpiresIn = 3,
+    LastSeen = 4,
+    Created = 5,
+    Elevate = 6,
+    Edit = 7,
+    Delete = 8,
 }

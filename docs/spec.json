@@ -2446,7 +2446,6 @@
       "title": "Application Model",
       "required": [
         "id",
-        "token",
         "name",
         "description",
         "internal",
@@ -2570,7 +2569,6 @@
       "title": "Client Model",
       "required": [
         "id",
-        "token",
         "name",
         "createdAt"
       ],

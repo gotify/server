@@ -92,12 +92,13 @@ type ApplicationParams struct {
 func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 	applicationParams := ApplicationParams{}
 	if err := ctx.Bind(&applicationParams); err == nil {
+		tokenPublic, tokenPrivate := generateApplicationToken()
 		app := model.Application{
 			Name:            applicationParams.Name,
 			Description:     applicationParams.Description,
 			DefaultPriority: applicationParams.DefaultPriority,
 			SortKey:         applicationParams.SortKey,
-			Token:           auth.GenerateNotExistingToken(generateApplicationToken, a.applicationExists),
+			Token:           tokenPublic,
 			UserID:          auth.GetUserID(ctx),
 			Internal:        false,
 		}
@@ -106,6 +107,7 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 			handleApplicationError(ctx, err)
 			return
 		}
+		app.Token = tokenPrivate
 		ctx.JSON(200, withResolvedImage(&app))
 	}
 }
@@ -141,6 +143,7 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 		return
 	}
 	for _, app := range apps {
+		app.Token = ""
 		withResolvedImage(app)
 	}
 	ctx.JSON(200, apps)
@@ -450,11 +453,6 @@ func withResolvedImage(app *model.Application) *model.Application {
 		app.Image = "image/" + app.Image
 	}
 	return app
-}
-
-func (a *ApplicationAPI) applicationExists(token string) bool {
-	app, _ := a.DB.GetApplicationByToken(token)
-	return app != nil
 }
 
 func exist(path string) bool {

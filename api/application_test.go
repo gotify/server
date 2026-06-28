@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/mode"
 	"github.com/gotify/server/v2/model"
 	"github.com/gotify/server/v2/test"
@@ -20,12 +21,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-)
-
-var (
-	firstApplicationToken  = "Aaaaaaaaaaaaaaa"
-	secondApplicationToken = "Abbbbbbbbbbbbbb"
-	thirdApplicationToken  = "Acccccccccccccc"
 )
 
 func TestApplicationSuite(t *testing.T) {
@@ -37,30 +32,23 @@ type ApplicationSuite struct {
 	db       *testdb.Database
 	a        *ApplicationAPI
 	ctx      *gin.Context
+	imageDir *test.TmpDir
 	recorder *httptest.ResponseRecorder
 }
 
-var (
-	originalGenerateApplicationToken func() string
-	originalGenerateImageName        func() string
-)
-
 func (s *ApplicationSuite) BeforeTest(suiteName, testName string) {
-	originalGenerateApplicationToken = generateApplicationToken
-	originalGenerateImageName = generateImageName
-	generateApplicationToken = test.Tokens(firstApplicationToken, secondApplicationToken, thirdApplicationToken)
-	generateImageName = test.Tokens(firstApplicationToken[1:], secondApplicationToken[1:], thirdApplicationToken[1:])
 	mode.Set(mode.TestDev)
 	s.recorder = httptest.NewRecorder()
 	s.db = testdb.NewDB(s.T())
 	s.ctx, _ = gin.CreateTestContext(s.recorder)
+	tmpDir := test.NewTmpDir("gotify_applicationsuite")
+	s.imageDir = &tmpDir
 	withURL(s.ctx, "http", "example.com")
-	s.a = &ApplicationAPI{DB: s.db}
+	s.a = &ApplicationAPI{DB: s.db, ImageDir: s.imageDir.Path() + "/"}
 }
 
 func (s *ApplicationSuite) AfterTest(suiteName, testName string) {
-	generateApplicationToken = originalGenerateApplicationToken
-	generateImageName = originalGenerateImageName
+	s.imageDir.Clean()
 	s.db.Close()
 }
 
@@ -73,7 +61,6 @@ func (s *ApplicationSuite) Test_CreateApplication_mapAllParameters() {
 
 	expected := &model.Application{
 		ID:          1,
-		Token:       firstApplicationToken,
 		UserID:      5,
 		Name:        "custom_name",
 		Description: "description_text",
@@ -82,6 +69,7 @@ func (s *ApplicationSuite) Test_CreateApplication_mapAllParameters() {
 	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
+		expected.Token = app.Token
 		assert.Equal(s.T(), expected, app)
 	}
 }
@@ -133,7 +121,6 @@ func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInPar
 
 	expected := &model.Application{
 		ID:          1,
-		Token:       firstApplicationToken,
 		Name:        "name",
 		Description: "description",
 		Internal:    false,
@@ -143,7 +130,17 @@ func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInPar
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	test.BodyEquals(s.T(), expected, s.recorder)
+	bodyBytes, err := io.ReadAll(s.recorder.Body)
+	assert.Nil(s.T(), err)
+	var got model.Application
+	assert.Nil(s.T(), json.Unmarshal(bodyBytes, &got))
+	expected.Token = got.Token
+	assert.Equal(s.T(), expected, &got)
+	tokenParsed, err := auth.ParseEnhancedToken(got.Token)
+	assert.Nil(s.T(), err)
+	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), app.Token, tokenParsed.PublicForm())
+	}
 }
 
 func (s *ApplicationSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwner() {
@@ -167,10 +164,18 @@ func (s *ApplicationSuite) Test_CreateApplication_onlyRequiredParameters() {
 	s.withFormData("name=custom_name")
 	s.a.CreateApplication(s.ctx)
 
-	expected := &model.Application{ID: 1, Token: firstApplicationToken, Name: "custom_name", UserID: 5, SortKey: "a0", CreatedAt: testdb.Now}
+	expected := &model.Application{ID: 1, Name: "custom_name", SortKey: "a0", CreatedAt: testdb.Now, Image: "static/defaultapp.png"}
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
-		assert.Contains(s.T(), app, expected)
+	bodyBytes, err := io.ReadAll(s.recorder.Body)
+	assert.Nil(s.T(), err)
+	var got model.Application
+	assert.Nil(s.T(), json.Unmarshal(bodyBytes, &got))
+	expected.Token = got.Token
+	assert.Equal(s.T(), expected, &got)
+	tokenParsed, err := auth.ParseEnhancedToken(got.Token)
+	assert.Nil(s.T(), err)
+	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), app.Token, tokenParsed.PublicForm())
 	}
 }
 
@@ -184,29 +189,39 @@ func (s *ApplicationSuite) Test_CreateApplication_returnsApplicationWithID() {
 
 	expected := &model.Application{
 		ID:        1,
-		Token:     firstApplicationToken,
 		Name:      "custom_name",
 		Image:     "static/defaultapp.png",
 		SortKey:   "a0",
 		CreatedAt: testdb.Now,
 	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	test.BodyEquals(s.T(), expected, s.recorder)
+	bodyBytes, err := io.ReadAll(s.recorder.Body)
+	assert.Nil(s.T(), err)
+	var got model.Application
+	assert.Nil(s.T(), json.Unmarshal(bodyBytes, &got))
+	expected.Token = got.Token
+	assert.Equal(s.T(), expected, &got)
+	tokenParsed, err := auth.ParseEnhancedToken(got.Token)
+	assert.Nil(s.T(), err)
+	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), app.Token, tokenParsed.PublicForm())
+	}
 }
 
 func (s *ApplicationSuite) Test_CreateApplication_withExistingToken() {
 	s.db.User(5)
-	s.db.User(6).AppWithToken(1, firstApplicationToken)
+	s.db.User(6).App(1)
 
 	test.WithUser(s.ctx, 5)
 	s.withFormData("name=custom_name")
 
 	s.a.CreateApplication(s.ctx)
 
-	expected := &model.Application{ID: 2, Token: secondApplicationToken, Name: "custom_name", UserID: 5, SortKey: "a0", CreatedAt: testdb.Now}
+	expected := &model.Application{ID: 2, Name: "custom_name", UserID: 5, SortKey: "a0", CreatedAt: testdb.Now}
 	assert.Equal(s.T(), 200, s.recorder.Code)
-	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
-		assert.Contains(s.T(), app, expected)
+	if app, err := s.db.GetApplicationByID(2); assert.NoError(s.T(), err) {
+		expected.Token = app.Token
+		assert.Equal(s.T(), expected, app)
 	}
 }
 
@@ -263,6 +278,8 @@ func (s *ApplicationSuite) Test_GetApplications() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	first.Image = "static/defaultapp.png"
 	second.Image = "static/defaultapp.png"
+	first.Token = ""
+	second.Token = ""
 	test.BodyEquals(s.T(), []*model.Application{first, second}, s.recorder)
 }
 
@@ -281,6 +298,8 @@ func (s *ApplicationSuite) Test_GetApplications_WithImage() {
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	first.Image = "image/abcd.jpg"
 	second.Image = "static/defaultapp.png"
+	first.Token = ""
+	second.Token = ""
 	test.BodyEquals(s.T(), []*model.Application{first, second}, s.recorder)
 }
 
@@ -288,7 +307,7 @@ func (s *ApplicationSuite) Test_DeleteApplication_internal_expectBadRequest() {
 	s.db.User(5).InternalApp(10)
 
 	test.WithUser(s.ctx, 5)
-	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstApplicationToken, nil)
+	s.ctx.Request = httptest.NewRequest("DELETE", "/token/", nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "10"}}
 
 	s.a.DeleteApplication(s.ctx)
@@ -300,7 +319,7 @@ func (s *ApplicationSuite) Test_DeleteApplication_expectNotFound() {
 	s.db.User(5)
 
 	test.WithUser(s.ctx, 5)
-	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstApplicationToken, nil)
+	s.ctx.Request = httptest.NewRequest("DELETE", "/token/", nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "4"}}
 
 	s.a.DeleteApplication(s.ctx)
@@ -312,7 +331,7 @@ func (s *ApplicationSuite) Test_DeleteApplication() {
 	s.db.User(5).App(1)
 
 	test.WithUser(s.ctx, 5)
-	s.ctx.Request = httptest.NewRequest("DELETE", "/token/"+firstApplicationToken, nil)
+	s.ctx.Request = httptest.NewRequest("DELETE", "/token/", nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 
 	s.a.DeleteApplication(s.ctx)
@@ -371,7 +390,7 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
 		imgName := app.Image
 
 		assert.Equal(s.T(), 200, s.recorder.Code)
-		_, err = os.Stat(imgName)
+		_, err = os.Stat(s.imageDir.Path(imgName))
 		assert.Nil(s.T(), err)
 
 		s.a.DeleteApplication(s.ctx)
@@ -381,40 +400,12 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_expectSuccess() {
 	}
 }
 
-func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImageAndGenerateNewName() {
-	existingImageName := "2lHMAel6BDHLL-HrwphcviX-l.png"
-	firstGeneratedImageName := firstApplicationToken[1:] + ".png"
-	secondGeneratedImageName := secondApplicationToken[1:] + ".png"
+func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImage() {
+	existingImageName := "existing.png"
 	s.db.User(5)
 	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: existingImageName})
+	fakeImage(s.T(), s.imageDir.Path(existingImageName))
 
-	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
-	assert.Nil(s.T(), err)
-	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant", &buffer)
-	s.ctx.Request.Header.Set("Content-Type", cType)
-	test.WithUser(s.ctx, 5)
-	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-	fakeImage(s.T(), existingImageName)
-	fakeImage(s.T(), firstGeneratedImageName)
-
-	s.a.UploadApplicationImage(s.ctx)
-
-	assert.Equal(s.T(), 200, s.recorder.Code)
-
-	_, err = os.Stat(existingImageName)
-	assert.True(s.T(), os.IsNotExist(err))
-
-	_, err = os.Stat(secondGeneratedImageName)
-	assert.Nil(s.T(), err)
-	assert.Nil(s.T(), os.Remove(secondGeneratedImageName))
-	assert.Nil(s.T(), os.Remove(firstGeneratedImageName))
-}
-
-func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage() {
-	s.db.User(5)
-	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: "existing.png"})
-
-	fakeImage(s.T(), "existing.png")
 	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
 	assert.Nil(s.T(), err)
 	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant", &buffer)
@@ -426,10 +417,9 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExistingImage
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
 
-	_, err = os.Stat("existing.png")
-	assert.True(s.T(), os.IsNotExist(err))
-
-	os.Remove(firstApplicationToken[1:] + ".png")
+	listing, err := os.ReadDir(s.imageDir.Path())
+	assert.Nil(s.T(), err)
+	assert.Len(s.T(), listing, 1)
 }
 
 func (s *ApplicationSuite) Test_UploadAppImage_WithTextFile_expectBadRequest() {
@@ -504,14 +494,14 @@ func (s *ApplicationSuite) Test_RemoveAppImage_expectSuccess() {
 
 	imageFile := "existing.png"
 	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: imageFile})
-	fakeImage(s.T(), imageFile)
+	fakeImage(s.T(), s.imageDir.Path(imageFile))
 
 	test.WithUser(s.ctx, 5)
 	s.ctx.Request = httptest.NewRequest("DELETE", "/irrelevant", nil)
 	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
 	s.a.RemoveApplicationImage(s.ctx)
 
-	_, err := os.Stat(imageFile)
+	_, err := os.Stat(s.imageDir.Path(imageFile))
 	assert.True(s.T(), os.IsNotExist(err))
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
@@ -672,7 +662,7 @@ func (s *ApplicationSuite) withFormData(formData string) {
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 }
 
-func (s *ApplicationSuite) withJSON(value interface{}) {
+func (s *ApplicationSuite) withJSON(value any) {
 	jsonVal, _ := json.Marshal(value)
 	s.ctx.Request = httptest.NewRequest("POST", "/application", bytes.NewBuffer(jsonVal))
 	s.ctx.Request.Header.Set("Content-Type", "application/json")
