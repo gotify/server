@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: (cd ui && yarn)
       - run: make build-js
       - uses: golangci/golangci-lint-action@v9
