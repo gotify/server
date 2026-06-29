@@ -2202,10 +2202,10 @@ form-data@^4.0.5:
     hasown "^2.0.2"
     mime-types "^2.1.12"
 
-fractional-indexing@^3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/fractional-indexing/-/fractional-indexing-3.2.0.tgz#1193e63d54ff4e0cbe0c79a9ed6cfbab25d91628"
-  integrity sha512-PcOxmqwYCW7O2ovKRU8OoQQj2yqTfEB/yeTYk4gPid6dN5ODRfU1hXd9tTVZzax/0NkO7AxpHykvZnT1aYp/BQ==
+fractional-indexing@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/fractional-indexing/-/fractional-indexing-4.0.0.tgz#07820434caec6fbf7a4d4295139a275ee6084d9a"
+  integrity sha512-Nr2P1Yyaj2sy1Qdt/wI3GcByxrUdbSKg5+cGvw8f18hT2SkQt6V72iOjBpk7IO3UkzBsdlGRs2a4z6dLrJprgw==
 
 fsevents@~2.3.2, fsevents@~2.3.3:
   version "2.3.3"
