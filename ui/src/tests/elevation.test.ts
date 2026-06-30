@@ -16,6 +16,7 @@ afterAll(async () => await gotify.close());
 
 const $clientTable = selector.table('#client-table');
 const $clientDialog = selector.form('#client-dialog');
+const $tokenDialog = selector.form('#token-dialog');
 
 // This expects the session to be already elevated.
 const cancelElevationViaUI = async (row: number) => {
@@ -53,9 +54,10 @@ describe('Elevation', () => {
             await page.waitForSelector($clientDialog.selector());
             await page.type($clientDialog.input('.name'), 'test-client');
             await page.click($clientDialog.button('.create'));
-            await page.waitForSelector($clientDialog.button('.finish'));
-            await page.click($clientDialog.button('.finish'));
             await waitToDisappear(page, $clientDialog.selector());
+            await page.waitForSelector($tokenDialog.button('.finish'));
+            await page.click($tokenDialog.button('.finish'));
+            await waitToDisappear(page, $tokenDialog.selector());
             await page.waitForSelector($clientTable.row(2));
             expect(await count(page, $clientTable.rows())).toBe(2);
         });
