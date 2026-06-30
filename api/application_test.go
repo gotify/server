@@ -155,9 +155,9 @@ func (s *ApplicationSuite) Test_UpdateApplicationSecurity_regenerateToken() {
 	s.a.UpdateApplicationSecurity(s.ctx)
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bodyBytes, err := io.ReadAll(s.recorder.Body)
-	assert.Nil(s.T(), err)
+	assert.NoError(s.T(), err)
 	var got model.SecurityUpdateActionResponse
-	assert.Nil(s.T(), json.Unmarshal(bodyBytes, &got))
+	assert.NoError(s.T(), json.Unmarshal(bodyBytes, &got))
 	assert.Equal(s.T(), &model.SecurityUpdateActionResponse{
 		RegenerateToken: &model.RegenerateTokenResponse{
 			Token: got.RegenerateToken.Token,
@@ -180,7 +180,7 @@ func (s *ApplicationSuite) Test_UpdateApplicationSecurity_isNoOpIfNilAction() {
 	s.a.UpdateApplicationSecurity(s.ctx)
 	assert.Equal(s.T(), 200, s.recorder.Code)
 	bodyBytes, err := io.ReadAll(s.recorder.Body)
-	assert.Nil(s.T(), err)
+	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), "{}", string(bodyBytes))
 	newToken, err := s.db.GetApplicationByID(1)
 	assert.NoError(s.T(), err)
