@@ -23,6 +23,7 @@ import {formatDate} from '../common/TimeAgoFormatter';
 import {RemainingTime} from '../common/RemainingTime';
 import {observer} from 'mobx-react-lite';
 import {useStores} from '../stores';
+import {TokenConfirmDialog} from '../common/TokenConfirmDialog';
 
 const Clients = observer(() => {
     const {clientStore} = useStores();
@@ -30,6 +31,7 @@ const Clients = observer(() => {
     const [toUpdateClient, setToUpdateClient] = useState<IClient>();
     const [toElevateClient, setToElevateClient] = useState<IClient>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
+    const [toShowToken, setToShowToken] = useState<string>('');
     const clients = clientStore.getItems();
 
     useEffect(() => void clientStore.refresh(), []);
@@ -80,9 +82,15 @@ const Clients = observer(() => {
                     </Table>
                 </Paper>
             </Grid>
+            {toShowToken && (
+                <TokenConfirmDialog token={toShowToken} fClose={() => setToShowToken('')} />
+            )}
             {createDialog && (
                 <AddClientDialog
-                    fClose={() => setCreateDialog(false)}
+                    fClose={(token) => {
+                        setCreateDialog(false);
+                        setToShowToken(token || '');
+                    }}
                     fOnSubmit={clientStore.create}
                 />
             )}

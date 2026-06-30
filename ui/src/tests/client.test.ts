@@ -47,14 +47,15 @@ const fillClientDialog =
             await page.type(expiresSelector, data.expiresAfter.toString());
         }
         await page.click($dialog.button(submit));
-        if (hasToken) {
-            await page.waitForSelector($dialog.p('.token'));
-            const token = await innerText(page, $dialog.p('.token'));
-            expect(token.startsWith('gtfyc.')).toBeTruthy();
-            await page.waitForSelector($dialog.button('.finish'));
-            await page.click($dialog.button('.finish'));
-        }
         await waitToDisappear(page, $dialog.selector());
+        if (hasToken) {
+            await page.waitForSelector($tokenDialog.p('.token'));
+            const token = await innerText(page, $tokenDialog.p('.token'));
+            expect(token.startsWith('gtfyc.')).toBeTruthy();
+            await page.waitForSelector($tokenDialog.button('.finish'));
+            await page.click($tokenDialog.button('.finish'));
+            await waitToDisappear(page, $tokenDialog.selector());
+        }
     };
 
 const createClient = (data: ClientFields) =>
@@ -65,6 +66,7 @@ const updateClient = (id: number, data: ClientFields) =>
 
 const $table = selector.table('#client-table');
 const $dialog = selector.form('#client-dialog');
+const $tokenDialog = selector.form('#token-dialog');
 
 describe('Client', () => {
     it('does login', async () => await auth.login(page));

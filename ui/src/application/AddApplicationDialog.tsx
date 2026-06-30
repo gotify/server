@@ -8,119 +8,74 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import {NumberField} from '../common/NumberField';
 import React, {useState} from 'react';
-import {Typography} from '@mui/material';
-import {copyToClipboard} from '../clipboard';
-import {useStores} from '../stores';
 
 interface IProps {
-    fKnownToken?: string;
-    fClose: VoidFunction;
+    fClose: (token: string | null) => void;
     fOnSubmit: (name: string, description: string, defaultPriority: number) => Promise<string>;
 }
 
-export const AddApplicationDialog = ({fClose, fOnSubmit, fKnownToken}: IProps) => {
-    const [returnToken, setReturnToken] = useState(fKnownToken || '');
+export const AddApplicationDialog = ({fClose, fOnSubmit}: IProps) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [defaultPriority, setDefaultPriority] = useState(0);
-    const {snackManager} = useStores();
 
     const submitEnabled = name.length !== 0;
     const submitAndNext = async () => {
         const token = await fOnSubmit(name, description, defaultPriority);
-        setReturnToken(token);
+        fClose(token);
     };
 
     return (
-        <Dialog open={true} onClose={fClose} aria-labelledby="form-dialog-title" id="app-dialog">
-            <DialogTitle id="form-dialog-title">
-                {fKnownToken ? 'Update an application' : 'Create an application'}
-            </DialogTitle>
+        <Dialog
+            open={true}
+            onClose={() => fClose(null)}
+            aria-labelledby="form-dialog-title"
+            id="app-dialog">
+            <DialogTitle id="form-dialog-title">Create an application</DialogTitle>
             <DialogContent>
-                {returnToken ? (
-                    <>
-                        <DialogContentText>Your token will only be shown once.</DialogContentText>
-
-                        <span
-                            style={{padding: 16}}
-                            onClick={(e) => {
-                                window.getSelection()?.selectAllChildren(e.currentTarget);
-                            }}>
-                            <Typography
-                                className="token"
-                                variant="body1"
-                                style={{fontFamily: 'monospace', fontSize: 16}}>
-                                {returnToken}
-                            </Typography>
-                        </span>
-                    </>
-                ) : (
-                    <>
-                        <DialogContentText>
-                            An application is allowed to send messages.
-                        </DialogContentText>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            className="name"
-                            label="Name *"
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            fullWidth
-                        />
-                        <TextField
-                            margin="dense"
-                            className="description"
-                            label="Short Description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            fullWidth
-                            multiline
-                        />
-                        <NumberField
-                            margin="dense"
-                            className="priority"
-                            label="Default Priority"
-                            value={defaultPriority}
-                            onChange={(value) => setDefaultPriority(value)}
-                            fullWidth
-                        />
-                    </>
-                )}
+                <DialogContentText>An application is allowed to send messages.</DialogContentText>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    className="name"
+                    label="Name *"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    fullWidth
+                />
+                <TextField
+                    margin="dense"
+                    className="description"
+                    label="Short Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    fullWidth
+                    multiline
+                />
+                <NumberField
+                    margin="dense"
+                    className="priority"
+                    label="Default Priority"
+                    value={defaultPriority}
+                    onChange={(value) => setDefaultPriority(value)}
+                    fullWidth
+                />
             </DialogContent>
             <DialogActions>
-                {returnToken ? (
-                    <Button
-                        onClick={() =>
-                            copyToClipboard(returnToken).then(
-                                () => snackManager.snack('Copied to clipboard'),
-                                () => snackManager.snack('Cannot access clipboard.')
-                            )
-                        }>
-                        Copy to clipboard
-                    </Button>
-                ) : (
-                    <Button onClick={fClose}>Cancel</Button>
-                )}
-                {returnToken ? (
-                    <Button className="finish" onClick={fClose} color="primary" variant="contained">
-                        Finish
-                    </Button>
-                ) : (
-                    <Tooltip title={submitEnabled ? '' : 'name is required'}>
-                        <div>
-                            <Button
-                                className="create"
-                                disabled={!submitEnabled}
-                                onClick={submitAndNext}
-                                color="primary"
-                                variant="contained">
-                                Create
-                            </Button>
-                        </div>
-                    </Tooltip>
-                )}
+                <Button onClick={() => fClose(null)}>Cancel</Button>
+                <Tooltip title={submitEnabled ? '' : 'name is required'}>
+                    <div>
+                        <Button
+                            className="create"
+                            disabled={!submitEnabled}
+                            onClick={submitAndNext}
+                            color="primary"
+                            variant="contained">
+                            Create
+                        </Button>
+                    </div>
+                </Tooltip>
             </DialogActions>
         </Dialog>
     );

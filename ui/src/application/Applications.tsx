@@ -37,6 +37,7 @@ import {useStores} from '../stores';
 import {observer} from 'mobx-react-lite';
 import {makeStyles} from 'tss-react/mui';
 import {ButtonBase, Tooltip} from '@mui/material';
+import {TokenConfirmDialog} from '../common/TokenConfirmDialog';
 
 const useStyles = makeStyles()((theme) => ({
     imageContainer: {
@@ -60,14 +61,14 @@ const useStyles = makeStyles()((theme) => ({
 }));
 
 const Applications = observer(() => {
-    const {appStore, snackManager} = useStores();
+    const {appStore} = useStores();
     const apps = appStore.getItems();
     const [toDeleteApp, setToDeleteApp] = useState<IApplication>();
     const [toDeleteImage, setToDeleteImage] = useState<IApplication>();
     const [toUpdateApp, setToUpdateApp] = useState<IApplication>();
-    const [toRekeyApp, setToRekeyApp] = useState<IApplication>();
+    const [toRegenerateTokenApp, setToRegenerateTokenApp] = useState<IApplication>();
+    const [toShowToken, setToShowToken] = useState<string>('');
     const [createDialog, setCreateDialog] = useState<boolean>(false);
-    const [createDialogKnownToken, setCreateDialogKnownToken] = useState<string>();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const uploadId = useRef(-1);
@@ -110,7 +111,6 @@ const Applications = observer(() => {
                     variant="contained"
                     color="primary"
                     onClick={() => {
-                        setCreateDialogKnownToken(undefined);
                         setCreateDialog(true);
                     }}>
                     Create Application
@@ -143,7 +143,7 @@ const Applications = observer(() => {
                                         <Row
                                             key={app.id}
                                             app={app}
-                                            fRekey={() => setToRekeyApp(app)}
+                                            fRegenerateToken={() => setToRegenerateTokenApp(app)}
                                             fUpload={() => handleImageUploadClick(app.id)}
                                             fDeleteImage={() => setToDeleteImage(app)}
                                             fDelete={() => setToDeleteApp(app)}
@@ -163,10 +163,15 @@ const Applications = observer(() => {
                     />
                 </Paper>
             </Grid>
+            {toShowToken && (
+                <TokenConfirmDialog token={toShowToken} fClose={() => setToShowToken('')} />
+            )}
             {createDialog && (
                 <AddApplicationDialog
-                    fKnownToken={createDialogKnownToken}
-                    fClose={() => setCreateDialog(false)}
+                    fClose={(token) => {
+                        setCreateDialog(false);
+                        setToShowToken(token || '');
+                    }}
                     fOnSubmit={appStore.create}
                 />
             )}
@@ -181,25 +186,19 @@ const Applications = observer(() => {
                     initialDefaultPriority={toUpdateApp?.defaultPriority}
                 />
             )}
-            {toRekeyApp != null && (
+            {toRegenerateTokenApp != null && (
                 <ConfirmDialog
                     title="Confirm Token Regeneration"
                     text={
                         'Regenerate token for ' +
-                        toRekeyApp.name +
+                        toRegenerateTokenApp.name +
                         '? The current token will be invalidated.'
                     }
-                    fClose={() => setToRekeyApp(undefined)}
+                    fClose={() => setToRegenerateTokenApp(undefined)}
                     fOnSubmit={() =>
-                        appStore
-                            .rekey(toRekeyApp.id)
-                            .then((token) => {
-                                setCreateDialogKnownToken(token);
-                                setCreateDialog(true);
-                            })
-                            .catch((error) => {
-                                snackManager.snack(error.message);
-                            })
+                        appStore.regenerateToken(toRegenerateTokenApp.id).then((token) => {
+                            setToShowToken(token);
+                        })
                     }
                     requireElevated
                 />
@@ -227,14 +226,14 @@ const Applications = observer(() => {
 
 interface IRowProps {
     app: IApplication;
-    fRekey?: VoidFunction;
+    fRegenerateToken: VoidFunction;
     fUpload: VoidFunction;
     fDeleteImage: VoidFunction;
     fDelete: VoidFunction;
     fEdit: VoidFunction;
 }
 
-const Row = ({app, fRekey, fDelete, fUpload, fDeleteImage, fEdit}: IRowProps) => {
+const Row = ({app, fRegenerateToken, fDelete, fUpload, fDeleteImage, fEdit}: IRowProps) => {
     const {classes} = useStyles();
     const isDefaultImage = app.image === 'static/defaultapp.png';
 
@@ -291,27 +290,21 @@ const Row = ({app, fRekey, fDelete, fUpload, fDeleteImage, fEdit}: IRowProps) =>
                 <LastUsedCell lastUsed={app.lastUsed} />
             </TableCell>
             <TableCell title={app.createdAt}>{formatDate(app.createdAt)}</TableCell>
-            {fRekey && (
-                <TableCell align="right" padding="none">
-                    <IconButton onClick={fRekey} className="rekey">
-                        <Key />
-                    </IconButton>
-                </TableCell>
-            )}
-            {fEdit && (
-                <TableCell align="right" padding="none">
-                    <IconButton onClick={fEdit} className="edit">
-                        <Edit />
-                    </IconButton>
-                </TableCell>
-            )}
-            {fDelete && (
-                <TableCell align="right" padding="none">
-                    <IconButton onClick={fDelete} className="delete" disabled={app.internal}>
-                        <Delete />
-                    </IconButton>
-                </TableCell>
-            )}
+            <TableCell align="right" padding="none">
+                <IconButton onClick={fRegenerateToken} className="regenerate-token">
+                    <Key />
+                </IconButton>
+            </TableCell>
+            <TableCell align="right" padding="none">
+                <IconButton onClick={fEdit} className="edit">
+                    <Edit />
+                </IconButton>
+            </TableCell>
+            <TableCell align="right" padding="none">
+                <IconButton onClick={fDelete} className="delete" disabled={app.internal}>
+                    <Delete />
+                </IconButton>
+            </TableCell>
         </TableRow>
     );
 };

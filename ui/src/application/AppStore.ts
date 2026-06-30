@@ -36,10 +36,13 @@ export class AppStore extends BaseStore<IApplication> {
         this.snack('Application image updated');
     };
 
-    public async rekey(id: number): Promise<string> {
+    public async regenerateToken(id: number): Promise<string> {
         const response = await axios.put(`${config.get('url')}application/${id}/security`, {
             regenerateToken: true,
         });
+        if (!response.data?.regenerateToken?.token) {
+            throw new Error('unexpected response from server');
+        }
         return response.data.regenerateToken.token;
     }
 
