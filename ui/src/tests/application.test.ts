@@ -20,8 +20,9 @@ enum Col {
     DefaultPriority = 5,
     LastUsed = 6,
     Created = 7,
-    EditUpdate = 8,
-    EditDelete = 9,
+    EditRekey = 8,
+    EditUpdate = 9,
+    EditDelete = 10,
 }
 
 const $table = selector.table('#app-table');
@@ -104,6 +105,19 @@ describe('Application', () => {
         await waitforApp('server_linux', '#1', 1)();
         await waitforApp('desktop', 'kitchen_computer', 2)();
         await waitforApp('raspberry_pi', 'home_pi', 3)();
+    });
+    describe('security updates', () => {
+        it('regenerates application token', async () => {
+            await page.click($table.cell(1, Col.EditRekey, '.rekey'));
+            await page.waitForSelector(selector.$confirmDialog.selector());
+            await page.click(selector.$confirmDialog.button('.confirm'));
+            await page.waitForSelector($dialog.selector());
+            const token = await innerText(page, $dialog.p('.token'));
+            expect(token.startsWith('gtfya.')).toBeTruthy();
+            await page.waitForSelector($dialog.button('.finish'));
+            await page.click($dialog.button('.finish'));
+            await waitToDisappear(page, $dialog.selector());
+        });
     });
     it('deletes application', async () => {
         await page.click($table.cell(2, Col.EditDelete, '.delete'));

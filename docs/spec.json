@@ -588,6 +588,93 @@
         }
       }
     },
+    "/application/{id}/security": {
+      "put": {
+        "security": [
+          {
+            "clientTokenAuthorizationHeader": []
+          },
+          {
+            "clientTokenHeader": []
+          },
+          {
+            "clientTokenQuery": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
+        "description": "Requires elevated authentication.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "application"
+        ],
+        "summary": "Perform security updates on an application.",
+        "operationId": "updateAppSecurity",
+        "parameters": [
+          {
+            "description": "security update action descriptor",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SecurityUpdateAction"
+            }
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "the application id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/SecurityUpdateActionResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
     "/auth/local/login": {
       "post": {
         "security": [
@@ -3190,6 +3277,49 @@
         }
       },
       "x-go-name": "PluginConfExternal",
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "RegenerateTokenResponse": {
+      "description": "The RegenerateTokenResponse holds information about the response to the regenerate token action.",
+      "type": "object",
+      "title": "RegenerateTokenResponse Model",
+      "required": [
+        "token"
+      ],
+      "properties": {
+        "token": {
+          "description": "The new token.",
+          "type": "string",
+          "x-go-name": "Token",
+          "readOnly": true,
+          "example": "gtfya.e2NcJK7AenXBPIRB3S03JsBlmy0V6xP8h0hwSiAJae8"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "SecurityUpdateAction": {
+      "description": "The SecurityUpdateAction describes the details of a requested security update.",
+      "type": "object",
+      "title": "SecurityUpdateAction Model",
+      "properties": {
+        "regenerateToken": {
+          "description": "Whether to regenerate the token. Your client token must be elevated to perform this action.",
+          "type": "boolean",
+          "x-go-name": "RegenerateToken",
+          "example": true
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
+    },
+    "SecurityUpdateActionResponse": {
+      "description": "The SecurityUpdateActionResponse holds information about the response to a security update request.",
+      "type": "object",
+      "title": "SecurityUpdateActionResponse Model",
+      "properties": {
+        "regenerateToken": {
+          "$ref": "#/definitions/RegenerateTokenResponse"
+        }
+      },
       "x-go-package": "github.com/gotify/server/v2/model"
     },
     "UpdateUserExternal": {

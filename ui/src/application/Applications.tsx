@@ -1,4 +1,5 @@
 import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
+import Key from '@mui/icons-material/Key';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
@@ -59,12 +60,14 @@ const useStyles = makeStyles()((theme) => ({
 }));
 
 const Applications = observer(() => {
-    const {appStore} = useStores();
+    const {appStore, snackManager} = useStores();
     const apps = appStore.getItems();
     const [toDeleteApp, setToDeleteApp] = useState<IApplication>();
     const [toDeleteImage, setToDeleteImage] = useState<IApplication>();
     const [toUpdateApp, setToUpdateApp] = useState<IApplication>();
+    const [toRekeyApp, setToRekeyApp] = useState<IApplication>();
     const [createDialog, setCreateDialog] = useState<boolean>(false);
+    const [createDialogKnownToken, setCreateDialogKnownToken] = useState<string>();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const uploadId = useRef(-1);
@@ -106,7 +109,10 @@ const Applications = observer(() => {
                     id="create-app"
                     variant="contained"
                     color="primary"
-                    onClick={() => setCreateDialog(true)}>
+                    onClick={() => {
+                        setCreateDialogKnownToken(undefined);
+                        setCreateDialog(true);
+                    }}>
                     Create Application
                 </Button>
             }
@@ -137,6 +143,7 @@ const Applications = observer(() => {
                                         <Row
                                             key={app.id}
                                             app={app}
+                                            fRekey={() => setToRekeyApp(app)}
                                             fUpload={() => handleImageUploadClick(app.id)}
                                             fDeleteImage={() => setToDeleteImage(app)}
                                             fDelete={() => setToDeleteApp(app)}
@@ -158,6 +165,7 @@ const Applications = observer(() => {
             </Grid>
             {createDialog && (
                 <AddApplicationDialog
+                    fKnownToken={createDialogKnownToken}
                     fClose={() => setCreateDialog(false)}
                     fOnSubmit={appStore.create}
                 />
@@ -171,6 +179,29 @@ const Applications = observer(() => {
                     initialDescription={toUpdateApp?.description}
                     initialName={toUpdateApp?.name}
                     initialDefaultPriority={toUpdateApp?.defaultPriority}
+                />
+            )}
+            {toRekeyApp != null && (
+                <ConfirmDialog
+                    title="Confirm Token Regeneration"
+                    text={
+                        'Regenerate token for ' +
+                        toRekeyApp.name +
+                        '? The current token will be invalidated.'
+                    }
+                    fClose={() => setToRekeyApp(undefined)}
+                    fOnSubmit={() =>
+                        appStore
+                            .rekey(toRekeyApp.id)
+                            .then((token) => {
+                                setCreateDialogKnownToken(token);
+                                setCreateDialog(true);
+                            })
+                            .catch((error) => {
+                                snackManager.snack(error.message);
+                            })
+                    }
+                    requireElevated
                 />
             )}
             {toDeleteApp != null && (
@@ -196,13 +227,14 @@ const Applications = observer(() => {
 
 interface IRowProps {
     app: IApplication;
+    fRekey?: VoidFunction;
     fUpload: VoidFunction;
     fDeleteImage: VoidFunction;
     fDelete: VoidFunction;
     fEdit: VoidFunction;
 }
 
-const Row = ({app, fDelete, fUpload, fDeleteImage, fEdit}: IRowProps) => {
+const Row = ({app, fRekey, fDelete, fUpload, fDeleteImage, fEdit}: IRowProps) => {
     const {classes} = useStyles();
     const isDefaultImage = app.image === 'static/defaultapp.png';
 
@@ -259,16 +291,27 @@ const Row = ({app, fDelete, fUpload, fDeleteImage, fEdit}: IRowProps) => {
                 <LastUsedCell lastUsed={app.lastUsed} />
             </TableCell>
             <TableCell title={app.createdAt}>{formatDate(app.createdAt)}</TableCell>
-            <TableCell align="right" padding="none">
-                <IconButton onClick={fEdit} className="edit">
-                    <Edit />
-                </IconButton>
-            </TableCell>
-            <TableCell align="right" padding="none">
-                <IconButton onClick={fDelete} className="delete" disabled={app.internal}>
-                    <Delete />
-                </IconButton>
-            </TableCell>
+            {fRekey && (
+                <TableCell align="right" padding="none">
+                    <IconButton onClick={fRekey} className="rekey">
+                        <Key />
+                    </IconButton>
+                </TableCell>
+            )}
+            {fEdit && (
+                <TableCell align="right" padding="none">
+                    <IconButton onClick={fEdit} className="edit">
+                        <Edit />
+                    </IconButton>
+                </TableCell>
+            )}
+            {fDelete && (
+                <TableCell align="right" padding="none">
+                    <IconButton onClick={fDelete} className="delete" disabled={app.internal}>
+                        <Delete />
+                    </IconButton>
+                </TableCell>
+            )}
         </TableRow>
     );
 };

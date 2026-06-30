@@ -13,12 +13,13 @@ import {copyToClipboard} from '../clipboard';
 import {useStores} from '../stores';
 
 interface IProps {
+    fKnownToken?: string;
     fClose: VoidFunction;
     fOnSubmit: (name: string, description: string, defaultPriority: number) => Promise<string>;
 }
 
-export const AddApplicationDialog = ({fClose, fOnSubmit}: IProps) => {
-    const [returnToken, setReturnToken] = useState('');
+export const AddApplicationDialog = ({fClose, fOnSubmit, fKnownToken}: IProps) => {
+    const [returnToken, setReturnToken] = useState(fKnownToken || '');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [defaultPriority, setDefaultPriority] = useState(0);
@@ -32,7 +33,9 @@ export const AddApplicationDialog = ({fClose, fOnSubmit}: IProps) => {
 
     return (
         <Dialog open={true} onClose={fClose} aria-labelledby="form-dialog-title" id="app-dialog">
-            <DialogTitle id="form-dialog-title">Create an application</DialogTitle>
+            <DialogTitle id="form-dialog-title">
+                {fKnownToken ? 'Update an application' : 'Create an application'}
+            </DialogTitle>
             <DialogContent>
                 {returnToken ? (
                     <>

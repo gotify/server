@@ -280,6 +280,79 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 	})
 }
 
+// UpdateApplicationSecurity performs security updates on an application.
+// swagger:operation PUT /application/{id}/security application updateAppSecurity
+//
+// Perform security updates on an application.
+//
+// Requires elevated authentication.
+//
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: body
+//	  in: body
+//	  description: security update action descriptor
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/SecurityUpdateAction"
+//	- name: id
+//	  in: path
+//	  description: the application id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	        $ref: "#/definitions/SecurityUpdateActionResponse"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  500:
+//	    description: Server Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
+func (a *ApplicationAPI) UpdateApplicationSecurity(ctx *gin.Context) {
+	withID(ctx, "id", func(id uint) {
+		app, err := a.DB.GetApplicationByID(id)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
+		action := model.SecurityUpdateAction{}
+		response := model.SecurityUpdateActionResponse{}
+		if err := ctx.Bind(&action); err == nil {
+			if action.RegenerateToken {
+				tokenPublic, tokenPrivate := generateApplicationToken()
+				app.Token = tokenPublic
+				response.RegenerateToken = &model.RegenerateTokenResponse{
+					Token: tokenPrivate,
+				}
+			}
+			if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
+				return
+			}
+			ctx.JSON(200, response)
+		}
+	})
+}
+
 // UploadApplicationImage uploads an image for an application.
 // swagger:operation POST /application/{id}/image application uploadAppImage
 //

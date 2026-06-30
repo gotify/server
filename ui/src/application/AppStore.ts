@@ -36,6 +36,13 @@ export class AppStore extends BaseStore<IApplication> {
         this.snack('Application image updated');
     };
 
+    public async rekey(id: number): Promise<string> {
+        const response = await axios.put(`${config.get('url')}application/${id}/security`, {
+            regenerateToken: true,
+        });
+        return response.data.regenerateToken.token;
+    }
+
     public async deleteImage(id: number): Promise<void> {
         try {
             await axios.delete(`${config.get('url')}application/${id}/image`);
