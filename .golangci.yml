@@ -41,6 +41,7 @@ linters:
     paths:
       - plugin/example
       - plugin/testing
+      - node_modules
       - third_party$
       - builtin$
       - examples$
@@ -57,6 +58,7 @@ formatters:
     paths:
       - plugin/example
       - plugin/testing
+      - node_modules
       - third_party$
       - builtin$
       - examples$
