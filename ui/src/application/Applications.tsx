@@ -170,7 +170,7 @@ const Applications = observer(() => {
                 <AddApplicationDialog
                     fClose={(token) => {
                         setCreateDialog(false);
-                        setToShowToken(token || '');
+                        setToShowToken(token ?? '');
                     }}
                     fOnSubmit={appStore.create}
                 />

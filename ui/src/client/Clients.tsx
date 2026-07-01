@@ -89,7 +89,7 @@ const Clients = observer(() => {
                 <AddClientDialog
                     fClose={(token) => {
                         setCreateDialog(false);
-                        setToShowToken(token || '');
+                        setToShowToken(token ?? '');
                     }}
                     fOnSubmit={clientStore.create}
                 />
