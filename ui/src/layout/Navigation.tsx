@@ -2,7 +2,7 @@ import Divider from '@mui/material/Divider';
 import Drawer, {DrawerProps} from '@mui/material/Drawer';
 import {Theme} from '@mui/material/styles';
 import React from 'react';
-import {Link} from 'react-router-dom';
+import {Link} from 'react-router';
 import {observer} from 'mobx-react-lite';
 import {mayAllowPermission, requestPermission} from '../snack/browserNotification';
 import {

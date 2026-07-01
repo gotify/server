@@ -10,7 +10,7 @@ import {
 import {makeStyles} from 'tss-react/mui';
 import CssBaseline from '@mui/material/CssBaseline';
 import * as React from 'react';
-import {HashRouter, Navigate, Route, Routes} from 'react-router-dom';
+import {HashRouter, Navigate, Route, Routes} from 'react-router';
 import Header from './Header';
 import Navigation from './Navigation';
 import ScrollUpButton from '../common/ScrollUpButton';
