@@ -20,12 +20,14 @@ enum Col {
     DefaultPriority = 5,
     LastUsed = 6,
     Created = 7,
-    EditUpdate = 8,
-    EditDelete = 9,
+    EditRegenerateToken = 8,
+    EditUpdate = 9,
+    EditDelete = 10,
 }
 
 const $table = selector.table('#app-table');
 const $dialog = selector.form('#app-dialog');
+const $tokenDialog = selector.form('#token-dialog');
 
 const waitforApp =
     (name: string, description: string, row: number): (() => Promise<void>) =>
@@ -61,12 +63,12 @@ const createApp =
         await page.type($dialog.input('.name'), name);
         await page.type($dialog.textarea('.description'), description);
         await page.click($dialog.button('.create'));
-        await page.waitForSelector($dialog.button('.finish'));
-        await page.waitForSelector($dialog.p('.token'));
-        const token = await innerText(page, $dialog.p('.token'));
-        expect(token.startsWith('gtfya.')).toBeTruthy();
-        await page.click($dialog.button('.finish'));
         await waitToDisappear(page, $dialog.selector());
+        await page.waitForSelector($tokenDialog.p('.token'));
+        const token = await innerText(page, $tokenDialog.p('.token'));
+        expect(token.startsWith('gtfya.')).toBeTruthy();
+        await page.click($tokenDialog.button('.finish'));
+        await waitToDisappear(page, $tokenDialog.selector());
     };
 
 describe('Application', () => {
@@ -104,6 +106,20 @@ describe('Application', () => {
         await waitforApp('server_linux', '#1', 1)();
         await waitforApp('desktop', 'kitchen_computer', 2)();
         await waitforApp('raspberry_pi', 'home_pi', 3)();
+    });
+    describe('security updates', () => {
+        it('regenerates application token', async () => {
+            await page.click($table.cell(1, Col.EditRegenerateToken, '.regenerate-token'));
+            await page.waitForSelector(selector.$confirmDialog.selector());
+            await page.click(selector.$confirmDialog.button('.confirm'));
+            await waitToDisappear(page, selector.$confirmDialog.selector());
+            await page.waitForSelector($tokenDialog.p('.token'));
+            const token = await innerText(page, $tokenDialog.p('.token'));
+            expect(token.startsWith('gtfya.')).toBeTruthy();
+            await page.waitForSelector($tokenDialog.button('.finish'));
+            await page.click($tokenDialog.button('.finish'));
+            await waitToDisappear(page, $tokenDialog.selector());
+        });
     });
     it('deletes application', async () => {
         await page.click($table.cell(2, Col.EditDelete, '.delete'));

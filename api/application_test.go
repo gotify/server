@@ -143,6 +143,50 @@ func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInPar
 	}
 }
 
+func (s *ApplicationSuite) Test_UpdateApplicationSecurity_regenerateToken() {
+	s.db.User(5).App(1)
+	test.WithUser(s.ctx, 5)
+
+	oldToken, err := s.db.GetApplicationByID(1)
+	assert.NoError(s.T(), err)
+	s.ctx.Request = httptest.NewRequest("PUT", "/application/1/security", bytes.NewBufferString(`{"regenerateToken": true}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	s.a.UpdateApplicationSecurity(s.ctx)
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	bodyBytes, err := io.ReadAll(s.recorder.Body)
+	assert.NoError(s.T(), err)
+	var got model.SecurityUpdateActionResponse
+	assert.NoError(s.T(), json.Unmarshal(bodyBytes, &got))
+	assert.Equal(s.T(), &model.SecurityUpdateActionResponse{
+		RegenerateToken: &model.RegenerateTokenResponse{
+			Token: got.RegenerateToken.Token,
+		},
+	}, &got)
+	newToken, err := s.db.GetApplicationByID(1)
+	assert.NoError(s.T(), err)
+	assert.NotEqual(s.T(), oldToken.Token, newToken.Token)
+}
+
+func (s *ApplicationSuite) Test_UpdateApplicationSecurity_isNoOpIfNilAction() {
+	s.db.User(5).App(1)
+	test.WithUser(s.ctx, 5)
+
+	oldToken, err := s.db.GetApplicationByID(1)
+	assert.NoError(s.T(), err)
+	s.ctx.Request = httptest.NewRequest("PUT", "/application/1/security", bytes.NewBufferString(`{}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	s.a.UpdateApplicationSecurity(s.ctx)
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	bodyBytes, err := io.ReadAll(s.recorder.Body)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "{}", string(bodyBytes))
+	newToken, err := s.db.GetApplicationByID(1)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), oldToken, newToken)
+}
+
 func (s *ApplicationSuite) Test_DeleteApplication_expectNotFoundOnCurrentUserIsNotOwner() {
 	s.db.User(2)
 	s.db.User(5).App(5)
