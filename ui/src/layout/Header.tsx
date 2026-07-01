@@ -17,7 +17,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Apps from '@mui/icons-material/Apps';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import React, {CSSProperties} from 'react';
-import {Link} from 'react-router-dom';
+import {Link} from 'react-router';
 import {useMediaQuery} from '@mui/material';
 import {ThemeKey} from './theme';
 
