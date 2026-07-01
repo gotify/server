@@ -27,7 +27,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-markdown": "^10.1.0",
-    "react-router": "^7.18.1",
+    "react-router": "^8.0.0",
     "react-router-dom": "^7.18.1",
     "react-timeago": "^8.3.0",
     "react-virtuoso": "^4.13.0",
