@@ -335,6 +335,11 @@ func (a *ApplicationAPI) UpdateApplicationSecurity(ctx *gin.Context) {
 		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
+		if app == nil || app.UserID != auth.GetUserID(ctx) {
+			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
+			return
+		}
+
 		action := model.SecurityUpdateAction{}
 		response := model.SecurityUpdateActionResponse{}
 		if err := ctx.Bind(&action); err == nil {
