@@ -345,7 +345,7 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 //	  description: the message to add
 //	  required: true
 //	  schema:
-//	    $ref: "#/definitions/Message"
+//	    $ref: "#/definitions/CreateMessage"
 //	responses:
 //	  200:
 //	    description: Ok
@@ -364,7 +364,7 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 //	    schema:
 //	        $ref: "#/definitions/Error"
 func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
-	message := model.MessageExternal{}
+	message := model.CreateMessage{}
 	if err := ctx.Bind(&message); err != nil {
 		return
 	}
@@ -395,8 +395,6 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		message.Priority = &app.DefaultPriority
 	}
 
-	message.Date = timeNow()
-	message.ID = 0
 	msgInternal := toInternalMessage(&message)
 	if success := successOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
 		return
@@ -405,13 +403,12 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	ctx.JSON(200, toExternalMessage(msgInternal))
 }
 
-func toInternalMessage(msg *model.MessageExternal) *model.Message {
+func toInternalMessage(msg *model.CreateMessage) *model.Message {
 	res := &model.Message{
-		ID:            msg.ID,
 		ApplicationID: msg.ApplicationID,
 		Message:       msg.Message,
 		Title:         msg.Title,
-		Date:          msg.Date,
+		Date:          timeNow(),
 	}
 	if msg.Priority != nil {
 		res.Priority = *msg.Priority
