@@ -64,3 +64,39 @@ type MessageExternal struct {
 	// example: 2018-02-27T19:36:10.5045044+01:00
 	Date time.Time `json:"date"`
 }
+
+// CreateMessage Model
+//
+// The CreateMessage holds information about a message that will be sent.
+//
+// swagger:model CreateMessage
+type CreateMessage struct {
+	// The application id that send this message. Always set when returned via the API.
+	//
+	// example: 5
+	ApplicationID uint `json:"appid"`
+	// The message. Markdown (excluding html) is allowed.
+	//
+	// required: true
+	// example: **Backup** was successfully finished.
+	Message string `form:"message" query:"message" json:"message" binding:"required"`
+	// The title of the message.
+	//
+	// example: Backup
+	Title string `form:"title" query:"title" json:"title"`
+	// The priority of the message. If unset, then the default priority of the
+	// application will be used.
+	//
+	// example: 2
+	Priority *int `form:"priority" query:"priority" json:"priority"`
+	// The extra data sent along the message.
+	//
+	// The extra fields are stored in a key-value scheme. Only accepted in CreateMessage requests with application/json content-type.
+	//
+	// The keys should be in the following format: &lt;top-namespace&gt;::[&lt;sub-namespace&gt;::]&lt;action&gt;
+	//
+	// These namespaces are reserved and might be used in the official clients: gotify android ios web server client. Do not use them for other purposes.
+	//
+	// example: {"home::appliances::thermostat::change_temperature":{"temperature":23},"home::appliances::lighting::on":{"brightness":15}}
+	Extras map[string]any `form:"-" query:"-" json:"extras,omitempty"`
+}

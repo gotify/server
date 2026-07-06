@@ -1558,7 +1558,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Message"
+              "$ref": "#/definitions/CreateMessage"
             }
           }
         ],
@@ -2745,6 +2745,57 @@
         }
       },
       "x-go-package": "github.com/gotify/server/v2/api"
+    },
+    "CreateMessage": {
+      "description": "The CreateMessage holds information about a message that will be sent.",
+      "type": "object",
+      "title": "CreateMessage Model",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "appid": {
+          "description": "The application id that send this message. Always set when returned via the API.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ApplicationID",
+          "example": 5
+        },
+        "extras": {
+          "description": "The extra data sent along the message.\n\nThe extra fields are stored in a key-value scheme. Only accepted in CreateMessage requests with application/json content-type.\n\nThe keys should be in the following format: \u0026lt;top-namespace\u0026gt;::[\u0026lt;sub-namespace\u0026gt;::]\u0026lt;action\u0026gt;\n\nThese namespaces are reserved and might be used in the official clients: gotify android ios web server client. Do not use them for other purposes.",
+          "type": "object",
+          "additionalProperties": {},
+          "x-go-name": "Extras",
+          "example": {
+            "home::appliances::lighting::on": {
+              "brightness": 15
+            },
+            "home::appliances::thermostat::change_temperature": {
+              "temperature": 23
+            }
+          }
+        },
+        "message": {
+          "description": "The message. Markdown (excluding html) is allowed.",
+          "type": "string",
+          "x-go-name": "Message",
+          "example": "**Backup** was successfully finished."
+        },
+        "priority": {
+          "description": "The priority of the message. If unset, then the default priority of the\napplication will be used.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Priority",
+          "example": 2
+        },
+        "title": {
+          "description": "The title of the message.",
+          "type": "string",
+          "x-go-name": "Title",
+          "example": "Backup"
+        }
+      },
+      "x-go-package": "github.com/gotify/server/v2/model"
     },
     "CreateUserExternal": {
       "description": "Used for user creation.",
