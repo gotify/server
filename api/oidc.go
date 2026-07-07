@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/gotify/server/v2/database"
 	"github.com/gotify/server/v2/decaymap"
 	"github.com/gotify/server/v2/model"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
 	httphelper "github.com/zitadel/oidc/v3/pkg/http"
@@ -39,6 +41,7 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 		rp.WithCookieHandler(cookieHandler),
 		rp.WithPKCE(cookieHandler),
 		rp.WithSigningAlgsFromDiscovery(),
+		rp.WithLogger(slog.New(zerolog.NewSlogHandler(log.Logger))),
 	}
 
 	provider, err := rp.NewRelyingPartyOIDC(
