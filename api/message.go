@@ -105,7 +105,7 @@ func buildWithPaging(ctx *gin.Context, paging *pagingParams, messages []*model.M
 		useMessages = messages[:len(messages)-1]
 		since = useMessages[len(useMessages)-1].ID
 		url := location.Get(ctx)
-		url.Path = ctx.Request.URL.Path
+		url.Path = withForwardedPrefix(ctx, ctx.Request.URL.Path)
 		query := url.Query()
 		query.Add("limit", strconv.Itoa(paging.Limit))
 		query.Add("since", strconv.FormatUint(uint64(since), 10))
@@ -116,6 +116,20 @@ func buildWithPaging(ctx *gin.Context, paging *pagingParams, messages []*model.M
 		Paging:   model.Paging{Size: len(useMessages), Limit: paging.Limit, Next: next, Since: since},
 		Messages: toExternalMessages(useMessages),
 	}
+}
+
+// withForwardedPrefix prepends the reverse-proxy path prefix to the given
+// request path. Reverse proxies that strip a subpath before forwarding the
+// request (e.g. Caddy's `uri strip_prefix /gotify`) can announce the stripped
+// prefix via the X-Forwarded-Prefix header, so that URLs emitted by gotify —
+// like the paging `next` link — keep pointing at the externally reachable path
+// instead of dropping the prefix. See #664.
+func withForwardedPrefix(ctx *gin.Context, path string) string {
+	prefix := strings.Trim(ctx.GetHeader("X-Forwarded-Prefix"), "/")
+	if prefix == "" {
+		return path
+	}
+	return "/" + prefix + "/" + strings.TrimPrefix(path, "/")
 }
 
 func withPaging(ctx *gin.Context, f func(pagingParams *pagingParams)) {

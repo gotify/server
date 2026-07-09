@@ -106,6 +106,33 @@ func (s *MessageSuite) Test_GetMessages_WithLimit_ReturnsNext() {
 	test.BodyEquals(s.T(), expected, s.recorder)
 }
 
+func (s *MessageSuite) Test_GetMessages_WithLimit_BehindProxyPrefix_ReturnsNextWithPrefix() {
+	user := s.db.User(5)
+	app1 := user.App(1)
+	app2 := user.App(2)
+	var messages []*model.Message
+	for i := 100; i >= 1; i -= 2 {
+		one := app2.NewMessage(uint(i))
+		two := app1.NewMessage(uint(i - 1))
+		messages = append(messages, &one, &two)
+	}
+
+	// The reverse proxy strips the /gotify prefix, so gotify receives /message,
+	// but announces the stripped prefix via X-Forwarded-Prefix. The emitted
+	// next url must keep the prefix. See #664.
+	s.withURL("http", "example.com", "/message", "limit=5")
+	s.ctx.Request.Header.Set("X-Forwarded-Prefix", "/gotify")
+	test.WithUser(s.ctx, 5)
+	s.a.GetMessages(s.ctx)
+
+	expected := &model.PagedMessages{
+		Paging:   model.Paging{Limit: 5, Size: 5, Since: 96, Next: "http://example.com/gotify/message?limit=5&since=96"},
+		Messages: toExternalMessages(messages[:5]),
+	}
+
+	test.BodyEquals(s.T(), expected, s.recorder)
+}
+
 func (s *MessageSuite) Test_GetMessages_WithLimit_WithSince_ReturnsNext() {
 	user := s.db.User(5)
 	app1 := user.App(1)
