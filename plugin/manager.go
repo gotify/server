@@ -323,6 +323,20 @@ func (m *Manager) initializeSingleUserPlugin(userCtx compat.UserContext, p compa
 	m.instances[pluginConf.ID] = instance
 
 	if compat.HasSupport(instance, compat.Messenger) {
+		if pluginConf.ApplicationID == 0 {
+			// The Messenger capability was added after this plugin was first
+			// initialized for the user, so no internal application exists yet.
+			// Create one now, otherwise messages would be stored with
+			// application_id = 0 and become orphaned (not shown, not deletable).
+			app, err := m.createInternalApplication(info, userID)
+			if err != nil {
+				return err
+			}
+			pluginConf.ApplicationID = app.ID
+			if err := m.db.UpdatePluginConf(pluginConf); err != nil {
+				return err
+			}
+		}
 		instance.SetMessageHandler(redirectToChannel{
 			ApplicationID: pluginConf.ApplicationID,
 			UserID:        pluginConf.UserID,
@@ -399,15 +413,8 @@ func (m *Manager) createPluginConf(instance compat.PluginInstance, info compat.I
 		pluginConf.Config, _ = yaml.Marshal(instance.DefaultConfig())
 	}
 	if compat.HasSupport(instance, compat.Messenger) {
-		tokenPublic, _ := auth.GenerateApplicationToken()
-		app := &model.Application{
-			Token:       tokenPublic,
-			Name:        info.String(),
-			UserID:      userID,
-			Internal:    true,
-			Description: fmt.Sprintf("auto generated application for %s", info.ModulePath),
-		}
-		if err := m.db.CreateApplication(app); err != nil {
+		app, err := m.createInternalApplication(info, userID)
+		if err != nil {
 			return nil, err
 		}
 		pluginConf.ApplicationID = app.ID
@@ -416,4 +423,21 @@ func (m *Manager) createPluginConf(instance compat.PluginInstance, info compat.I
 		return nil, err
 	}
 	return pluginConf, nil
+}
+
+// createInternalApplication creates the auto generated internal application a
+// Messenger plugin uses to publish its messages.
+func (m *Manager) createInternalApplication(info compat.Info, userID uint) (*model.Application, error) {
+	tokenPublic, _ := auth.GenerateApplicationToken()
+	app := &model.Application{
+		Token:       tokenPublic,
+		Name:        info.String(),
+		UserID:      userID,
+		Internal:    true,
+		Description: fmt.Sprintf("auto generated application for %s", info.ModulePath),
+	}
+	if err := m.db.CreateApplication(app); err != nil {
+		return nil, err
+	}
+	return app, nil
 }
