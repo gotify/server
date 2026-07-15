@@ -3,13 +3,13 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/gotify/location"
 	"github.com/gotify/server/v2/auth"
 	"github.com/gotify/server/v2/model"
 )
@@ -104,13 +104,10 @@ func buildWithPaging(ctx *gin.Context, paging *pagingParams, messages []*model.M
 	if len(messages) > paging.Limit {
 		useMessages = messages[:len(messages)-1]
 		since = useMessages[len(useMessages)-1].ID
-		url := location.Get(ctx)
-		url.Path = ctx.Request.URL.Path
-		query := url.Query()
+		query := url.Values{}
 		query.Add("limit", strconv.Itoa(paging.Limit))
 		query.Add("since", strconv.FormatUint(uint64(since), 10))
-		url.RawQuery = query.Encode()
-		next = url.String()
+		next = ctx.Request.URL.Path + "?" + query.Encode()
 	}
 	return &model.PagedMessages{
 		Paging:   model.Paging{Size: len(useMessages), Limit: paging.Limit, Next: next, Since: since},

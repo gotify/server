@@ -52,7 +52,7 @@ func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
 	t, _ := time.Parse("2006/01/02", "2017/01/02")
 
 	actual := &model.PagedMessages{
-		Paging: model.Paging{Limit: 5, Since: 122, Size: 5, Next: "http://example.com/message?limit=5&since=122"},
+		Paging: model.Paging{Limit: 5, Since: 122, Size: 5, Next: "/message?limit=5&since=122"},
 		Messages: []*model.MessageExternal{{ID: 55, ApplicationID: 2, Message: "hi", Title: "hi", Date: t, Priority: intPtr(4), Extras: map[string]any{
 			"test::string": "string",
 			"test::array":  []any{1, 2, 3},
@@ -60,7 +60,7 @@ func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
 			"test::float":  0.5,
 		}}},
 	}
-	test.JSONEquals(s.T(), actual, `{"paging": {"limit":5, "since": 122, "size": 5, "next": "http://example.com/message?limit=5&since=122"},
+	test.JSONEquals(s.T(), actual, `{"paging": {"limit":5, "since": 122, "size": 5, "next": "/message?limit=5&since=122"},
                                               "messages": [{"id":55,"appid":2,"message":"hi","title":"hi","priority":4,"date":"2017-01-02T00:00:00Z","extras":{"test::string":"string","test::array":[1,2,3],"test::int":1,"test::float":0.5}}]}`)
 }
 
@@ -99,7 +99,7 @@ func (s *MessageSuite) Test_GetMessages_WithLimit_ReturnsNext() {
 
 	// Since: entries with ids from 100 - 96 will be returned (5 entries)
 	expected := &model.PagedMessages{
-		Paging:   model.Paging{Limit: 5, Size: 5, Since: 96, Next: "http://example.com/messages?limit=5&since=96"},
+		Paging:   model.Paging{Limit: 5, Size: 5, Since: 96, Next: "/messages?limit=5&since=96"},
 		Messages: toExternalMessages(messages[:5]),
 	}
 
@@ -123,7 +123,7 @@ func (s *MessageSuite) Test_GetMessages_WithLimit_WithSince_ReturnsNext() {
 
 	// Since: entries with ids from 54 - 42 will be returned (13 entries)
 	expected := &model.PagedMessages{
-		Paging:   model.Paging{Limit: 13, Size: 13, Since: 42, Next: "http://example.com/messages?limit=13&since=42"},
+		Paging:   model.Paging{Limit: 13, Size: 13, Since: 42, Next: "/messages?limit=13&since=42"},
 		Messages: toExternalMessages(messages[46 : 46+13]),
 	}
 	test.BodyEquals(s.T(), expected, s.recorder)
@@ -189,7 +189,7 @@ func (s *MessageSuite) Test_GetMessagesWithToken_WithLimit_ReturnsNext() {
 
 	// Since: entries with ids from 100 - 92 will be returned (9 entries)
 	expected := &model.PagedMessages{
-		Paging:   model.Paging{Limit: 9, Size: 9, Since: 92, Next: "http://example.com/app/2/message?limit=9&since=92"},
+		Paging:   model.Paging{Limit: 9, Size: 9, Since: 92, Next: "/app/2/message?limit=9&since=92"},
 		Messages: toExternalMessages(messages[:9]),
 	}
 
@@ -212,7 +212,7 @@ func (s *MessageSuite) Test_GetMessagesWithToken_WithLimit_WithSince_ReturnsNext
 
 	// Since: entries with ids from 54 - 42 will be returned (13 entries)
 	expected := &model.PagedMessages{
-		Paging:   model.Paging{Limit: 13, Size: 13, Since: 42, Next: "http://example.com/app/2/message?limit=13&since=42"},
+		Paging:   model.Paging{Limit: 13, Size: 13, Since: 42, Next: "/app/2/message?limit=13&since=42"},
 		Messages: toExternalMessages(messages[46 : 46+13]),
 	}
 	test.BodyEquals(s.T(), expected, s.recorder)

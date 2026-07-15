@@ -6,11 +6,11 @@ package model
 //
 // swagger:model Paging
 type Paging struct {
-	// The request url for the next page. Empty/Null when no next page is available.
+	// The relative path for the next page. Empty/Null when no next page is available. Should be combined with the gotify base url.
 	//
 	// read only: true
 	// required: false
-	// example: http://example.com/message?limit=50&since=123456
+	// example: /message?limit=50&since=123456
 	Next string `json:"next,omitempty"`
 	// The amount of messages that got returned in the current request.
 	//
