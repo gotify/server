@@ -74,6 +74,18 @@ func TestGotifyConfigFile(t *testing.T) {
 	assert.Equal(t, "fromfile", conf.DefaultUser.Name)
 }
 
+func TestLegacyConfigFile(t *testing.T) {
+	mode.Set(mode.TestDev)
+	dir := t.TempDir()
+	assert.NoError(t, os.WriteFile(filepath.Join(dir, "config.yml"), []byte(""), 0o600))
+	t.Chdir(dir)
+
+	_, logs := Get()
+
+	assert.Len(t, logs, 1)
+	assert.Contains(t, logs[0].Msg, "the YAML config file is no longer supported. Convert it with 'gotify-server migrate-config")
+}
+
 func TestAddSlash(t *testing.T) {
 	mode.Set(mode.TestDev)
 	os.Setenv("GOTIFY_UPLOADEDIMAGESDIR", "../data/images")

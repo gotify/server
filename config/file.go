@@ -11,7 +11,20 @@ import (
 
 var osStat = os.Stat
 
+func checkLegacyConfigFiles() error {
+	for _, file := range []string{"config.yml", "/etc/gotify/config.yml"} {
+		if _, err := osStat(file); err == nil {
+			return fmt.Errorf("found %s, the YAML config file is no longer supported. Convert it with 'gotify-server migrate-config %s', see https://gotify.net/docs/migrate-to-3", file, file)
+		}
+	}
+	return nil
+}
+
 func loadFiles() []FutureLog {
+	if err := checkLegacyConfigFiles(); err != nil {
+		return []FutureLog{futureFatal(err.Error())}
+	}
+
 	if configFile := os.Getenv("GOTIFY_CONFIG_FILE"); configFile != "" {
 		log, _ := loadFile(configFile)
 		return []FutureLog{log}
