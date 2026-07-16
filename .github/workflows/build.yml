@@ -7,7 +7,7 @@ jobs:
     # Run on push for branches in this repo, and on pull_request only for forks.
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.repository != github.event.pull_request.head.repo.full_name)
     steps:
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version: 1.26.x
       - uses: actions/setup-node@v7
