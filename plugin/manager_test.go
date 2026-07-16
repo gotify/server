@@ -443,6 +443,105 @@ func TestNewManager_InternalApplicationManagement(t *testing.T) {
 	}
 }
 
+func TestNewManager_MessengerAddedAfterInit_createsApplication(t *testing.T) {
+	db := testdb.NewDBWithDefaultUser(t)
+
+	// Simulate a plugin conf that was created on a previous startup when the
+	// plugin did not yet implement the Messenger interface: it has no
+	// associated internal application (ApplicationID == 0).
+	assert.NoError(t, db.CreatePluginConf(&model.PluginConf{
+		UserID:     1,
+		ModulePath: mock.ModulePath,
+		Enabled:    true,
+		Token:      auth.GeneratePluginToken(),
+	}))
+
+	manager, err := NewManager(db, "", nil, nil)
+	assert.Nil(t, err)
+	assert.Nil(t, manager.LoadPlugin(new(mock.Plugin)))
+	// The mock plugin supports Messenger, so re-initializing must back-fill the
+	// missing internal application instead of leaving ApplicationID at 0.
+	assert.Nil(t, manager.InitializeForUserID(1))
+
+	conf, err := db.GetPluginConfByUserAndPath(1, mock.ModulePath)
+	assert.NoError(t, err)
+	if assert.NotNil(t, conf) {
+		assert.NotZero(t, conf.ApplicationID, "an internal application should have been created for the messenger plugin")
+
+		app, err := db.GetApplicationByID(conf.ApplicationID)
+		assert.NoError(t, err)
+		if assert.NotNil(t, app) {
+			assert.True(t, app.Internal)
+			assert.Equal(t, uint(1), app.UserID)
+		}
+	}
+}
+
+// failingDB wraps a real test database so that individual operations can be
+// forced to fail, allowing the error branches around internal-application
+// creation to be exercised.
+type failingDB struct {
+	*testdb.Database
+	failCreateApplication error
+	failUpdatePluginConf  error
+}
+
+func (d *failingDB) CreateApplication(app *model.Application) error {
+	if d.failCreateApplication != nil {
+		return d.failCreateApplication
+	}
+	return d.Database.CreateApplication(app)
+}
+
+func (d *failingDB) UpdatePluginConf(conf *model.PluginConf) error {
+	if d.failUpdatePluginConf != nil {
+		return d.failUpdatePluginConf
+	}
+	return d.Database.UpdatePluginConf(conf)
+}
+
+func seedMessengerConfWithoutApplication(t *testing.T, db Database) {
+	t.Helper()
+	assert.NoError(t, db.CreatePluginConf(&model.PluginConf{
+		UserID:     1,
+		ModulePath: mock.ModulePath,
+		Enabled:    true,
+		Token:      auth.GeneratePluginToken(),
+	}))
+}
+
+func TestNewManager_MessengerAddedAfterInit_createApplicationError(t *testing.T) {
+	db := &failingDB{
+		Database:              testdb.NewDBWithDefaultUser(t),
+		failCreateApplication: errors.New("create application failed"),
+	}
+	seedMessengerConfWithoutApplication(t, db)
+
+	manager, err := NewManager(db, "", nil, nil)
+	assert.Nil(t, err)
+	assert.Nil(t, manager.LoadPlugin(new(mock.Plugin)))
+
+	// Back-filling the missing internal application must surface the database
+	// error instead of silently continuing with ApplicationID == 0.
+	assert.EqualError(t, manager.InitializeForUserID(1), "create application failed")
+}
+
+func TestNewManager_MessengerAddedAfterInit_updatePluginConfError(t *testing.T) {
+	db := &failingDB{
+		Database:             testdb.NewDBWithDefaultUser(t),
+		failUpdatePluginConf: errors.New("update plugin conf failed"),
+	}
+	seedMessengerConfWithoutApplication(t, db)
+
+	manager, err := NewManager(db, "", nil, nil)
+	assert.Nil(t, err)
+	assert.Nil(t, manager.LoadPlugin(new(mock.Plugin)))
+
+	// Persisting the back-filled ApplicationID may fail; that error must be
+	// propagated as well.
+	assert.EqualError(t, manager.InitializeForUserID(1), "update plugin conf failed")
+}
+
 func TestPluginFileLoadError(t *testing.T) {
 	err := pluginFileLoadError{Filename: "test.so", UnderlyingError: errors.New("test error")}
 	assert.Error(t, err)
