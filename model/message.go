@@ -32,7 +32,7 @@ type MessageExternal struct {
 	// read only: true
 	// required: true
 	// example: 5
-	ApplicationID uint `json:"appid"`
+	ApplicationID uint `form:"appid" query:"appid" json:"appid"`
 	// The message. Markdown (excluding html) is allowed.
 	//
 	// required: true
@@ -74,7 +74,7 @@ type CreateMessage struct {
 	// The application id that send this message. Always set when returned via the API.
 	//
 	// example: 5
-	ApplicationID uint `json:"appid"`
+	ApplicationID uint `form:"appid" query:"appid" json:"appid"`
 	// The message. Markdown (excluding html) is allowed.
 	//
 	// required: true
