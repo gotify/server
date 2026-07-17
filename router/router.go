@@ -84,7 +84,11 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			}
 		}
 	}()
-	authentication := auth.Auth{DB: db, SecureCookie: conf.Server.SecureCookie}
+	authentication := auth.Auth{
+		DB:           db,
+		SecureCookie: conf.Server.SecureCookie,
+		CrossOrigin:  http.NewCrossOriginProtection(),
+	}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
 	healthHandler := api.HealthAPI{DB: db}
 	clientHandler := api.ClientAPI{

@@ -29,7 +29,7 @@ type AuthenticationSuite struct {
 func (s *AuthenticationSuite) SetupSuite() {
 	mode.Set(mode.TestDev)
 	s.DB = testdb.NewDB(s.T())
-	s.auth = &Auth{DB: s.DB}
+	s.auth = &Auth{DB: s.DB, CrossOrigin: http.NewCrossOriginProtection()}
 
 	now := time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC)
 	timeNow = func() time.Time { return now }
@@ -352,6 +352,67 @@ func (s *AuthenticationSuite) assertHeaderRequest(key, value string, f fMiddlewa
 	f(ctx)
 	assert.Equal(s.T(), code, recorder.Code)
 	return ctx
+}
+
+func (s *AuthenticationSuite) TestCookieCrossOriginProtection() {
+	// httptest sets the request host to example.com.
+	s.assertCsrfRequest(map[string]string{"Origin": "http://example.com"}, "clienttoken", s.auth.RequireClient, 200)
+	s.assertCsrfRequest(map[string]string{"Origin": "https://example.com"}, "clienttoken", s.auth.RequireClient, 200)
+
+	s.assertCsrfRequest(map[string]string{"Origin": "http://evil.com"}, "clienttoken", s.auth.RequireClient, 403)
+	s.assertCsrfRequest(map[string]string{"Origin": "https://example.com.evil.com"}, "clienttoken", s.auth.RequireClient, 403)
+	s.assertCsrfRequest(map[string]string{"Origin": "null"}, "clienttoken", s.auth.RequireClient, 403)
+
+	s.assertCsrfRequest(nil, "clienttoken", s.auth.RequireClient, 200)
+
+	s.assertCsrfRequest(map[string]string{"Sec-Fetch-Site": "same-origin"}, "clienttoken", s.auth.RequireClient, 200)
+	s.assertCsrfRequest(map[string]string{"Sec-Fetch-Site": "none"}, "clienttoken", s.auth.RequireClient, 200)
+	s.assertCsrfRequest(map[string]string{"Sec-Fetch-Site": "cross-site"}, "clienttoken", s.auth.RequireClient, 403)
+	s.assertCsrfRequest(map[string]string{"Sec-Fetch-Site": "same-site"}, "clienttoken", s.auth.RequireClient, 403)
+
+	s.assertCsrfRequest(map[string]string{"Sec-Fetch-Site": "cross-site"}, "clienttoken_admin_elevated", s.auth.RequireElevatedClient, 403)
+	s.assertCsrfRequest(map[string]string{"Sec-Fetch-Site": "same-origin"}, "clienttoken_admin_elevated", s.auth.RequireElevatedClient, 200)
+}
+
+func (s *AuthenticationSuite) TestCrossOriginProtectionIgnoredForTokenAuth() {
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("POST", "/", nil)
+	ctx.Request.Header.Set("X-Gotify-Key", "clienttoken")
+	ctx.Request.Header.Set("Sec-Fetch-Site", "cross-site")
+	s.auth.RequireClient(ctx)
+	assert.Equal(s.T(), 200, recorder.Code)
+
+	recorder = httptest.NewRecorder()
+	ctx, _ = gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("POST", "/?token=clienttoken", nil)
+	ctx.Request.Header.Set("Sec-Fetch-Site", "cross-site")
+	s.auth.RequireClient(ctx)
+	assert.Equal(s.T(), 200, recorder.Code)
+}
+
+func (s *AuthenticationSuite) TestCrossOriginProtectionAllowsSafeMethods() {
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("GET", "/", nil)
+	ctx.Request.AddCookie(&http.Cookie{Name: cookieName, Value: "clienttoken"})
+	ctx.Request.Header.Set("Sec-Fetch-Site", "cross-site")
+	s.auth.RequireClient(ctx)
+	assert.Equal(s.T(), 200, recorder.Code)
+}
+
+func (s *AuthenticationSuite) assertCsrfRequest(headers map[string]string, cookie string, f fMiddleware, code int) {
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("POST", "/", nil)
+	if cookie != "" {
+		ctx.Request.AddCookie(&http.Cookie{Name: cookieName, Value: cookie})
+	}
+	for k, v := range headers {
+		ctx.Request.Header.Set(k, v)
+	}
+	f(ctx)
+	assert.Equal(s.T(), code, recorder.Code)
 }
 
 type fMiddleware gin.HandlerFunc
