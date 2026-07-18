@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"net/http"
 	"strings"
 	"time"
 
@@ -40,6 +41,7 @@ type Database interface {
 type Auth struct {
 	DB           Database
 	SecureCookie bool
+	CrossOrigin  *http.CrossOriginProtection
 }
 
 // RequireAdmin requires an elevated client token or basic auth, the user must be an admin.
@@ -87,6 +89,9 @@ func (a *Auth) Optional(ctx *gin.Context) {
 }
 
 func (a *Auth) evaluate(ctx *gin.Context, funcs ...func(ctx *gin.Context) (authState, error)) bool {
+	if a.rejectForeignOrigin(ctx) {
+		return true
+	}
 	for _, fn := range funcs {
 		state, err := fn(ctx)
 		if err != nil {
@@ -126,6 +131,17 @@ func (a *Auth) abort401(ctx *gin.Context) {
 
 func (a *Auth) abort403(ctx *gin.Context) {
 	ctx.AbortWithError(403, errors.New("you are not allowed to access this api"))
+}
+
+func (a *Auth) rejectForeignOrigin(ctx *gin.Context) bool {
+	if _, isCookie := a.readTokenFromRequest(ctx); !isCookie {
+		return false
+	}
+	if err := a.CrossOrigin.Check(ctx.Request); err != nil {
+		ctx.AbortWithError(403, err)
+		return true
+	}
+	return false
 }
 
 func (a *Auth) handleUser(checks ...func(*model.User) (authState, error)) func(ctx *gin.Context) (authState, error) {
