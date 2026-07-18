@@ -1,8 +1,11 @@
 package database
 
 import (
+	"time"
+
 	"github.com/gotify/server/v2/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // GetMessageByID returns the messages for the given id or nil.
@@ -34,14 +37,33 @@ func (d *GormDatabase) GetMessagesByUser(userID uint) ([]*model.Message, error) 
 	return messages, err
 }
 
-// GetMessagesByUserSince returns limited messages from a user.
+// GetMessagesByUserPaginated returns limited messages from a user.
 // If since is 0 it will be ignored.
-func (d *GormDatabase) GetMessagesByUserSince(userID uint, limit int, since uint) ([]*model.Message, error) {
+func (d *GormDatabase) GetMessagesByUserPaginated(userID uint, limit int, since, after uint64, by string) ([]*model.Message, error) {
 	var messages []*model.Message
 	db := d.DB.Joins("JOIN applications ON applications.user_id = ?", userID).
-		Where("messages.application_id = applications.id").Order("messages.id desc").Limit(limit)
+		Where("messages.application_id = applications.id").Order(clause.OrderBy{Columns: []clause.OrderByColumn{
+		{
+			Column: clause.Column{
+				Table: "messages",
+				Name:  by,
+			},
+			Desc: since != 0 || after == 0,
+		},
+	}}).Limit(limit)
 	if since != 0 {
-		db = db.Where("messages.id < ?", since)
+		sinceVal := any(since)
+		if by == "date" {
+			sinceVal = time.Unix(int64(since), 0)
+		}
+		db = db.Where(clause.Lt{Column: clause.Column{Table: "messages", Name: by}, Value: sinceVal})
+	}
+	if after != 0 {
+		afterVal := any(after)
+		if by == "date" {
+			afterVal = time.Unix(int64(after), 0)
+		}
+		db = db.Where(clause.Gte{Column: clause.Column{Table: "messages", Name: by}, Value: afterVal})
 	}
 	err := db.Find(&messages).Error
 	if err == gorm.ErrRecordNotFound {
@@ -60,13 +82,32 @@ func (d *GormDatabase) GetMessagesByApplication(tokenID uint) ([]*model.Message,
 	return messages, err
 }
 
-// GetMessagesByApplicationSince returns limited messages from an application.
+// GetMessagesByApplicationPaginated returns limited messages from an application.
 // If since is 0 it will be ignored.
-func (d *GormDatabase) GetMessagesByApplicationSince(appID uint, limit int, since uint) ([]*model.Message, error) {
+func (d *GormDatabase) GetMessagesByApplicationPaginated(appID uint, limit int, since, after uint64, by string) ([]*model.Message, error) {
 	var messages []*model.Message
-	db := d.DB.Where("application_id = ?", appID).Order("messages.id desc").Limit(limit)
+	db := d.DB.Where("application_id = ?", appID).Order(clause.OrderBy{Columns: []clause.OrderByColumn{
+		{
+			Column: clause.Column{
+				Table: "messages",
+				Name:  by,
+			},
+			Desc: since != 0 || after == 0,
+		},
+	}}).Limit(limit)
 	if since != 0 {
-		db = db.Where("messages.id < ?", since)
+		sinceVal := any(since)
+		if by == "date" {
+			sinceVal = time.Unix(int64(since), 0)
+		}
+		db = db.Where(clause.Lt{Column: clause.Column{Table: "messages", Name: by}, Value: sinceVal})
+	}
+	if after != 0 {
+		afterVal := any(after)
+		if by == "date" {
+			afterVal = time.Unix(int64(after), 0)
+		}
+		db = db.Where(clause.Gte{Column: clause.Column{Table: "messages", Name: by}, Value: afterVal})
 	}
 	err := db.Find(&messages).Error
 	if err == gorm.ErrRecordNotFound {
