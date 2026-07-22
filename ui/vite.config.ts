@@ -32,7 +32,7 @@ export default defineConfig({
     plugins: [
         react(),
         babel({
-            presets: [decoratorPreset({version: '2022-03'})],
+            presets: [decoratorPreset({version: '2023-11'})],
         }),
     ],
     define: {
