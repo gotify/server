@@ -192,7 +192,9 @@ func (m *Manager) RemoveUser(userID uint) error {
 				return err
 			}
 		}
+		m.mutex.Lock()
 		delete(m.instances, pluginConf.ID)
+		m.mutex.Unlock()
 	}
 	return nil
 }
