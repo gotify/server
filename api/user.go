@@ -445,35 +445,32 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 //	        $ref: "#/definitions/Error"
 func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
-		var user *model.UpdateUserExternal
-		if err := ctx.Bind(&user); err == nil {
-			oldUser, err := a.DB.GetUserByID(id)
+		var updatedUser *model.UpdateUserExternal
+		if err := ctx.Bind(&updatedUser); err == nil {
+			dbUser, err := a.DB.GetUserByID(id)
 			if success := successOrAbort(ctx, 500, err); !success {
 				return
 			}
-			if oldUser != nil {
+			if dbUser != nil {
 				adminCount, err := a.DB.CountUser(&model.User{Admin: true})
 				if success := successOrAbort(ctx, 500, err); !success {
 					return
 				}
-				if !user.Admin && oldUser.Admin && adminCount == 1 {
+				if !updatedUser.Admin && dbUser.Admin && adminCount == 1 {
 					ctx.AbortWithError(400, errors.New("cannot delete last admin"))
 					return
 				}
-				internal := &model.User{
-					ID:        oldUser.ID,
-					Name:      user.Name,
-					Admin:     user.Admin,
-					Pass:      oldUser.Pass,
-					CreatedAt: oldUser.CreatedAt,
+
+				dbUser.Name = updatedUser.Name
+				dbUser.Admin = updatedUser.Admin
+
+				if updatedUser.Pass != "" {
+					dbUser.Pass = password.CreatePassword(updatedUser.Pass, a.PasswordStrength)
 				}
-				if user.Pass != "" {
-					internal.Pass = password.CreatePassword(user.Pass, a.PasswordStrength)
-				}
-				if success := successOrAbort(ctx, 500, a.DB.UpdateUser(internal)); !success {
+				if success := successOrAbort(ctx, 500, a.DB.UpdateUser(dbUser)); !success {
 					return
 				}
-				ctx.JSON(200, toExternalUser(internal))
+				ctx.JSON(200, toExternalUser(dbUser))
 			} else {
 				ctx.AbortWithError(404, errors.New("user does not exist"))
 			}

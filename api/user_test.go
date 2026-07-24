@@ -392,6 +392,26 @@ func (s *UserSuite) Test_UpdateUserByID_UpdatePassword() {
 	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("new")))
 }
 
+func (s *UserSuite) Test_UpdateUserByID_PreservesOIDCID() {
+	oidcID := "https://issuer.example.com#subject"
+	s.db.CreateUser(&model.User{ID: 2, Name: "nico", OIDCID: &oidcID})
+
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user/2", strings.NewReader(`{"name": "tom", "pass": "", "admin": true}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateUserByID(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	user, err := s.db.GetUserByID(2)
+	assert.NoError(s.T(), err)
+	assert.NotNil(s.T(), user)
+	if assert.NotNil(s.T(), user.OIDCID) {
+		assert.Equal(s.T(), oidcID, *user.OIDCID)
+	}
+}
+
 func (s *UserSuite) Test_UpdatePassword() {
 	s.db.CreateUser(&model.User{ID: 1, Name: "jmattheis", Pass: password.CreatePassword("old", 5)})
 
