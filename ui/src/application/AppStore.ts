@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {generateKeyBetween} from 'fractional-indexing';
-import {action, runInAction} from 'mobx';
+import {action, makeObservable, runInAction} from 'mobx';
 import {BaseStore} from '../common/BaseStore';
 import * as config from '../config';
 import {SnackReporter} from '../snack/SnackManager';
@@ -12,6 +12,12 @@ export class AppStore extends BaseStore<IApplication> {
 
     public constructor(private readonly snack: SnackReporter) {
         super();
+        makeObservable(this, {
+            uploadImage: action,
+            reorder: action,
+            update: action,
+            create: action,
+        });
     }
 
     protected requestItems = (): Promise<IApplication[]> =>
@@ -25,7 +31,6 @@ export class AppStore extends BaseStore<IApplication> {
             return this.snack('Application deleted');
         });
 
-    @action
     public uploadImage = async (id: number, file: Blob): Promise<void> => {
         const formData = new FormData();
         formData.append('file', file);
@@ -57,7 +62,6 @@ export class AppStore extends BaseStore<IApplication> {
         }
     }
 
-    @action
     public reorder = async (fromId: number, toId: number): Promise<void> => {
         const fromIndex = this.items.findIndex((app) => app.id === fromId);
         const toIndex = this.items.findIndex((app) => app.id === toId);
@@ -80,7 +84,6 @@ export class AppStore extends BaseStore<IApplication> {
         await this.update({...toUpdate, sortKey: newSortKey});
     };
 
-    @action
     public update = async ({
         id,
         ...app
@@ -93,7 +96,6 @@ export class AppStore extends BaseStore<IApplication> {
         this.snack('Application updated');
     };
 
-    @action
     public create = async (
         name: string,
         description: string,

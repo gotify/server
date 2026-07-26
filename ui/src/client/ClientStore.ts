@@ -1,13 +1,19 @@
 import {BaseStore} from '../common/BaseStore';
 import axios from 'axios';
 import * as config from '../config';
-import {action} from 'mobx';
+import {action, makeObservable} from 'mobx';
 import {SnackReporter} from '../snack/SnackManager';
 import {IClient} from '../types';
 
 export class ClientStore extends BaseStore<IClient> {
     public constructor(private readonly snack: SnackReporter) {
         super();
+        makeObservable(this, {
+            update: action,
+            createNoNotifcation: action,
+            create: action,
+            elevate: action,
+        });
     }
 
     protected requestItems = (): Promise<IClient[]> =>
@@ -19,7 +25,6 @@ export class ClientStore extends BaseStore<IClient> {
             .then(() => this.snack('Client deleted'));
     }
 
-    @action
     public update = async (
         id: number,
         name: string,
@@ -33,7 +38,6 @@ export class ClientStore extends BaseStore<IClient> {
         this.snack('Client updated');
     };
 
-    @action
     public createNoNotifcation = async (
         name: string,
         expiresAfterInactivitySeconds = 0
@@ -46,14 +50,12 @@ export class ClientStore extends BaseStore<IClient> {
         return client.data;
     };
 
-    @action
     public create = async (name: string, expiresAfterInactivitySeconds = 0): Promise<string> => {
         const client = await this.createNoNotifcation(name, expiresAfterInactivitySeconds);
         this.snack('Client added');
         return client.token;
     };
 
-    @action
     public elevate = async (id: number, durationSeconds: number): Promise<void> => {
         await axios.post(`${config.get('url')}client/${id}/elevate`, {durationSeconds});
         await this.refresh();

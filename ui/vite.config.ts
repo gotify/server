@@ -1,6 +1,5 @@
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
-import babel from '@rolldown/plugin-babel';
 
 try {
     process.loadEnvFile('../gotify-server.env');
@@ -10,17 +9,6 @@ try {
 
 const GOTIFY_SERVER_PORT = process.env.GOTIFY_SERVER_PORT ?? '80';
 
-function decoratorPreset(options: Record<string, unknown>) {
-    return {
-        preset: () => ({
-            plugins: [['@babel/plugin-proposal-decorators', options]],
-        }),
-        rolldown: {
-            filter: {code: '@'},
-        },
-    };
-}
-
 export default defineConfig({
     base: './',
     build: {
@@ -29,12 +17,7 @@ export default defineConfig({
         sourcemap: false,
         assetsDir: 'static',
     },
-    plugins: [
-        react(),
-        babel({
-            presets: [decoratorPreset({version: '2022-03'})],
-        }),
-    ],
+    plugins: [react()],
     define: {
         // Some libraries use the global object, even though it doesn't exist in the browser.
         // Alternatively, we could add `<script>window.global = window;</script>` to index.html.

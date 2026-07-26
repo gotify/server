@@ -2,24 +2,32 @@ import axios, {AxiosError, AxiosResponse} from 'axios';
 import * as config from './config';
 import {detect} from 'detect-browser';
 import {SnackReporter} from './snack/SnackManager';
-import {observable, runInAction, action} from 'mobx';
+import {makeObservable, observable, runInAction, action} from 'mobx';
 import {ICurrentUser} from './types';
 
 export class CurrentUser {
     private reconnectTimeoutId: number | null = null;
     private reconnectTime = 7500;
-    @observable accessor loggedIn = false;
-    @observable accessor refreshKey = 0;
-    @observable accessor authenticating = true;
-    @observable accessor user: ICurrentUser = {
+    public loggedIn = false;
+    public refreshKey = 0;
+    public authenticating = true;
+    public user: ICurrentUser = {
         name: 'unknown',
         admin: false,
         id: -1,
         createdAt: '',
     };
-    @observable accessor connectionErrorMessage: string | null = null;
+    public connectionErrorMessage: string | null = null;
 
-    public constructor(private readonly snack: SnackReporter) {}
+    public constructor(private readonly snack: SnackReporter) {
+        makeObservable(this, {
+            loggedIn: observable,
+            refreshKey: observable,
+            authenticating: observable,
+            user: observable,
+            connectionErrorMessage: observable,
+        });
+    }
 
     public register = async (name: string, pass: string): Promise<boolean> =>
         axios

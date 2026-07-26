@@ -1,21 +1,26 @@
 import axios from 'axios';
-import {action, observable, runInAction} from 'mobx';
+import {action, makeObservable, observable, runInAction} from 'mobx';
 import * as config from './config';
 import {SnackReporter} from './snack/SnackManager';
 import {CurrentUser} from './CurrentUser';
 
 export class ElevateStore {
-    @observable accessor elevated = false;
-    @observable accessor oidcElevatePending = false;
+    public elevated = false;
+    public oidcElevatePending = false;
     private oidcPollIntervalId: number | undefined = undefined;
     private oidcPopup: Window | null = null;
 
     public constructor(
         private readonly snack: SnackReporter,
         private readonly currentUser: CurrentUser
-    ) {}
+    ) {
+        makeObservable(this, {
+            elevated: observable,
+            oidcElevatePending: observable,
+            refreshElevated: action,
+        });
+    }
 
-    @action
     public refreshElevated = (): number => {
         const elevatedUntil = this.currentUser.user.elevatedUntil;
         if (!elevatedUntil) {
