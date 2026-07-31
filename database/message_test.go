@@ -1,6 +1,7 @@
 package database
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -156,71 +157,142 @@ func (s *DatabaseSuite) TestGetMessagesSince() {
 	require.NoError(s.T(), s.db.CreateApplication(app))
 	require.NoError(s.T(), s.db.CreateApplication(app2))
 
-	curDate := time.Now()
+	curDate := time.Unix(time.Now().Unix(), 0)
 	for i := 1; i <= 500; i++ {
-		s.db.CreateMessage(&model.Message{ApplicationID: app.ID, Message: "abc", Date: curDate.Add(time.Duration(i) * time.Second)})
-		s.db.CreateMessage(&model.Message{ApplicationID: app2.ID, Message: "abc", Date: curDate.Add(time.Duration(i) * time.Second)})
+		s.db.CreateMessage(&model.Message{ApplicationID: app.ID, Message: "abc", Date: curDate.Add(time.Duration(i*2) * time.Second)})
+		s.db.CreateMessage(&model.Message{ApplicationID: app2.ID, Message: "abc", Date: curDate.Add(time.Duration(i*2+1) * time.Second)})
 	}
 
-	actual, err := s.db.GetMessagesByUserSince(user.ID, 50, 0)
+	actual, err := s.db.GetMessagesByUserPaginated(user.ID, 50, 0, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 1000, 951, 1)
 
-	actual, err = s.db.GetMessagesByUserSince(user.ID, 50, 951)
+	actual, err = s.db.GetMessagesByUserPaginated(user.ID, 50, 0, 0, "date")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 1000, 951, 1)
+
+	actual, err = s.db.GetMessagesByUserPaginated(user.ID, 50, 951, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 950, 901, 1)
 
-	actual, err = s.db.GetMessagesByUserSince(user.ID, 100, 951)
+	actual, err = s.db.GetMessagesByUserPaginated(user.ID, 50, 0, 901, "id")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 50)
+	slices.Reverse(actual)
+	hasIDInclusiveBetween(s.T(), actual, 950, 901, 1)
+
+	actual, err = s.db.GetMessagesByUserPaginated(user.ID, 100, 951, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 100)
 	hasIDInclusiveBetween(s.T(), actual, 950, 851, 1)
 
-	actual, err = s.db.GetMessagesByUserSince(user.ID, 100, 51)
+	actual, err = s.db.GetMessagesByUserPaginated(user.ID, 100, 51, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 50, 1, 1)
 
-	actual, err = s.db.GetMessagesByApplicationSince(app.ID, 50, 0)
+	actual, err = s.db.GetMessagesByApplicationPaginated(app.ID, 50, 0, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 999, 901, 2)
 
-	actual, err = s.db.GetMessagesByApplicationSince(app.ID, 50, 901)
+	actual, err = s.db.GetMessagesByApplicationPaginated(app.ID, 50, 0, 0, "date")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 999, 901, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app.ID, 50, uint64(curDate.Unix()+50), 0, "date")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 24)
+	hasIDInclusiveBetween(s.T(), actual, 47, 1, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app.ID, 50, uint64(curDate.Unix()+50), uint64(curDate.Unix()+10), "date")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 20)
+	hasIDInclusiveBetween(s.T(), actual, 47, 47-20*2+2, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app.ID, 50, 0, uint64(curDate.Unix()+950), "date")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 26)
+	slices.Reverse(actual)
+	hasIDInclusiveBetween(s.T(), actual, 999, 949, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app.ID, 50, 901, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 899, 801, 2)
 
-	actual, err = s.db.GetMessagesByApplicationSince(app.ID, 100, 666)
+	actual, err = s.db.GetMessagesByApplicationPaginated(app.ID, 50, 0, 801, "id")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 50)
+	slices.Reverse(actual)
+	hasIDInclusiveBetween(s.T(), actual, 899, 801, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app.ID, 100, 666, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 100)
 	hasIDInclusiveBetween(s.T(), actual, 665, 467, 2)
 
-	actual, err = s.db.GetMessagesByApplicationSince(app.ID, 100, 101)
+	actual, err = s.db.GetMessagesByApplicationPaginated(app.ID, 100, 101, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 99, 1, 2)
 
-	actual, err = s.db.GetMessagesByApplicationSince(app2.ID, 50, 0)
+	actual, err = s.db.GetMessagesByApplicationPaginated(app2.ID, 50, 0, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 1000, 902, 2)
 
-	actual, err = s.db.GetMessagesByApplicationSince(app2.ID, 50, 902)
+	actual, err = s.db.GetMessagesByApplicationPaginated(app2.ID, 50, 0, 0, "date")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 50)
+	hasIDInclusiveBetween(s.T(), actual, 1000, 902, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app2.ID, 50, uint64(curDate.Unix()+50), 0, "date")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 24)
+	hasIDInclusiveBetween(s.T(), actual, 48, 2, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app2.ID, 50, uint64(curDate.Unix()+50), uint64(curDate.Unix()+10), "date")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 20)
+	hasIDInclusiveBetween(s.T(), actual, 48, 48-20*2+2, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app2.ID, 50, 0, uint64(curDate.Unix()+950), "date")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 26)
+	slices.Reverse(actual)
+	hasIDInclusiveBetween(s.T(), actual, 1000, 950, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app2.ID, 50, 902, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 900, 802, 2)
 
-	actual, err = s.db.GetMessagesByApplicationSince(app2.ID, 100, 667)
+	actual, err = s.db.GetMessagesByApplicationPaginated(app2.ID, 50, 0, 802, "id")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 50)
+	slices.Reverse(actual)
+	hasIDInclusiveBetween(s.T(), actual, 900, 802, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app2.ID, 100, 667, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 100)
 	hasIDInclusiveBetween(s.T(), actual, 666, 468, 2)
 
-	actual, err = s.db.GetMessagesByApplicationSince(app2.ID, 100, 102)
+	actual, err = s.db.GetMessagesByApplicationPaginated(app2.ID, 100, 102, 0, "id")
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), actual, 50)
 	hasIDInclusiveBetween(s.T(), actual, 100, 2, 2)
+
+	actual, err = s.db.GetMessagesByApplicationPaginated(app2.ID, 50, 0, uint64(curDate.Unix()+950), "date")
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), actual, 26)
+	slices.Reverse(actual)
+	hasIDInclusiveBetween(s.T(), actual, 1000, 950, 2)
 }
 
 func hasIDInclusiveBetween(t *testing.T, msgs []*model.Message, from, to, decrement int) {
