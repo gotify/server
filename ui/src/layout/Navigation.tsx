@@ -1,10 +1,10 @@
 import Divider from '@mui/material/Divider';
-import Drawer, { DrawerProps } from '@mui/material/Drawer';
-import { Theme } from '@mui/material/styles';
+import Drawer, {DrawerProps} from '@mui/material/Drawer';
+import {Theme} from '@mui/material/styles';
 import React from 'react';
-import { Link } from 'react-router';
-import { observer } from 'mobx-react-lite';
-import { mayAllowPermission, requestPermission } from '../snack/browserNotification';
+import {Link} from 'react-router';
+import {observer} from 'mobx-react-lite';
+import {mayAllowPermission, requestPermission} from '../snack/browserNotification';
 import {
     Button,
     Typography,
@@ -19,8 +19,8 @@ import Chat from '@mui/icons-material/Chat';
 import DevicesOther from '@mui/icons-material/DevicesOther';
 import ExitToApp from '@mui/icons-material/ExitToApp';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
-import { makeStyles } from 'tss-react/mui';
-import { useStores } from '../stores';
+import {makeStyles} from 'tss-react/mui';
+import {useStores} from '../stores';
 
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
@@ -76,43 +76,34 @@ interface IProps {
 }
 
 const Navigation = observer(
-    ({
-        loggedIn,
-        admin,
-        name,
-        logout,
-        showSettings,
-        bannerVisible,
-        navOpen,
-        setNavOpen,
-    }: IProps) => {
+    ({loggedIn, admin, name, logout, showSettings, bannerVisible, navOpen, setNavOpen}: IProps) => {
         const [showRequestNotification, setShowRequestNotification] =
             React.useState(mayAllowPermission);
-        const { classes } = useStyles();
-        const { appStore } = useStores();
+        const {classes} = useStyles();
+        const {appStore} = useStores();
         const apps = appStore.getItems();
 
         const userApps =
             apps.length === 0
                 ? null
                 : apps.map((app) => (
-                    <Link
-                        onClick={() => setNavOpen(false)}
-                        className={`${classes.link} item`}
-                        to={'/messages/' + app.id}
-                        key={app.id}>
-                        <ListItemButton>
-                            <ListItemAvatar style={{ minWidth: 42 }}>
-                                <Avatar
-                                    style={{ width: 32, height: 32 }}
-                                    src={app.image}
-                                    variant="square"
-                                />
-                            </ListItemAvatar>
-                            <ListItemText primary={app.name} />
-                        </ListItemButton>
-                    </Link>
-                ));
+                      <Link
+                          onClick={() => setNavOpen(false)}
+                          className={`${classes.link} item`}
+                          to={'/messages/' + app.id}
+                          key={app.id}>
+                          <ListItemButton>
+                              <ListItemAvatar style={{minWidth: 42}}>
+                                  <Avatar
+                                      style={{width: 32, height: 32}}
+                                      src={app.image}
+                                      variant="square"
+                                  />
+                              </ListItemAvatar>
+                              <ListItemText primary={app.name} />
+                          </ListItemButton>
+                      </Link>
+                  ));
 
         const placeholderItems = [
             <ListItemButton disabled key={-1}>
@@ -130,7 +121,7 @@ const Navigation = observer(
 
         return (
             <ResponsiveDrawer
-                classes={{ root: classes.root, paper: classes.drawerPaper }}
+                classes={{root: classes.root, paper: classes.drawerPaper}}
                 navOpen={navOpen}
                 setNavOpen={setNavOpen}
                 bannerVisible={bannerVisible}
@@ -146,24 +137,64 @@ const Navigation = observer(
                         <Divider />
                         {loggedIn && (
                             <div className={classes.mobileOnly}>
-                                <Link className={classes.link} to="/applications" onClick={() => setNavOpen(false)}>
-                                    <ListItemButton><ListItemAvatar><Chat /></ListItemAvatar><ListItemText primary="Applications" /></ListItemButton>
+                                <Link
+                                    className={classes.link}
+                                    to="/applications"
+                                    onClick={() => setNavOpen(false)}>
+                                    <ListItemButton>
+                                        <ListItemAvatar>
+                                            <Chat />
+                                        </ListItemAvatar>
+                                        <ListItemText primary="Applications" />
+                                    </ListItemButton>
                                 </Link>
-                                <Link className={classes.link} to="/clients" onClick={() => setNavOpen(false)}>
-                                    <ListItemButton><ListItemAvatar><DevicesOther /></ListItemAvatar><ListItemText primary="Clients" /></ListItemButton>
+                                <Link
+                                    className={classes.link}
+                                    to="/clients"
+                                    onClick={() => setNavOpen(false)}>
+                                    <ListItemButton>
+                                        <ListItemAvatar>
+                                            <DevicesOther />
+                                        </ListItemAvatar>
+                                        <ListItemText primary="Clients" />
+                                    </ListItemButton>
                                 </Link>
-                                <Link className={classes.link} to="/plugins" onClick={() => setNavOpen(false)}>
-                                    <ListItemButton><ListItemAvatar><Apps /></ListItemAvatar><ListItemText primary="Plugins" /></ListItemButton>
+                                <Link
+                                    className={classes.link}
+                                    to="/plugins"
+                                    onClick={() => setNavOpen(false)}>
+                                    <ListItemButton>
+                                        <ListItemAvatar>
+                                            <Apps />
+                                        </ListItemAvatar>
+                                        <ListItemText primary="Plugins" />
+                                    </ListItemButton>
                                 </Link>
-                                {admin && <Link className={classes.link} to="/users" onClick={() => setNavOpen(false)}>
-                                    <ListItemButton><ListItemAvatar><SupervisorAccount /></ListItemAvatar><ListItemText primary="Users" /></ListItemButton>
-                                </Link>}
+                                {admin && (
+                                    <Link
+                                        className={classes.link}
+                                        to="/users"
+                                        onClick={() => setNavOpen(false)}>
+                                        <ListItemButton>
+                                            <ListItemAvatar>
+                                                <SupervisorAccount />
+                                            </ListItemAvatar>
+                                            <ListItemText primary="Users" />
+                                        </ListItemButton>
+                                    </Link>
+                                )}
                                 <Divider />
                                 <ListItemButton onClick={() => mobileAction(showSettings)}>
-                                    <ListItemAvatar><AccountCircle /></ListItemAvatar><ListItemText primary={name} />
+                                    <ListItemAvatar>
+                                        <AccountCircle />
+                                    </ListItemAvatar>
+                                    <ListItemText primary={name} />
                                 </ListItemButton>
                                 <ListItemButton onClick={() => mobileAction(logout)}>
-                                    <ListItemAvatar><ExitToApp /></ListItemAvatar><ListItemText primary="Logout" />
+                                    <ListItemAvatar>
+                                        <ExitToApp />
+                                    </ListItemAvatar>
+                                    <ListItemText primary="Logout" />
                                 </ListItemButton>
                                 <Divider />
                             </div>
@@ -171,7 +202,7 @@ const Navigation = observer(
                         {loggedIn ? userApps : placeholderItems}
                     </div>
                     <Divider />
-                    <Typography align="center" style={{ marginTop: 10 }}>
+                    <Typography align="center" style={{marginTop: 10}}>
                         {showRequestNotification ? (
                             <Button
                                 onClick={() => {
@@ -195,11 +226,11 @@ const ResponsiveDrawer: React.FC<
         setNavOpen: (open: boolean) => void;
         bannerVisible: boolean;
     }
-> = ({ navOpen, setNavOpen, bannerVisible, children, ...rest }) => (
+> = ({navOpen, setNavOpen, bannerVisible, children, ...rest}) => (
     <>
         <Drawer
             sx={{
-                display: { sm: 'none', xs: 'block' },
+                display: {sm: 'none', xs: 'block'},
                 '& .MuiDrawer-paper': {
                     top: bannerVisible ? 128 : 64,
                     height: bannerVisible ? 'calc(100vh - 128px)' : 'calc(100vh - 64px)',
@@ -213,7 +244,7 @@ const ResponsiveDrawer: React.FC<
         </Drawer>
         <Drawer
             sx={{
-                display: { xs: 'none', sm: 'block' },
+                display: {xs: 'none', sm: 'block'},
                 '& .MuiDrawer-paper': {
                     top: bannerVisible ? 64 : 0,
                     height: bannerVisible ? 'calc(100vh - 64px)' : '100vh',

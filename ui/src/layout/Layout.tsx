@@ -7,10 +7,10 @@ import {
     Paper,
     Box,
 } from '@mui/material';
-import { makeStyles } from 'tss-react/mui';
+import {makeStyles} from 'tss-react/mui';
 import CssBaseline from '@mui/material/CssBaseline';
 import * as React from 'react';
-import { HashRouter, Navigate, Route, Routes } from 'react-router';
+import {HashRouter, Navigate, Route, Routes} from 'react-router';
 import Header from './Header';
 import Navigation from './Navigation';
 import ScrollUpButton from '../common/ScrollUpButton';
@@ -23,12 +23,12 @@ import Plugins from '../plugin/Plugins';
 import Login from '../user/Login';
 import Messages from '../message/Messages';
 import Users from '../user/Users';
-import { observer } from 'mobx-react-lite';
-import { ConnectionErrorBanner } from '../common/ConnectionErrorBanner';
-import { useStores } from '../stores';
-import { SnackbarProvider } from 'notistack';
+import {observer} from 'mobx-react-lite';
+import {ConnectionErrorBanner} from '../common/ConnectionErrorBanner';
+import {useStores} from '../stores';
+import {SnackbarProvider} from 'notistack';
 import LoadingSpinner from '../common/LoadingSpinner';
-import { isThemeKey, ThemeKey } from './theme';
+import {isThemeKey, ThemeKey} from './theme';
 import DefaultPage from '../common/DefaultPage';
 
 const useStyles = makeStyles()((theme: Theme) => ({
@@ -62,14 +62,14 @@ const Layout = observer(() => {
         currentUser: {
             loggedIn,
             authenticating,
-            user: { name, admin },
+            user: {name, admin},
             logout,
             tryReconnect,
             connectionErrorMessage,
             refreshKey,
         },
     } = useStores();
-    const { classes } = useStyles();
+    const {classes} = useStyles();
     const [currentTheme, setCurrentTheme] = React.useState<ThemeKey>(() => {
         const stored = window.localStorage.getItem(localStorageThemeKey);
         return isThemeKey(stored) ? stored : 'system';
@@ -85,7 +85,7 @@ const Layout = observer(() => {
             }),
         [paletteMode]
     );
-    const { version } = config.get('version');
+    const {version} = config.get('version');
     const [navOpen, setNavOpen] = React.useState(false);
     const [showSettings, setShowSettings] = React.useState(false);
 
@@ -122,12 +122,12 @@ const Layout = observer(() => {
                                 message={connectionErrorMessage}
                             />
                         )}
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div style={{display: 'flex', flexDirection: 'column'}}>
                             <CssBaseline />
                             <Header
                                 admin={admin}
                                 name={name}
-                                style={{ top: !connectionErrorMessage ? 0 : connectionBannerHeight }}
+                                style={{top: !connectionErrorMessage ? 0 : connectionBannerHeight}}
                                 version={version}
                                 loggedIn={loggedIn}
                                 themeMode={currentTheme}
@@ -137,7 +137,7 @@ const Layout = observer(() => {
                                 setNavOpen={setNavOpen}
                                 navOpen={navOpen}
                             />
-                            <div style={{ display: 'flex' }}>
+                            <div style={{display: 'flex'}}>
                                 <Navigation
                                     loggedIn={loggedIn}
                                     admin={admin}
@@ -149,10 +149,11 @@ const Layout = observer(() => {
                                     setNavOpen={setNavOpen}
                                 />
                                 <main
-                                    className={`${classes.content} ${connectionErrorMessage
+                                    className={`${classes.content} ${
+                                        connectionErrorMessage
                                             ? classes.contentWithConnectionError
                                             : ''
-                                        }`}>
+                                    }`}>
                                     <Routes>
                                         <Route path="/login" element={<Login />} />
                                         <Route path="/" element={authed(<Messages />)} />
@@ -197,7 +198,7 @@ const Layout = observer(() => {
 });
 
 // eslint-disable-next-line
-const Lazy = ({ component }: { component: () => Promise<{ default: React.ComponentType<any> }> }) => {
+const Lazy = ({component}: {component: () => Promise<{default: React.ComponentType<any>}>}) => {
     const Component = React.lazy(component);
 
     return (
@@ -208,8 +209,8 @@ const Lazy = ({ component }: { component: () => Promise<{ default: React.Compone
 };
 
 const RequireAuth: React.FC<
-    React.PropsWithChildren<{ loggedIn: boolean; authenticating: boolean }>
-> = ({ children, authenticating, loggedIn }) => {
+    React.PropsWithChildren<{loggedIn: boolean; authenticating: boolean}>
+> = ({children, authenticating, loggedIn}) => {
     if (authenticating) {
         return <LoadingSpinner />;
     }
@@ -219,8 +220,8 @@ const RequireAuth: React.FC<
     return <>{children}</>;
 };
 
-export const RequireElevation = observer(({ children }: React.PropsWithChildren) => {
-    const { elevateStore } = useStores();
+export const RequireElevation = observer(({children}: React.PropsWithChildren) => {
+    const {elevateStore} = useStores();
 
     if (elevateStore.elevated) {
         return <>{children}</>;
@@ -229,7 +230,7 @@ export const RequireElevation = observer(({ children }: React.PropsWithChildren)
     return (
         <DefaultPage title="Authentication Required" maxWidth={400}>
             <Paper elevation={6}>
-                <Box sx={{ padding: 2 }}>
+                <Box sx={{padding: 2}}>
                     <ElevationForm />
                 </Box>
             </Paper>

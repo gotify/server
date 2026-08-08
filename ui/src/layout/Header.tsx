@@ -1,8 +1,8 @@
 import AppBar from '@mui/material/AppBar';
-import Button, { ButtonProps } from '@mui/material/Button';
+import Button, {ButtonProps} from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import { Theme } from '@mui/material/styles';
-import { makeStyles } from 'tss-react/mui';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from 'tss-react/mui';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import AccountCircle from '@mui/icons-material/AccountCircle';
@@ -16,11 +16,11 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import MenuIcon from '@mui/icons-material/Menu';
 import Apps from '@mui/icons-material/Apps';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
-import React, { CSSProperties } from 'react';
-import { Link } from 'react-router';
-import { useMediaQuery } from '@mui/material';
+import React, {CSSProperties} from 'react';
+import {Link} from 'react-router';
+import {useMediaQuery} from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
-import { ThemeKey } from './theme';
+import {ThemeKey} from './theme';
 
 const themeIcons: Record<ThemeKey, React.ReactElement> = {
     dark: <Brightness4 />,
@@ -93,12 +93,12 @@ const Header = ({
     showSettings,
     themeMode,
 }: IProps) => {
-    const { classes } = useStyles();
+    const {classes} = useStyles();
     const themeLabel = `Toggle theme (current: ${themeMode})`;
     const themeIcon = themeIcons[themeMode];
     return (
         <AppBar
-            sx={{ position: { xs: 'sticky', sm: 'fixed' } }}
+            sx={{position: {xs: 'sticky', sm: 'fixed'}}}
             style={style}
             className={classes.appBar}>
             <Toolbar className={classes.toolbar}>
@@ -174,13 +174,13 @@ const Buttons = ({
     setNavOpen: (open: boolean) => void;
     showSettings: VoidFunction;
 }) => {
-    const { classes } = useStyles();
+    const {classes} = useStyles();
     const mobile = useMediaQuery('(max-width:600px)');
 
     return (
         <div className={classes.menuButtons}>
             <ResponsiveButton
-                sx={{ display: { sm: 'none', xs: 'block' } }}
+                sx={{display: {sm: 'none', xs: 'block'}}}
                 icon={<MenuIcon />}
                 onClick={() => setNavOpen(!navOpen)}
                 label="menu"
@@ -190,7 +190,11 @@ const Buttons = ({
                 <>
                     {admin && (
                         <Link className={classes.link} to="/users" id="navigate-users">
-                            <ResponsiveButton icon={<SupervisorAccount />} label="users" color="inherit" />
+                            <ResponsiveButton
+                                icon={<SupervisorAccount />}
+                                label="users"
+                                color="inherit"
+                            />
                         </Link>
                     )}
                     <Link className={classes.link} to="/applications" id="navigate-apps">
@@ -229,7 +233,7 @@ const ResponsiveButton: React.FC<{
     id?: string;
     onClick?: () => void;
     icon: React.ReactNode;
-}> = ({ icon, label, ...rest }) => {
+}> = ({icon, label, ...rest}) => {
     const matches = useMediaQuery('(max-width:1000px)');
     if (matches) {
         return (

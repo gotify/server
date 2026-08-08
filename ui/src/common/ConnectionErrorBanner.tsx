@@ -8,7 +8,7 @@ interface ConnectionErrorBannerProps {
     message: string;
 }
 
-export const ConnectionErrorBanner = ({ height, retry, message }: ConnectionErrorBannerProps) => (
+export const ConnectionErrorBanner = ({height, retry, message}: ConnectionErrorBannerProps) => (
     <div
         style={{
             backgroundColor: '#e74c3c',
@@ -22,7 +22,7 @@ export const ConnectionErrorBanner = ({ height, retry, message }: ConnectionErro
             padding: '8px 16px',
             boxSizing: 'border-box',
         }}>
-        <Typography align="center" variant="h6" style={{ lineHeight: 1.4 }}>
+        <Typography align="center" variant="h6" style={{lineHeight: 1.4}}>
             {message}{' '}
             <Button variant="outlined" onClick={retry}>
                 Retry
