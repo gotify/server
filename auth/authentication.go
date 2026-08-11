@@ -42,6 +42,9 @@ type Auth struct {
 	DB           Database
 	SecureCookie bool
 	CrossOrigin  *http.CrossOriginProtection
+	// LocalAuthEnabled controls whether username/password (basic auth) credentials
+	// are accepted. When false, only token based auth and OIDC sessions work.
+	LocalAuthEnabled bool
 }
 
 // RequireAdmin requires an elevated client token or basic auth, the user must be an admin.
@@ -146,6 +149,9 @@ func (a *Auth) rejectForeignOrigin(ctx *gin.Context) bool {
 
 func (a *Auth) handleUser(checks ...func(*model.User) (authState, error)) func(ctx *gin.Context) (authState, error) {
 	return func(ctx *gin.Context) (authState, error) {
+		if !a.LocalAuthEnabled {
+			return authStateSkip, nil
+		}
 		if name, pass, ok := ctx.Request.BasicAuth(); ok {
 			if user, err := a.DB.GetUserByName(name); err != nil {
 				return authStateSkip, err

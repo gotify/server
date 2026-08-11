@@ -116,3 +116,18 @@ func TestMigrateSortKey(t *testing.T) {
 	assert.Equal(t, apps[0].Name, "one-other")
 	assert.Equal(t, apps[0].SortKey, "a0")
 }
+
+func TestNoDefaultUserWhenDisabled(t *testing.T) {
+	tmpDir := test.NewTmpDir("gotify_testnodefaultuser")
+	defer tmpDir.Clean()
+
+	// Mirrors localauth being disabled: no default admin may be created,
+	// otherwise a password login account would exist that cannot be used.
+	db, err := New("sqlite3", tmpDir.Path("testdb.db"), "defaultUser", "defaultPass", 5, false, fixedNow)
+	assert.Nil(t, err)
+	defer db.Close()
+
+	users, err := db.GetUsers()
+	assert.Nil(t, err)
+	assert.Empty(t, users, "no default user should be created")
+}

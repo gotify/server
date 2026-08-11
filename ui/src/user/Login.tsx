@@ -23,7 +23,7 @@ const Login = observer(() => {
         }
     }, [currentUser.loggedIn]);
     const registerButton = () => {
-        if (config.get('register'))
+        if (config.get('localauth') && config.get('register'))
             return (
                 <Button
                     id="register"
@@ -39,51 +39,57 @@ const Login = observer(() => {
         e.preventDefault();
         currentUser.login(username, password);
     };
+    const localAuth = config.get('localauth');
     return (
         <DefaultPage title="Login" rightControl={registerButton()} maxWidth={250}>
             <Grid size={{xs: 12}} style={{textAlign: 'center'}}>
                 <Container>
-                    <form onSubmit={(e) => e.preventDefault()} id="login-form">
-                        <TextField
-                            autoFocus
-                            id="username"
-                            className="name"
-                            label="Username"
-                            name="username"
-                            margin="dense"
-                            autoComplete="username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                        <TextField
-                            id="password"
-                            type="password"
-                            className="password"
-                            label="Password"
-                            name="password"
-                            margin="normal"
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            size="large"
-                            className="login"
-                            color="primary"
-                            disabled={
-                                !!currentUser.connectionErrorMessage || currentUser.authenticating
-                            }
-                            style={{marginTop: 15, marginBottom: 5}}
-                            loading={currentUser.authenticating}
-                            onClick={login}>
-                            Login
-                        </Button>
-                    </form>
+                    {localAuth && (
+                        <form onSubmit={(e) => e.preventDefault()} id="login-form">
+                            <TextField
+                                autoFocus
+                                id="username"
+                                className="name"
+                                label="Username"
+                                name="username"
+                                margin="dense"
+                                autoComplete="username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                            />
+                            <TextField
+                                id="password"
+                                type="password"
+                                className="password"
+                                label="Password"
+                                name="password"
+                                margin="normal"
+                                autoComplete="current-password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                size="large"
+                                className="login"
+                                color="primary"
+                                disabled={
+                                    !!currentUser.connectionErrorMessage ||
+                                    currentUser.authenticating
+                                }
+                                style={{marginTop: 15, marginBottom: 5}}
+                                loading={currentUser.authenticating}
+                                onClick={login}>
+                                Login
+                            </Button>
+                        </form>
+                    )}
                     {config.get('oidc') && (
                         <>
-                            <Divider style={{marginTop: 15, marginBottom: 15}}>or</Divider>
+                            {localAuth && (
+                                <Divider style={{marginTop: 15, marginBottom: 15}}>or</Divider>
+                            )}
                             <Button
                                 id="oidc-login"
                                 component="a"

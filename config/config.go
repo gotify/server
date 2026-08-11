@@ -70,6 +70,11 @@ type OIDC struct {
 	Scopes         []string
 }
 
+// LocalAuth configures the built-in username/password authentication.
+type LocalAuth struct {
+	Enabled bool
+}
+
 type Configuration struct {
 	LogLevel          LogLevel
 	Server            Server
@@ -80,6 +85,7 @@ type Configuration struct {
 	PluginsDir        string
 	Registration      bool
 	OIDC              OIDC
+	LocalAuth         LocalAuth
 	NoColor           string
 }
 
@@ -115,6 +121,9 @@ func Get() (*Configuration, []FutureLog) {
 			UsernameClaim: "preferred_username",
 			AutoRegister:  true,
 			Scopes:        []string{"openid", "profile", "email"},
+		},
+		LocalAuth: LocalAuth{
+			Enabled: true,
 		},
 	}
 
@@ -178,9 +187,15 @@ func Get() (*Configuration, []FutureLog) {
 	add(parseBool(&c.OIDC.LinkByUsername, EnvOIDCLinkByUsername))
 	add(parseList(&c.OIDC.Scopes, EnvOIDCScopes))
 
+	add(parseBool(&c.LocalAuth.Enabled, EnvLocalAuthEnabled))
+
 	add(parseString(&c.NoColor, EnvNoColor))
 
 	addTrailingSlashToPaths(c)
+
+	if !c.LocalAuth.Enabled && !c.OIDC.Enabled {
+		logs = append(logs, futureFatal(EnvLocalAuthEnabled+" is false and "+EnvOIDCEnabled+" is false, there would be no way to authenticate. Enable OIDC or re-enable local authentication."))
+	}
 
 	return c, logs
 }

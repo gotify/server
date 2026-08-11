@@ -6,8 +6,44 @@ import (
 	"testing"
 
 	"github.com/gotify/server/v2/mode"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestLocalAuthEnabled(t *testing.T) {
+	mode.Set(mode.TestDev)
+
+	conf, logs := Get()
+	assert.True(t, conf.LocalAuth.Enabled, "should default to true")
+	assert.Empty(t, fatalLogs(logs))
+
+	os.Setenv("GOTIFY_LOCALAUTH_ENABLED", "false")
+	defer os.Unsetenv("GOTIFY_LOCALAUTH_ENABLED")
+
+	// localauth disabled without OIDC leaves no way to authenticate -> fatal.
+	conf, logs = Get()
+	assert.False(t, conf.LocalAuth.Enabled, "should parse env var")
+	assert.Len(t, fatalLogs(logs), 1, "should refuse to start without any auth method")
+
+	// localauth disabled with OIDC enabled is a valid combination.
+	os.Setenv("GOTIFY_OIDC_ENABLED", "true")
+	defer os.Unsetenv("GOTIFY_OIDC_ENABLED")
+
+	conf, logs = Get()
+	assert.False(t, conf.LocalAuth.Enabled)
+	assert.True(t, conf.OIDC.Enabled)
+	assert.Empty(t, fatalLogs(logs), "should be allowed when OIDC can authenticate users")
+}
+
+func fatalLogs(logs []FutureLog) []FutureLog {
+	var fatal []FutureLog
+	for _, l := range logs {
+		if l.Level == zerolog.FatalLevel {
+			fatal = append(fatal, l)
+		}
+	}
+	return fatal
+}
 
 func TestConfigEnv(t *testing.T) {
 	mode.Set(mode.TestDev)

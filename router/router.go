@@ -1,6 +1,7 @@
 package router
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -85,9 +86,10 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		}
 	}()
 	authentication := auth.Auth{
-		DB:           db,
-		SecureCookie: conf.Server.SecureCookie,
-		CrossOrigin:  http.NewCrossOriginProtection(),
+		DB:               db,
+		SecureCookie:     conf.Server.SecureCookie,
+		CrossOrigin:      http.NewCrossOriginProtection(),
+		LocalAuthEnabled: conf.LocalAuth.Enabled,
 	}
 	messageHandler := api.MessageAPI{Notifier: streamHandler, DB: db}
 	healthHandler := api.HealthAPI{DB: db}
@@ -118,7 +120,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	userChangeNotifier.OnUserDeleted(pluginManager.RemoveUser)
 	userChangeNotifier.OnUserAdded(pluginManager.InitializeForUserID)
 
-	ui.Register(g, *vInfo, conf.Registration, conf.OIDC.Enabled)
+	ui.Register(g, *vInfo, conf.Registration, conf.OIDC.Enabled, conf.LocalAuth.Enabled)
 
 	if conf.OIDC.Enabled {
 		oidcHandler := api.NewOIDC(conf, db, userChangeNotifier)
@@ -158,7 +160,13 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	g.Group("/user").Use(authentication.Optional).POST("", userHandler.CreateUser)
 
-	g.POST("/auth/local/login", sessionHandler.Login)
+	login := sessionHandler.Login
+	if !conf.LocalAuth.Enabled {
+		login = func(ctx *gin.Context) {
+			ctx.AbortWithError(http.StatusForbidden, errors.New("local authentication is disabled"))
+		}
+	}
+	g.POST("/auth/local/login", login)
 
 	g.OPTIONS("/*any")
 
@@ -189,7 +197,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	//     schema:
 	//         $ref: "#/definitions/GotifyInfo"
 	g.GET("gotifyinfo", func(ctx *gin.Context) {
-		ctx.JSON(200, &model.GotifyInfo{Version: vInfo.Version, Oidc: conf.OIDC.Enabled, Register: conf.Registration})
+		ctx.JSON(200, &model.GotifyInfo{Version: vInfo.Version, Oidc: conf.OIDC.Enabled, Register: conf.Registration, LocalAuth: conf.LocalAuth.Enabled})
 	})
 
 	g.Group("/").Use(authentication.RequireApplicationOrClient).POST("/message", messageHandler.CreateMessage)

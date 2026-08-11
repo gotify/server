@@ -29,7 +29,7 @@ type AuthenticationSuite struct {
 func (s *AuthenticationSuite) SetupSuite() {
 	mode.Set(mode.TestDev)
 	s.DB = testdb.NewDB(s.T())
-	s.auth = &Auth{DB: s.DB, CrossOrigin: http.NewCrossOriginProtection()}
+	s.auth = &Auth{DB: s.DB, CrossOrigin: http.NewCrossOriginProtection(), LocalAuthEnabled: true}
 
 	now := time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC)
 	timeNow = func() time.Time { return now }
@@ -416,3 +416,48 @@ func (s *AuthenticationSuite) assertCsrfRequest(headers map[string]string, cooki
 }
 
 type fMiddleware gin.HandlerFunc
+
+func (s *AuthenticationSuite) TestLocalAuthDisabledRejectsBasicAuth() {
+	disabled := &Auth{DB: s.DB, CrossOrigin: http.NewCrossOriginProtection(), LocalAuthEnabled: false}
+
+	// Valid local credentials must not authenticate anywhere, otherwise disabling
+	// local auth could be bypassed with basic auth.
+	s.assertBasicAuthRequest("admin", "pw", disabled.RequireClient, 401)
+	s.assertBasicAuthRequest("admin", "pw", disabled.RequireAdmin, 401)
+	s.assertBasicAuthRequest("admin", "pw", disabled.RequireElevatedClient, 401)
+	s.assertBasicAuthRequest("admin", "pw", disabled.RequireApplicationOrClient, 401)
+	s.assertBasicAuthRequest("existing", "pw", disabled.RequireClient, 401)
+
+	// Optional auth must not register the user either.
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("GET", "/", nil)
+	ctx.Request.SetBasicAuth("admin", "pw")
+	disabled.Optional(ctx)
+	assert.Nil(s.T(), ctx.Keys["user"])
+
+	// Token based auth keeps working.
+	s.assertHeaderRequestWith("X-Gotify-Key", "clienttoken", disabled.RequireClient, 200)
+	s.assertHeaderRequestWith("X-Gotify-Key", "apptoken", disabled.RequireApplicationToken, 200)
+
+	// With local auth enabled the same credentials still work.
+	s.assertBasicAuthRequest("admin", "pw", s.auth.RequireAdmin, 200)
+}
+
+func (s *AuthenticationSuite) assertBasicAuthRequest(user, pass string, f fMiddleware, code int) {
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("GET", "/", nil)
+	ctx.Request.SetBasicAuth(user, pass)
+	f(ctx)
+	assert.Equal(s.T(), code, recorder.Code)
+}
+
+func (s *AuthenticationSuite) assertHeaderRequestWith(key, value string, f fMiddleware, code int) {
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("GET", "/", nil)
+	ctx.Request.Header.Set(key, value)
+	f(ctx)
+	assert.Equal(s.T(), code, recorder.Code)
+}

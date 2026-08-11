@@ -19,4 +19,9 @@ type GotifyInfo struct {
 	// required: true
 	// example: true
 	Oidc bool `json:"oidc"`
+	// If local (username/password) authentication is enabled.
+	//
+	// required: true
+	// example: true
+	LocalAuth bool `json:"localauth"`
 }

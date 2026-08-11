@@ -2940,9 +2940,16 @@
       "required": [
         "version",
         "register",
-        "oidc"
+        "oidc",
+        "localauth"
       ],
       "properties": {
+        "localauth": {
+          "description": "If local (username/password) authentication is enabled.",
+          "type": "boolean",
+          "x-go-name": "LocalAuth",
+          "example": true
+        },
         "oidc": {
           "description": "If oidc is enabled.",
           "type": "boolean",

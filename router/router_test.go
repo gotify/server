@@ -41,7 +41,7 @@ func (s *IntegrationSuite) BeforeTest(string, string) {
 
 	g, closable := Create(s.db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
-		&config.Configuration{PassStrength: 5},
+		&config.Configuration{PassStrength: 5, LocalAuth: config.LocalAuth{Enabled: true}},
 	)
 	s.closable = closable
 	s.server = httptest.NewServer(g)
@@ -73,7 +73,7 @@ func TestHeadersFromConfiguration(t *testing.T) {
 	db := testdb.NewDBWithDefaultUser(t)
 	defer db.Close()
 
-	config := config.Configuration{PassStrength: 5}
+	config := config.Configuration{PassStrength: 5, LocalAuth: config.LocalAuth{Enabled: true}}
 	config.Server.ResponseHeaders = map[string]string{
 		"New-Cool-Header":             "Nice",
 		"Access-Control-Allow-Origin": "http://test1.com",
@@ -105,7 +105,7 @@ func TestHeadersFromCORSConfig(t *testing.T) {
 	db := testdb.NewDBWithDefaultUser(t)
 	defer db.Close()
 
-	config := config.Configuration{PassStrength: 5}
+	config := config.Configuration{PassStrength: 5, LocalAuth: config.LocalAuth{Enabled: true}}
 	config.Server.Cors.AllowOrigins = []string{"---", "http://test.com"}
 
 	g, closable := Create(db.GormDatabase,
@@ -134,7 +134,7 @@ func TestInvalidOrigin(t *testing.T) {
 	db := testdb.NewDBWithDefaultUser(t)
 	defer db.Close()
 
-	config := config.Configuration{PassStrength: 5}
+	config := config.Configuration{PassStrength: 5, LocalAuth: config.LocalAuth{Enabled: true}}
 	config.Server.Cors.AllowOrigins = []string{"---", "http://test.com"}
 
 	g, closable := Create(db.GormDatabase,
@@ -163,7 +163,7 @@ func TestAllowedOriginFromResponseHeaders(t *testing.T) {
 	db := testdb.NewDBWithDefaultUser(t)
 	defer db.Close()
 
-	config := config.Configuration{PassStrength: 5}
+	config := config.Configuration{PassStrength: 5, LocalAuth: config.LocalAuth{Enabled: true}}
 	config.Server.ResponseHeaders = map[string]string{
 		"Access-Control-Allow-Origin":  "http://test1.com",
 		"Access-Control-Allow-Methods": "GET,POST",
@@ -201,7 +201,7 @@ func TestAllowedWildcardOriginInHeader(t *testing.T) {
 	db := testdb.NewDBWithDefaultUser(t)
 	defer db.Close()
 
-	config := config.Configuration{PassStrength: 5}
+	config := config.Configuration{PassStrength: 5, LocalAuth: config.LocalAuth{Enabled: true}}
 	config.Server.ResponseHeaders = map[string]string{
 		"Access-Control-Allow-Origin":  "*",
 		"Access-Control-Allow-Methods": "GET,POST",
@@ -233,7 +233,7 @@ func TestCORSHeaderRegex(t *testing.T) {
 	db := testdb.NewDBWithDefaultUser(t)
 	defer db.Close()
 
-	config := config.Configuration{PassStrength: 5}
+	config := config.Configuration{PassStrength: 5, LocalAuth: config.LocalAuth{Enabled: true}}
 	config.Server.Cors.AllowOrigins = []string{"---", "^http://test\\d{3}.com$"}
 
 	g, closable := Create(db.GormDatabase,
@@ -263,7 +263,7 @@ func TestCORSConfigOverride(t *testing.T) {
 	db := testdb.NewDBWithDefaultUser(t)
 	defer db.Close()
 
-	config := config.Configuration{PassStrength: 5}
+	config := config.Configuration{PassStrength: 5, LocalAuth: config.LocalAuth{Enabled: true}}
 	config.Server.ResponseHeaders = map[string]string{
 		"New-Cool-Header":              "Nice",
 		"Access-Control-Allow-Origin":  "http://example.com/",
@@ -388,6 +388,89 @@ func (s *IntegrationSuite) TestAuthentication() {
 	token := &model.Application{}
 	json.NewDecoder(res.Body).Decode(token)
 	assert.Equal(s.T(), "android-client", token.Name)
+}
+
+func TestLocalAuthDisabled(t *testing.T) {
+	mode.Set(mode.TestDev)
+	db := testdb.NewDBWithDefaultUser(t)
+	defer db.Close()
+
+	conf := config.Configuration{PassStrength: 5, LocalAuth: config.LocalAuth{Enabled: true}}
+	conf.LocalAuth.Enabled = false
+
+	g, closable := Create(db.GormDatabase,
+		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
+		&conf,
+	)
+	server := httptest.NewServer(g)
+	defer func() {
+		closable()
+		server.Close()
+	}()
+
+	do := func(method, path string, basicAuth bool) *http.Response {
+		req, err := http.NewRequest(method, fmt.Sprintf("%s/%s", server.URL, path), strings.NewReader(`{"name":"test"}`))
+		assert.Nil(t, err)
+		req.Header.Add("Content-Type", "application/json")
+		if basicAuth {
+			req.SetBasicAuth("admin", "pw")
+		}
+		res, err := client.Do(req)
+		assert.Nil(t, err)
+		return res
+	}
+
+	assert.Equal(t, http.StatusForbidden, do("POST", "auth/local/login", true).StatusCode,
+		"local login endpoint must be rejected")
+
+	// Basic auth with valid local credentials must not work anywhere, otherwise
+	// local login could be bypassed via the regular API.
+	assert.Equal(t, http.StatusUnauthorized, do("GET", "current/user", true).StatusCode,
+		"basic auth must be rejected on client endpoints")
+	assert.Equal(t, http.StatusUnauthorized, do("GET", "application", true).StatusCode,
+		"basic auth must be rejected on application endpoints")
+	assert.Equal(t, http.StatusUnauthorized, do("GET", "user", true).StatusCode,
+		"basic auth must be rejected on admin endpoints")
+
+	res := do("GET", "gotifyinfo", false)
+	info := &model.GotifyInfo{}
+	json.NewDecoder(res.Body).Decode(info)
+	assert.False(t, info.LocalAuth, "gotifyinfo should report localauth as disabled")
+}
+
+func TestLocalAuthEnabledByDefaultKeepsBasicAuth(t *testing.T) {
+	mode.Set(mode.TestDev)
+	db := testdb.NewDBWithDefaultUser(t)
+	defer db.Close()
+
+	conf := config.Configuration{PassStrength: 5, LocalAuth: config.LocalAuth{Enabled: true}}
+	conf.LocalAuth.Enabled = true
+
+	g, closable := Create(db.GormDatabase,
+		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
+		&conf,
+	)
+	server := httptest.NewServer(g)
+	defer func() {
+		closable()
+		server.Close()
+	}()
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/auth/local/login", server.URL), strings.NewReader(`{"name":"test"}`))
+	assert.Nil(t, err)
+	req.Header.Add("Content-Type", "application/json")
+	req.SetBasicAuth("admin", "pw")
+	res, err := client.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+
+	req, err = http.NewRequest("GET", fmt.Sprintf("%s/gotifyinfo", server.URL), nil)
+	assert.Nil(t, err)
+	res, err = client.Do(req)
+	assert.Nil(t, err)
+	info := &model.GotifyInfo{}
+	json.NewDecoder(res.Body).Decode(info)
+	assert.True(t, info.LocalAuth, "gotifyinfo should report localauth as enabled")
 }
 
 func (s *IntegrationSuite) newRequest(method, url, body string) *http.Request {

@@ -41,5 +41,6 @@ const (
 	EnvOIDCAutoRegister                 = "GOTIFY_OIDC_AUTOREGISTER"
 	EnvOIDCLinkByUsername               = "GOTIFY_OIDC_LINK_BY_USERNAME"
 	EnvOIDCScopes                       = "GOTIFY_OIDC_SCOPES"
+	EnvLocalAuthEnabled                 = "GOTIFY_LOCALAUTH_ENABLED"
 	EnvNoColor                          = "NOCOLOR"
 )
