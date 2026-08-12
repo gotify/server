@@ -63,6 +63,7 @@ type OIDC struct {
 	Issuer         string
 	ClientID       string
 	ClientSecret   string
+	ExternalSecret bool
 	UsernameClaim  string
 	RedirectURL    string
 	AutoRegister   bool
@@ -112,9 +113,10 @@ func Get() (*Configuration, []FutureLog) {
 		UploadedImagesDir: "data/images",
 		PluginsDir:        "data/plugins",
 		OIDC: OIDC{
-			UsernameClaim: "preferred_username",
-			AutoRegister:  true,
-			Scopes:        []string{"openid", "profile", "email"},
+			UsernameClaim:  "preferred_username",
+			AutoRegister:   true,
+			Scopes:         []string{"openid", "profile", "email"},
+			ExternalSecret: true,
 		},
 	}
 
@@ -172,6 +174,7 @@ func Get() (*Configuration, []FutureLog) {
 	add(parseString(&c.OIDC.Issuer, EnvOIDCIssuer))
 	add(parseString(&c.OIDC.ClientID, EnvOIDCClientID))
 	add(parseString(&c.OIDC.ClientSecret, EnvOIDCClientSecret))
+	add(parseBool(&c.OIDC.ExternalSecret, EnvOIDCExternalSecret))
 	add(parseString(&c.OIDC.UsernameClaim, EnvOIDCUsernameClaim))
 	add(parseString(&c.OIDC.RedirectURL, EnvOIDCRedirectURL))
 	add(parseBool(&c.OIDC.AutoRegister, EnvOIDCAutoRegister))

@@ -57,9 +57,26 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 		log.Fatal().Err(err).Msg("failed to initialize OIDC provider")
 	}
 
+	externalProvider := provider
+	if !conf.OIDC.ExternalSecret {
+		externalProvider, err = rp.NewRelyingPartyOIDC(
+			context.Background(),
+			conf.OIDC.Issuer,
+			conf.OIDC.ClientID,
+			"",  // no secret, PKCE only
+			conf.OIDC.RedirectURL,
+			conf.OIDC.Scopes,
+			opts...,
+		)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to initialize OIDC provider for external flow")
+		}
+	}
+
 	return &OIDCAPI{
 		DB:                 db,
 		Provider:           provider,
+		ExternalProvider:   externalProvider,
 		UserChangeNotifier: userChangeNotifier,
 		UsernameClaim:      conf.OIDC.UsernameClaim,
 		PasswordStrength:   conf.PassStrength,
@@ -88,6 +105,7 @@ type pendingElevation struct {
 type OIDCAPI struct {
 	DB                 *database.GormDatabase
 	Provider           rp.RelyingParty
+	ExternalProvider   rp.RelyingParty
 	UserChangeNotifier *UserChangeNotifier
 	UsernameClaim      string
 	PasswordStrength   int
@@ -316,7 +334,7 @@ func (a *OIDCAPI) ExternalAuthorizeHandler(ctx *gin.Context) {
 		rp.WithCodeChallenge(req.CodeChallenge),
 	}
 	ctx.JSON(http.StatusOK, &model.OIDCExternalAuthorizeResponse{
-		AuthorizeURL: rp.AuthURL(state, a.Provider, authOpts...),
+		AuthorizeURL: rp.AuthURL(state, a.ExternalProvider, authOpts...),
 		State:        state,
 	})
 }
@@ -363,12 +381,12 @@ func (a *OIDCAPI) ExternalTokenHandler(ctx *gin.Context) {
 		rp.CodeExchangeOpt(rp.WithURLParam("redirect_uri", session.RedirectURI)),
 		rp.WithCodeVerifier(req.CodeVerifier),
 	}
-	tokens, err := rp.CodeExchange[*oidc.IDTokenClaims](ctx.Request.Context(), req.Code, a.Provider, exchangeOpts...)
+	tokens, err := rp.CodeExchange[*oidc.IDTokenClaims](ctx.Request.Context(), req.Code, a.ExternalProvider, exchangeOpts...)
 	if err != nil {
 		ctx.AbortWithError(http.StatusUnauthorized, fmt.Errorf("token exchange failed: %w", err))
 		return
 	}
-	info, err := rp.Userinfo[*oidc.UserInfo](ctx.Request.Context(), tokens.AccessToken, tokens.TokenType, tokens.IDTokenClaims.GetSubject(), a.Provider)
+	info, err := rp.Userinfo[*oidc.UserInfo](ctx.Request.Context(), tokens.AccessToken, tokens.TokenType, tokens.IDTokenClaims.GetSubject(), a.ExternalProvider)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to get user info: %w", err))
 		return

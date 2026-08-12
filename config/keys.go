@@ -36,6 +36,7 @@ const (
 	EnvOIDCIssuer                       = "GOTIFY_OIDC_ISSUER"
 	EnvOIDCClientID                     = "GOTIFY_OIDC_CLIENTID"
 	EnvOIDCClientSecret                 = "GOTIFY_OIDC_CLIENTSECRET"
+	EnvOIDCExternalSecret               = "GOTIFY_OIDC_EXTERNALSECRET"
 	EnvOIDCUsernameClaim                = "GOTIFY_OIDC_USERNAMECLAIM"
 	EnvOIDCRedirectURL                  = "GOTIFY_OIDC_REDIRECTURL"
 	EnvOIDCAutoRegister                 = "GOTIFY_OIDC_AUTOREGISTER"
