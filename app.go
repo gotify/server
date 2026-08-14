@@ -106,7 +106,7 @@ func serve(vInfo *model.VersionInfo) int {
 		return 1
 	}
 
-	db, err := database.New(conf.Database.Dialect, conf.Database.Connection, conf.DefaultUser.Name, conf.DefaultUser.Pass, conf.PassStrength, true, time.Now)
+	db, err := database.New(conf.Database.Dialect, conf.Database.Connection, conf.DefaultUser.Name, conf.DefaultUser.Pass, conf.PassStrength, conf.LocalAuthEnabled, time.Now)
 	if err != nil {
 		log.Error().Err(err).Msg("Cannot initialize database")
 		return 1

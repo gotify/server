@@ -40,6 +40,7 @@ const (
 	EnvOIDCRedirectURL                  = "GOTIFY_OIDC_REDIRECTURL"
 	EnvOIDCAutoRegister                 = "GOTIFY_OIDC_AUTOREGISTER"
 	EnvOIDCLinkByUsername               = "GOTIFY_OIDC_LINK_BY_USERNAME"
+	EnvLocalAuthEnabled                 = "GOTIFY_LOCALAUTH_ENABLED"
 	EnvOIDCScopes                       = "GOTIFY_OIDC_SCOPES"
 	EnvNoColor                          = "NOCOLOR"
 )

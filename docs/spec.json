@@ -720,6 +720,12 @@
             "schema": {
               "$ref": "#/definitions/Error"
             }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
           }
         }
       }
@@ -2940,9 +2946,16 @@
       "required": [
         "version",
         "register",
+        "localAuth",
         "oidc"
       ],
       "properties": {
+        "localAuth": {
+          "description": "If local authentication is enabled.",
+          "type": "boolean",
+          "x-go-name": "LocalAuth",
+          "example": true
+        },
         "oidc": {
           "description": "If oidc is enabled.",
           "type": "boolean",

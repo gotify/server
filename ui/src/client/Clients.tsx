@@ -26,7 +26,7 @@ import {useStores} from '../stores';
 import {TokenConfirmDialog} from '../common/TokenConfirmDialog';
 
 const Clients = observer(() => {
-    const {clientStore} = useStores();
+    const {clientStore, currentUser} = useStores();
     const [toDeleteClient, setToDeleteClient] = useState<IClient>();
     const [toUpdateClient, setToUpdateClient] = useState<IClient>();
     const [toElevateClient, setToElevateClient] = useState<IClient>();
@@ -73,6 +73,7 @@ const Clients = observer(() => {
                                     lastUsed={client.lastUsed}
                                     elevatedUntil={client.elevatedUntil}
                                     expiresAt={client.expiresAt}
+                                    current={client.id === currentUser.user.clientId}
                                     fEdit={() => setToUpdateClient(client)}
                                     fDelete={() => setToDeleteClient(client)}
                                     fElevate={() => setToElevateClient(client)}
@@ -132,6 +133,7 @@ interface IRowProps {
     lastUsed: string | null;
     elevatedUntil?: string;
     expiresAt: string | null;
+    current: boolean;
     fEdit: VoidFunction;
     fDelete: VoidFunction;
     fElevate: VoidFunction;
@@ -143,12 +145,15 @@ const Row = ({
     lastUsed,
     elevatedUntil,
     expiresAt,
+    current,
     fEdit,
     fDelete,
     fElevate,
 }: IRowProps) => (
-    <TableRow>
-        <TableCell>{name}</TableCell>
+    <TableRow selected={current} aria-current={current ? 'true' : undefined}>
+        <TableCell>
+            <span className="name">{name}</span> {current ? <i> (current)</i> : ''}
+        </TableCell>
         <TableCell align="right" title={elevatedUntil}>
             <RemainingTime
                 until={

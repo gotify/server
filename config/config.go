@@ -79,6 +79,7 @@ type Configuration struct {
 	UploadedImagesDir string
 	PluginsDir        string
 	Registration      bool
+	LocalAuthEnabled  bool
 	OIDC              OIDC
 	NoColor           string
 }
@@ -111,6 +112,7 @@ func Get() (*Configuration, []FutureLog) {
 		PassStrength:      10,
 		UploadedImagesDir: "data/images",
 		PluginsDir:        "data/plugins",
+		LocalAuthEnabled:  true,
 		OIDC: OIDC{
 			UsernameClaim: "preferred_username",
 			AutoRegister:  true,
@@ -167,6 +169,7 @@ func Get() (*Configuration, []FutureLog) {
 	add(parseString(&c.UploadedImagesDir, EnvUploadedImagesDir))
 	add(parseString(&c.PluginsDir, EnvPluginsDir))
 	add(parseBool(&c.Registration, EnvRegistration))
+	add(parseBool(&c.LocalAuthEnabled, EnvLocalAuthEnabled))
 
 	add(parseBool(&c.OIDC.Enabled, EnvOIDCEnabled))
 	add(parseString(&c.OIDC.Issuer, EnvOIDCIssuer))
@@ -182,6 +185,12 @@ func Get() (*Configuration, []FutureLog) {
 
 	addTrailingSlashToPaths(c)
 
+	if !c.LocalAuthEnabled && !c.OIDC.Enabled {
+		logs = append(logs, futureFatal("either local authentication or OIDC must be enabled"))
+	}
+	if c.Registration && !c.LocalAuthEnabled {
+		logs = append(logs, futureFatal("registration requires local authentication to be enabled"))
+	}
 	return c, logs
 }
 

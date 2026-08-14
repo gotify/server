@@ -15,6 +15,7 @@ const ElevationForm = observer(() => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
+    const localAuthEnabled = config.get('localAuth');
     const oidcEnabled = config.get('oidc');
     const oidcPending = elevateStore.oidcElevatePending;
 
@@ -48,40 +49,42 @@ const ElevationForm = observer(() => {
     return (
         <>
             <Typography>This action requires re-authentication.</Typography>
-            <form
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    handleLocalElevate();
-                }}>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    type="password"
-                    label="Password"
-                    className="elevation-password"
-                    value={password}
-                    onChange={(e) => {
-                        setPassword(e.target.value);
-                        setError('');
-                    }}
-                    fullWidth
-                    error={!!error}
-                    helperText={error}
-                />
-                <Button
-                    type="submit"
-                    className="elevation-submit"
-                    disabled={password.length === 0}
-                    color="primary"
-                    variant="contained"
-                    fullWidth>
-                    Elevate with Password
-                </Button>
-            </form>
+            {localAuthEnabled && (
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleLocalElevate();
+                    }}>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        type="password"
+                        label="Password"
+                        className="elevation-password"
+                        value={password}
+                        onChange={(e) => {
+                            setPassword(e.target.value);
+                            setError('');
+                        }}
+                        fullWidth
+                        error={!!error}
+                        helperText={error}
+                    />
+                    <Button
+                        type="submit"
+                        className="elevation-submit"
+                        disabled={password.length === 0}
+                        color="primary"
+                        variant="contained"
+                        fullWidth>
+                        Elevate with Password
+                    </Button>
+                </form>
+            )}
 
             {oidcEnabled && (
                 <>
-                    <Divider sx={{my: 2}}>or</Divider>
+                    {localAuthEnabled && <Divider sx={{my: 2}}>or</Divider>}
                     <Button
                         className="elevation-oidc"
                         variant="contained"

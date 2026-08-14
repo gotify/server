@@ -17,13 +17,15 @@ const Login = observer(() => {
     const [registerDialog, setRegisterDialog] = React.useState(false);
     const {currentUser} = useStores();
     const navigate = useNavigate();
+    const localAuthEnabled = config.get('localAuth');
+    const oidcEnabled = config.get('oidc');
     React.useEffect(() => {
         if (currentUser.loggedIn) {
             navigate('/');
         }
     }, [currentUser.loggedIn]);
     const registerButton = () => {
-        if (config.get('register'))
+        if (localAuthEnabled && config.get('register'))
             return (
                 <Button
                     id="register"
@@ -43,47 +45,52 @@ const Login = observer(() => {
         <DefaultPage title="Login" rightControl={registerButton()} maxWidth={250}>
             <Grid size={{xs: 12}} style={{textAlign: 'center'}}>
                 <Container>
-                    <form onSubmit={(e) => e.preventDefault()} id="login-form">
-                        <TextField
-                            autoFocus
-                            id="username"
-                            className="name"
-                            label="Username"
-                            name="username"
-                            margin="dense"
-                            autoComplete="username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                        <TextField
-                            id="password"
-                            type="password"
-                            className="password"
-                            label="Password"
-                            name="password"
-                            margin="normal"
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            size="large"
-                            className="login"
-                            color="primary"
-                            disabled={
-                                !!currentUser.connectionErrorMessage || currentUser.authenticating
-                            }
-                            style={{marginTop: 15, marginBottom: 5}}
-                            loading={currentUser.authenticating}
-                            onClick={login}>
-                            Login
-                        </Button>
-                    </form>
-                    {config.get('oidc') && (
+                    {localAuthEnabled && (
+                        <form onSubmit={(e) => e.preventDefault()} id="login-form">
+                            <TextField
+                                autoFocus
+                                id="username"
+                                className="name"
+                                label="Username"
+                                name="username"
+                                margin="dense"
+                                autoComplete="username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                            />
+                            <TextField
+                                id="password"
+                                type="password"
+                                className="password"
+                                label="Password"
+                                name="password"
+                                margin="normal"
+                                autoComplete="current-password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                size="large"
+                                className="login"
+                                color="primary"
+                                disabled={
+                                    !!currentUser.connectionErrorMessage ||
+                                    currentUser.authenticating
+                                }
+                                style={{marginTop: 15, marginBottom: 5}}
+                                loading={currentUser.authenticating}
+                                onClick={login}>
+                                Login
+                            </Button>
+                        </form>
+                    )}
+                    {oidcEnabled && (
                         <>
-                            <Divider style={{marginTop: 15, marginBottom: 15}}>or</Divider>
+                            {localAuthEnabled && (
+                                <Divider style={{marginTop: 15, marginBottom: 15}}>or</Divider>
+                            )}
                             <Button
                                 id="oidc-login"
                                 component="a"

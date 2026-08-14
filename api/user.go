@@ -188,10 +188,19 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 func (a *UserAPI) CreateUser(ctx *gin.Context) {
 	user := model.CreateUserExternal{}
 	if err := ctx.Bind(&user); err == nil {
+		if err := password.ValidateNewPassword(user.Pass); err != nil {
+			ctx.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		pw, err := password.CreatePassword(user.Pass, a.PasswordStrength)
+		if err != nil {
+			ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to prepare password: %s", err))
+			return
+		}
 		internal := &model.User{
 			Name:  user.Name,
 			Admin: user.Admin,
-			Pass:  password.CreatePassword(user.Pass, a.PasswordStrength),
+			Pass:  pw,
 		}
 		existingUser, err := a.DB.GetUserByName(internal.Name)
 		if success := successOrAbort(ctx, 500, err); !success {
@@ -389,11 +398,20 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 	pw := model.UserExternalPass{}
 	if err := ctx.Bind(&pw); err == nil {
+		if err := password.ValidateNewPassword(pw.Pass); err != nil {
+			ctx.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
 		user, err := a.DB.GetUserByID(auth.GetUserID(ctx))
 		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
-		user.Pass = password.CreatePassword(pw.Pass, a.PasswordStrength)
+		pw, err := password.CreatePassword(pw.Pass, a.PasswordStrength)
+		if err != nil {
+			ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to prepare password: %s", err))
+			return
+		}
+		user.Pass = pw
 		successOrAbort(ctx, 500, a.DB.UpdateUser(user))
 	}
 }
@@ -465,7 +483,16 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 				dbUser.Admin = updatedUser.Admin
 
 				if updatedUser.Pass != "" {
-					dbUser.Pass = password.CreatePassword(updatedUser.Pass, a.PasswordStrength)
+					if err := password.ValidateNewPassword(updatedUser.Pass); err != nil {
+						ctx.AbortWithError(http.StatusBadRequest, err)
+						return
+					}
+					pw, err := password.CreatePassword(updatedUser.Pass, a.PasswordStrength)
+					if err != nil {
+						ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to prepare password: %s", err))
+						return
+					}
+					dbUser.Pass = pw
 				}
 				if success := successOrAbort(ctx, 500, a.DB.UpdateUser(dbUser)); !success {
 					return

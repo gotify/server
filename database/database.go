@@ -94,7 +94,11 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 	userCount := int64(0)
 	db.Find(new(model.User)).Count(&userCount)
 	if createDefaultUserIfNotExist && userCount == 0 {
-		db.Create(&model.User{Name: defaultUser, Pass: password.CreatePassword(defaultPass, strength), Admin: true})
+		pass, err := password.CreatePassword(defaultPass, strength)
+		if err != nil {
+			return nil, err
+		}
+		db.Create(&model.User{Name: defaultUser, Pass: pass, Admin: true})
 	}
 
 	if err := db.Transaction(fillMissingSortKeys, &sql.TxOptions{Isolation: sql.LevelSerializable}); err != nil {

@@ -151,7 +151,7 @@ func (c *PluginInstance) DefaultConfig() any {
 
 // ValidateAndSetConfig implements compat.Configuror
 func (c *PluginInstance) ValidateAndSetConfig(config any) error {
-	if (config.(*PluginConfig)).IsNotValid {
+	if config.(*PluginConfig).IsNotValid {
 		return errors.New("conf is not valid")
 	}
 	c.Config = config.(*PluginConfig)

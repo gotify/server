@@ -39,9 +39,10 @@ func (s *IntegrationSuite) BeforeTest(string, string) {
 	s.db = testdb.NewDBWithDefaultUser(s.T())
 	assert.Nil(s.T(), err)
 
-	g, closable := Create(s.db.GormDatabase,
+	g, closable := Create(
+		s.db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
-		&config.Configuration{PassStrength: 5},
+		&config.Configuration{PassStrength: 5, LocalAuthEnabled: true},
 	)
 	s.closable = closable
 	s.server = httptest.NewServer(g)
@@ -79,7 +80,8 @@ func TestHeadersFromConfiguration(t *testing.T) {
 		"Access-Control-Allow-Origin": "http://test1.com",
 	}
 
-	g, closable := Create(db.GormDatabase,
+	g, closable := Create(
+		db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
 		&config,
 	)
@@ -108,7 +110,8 @@ func TestHeadersFromCORSConfig(t *testing.T) {
 	config := config.Configuration{PassStrength: 5}
 	config.Server.Cors.AllowOrigins = []string{"---", "http://test.com"}
 
-	g, closable := Create(db.GormDatabase,
+	g, closable := Create(
+		db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
 		&config,
 	)
@@ -137,7 +140,8 @@ func TestInvalidOrigin(t *testing.T) {
 	config := config.Configuration{PassStrength: 5}
 	config.Server.Cors.AllowOrigins = []string{"---", "http://test.com"}
 
-	g, closable := Create(db.GormDatabase,
+	g, closable := Create(
+		db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
 		&config,
 	)
@@ -169,7 +173,8 @@ func TestAllowedOriginFromResponseHeaders(t *testing.T) {
 		"Access-Control-Allow-Methods": "GET,POST",
 	}
 
-	g, closable := Create(db.GormDatabase,
+	g, closable := Create(
+		db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
 		&config,
 	)
@@ -207,7 +212,8 @@ func TestAllowedWildcardOriginInHeader(t *testing.T) {
 		"Access-Control-Allow-Methods": "GET,POST",
 	}
 
-	g, closable := Create(db.GormDatabase,
+	g, closable := Create(
+		db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
 		&config,
 	)
@@ -236,7 +242,8 @@ func TestCORSHeaderRegex(t *testing.T) {
 	config := config.Configuration{PassStrength: 5}
 	config.Server.Cors.AllowOrigins = []string{"---", "^http://test\\d{3}.com$"}
 
-	g, closable := Create(db.GormDatabase,
+	g, closable := Create(
+		db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
 		&config,
 	)
@@ -274,7 +281,8 @@ func TestCORSConfigOverride(t *testing.T) {
 	config.Server.Cors.AllowMethods = []string{"GET", "OPTIONS"}
 	config.Server.Cors.AllowHeaders = []string{"Content-Type"}
 
-	g, closable := Create(db.GormDatabase,
+	g, closable := Create(
+		db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
 		&config,
 	)

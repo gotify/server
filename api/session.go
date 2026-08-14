@@ -20,9 +20,10 @@ type SessionDatabase interface {
 
 // SessionAPI provides handlers for cookie-based session authentication.
 type SessionAPI struct {
-	DB            SessionDatabase
-	NotifyDeleted func(uint, string)
-	SecureCookie  bool
+	DB               SessionDatabase
+	NotifyDeleted    func(uint, string)
+	SecureCookie     bool
+	LocalAuthEnabled bool
 }
 
 // swagger:operation POST /auth/local/login auth localLogin
@@ -53,7 +54,16 @@ type SessionAPI struct {
 //	    description: Unauthorized
 //	    schema:
 //	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
 func (a *SessionAPI) Login(ctx *gin.Context) {
+	if !a.LocalAuthEnabled {
+		ctx.AbortWithError(403, errors.New("local authentication is disabled"))
+		return
+	}
+
 	name, pass, ok := ctx.Request.BasicAuth()
 	if !ok {
 		ctx.AbortWithError(401, errors.New("basic auth required"))

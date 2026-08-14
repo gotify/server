@@ -18,6 +18,7 @@ const (
 	authStateForbidden
 	authStateNotElevated
 	authStateOk
+	authStateLocalAuthDisabled
 )
 
 const (
@@ -39,9 +40,10 @@ type Database interface {
 
 // Auth is the provider for authentication middleware.
 type Auth struct {
-	DB           Database
-	SecureCookie bool
-	CrossOrigin  *http.CrossOriginProtection
+	DB               Database
+	SecureCookie     bool
+	LocalAuthEnabled bool
+	CrossOrigin      *http.CrossOriginProtection
 }
 
 // RequireAdmin requires an elevated client token or basic auth, the user must be an admin.
@@ -109,6 +111,9 @@ func (a *Auth) evaluate(ctx *gin.Context, funcs ...func(ctx *gin.Context) (authS
 		case authStateNotElevated:
 			ctx.AbortWithError(403, errors.New("session not elevated, use basic auth or call /client:elevate"))
 			return true
+		case authStateLocalAuthDisabled:
+			ctx.AbortWithError(403, errors.New("local authentication is disabled"))
+			return true
 		case authStateOk:
 			ctx.Next()
 			return true
@@ -147,6 +152,9 @@ func (a *Auth) rejectForeignOrigin(ctx *gin.Context) bool {
 func (a *Auth) handleUser(checks ...func(*model.User) (authState, error)) func(ctx *gin.Context) (authState, error) {
 	return func(ctx *gin.Context) (authState, error) {
 		if name, pass, ok := ctx.Request.BasicAuth(); ok {
+			if !a.LocalAuthEnabled {
+				return authStateLocalAuthDisabled, nil
+			}
 			if user, err := a.DB.GetUserByName(name); err != nil {
 				return authStateSkip, err
 			} else if user != nil && password.ComparePassword(user.Pass, []byte(pass)) {

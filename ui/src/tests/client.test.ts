@@ -18,7 +18,7 @@ afterAll(async () => await gotify.close());
 const waitForClient =
     (name: string, row: number): (() => Promise<void>) =>
     async () => {
-        await waitForExists(page, $table.cell(row, ClientCol.Name), name);
+        await waitForExists(page, $table.cell(row, ClientCol.Name) + ' .name', name);
     };
 
 interface ClientFields {
@@ -93,6 +93,12 @@ describe('Client', () => {
         expect(await innerText(page, $table.cell(1, ClientCol.Name))).toContain('chrome');
         expect(await innerText(page, $table.cell(2, ClientCol.Name))).toBe('phone');
         expect(await innerText(page, $table.cell(3, ClientCol.Name))).toBe('desktop app');
+    });
+    it('highlights only the current session', async () => {
+        const currentSession = `${$table.rows()}[aria-current="true"]`;
+
+        page.waitForSelector(currentSession);
+        expect(await innerText(page, `${currentSession} td:first-child`)).toContain('chrome');
     });
     it('shows expires after for new clients', async () => {
         expect(await innerText(page, $table.cell(2, ClientCol.ExpiresIn))).toBe('-');

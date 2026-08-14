@@ -6,30 +6,22 @@ import (
 	"testing"
 
 	"github.com/gotify/server/v2/mode"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestConfigEnv(t *testing.T) {
 	mode.Set(mode.TestDev)
-	os.Setenv("GOTIFY_DEFAULTUSER_NAME", "jmattheis")
-	os.Setenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS", "push.example.tld,push.other.tld")
-	os.Setenv("GOTIFY_SERVER_RESPONSEHEADERS",
+	t.Setenv("GOTIFY_DEFAULTUSER_NAME", "jmattheis")
+	t.Setenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS", "push.example.tld,push.other.tld")
+	t.Setenv(
+		"GOTIFY_SERVER_RESPONSEHEADERS",
 		`{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST"}`,
 	)
-	os.Setenv("GOTIFY_SERVER_CORS_ALLOWORIGINS", ".+.example.com,otherdomain.com")
-	os.Setenv("GOTIFY_SERVER_CORS_ALLOWMETHODS", "GET,POST")
-	os.Setenv("GOTIFY_SERVER_CORS_ALLOWHEADERS", "Authorization,content-type")
-	os.Setenv("GOTIFY_SERVER_STREAM_ALLOWEDORIGINS", ".+.example.com,otherdomain.com")
-
-	defer func() {
-		os.Unsetenv("GOTIFY_DEFAULTUSER_NAME")
-		os.Unsetenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS")
-		os.Unsetenv("GOTIFY_SERVER_RESPONSEHEADERS")
-		os.Unsetenv("GOTIFY_SERVER_CORS_ALLOWORIGINS")
-		os.Unsetenv("GOTIFY_SERVER_CORS_ALLOWMETHODS")
-		os.Unsetenv("GOTIFY_SERVER_CORS_ALLOWHEADERS")
-		os.Unsetenv("GOTIFY_SERVER_STREAM_ALLOWEDORIGINS")
-	}()
+	t.Setenv("GOTIFY_SERVER_CORS_ALLOWORIGINS", ".+.example.com,otherdomain.com")
+	t.Setenv("GOTIFY_SERVER_CORS_ALLOWMETHODS", "GET,POST")
+	t.Setenv("GOTIFY_SERVER_CORS_ALLOWHEADERS", "Authorization,content-type")
+	t.Setenv("GOTIFY_SERVER_STREAM_ALLOWEDORIGINS", ".+.example.com,otherdomain.com")
 
 	conf, _ := Get()
 	assert.Equal(t, 80, conf.Server.Port, "should use defaults")
@@ -43,6 +35,53 @@ func TestConfigEnv(t *testing.T) {
 	assert.Equal(t, []string{".+.example.com", "otherdomain.com"}, conf.Server.Stream.AllowedOrigins)
 }
 
+func TestLocalAuthDisabled(t *testing.T) {
+	tests := []struct {
+		name   string
+		env    map[string]string
+		fatals []FutureLog
+	}{
+		{
+			name: "with oidc",
+			env:  map[string]string{EnvLocalAuthEnabled: "false", EnvOIDCEnabled: "true"},
+		},
+		{
+			name:   "without oidc",
+			env:    map[string]string{EnvLocalAuthEnabled: "false"},
+			fatals: []FutureLog{futureFatal("either local authentication or OIDC must be enabled")},
+		},
+		{
+			name: "with registration",
+			env: map[string]string{
+				EnvLocalAuthEnabled: "false",
+				EnvOIDCEnabled:      "true",
+				EnvRegistration:     "true",
+			},
+			fatals: []FutureLog{futureFatal("registration requires local authentication to be enabled")},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mode.Set(mode.TestDev)
+			for key, value := range tc.env {
+				t.Setenv(key, value)
+			}
+
+			conf, logs := Get()
+			assert.False(t, conf.LocalAuthEnabled)
+
+			var fatals []FutureLog
+			for _, entry := range logs {
+				if entry.Level == zerolog.FatalLevel {
+					fatals = append(fatals, entry)
+				}
+			}
+			assert.Equal(t, tc.fatals, fatals)
+		})
+	}
+}
+
 func TestFile(t *testing.T) {
 	mode.Set(mode.TestDev)
 	dir := t.TempDir()
@@ -51,10 +90,8 @@ func TestFile(t *testing.T) {
 	assert.Nil(t, os.WriteFile(passPath, []byte("filesecret\n"), 0o600))
 	assert.Nil(t, os.WriteFile(hostsPath, []byte("a.example.com,b.example.com"), 0o600))
 
-	os.Setenv("GOTIFY_DEFAULTUSER_PASS_FILE", passPath)
-	os.Setenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS_FILE", hostsPath)
-	defer os.Unsetenv("GOTIFY_DEFAULTUSER_PASS_FILE")
-	defer os.Unsetenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS_FILE")
+	t.Setenv("GOTIFY_DEFAULTUSER_PASS_FILE", passPath)
+	t.Setenv("GOTIFY_SERVER_SSL_LETSENCRYPT_HOSTS_FILE", hostsPath)
 
 	conf, _ := Get()
 	assert.Equal(t, "filesecret", conf.DefaultUser.Pass)
@@ -67,8 +104,7 @@ func TestGotifyConfigFile(t *testing.T) {
 	configPath := filepath.Join(dir, "custom.env")
 	assert.Nil(t, os.WriteFile(configPath, []byte("GOTIFY_DEFAULTUSER_NAME=fromfile\n"), 0o600))
 
-	os.Setenv("GOTIFY_CONFIG_FILE", configPath)
-	defer os.Unsetenv("GOTIFY_CONFIG_FILE")
+	t.Setenv("GOTIFY_CONFIG_FILE", configPath)
 
 	conf, _ := Get()
 	assert.Equal(t, "fromfile", conf.DefaultUser.Name)
@@ -76,18 +112,16 @@ func TestGotifyConfigFile(t *testing.T) {
 
 func TestAddSlash(t *testing.T) {
 	mode.Set(mode.TestDev)
-	os.Setenv("GOTIFY_UPLOADEDIMAGESDIR", "../data/images")
+	t.Setenv("GOTIFY_UPLOADEDIMAGESDIR", "../data/images")
 	conf, _ := Get()
 	assert.Equal(t, "../data/images"+string(filepath.Separator), conf.UploadedImagesDir)
-	os.Unsetenv("GOTIFY_UPLOADEDIMAGESDIR")
 }
 
 func TestNotAddSlash(t *testing.T) {
 	mode.Set(mode.TestDev)
-	os.Setenv("GOTIFY_UPLOADEDIMAGESDIR", "../data/")
+	t.Setenv("GOTIFY_UPLOADEDIMAGESDIR", "../data/")
 	conf, _ := Get()
 	assert.Equal(t, "../data/", conf.UploadedImagesDir)
-	os.Unsetenv("GOTIFY_UPLOADEDIMAGESDIR")
 }
 
 func TestParseList(t *testing.T) {
@@ -105,8 +139,7 @@ func TestParseList(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			os.Setenv(env, tc.raw)
-			defer os.Unsetenv(env)
+			t.Setenv(env, tc.raw)
 
 			var got []string
 			assert.Nil(t, parseList(&got, env))

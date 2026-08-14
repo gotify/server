@@ -14,6 +14,7 @@ import (
 	"github.com/gotify/server/v2/test"
 	"github.com/gotify/server/v2/test/testdb"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -320,6 +321,24 @@ func (s *UserSuite) Test_CreateUser_NameAlreadyExists() {
 	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
+func (s *UserSuite) Test_CreateUser_EmptyPassword_Expect400() {
+	s.loginAdmin()
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "admin", "pass": "", "admin": false}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+	s.a.CreateUser(s.ctx)
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
+func (s *UserSuite) Test_CreateUser_TooLongPassword_Expect400() {
+	s.loginAdmin()
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "admin", "pass": "`+strings.Repeat("a", 100)+`", "admin": false}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+	s.a.CreateUser(s.ctx)
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
 func (s *UserSuite) Test_UpdateUserByID_InvalidID() {
 	s.ctx.Params = gin.Params{{Key: "id", Value: "abc"}}
 
@@ -328,6 +347,28 @@ func (s *UserSuite) Test_UpdateUserByID_InvalidID() {
 
 	s.a.UpdateUserByID(s.ctx)
 
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
+func (s *UserSuite) Test_UpdateUserByID_EmptyPassword_Expect400() {
+	s.loginAdmin()
+
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user/1", strings.NewReader(`{"name": "admin", "pass": "", "admin": false}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+	s.a.UpdateUserByID(s.ctx)
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
+func (s *UserSuite) Test_UpdateUserByID_TooLongPassword_Expect400() {
+	s.loginAdmin()
+
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	s.ctx.Request = httptest.NewRequest("POST", "/user/1", strings.NewReader(`{"name": "admin", "pass": "`+strings.Repeat("a", 100)+`", "admin": false}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+	s.a.UpdateUserByID(s.ctx)
 	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
@@ -359,7 +400,9 @@ func (s *UserSuite) Test_UpdateUserByID_UnknownUser() {
 }
 
 func (s *UserSuite) Test_UpdateUserByID_UpdateNotPassword() {
-	s.db.CreateUser(&model.User{ID: 2, Name: "nico", Pass: password.CreatePassword("old", 5)})
+	pw, err := password.CreatePassword("old", 5)
+	require.NoError(s.T(), err)
+	s.db.CreateUser(&model.User{ID: 2, Name: "nico", Pass: pw})
 
 	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 
@@ -376,7 +419,9 @@ func (s *UserSuite) Test_UpdateUserByID_UpdateNotPassword() {
 }
 
 func (s *UserSuite) Test_UpdateUserByID_UpdatePassword() {
-	s.db.CreateUser(&model.User{ID: 2, Name: "tom", Pass: password.CreatePassword("old", 5)})
+	pw, err := password.CreatePassword("old", 5)
+	require.NoError(s.T(), err)
+	s.db.CreateUser(&model.User{ID: 2, Name: "tom", Pass: pw})
 
 	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
 
@@ -413,7 +458,9 @@ func (s *UserSuite) Test_UpdateUserByID_PreservesOIDCID() {
 }
 
 func (s *UserSuite) Test_UpdatePassword() {
-	s.db.CreateUser(&model.User{ID: 1, Name: "jmattheis", Pass: password.CreatePassword("old", 5)})
+	pw, err := password.CreatePassword("old", 5)
+	require.NoError(s.T(), err)
+	s.db.CreateUser(&model.User{ID: 1, Name: "jmattheis", Pass: pw})
 
 	test.WithUser(s.ctx, 1)
 	s.ctx.Request = httptest.NewRequest("POST", "/user/current/password", strings.NewReader(`{"pass": "new"}`))
@@ -429,7 +476,9 @@ func (s *UserSuite) Test_UpdatePassword() {
 }
 
 func (s *UserSuite) Test_UpdatePassword_EmptyPassword() {
-	s.db.CreateUser(&model.User{ID: 1, Name: "jmattheis", Pass: password.CreatePassword("old", 5)})
+	pw, err := password.CreatePassword("old", 5)
+	require.NoError(s.T(), err)
+	s.db.CreateUser(&model.User{ID: 1, Name: "jmattheis", Pass: pw})
 
 	test.WithUser(s.ctx, 1)
 	s.ctx.Request = httptest.NewRequest("POST", "/user/current/password", strings.NewReader(`{"pass":""}`))
@@ -442,6 +491,18 @@ func (s *UserSuite) Test_UpdatePassword_EmptyPassword() {
 	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), user)
 	assert.True(s.T(), password.ComparePassword(user.Pass, []byte("old")))
+}
+
+func (s *UserSuite) Test_UpdatePassword_TooLongPassword_Expect400() {
+	pw, err := password.CreatePassword("old", 5)
+	require.NoError(s.T(), err)
+	s.db.CreateUser(&model.User{ID: 1, Name: "jmattheis", Pass: pw})
+
+	test.WithUser(s.ctx, 1)
+	s.ctx.Request = httptest.NewRequest("POST", "/user/current/password", strings.NewReader(`{"pass": "`+strings.Repeat("a", 100)+`"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+	s.a.ChangePassword(s.ctx)
+	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
 func (s *UserSuite) loginAdmin() {

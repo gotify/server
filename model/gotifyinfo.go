@@ -14,6 +14,11 @@ type GotifyInfo struct {
 	// required: true
 	// example: true
 	Register bool `json:"register"`
+	// If local authentication is enabled.
+	//
+	// required: true
+	// example: true
+	LocalAuth bool `json:"localAuth"`
 	// If oidc is enabled.
 	//
 	// required: true
