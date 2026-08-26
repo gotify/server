@@ -6,10 +6,14 @@ import {SnackReporter} from '../snack/SnackManager';
 import {IPlugin} from '../types';
 
 export class PluginStore extends BaseStore<IPlugin> {
+    private readonly snack: SnackReporter;
     public onDelete: () => void = () => {};
 
-    public constructor(private readonly snack: SnackReporter) {
+    public constructor(snack: SnackReporter) {
         super();
+        this.snack = snack;
+        this.changeConfig = action(this.changeConfig);
+        this.changeEnabledState = action(this.changeEnabledState);
     }
 
     public requestConfig = (id: number): Promise<string> =>
@@ -31,7 +35,6 @@ export class PluginStore extends BaseStore<IPlugin> {
         return id === -1 ? 'All Plugins' : plugin !== undefined ? plugin.name : 'unknown';
     };
 
-    @action
     public changeConfig = async (id: number, newConfig: string): Promise<void> => {
         await axios.post(`${config.get('url')}plugin/${id}/config`, newConfig, {
             headers: {'content-type': 'application/x-yaml'},
@@ -40,7 +43,6 @@ export class PluginStore extends BaseStore<IPlugin> {
         await this.refresh();
     };
 
-    @action
     public changeEnabledState = async (id: number, enabled: boolean): Promise<void> => {
         await axios.post(`${config.get('url')}plugin/${id}/${enabled ? 'enable' : 'disable'}`);
         this.snack(`Plugin ${enabled ? 'enabled' : 'disabled'}`);
