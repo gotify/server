@@ -23,7 +23,7 @@ import (
 
 // The Database interface for encapsulating database access.
 type Database interface {
-	GetUsers() ([]*model.User, error)
+	GetUsers(condition ...any) ([]*model.User, error)
 	GetPluginConfByUserAndPath(userid uint, path string) (*model.PluginConf, error)
 	CreatePluginConf(p *model.PluginConf) error
 	GetPluginConfByApplicationID(appid uint) (*model.PluginConf, error)

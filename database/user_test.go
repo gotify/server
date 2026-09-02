@@ -19,9 +19,10 @@ func (s *DatabaseSuite) TestUser() {
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), jmattheis, "on bootup the first user should be automatically created")
 
-	adminCount, err := s.db.CountUser("admin = ?", true)
+	admins, err := s.db.GetUsers("admin = ?", true)
 	require.NoError(s.T(), err)
-	assert.Equal(s.T(), int64(1), adminCount, "there is initially one admin")
+	assert.Len(s.T(), admins, 1)
+	assert.True(s.T(), admins[0].Admin, "the admin user should be an admin")
 
 	users, err := s.db.GetUsers()
 	require.NoError(s.T(), err)
@@ -31,9 +32,9 @@ func (s *DatabaseSuite) TestUser() {
 	nicories := &model.User{Name: "nicories", Pass: []byte{1, 2, 3, 4}, Admin: false}
 	s.db.CreateUser(nicories)
 	assert.NotEqual(s.T(), 0, nicories.ID, "on create user a new id should be assigned")
-	userCount, err := s.db.CountUser()
+	users, err = s.db.GetUsers()
 	require.NoError(s.T(), err)
-	assert.Equal(s.T(), int64(2), userCount, "two users should exist")
+	assert.Len(s.T(), users, 2, "two users should exist")
 
 	user, err = s.db.GetUserByName("nicories")
 	require.NoError(s.T(), err)
@@ -58,9 +59,9 @@ func (s *DatabaseSuite) TestUser() {
 	require.NoError(s.T(), err)
 	assert.Len(s.T(), users, 2)
 
-	adminCount, err = s.db.CountUser(&model.User{Admin: true})
+	admins, err = s.db.GetUsers(&model.User{Admin: true})
 	require.NoError(s.T(), err)
-	assert.Equal(s.T(), int64(2), adminCount, "two admins exist")
+	assert.Len(s.T(), admins, 2, "two admins exist")
 
 	require.NoError(s.T(), s.db.DeleteUserByID(tom.ID))
 	users, err = s.db.GetUsers()
