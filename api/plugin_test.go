@@ -29,6 +29,7 @@ type PluginSuite struct {
 	suite.Suite
 	db       *testdb.Database
 	a        *PluginAPI
+	u        *UserAPI
 	ctx      *gin.Context
 	recorder *httptest.ResponseRecorder
 	manager  *plugin.Manager
@@ -39,19 +40,20 @@ func (s *PluginSuite) BeforeTest(suiteName, testName string) {
 	mode.Set(mode.TestDev)
 	s.db = testdb.NewDB(s.T())
 	s.resetRecorder()
-	manager, err := plugin.NewManager(s.db, "", nil, s)
+	manager, err := plugin.NewManager(s.db.GormDatabase, "", nil, s)
 	assert.Nil(s.T(), err)
 	s.manager = manager
 	withURL(s.ctx, "http", "example.com")
 	s.a = &PluginAPI{DB: s.db, Manager: manager, Notifier: s}
+	s.u = &UserAPI{DB: s.db.GormDatabase, UserChangeNotifier: &UserChangeNotifier{}}
 
 	mockPluginCompat := new(mock.Plugin)
 	assert.Nil(s.T(), s.manager.LoadPlugin(mockPluginCompat))
 
-	s.db.User(1)
-	assert.Nil(s.T(), s.manager.InitializeForUserID(1))
-	s.db.User(2)
-	assert.Nil(s.T(), s.manager.InitializeForUserID(2))
+	s.db.NewUserWithNameAdmin(1, "user1", true)
+	assert.Nil(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 1))
+	s.db.NewUserWithNameAdmin(2, "user2", true)
+	assert.Nil(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 2))
 
 	s.db.CreatePluginConf(&model.PluginConf{
 		UserID:     1,
@@ -95,6 +97,31 @@ func (s *PluginSuite) Test_GetPlugins() {
 	assert.Equal(s.T(), mock.ModulePath, pluginConfs[0].ModulePath)
 
 	assert.False(s.T(), pluginConfs[0].Enabled, "Plugins should be disabled by default")
+}
+
+func (s *PluginSuite) Test_DeleteUser() {
+	test.WithUser(s.ctx, 1)
+
+	s.ctx.Request = httptest.NewRequest("POST", "/plugin/1/enable", nil)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	s.a.EnablePlugin(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+
+	if pluginConf, err := s.db.GetPluginConfByUserAndPath(1, mock.ModulePath); assert.NoError(s.T(), err) {
+		assert.True(s.T(), pluginConf.Enabled)
+	}
+	s.resetRecorder()
+
+	s.ctx.Request = httptest.NewRequest("DELETE", "/user/1", nil)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	s.u.DeleteUserByID(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+
+	user, err := s.db.GetUserByID(1)
+	assert.NoError(s.T(), err)
+	assert.Nil(s.T(), user)
 }
 
 func (s *PluginSuite) Test_EnableDisablePlugin() {
@@ -161,7 +188,7 @@ func (s *PluginSuite) Test_EnableDisablePlugin() {
 
 func (s *PluginSuite) Test_EnableDisablePlugin_EnableReturnsError_expect500() {
 	s.db.User(16)
-	assert.Nil(s.T(), s.manager.InitializeForUserID(16))
+	assert.Nil(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 16))
 	mock.ReturnErrorOnEnableForUser(16, errors.New("test error"))
 	conf, err := s.db.GetPluginConfByUserAndPath(16, mock.ModulePath)
 	assert.NoError(s.T(), err)
@@ -183,7 +210,7 @@ func (s *PluginSuite) Test_EnableDisablePlugin_EnableReturnsError_expect500() {
 
 func (s *PluginSuite) Test_EnableDisablePlugin_DisableReturnsError_expect500() {
 	s.db.User(17)
-	assert.Nil(s.T(), s.manager.InitializeForUserID(17))
+	assert.Nil(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 17))
 	mock.ReturnErrorOnDisableForUser(17, errors.New("test error"))
 	conf, err := s.db.GetPluginConfByUserAndPath(17, mock.ModulePath)
 	assert.NoError(s.T(), err)
@@ -291,7 +318,7 @@ func (s *PluginSuite) Test_GetDisplay() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 
 	mockInst.DisplayString = "test string"
 
@@ -312,7 +339,7 @@ func (s *PluginSuite) Test_GetDisplay_NotImplemented_expectEmptyString() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 
 	mockInst.SetCapability(compat.Displayer, false)
 	defer mockInst.SetCapability(compat.Displayer, true)
@@ -334,7 +361,7 @@ func (s *PluginSuite) Test_GetDisplay_incorrectUser_expectNotFound() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 
 	mockInst.DisplayString = "test string"
 
@@ -380,7 +407,7 @@ func (s *PluginSuite) Test_GetConfig() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 
 	assert.Equal(s.T(), mockInst.DefaultConfig(), mockInst.Config, "Initial config should be default config")
 	{
@@ -402,7 +429,7 @@ func (s *PluginSuite) Test_GetConfg_notImplemeted_expect400() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 
 	mockInst.SetCapability(compat.Configurer, false)
 	defer mockInst.SetCapability(compat.Configurer, true)
@@ -464,7 +491,7 @@ func (s *PluginSuite) Test_UpdateConfig() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 
 	newConfig := &mock.PluginConfig{
 		TestKey: "test__new__config",
@@ -499,7 +526,7 @@ func (s *PluginSuite) Test_UpdateConfig_invalidConfig_expect400() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 	origConfig := mockInst.Config
 
 	newConfig := &mock.PluginConfig{
@@ -536,7 +563,7 @@ func (s *PluginSuite) Test_UpdateConfig_malformedYAML_expect400() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 	origConfig := mockInst.Config
 
 	newConfigYAML := []byte(`--- "rg e""`)
@@ -568,7 +595,7 @@ func (s *PluginSuite) Test_UpdateConfig_ioError_expect500() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 	origConfig := mockInst.Config
 
 	{
@@ -598,7 +625,7 @@ func (s *PluginSuite) Test_UpdateConfig_notImplemented_expect400() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 
 	newConfig := &mock.PluginConfig{
 		TestKey: "test__new__config",
@@ -626,7 +653,7 @@ func (s *PluginSuite) Test_UpdateConfig_incorrectUser_expectNotFound() {
 	assert.NoError(s.T(), err)
 	inst, err := s.manager.Instance(conf.ID)
 	assert.Nil(s.T(), err)
-	mockInst := inst.(*mock.PluginInstance)
+	mockInst := inst.Instance().(*mock.PluginInstance)
 	origConfig := mockInst.Config
 
 	newConfig := &mock.PluginConfig{
