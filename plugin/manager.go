@@ -6,15 +6,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"plugin"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/database"
 	"github.com/gotify/server/v3/model"
 	"github.com/gotify/server/v3/plugin/compat"
 	"github.com/rs/zerolog/log"
@@ -23,7 +26,7 @@ import (
 
 // The Database interface for encapsulating database access.
 type Database interface {
-	GetUsers() ([]*model.User, error)
+	GetUsers(condition ...any) ([]*model.User, error)
 	GetPluginConfByUserAndPath(userid uint, path string) (*model.PluginConf, error)
 	CreatePluginConf(p *model.PluginConf) error
 	GetPluginConfByApplicationID(appid uint) (*model.PluginConf, error)
@@ -43,21 +46,84 @@ type Notifier interface {
 	Notify(userID uint, message *model.MessageExternal)
 }
 
+var (
+	errEnableDisableAlreadyInProgress = errors.New("enable/disable already in progress")
+	errAlreadyEnabled                 = errors.New("already enabled")
+	errAlreadyDisabled                = errors.New("already disabled")
+)
+
+const (
+	stateEnabledBit  = 0
+	stateEnabledMask = uint32(1) << stateEnabledBit
+	stateBusyBit     = 1
+	stateBusyMask    = uint32(1) << stateBusyBit
+)
+
+type InstanceWrapper struct {
+	state    atomic.Uint32
+	userID   uint
+	instance compat.PluginInstance
+}
+
+func (i *InstanceWrapper) Instance() compat.PluginInstance {
+	return i.instance
+}
+
+func (i *InstanceWrapper) Enable() error {
+	prevState := i.state.Or(stateBusyMask)
+	if prevState&stateBusyMask != 0 {
+		return errEnableDisableAlreadyInProgress
+	}
+	defer func() {
+		i.state.And(^stateBusyMask)
+	}()
+	prevState = i.state.Or(stateEnabledMask)
+	if prevState&stateEnabledMask != 0 {
+		return errAlreadyEnabled
+	}
+	err := i.instance.Enable()
+	if err != nil {
+		i.state.And(^stateEnabledMask)
+		return err
+	}
+	return nil
+}
+
+func (i *InstanceWrapper) Disable() error {
+	prevState := i.state.Or(stateBusyMask)
+	if prevState&stateBusyMask != 0 {
+		return errEnableDisableAlreadyInProgress
+	}
+	defer func() {
+		i.state.And(^stateBusyMask)
+	}()
+	prevState = i.state.And(^stateEnabledMask)
+	if prevState&stateEnabledMask == 0 {
+		return errAlreadyDisabled
+	}
+	err := i.instance.Disable()
+	if err != nil {
+		i.state.Or(stateEnabledMask)
+		return err
+	}
+	return nil
+}
+
 // Manager is an encapsulating layer for plugins and manages all plugins and its instances.
 type Manager struct {
 	mutex     *sync.RWMutex
-	instances map[uint]compat.PluginInstance
+	instances map[uint]*InstanceWrapper
 	plugins   map[string]compat.Plugin
 	messages  chan MessageWithUserID
-	db        Database
+	db        *database.GormDatabase
 	mux       *gin.RouterGroup
 }
 
 // NewManager created a Manager from configurations.
-func NewManager(db Database, directory string, mux *gin.RouterGroup, notifier Notifier) (*Manager, error) {
+func NewManager(db *database.GormDatabase, directory string, mux *gin.RouterGroup, notifier Notifier) (*Manager, error) {
 	manager := &Manager{
 		mutex:     &sync.RWMutex{},
-		instances: map[uint]compat.PluginInstance{},
+		instances: map[uint]*InstanceWrapper{},
 		plugins:   map[string]compat.Plugin{},
 		messages:  make(chan MessageWithUserID),
 		db:        db,
@@ -92,9 +158,11 @@ func NewManager(db Database, directory string, mux *gin.RouterGroup, notifier No
 		return nil, err
 	}
 	for _, user := range users {
-		if err := manager.initializeForUser(*user); err != nil {
+		wg := &sync.WaitGroup{}
+		if err := manager.initializeForUser(manager.db, *user, wg); err != nil {
 			return nil, err
 		}
+		wg.Wait()
 	}
 
 	return manager, nil
@@ -105,7 +173,7 @@ var ErrAlreadyEnabledOrDisabled = errors.New("config is already enabled/disabled
 
 // SetPluginEnabled sets the plugins enabled state.
 func (m *Manager) SetPluginEnabled(pluginID uint, enabled bool) error {
-	instance, err := m.Instance(pluginID)
+	instanceWrapper, err := m.Instance(pluginID)
 	if err != nil {
 		return errors.New("instance not found")
 	}
@@ -122,9 +190,9 @@ func (m *Manager) SetPluginEnabled(pluginID uint, enabled bool) error {
 	defer m.mutex.Unlock()
 
 	if enabled {
-		err = instance.Enable()
+		err = instanceWrapper.Enable()
 	} else {
-		err = instance.Disable()
+		err = instanceWrapper.Disable()
 	}
 	if err != nil {
 		return err
@@ -154,7 +222,7 @@ func (m *Manager) PluginInfo(modulePath string) compat.Info {
 }
 
 // Instance returns an instance with the given ID.
-func (m *Manager) Instance(pluginID uint) (compat.PluginInstance, error) {
+func (m *Manager) Instance(pluginID uint) (*InstanceWrapper, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
@@ -171,31 +239,22 @@ func (m *Manager) HasInstance(pluginID uint) bool {
 }
 
 // RemoveUser disabled all plugins of a user when the user is disabled.
-func (m *Manager) RemoveUser(userID uint) error {
-	for _, p := range m.plugins {
-		pluginConf, err := m.db.GetPluginConfByUserAndPath(userID, p.PluginInfo().ModulePath)
-		if err != nil {
-			return err
-		}
-		if pluginConf == nil {
-			continue
-		}
-		if pluginConf.Enabled {
-			inst, err := m.Instance(pluginConf.ID)
+func (m *Manager) RemoveUser(tx *database.GormDatabase, userID uint) error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	maps.DeleteFunc(m.instances, func(id uint, instance *InstanceWrapper) (delete bool) {
+		delete = instance.userID == userID
+		if delete && instance.state.Load()&stateEnabledMask != 0 {
+			// ignore errors and force delete to prevent
+			// leftover instances for deleted users
+			err := instance.Disable()
 			if err != nil {
-				continue
-			}
-			m.mutex.Lock()
-			err = inst.Disable()
-			m.mutex.Unlock()
-			if err != nil {
-				return err
+				log.Warn().Err(err).Uint("user_id", userID).Uint("plugin_id", id).Msg("Plugin disable failed")
 			}
 		}
-		m.mutex.Lock()
-		delete(m.instances, pluginConf.ID)
-		m.mutex.Unlock()
-	}
+		return delete
+	})
+
 	return nil
 }
 
@@ -256,21 +315,21 @@ func (m *Manager) LoadPlugin(compatPlugin compat.Plugin) error {
 }
 
 // InitializeForUserID initializes all plugin instances for a given user.
-func (m *Manager) InitializeForUserID(userID uint) error {
+func (m *Manager) InitializeForUserID(tx *database.GormDatabase, userID uint, wg *sync.WaitGroup) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	user, err := m.db.GetUserByID(userID)
+	user, err := tx.GetUserByID(userID)
 	if err != nil {
 		return err
 	}
 	if user != nil {
-		return m.initializeForUser(*user)
+		return m.initializeForUser(tx, *user, wg)
 	}
 	return fmt.Errorf("user with id %d not found", userID)
 }
 
-func (m *Manager) initializeForUser(user model.User) error {
+func (m *Manager) initializeForUser(tx *database.GormDatabase, user model.User, wg *sync.WaitGroup) error {
 	userCtx := compat.UserContext{
 		ID:    user.ID,
 		Name:  user.Name,
@@ -278,17 +337,17 @@ func (m *Manager) initializeForUser(user model.User) error {
 	}
 
 	for _, p := range m.plugins {
-		if err := m.initializeSingleUserPlugin(userCtx, p); err != nil {
+		if err := m.initializeSingleUserPlugin(tx, userCtx, p, wg); err != nil {
 			return err
 		}
 	}
 
-	apps, err := m.db.GetApplicationsByUser(user.ID)
+	apps, err := tx.GetApplicationsByUser(user.ID)
 	if err != nil {
 		return err
 	}
 	for _, app := range apps {
-		conf, err := m.db.GetPluginConfByApplicationID(app.ID)
+		conf, err := tx.GetPluginConfByApplicationID(app.ID)
 		if err != nil {
 			return err
 		}
@@ -298,31 +357,36 @@ func (m *Manager) initializeForUser(user model.User) error {
 		} else {
 			app.Internal = false
 		}
-		m.db.UpdateApplication(app)
+		tx.UpdateApplication(app)
 	}
 
 	return nil
 }
 
-func (m *Manager) initializeSingleUserPlugin(userCtx compat.UserContext, p compat.Plugin) error {
+func (m *Manager) initializeSingleUserPlugin(tx *database.GormDatabase, userCtx compat.UserContext, p compat.Plugin, wg *sync.WaitGroup) error {
 	info := p.PluginInfo()
 	instance := p.NewPluginInstance(userCtx)
 	userID := userCtx.ID
 
-	pluginConf, err := m.db.GetPluginConfByUserAndPath(userID, info.ModulePath)
+	pluginConf, err := tx.GetPluginConfByUserAndPath(userID, info.ModulePath)
 	if err != nil {
 		return err
 	}
 
 	if pluginConf == nil {
 		var err error
-		pluginConf, err = m.createPluginConf(instance, info, userID)
+		pluginConf, err = m.createPluginConf(tx, instance, info, userID)
 		if err != nil {
 			return err
 		}
 	}
 
-	m.instances[pluginConf.ID] = instance
+	instanceWrapper := &InstanceWrapper{
+		userID:   userID,
+		instance: instance,
+	}
+
+	m.instances[pluginConf.ID] = instanceWrapper
 
 	if compat.HasSupport(instance, compat.Messenger) {
 		if pluginConf.ApplicationID == 0 {
@@ -330,12 +394,12 @@ func (m *Manager) initializeSingleUserPlugin(userCtx compat.UserContext, p compa
 			// initialized for the user, so no internal application exists yet.
 			// Create one now, otherwise messages would be stored with
 			// application_id = 0 and become orphaned (not shown, not deletable).
-			app, err := m.createInternalApplication(info, userID)
+			app, err := m.createInternalApplication(tx, info, userID)
 			if err != nil {
 				return err
 			}
 			pluginConf.ApplicationID = app.ID
-			if err := m.db.UpdatePluginConf(pluginConf); err != nil {
+			if err := tx.UpdatePluginConf(pluginConf); err != nil {
 				return err
 			}
 		}
@@ -345,36 +409,46 @@ func (m *Manager) initializeSingleUserPlugin(userCtx compat.UserContext, p compa
 			Messages:      m.messages,
 		})
 	}
-	if compat.HasSupport(instance, compat.Storager) {
-		instance.SetStorageHandler(dbStorageHandler{pluginConf.ID, m.db})
-	}
 	if compat.HasSupport(instance, compat.Configurer) {
-		m.initializeConfigurerForSingleUserPlugin(instance, pluginConf)
+		m.initializeConfigurerForSingleUserPlugin(tx, instance, pluginConf)
 	}
 	if compat.HasSupport(instance, compat.Webhooker) {
 		id := pluginConf.ID
 		g := m.mux.Group(pluginConf.Token+"/", requirePluginEnabled(id, m.db))
 		instance.RegisterWebhook(strings.Replace(g.BasePath(), ":id", strconv.Itoa(int(id)), 1), g)
 	}
-	if pluginConf.Enabled {
-		err := instance.Enable()
-		if err != nil {
-			// Single user plugin cannot be enabled
-			// Don't panic, disable for now and wait for user to update config
-			log.Warn().Err(err).Str("user", userCtx.Name).Msg("Plugin initialize failed, disabling now")
-			pluginConf.Enabled = false
-			m.db.UpdatePluginConf(pluginConf)
-		}
+	if wg != nil {
+		wg.Add(1)
 	}
+	go func() {
+		if compat.HasSupport(instance, compat.Storager) {
+			instance.SetStorageHandler(dbStorageHandler{pluginConf.ID, m.db})
+		}
+		if pluginConf.Enabled {
+			err := instanceWrapper.Enable()
+			if err != nil {
+				// Single user plugin cannot be enabled
+				// Don't panic, disable for now and wait for user to update config
+				log.Warn().Err(err).Str("user", userCtx.Name).Msg("Plugin initialize failed, disabling now")
+				pluginConf.Enabled = false
+				if err = tx.UpdatePluginConf(pluginConf); err != nil {
+					log.Warn().Err(err).Uint("plugin_id", pluginConf.ID).Msg("Plugin enable failed, disabling now")
+				}
+			}
+		}
+		if wg != nil {
+			wg.Done()
+		}
+	}()
 	return nil
 }
 
-func (m *Manager) initializeConfigurerForSingleUserPlugin(instance compat.PluginInstance, pluginConf *model.PluginConf) {
+func (m *Manager) initializeConfigurerForSingleUserPlugin(tx *database.GormDatabase, instance compat.PluginInstance, pluginConf *model.PluginConf) {
 	if len(pluginConf.Config) == 0 {
 		// The Configurer is newly implemented
 		// Use the default config
 		pluginConf.Config, _ = yaml.Marshal(instance.DefaultConfig())
-		m.db.UpdatePluginConf(pluginConf)
+		tx.UpdatePluginConf(pluginConf)
 	}
 	c := instance.DefaultConfig()
 	if yaml.Unmarshal(pluginConf.Config, c) != nil || instance.ValidateAndSetConfig(c) != nil {
@@ -400,12 +474,12 @@ func (m *Manager) initializeConfigurerForSingleUserPlugin(instance compat.Plugin
 
 		pluginConf.Config = newConf.Bytes()
 
-		m.db.UpdatePluginConf(pluginConf)
+		tx.UpdatePluginConf(pluginConf)
 		instance.ValidateAndSetConfig(instance.DefaultConfig())
 	}
 }
 
-func (m *Manager) createPluginConf(instance compat.PluginInstance, info compat.Info, userID uint) (*model.PluginConf, error) {
+func (m *Manager) createPluginConf(tx *database.GormDatabase, instance compat.PluginInstance, info compat.Info, userID uint) (*model.PluginConf, error) {
 	pluginConf := &model.PluginConf{
 		UserID:     userID,
 		ModulePath: info.ModulePath,
@@ -415,13 +489,13 @@ func (m *Manager) createPluginConf(instance compat.PluginInstance, info compat.I
 		pluginConf.Config, _ = yaml.Marshal(instance.DefaultConfig())
 	}
 	if compat.HasSupport(instance, compat.Messenger) {
-		app, err := m.createInternalApplication(info, userID)
+		app, err := m.createInternalApplication(tx, info, userID)
 		if err != nil {
 			return nil, err
 		}
 		pluginConf.ApplicationID = app.ID
 	}
-	if err := m.db.CreatePluginConf(pluginConf); err != nil {
+	if err := tx.CreatePluginConf(pluginConf); err != nil {
 		return nil, err
 	}
 	return pluginConf, nil
@@ -429,7 +503,7 @@ func (m *Manager) createPluginConf(instance compat.PluginInstance, info compat.I
 
 // createInternalApplication creates the auto generated internal application a
 // Messenger plugin uses to publish its messages.
-func (m *Manager) createInternalApplication(info compat.Info, userID uint) (*model.Application, error) {
+func (m *Manager) createInternalApplication(tx *database.GormDatabase, info compat.Info, userID uint) (*model.Application, error) {
 	tokenPublic, _ := auth.GenerateApplicationToken()
 	app := &model.Application{
 		Token:       tokenPublic,
@@ -438,7 +512,7 @@ func (m *Manager) createInternalApplication(info compat.Info, userID uint) (*mod
 		Internal:    true,
 		Description: fmt.Sprintf("auto generated application for %s", info.ModulePath),
 	}
-	if err := m.db.CreateApplication(app); err != nil {
+	if err := tx.CreateApplication(app); err != nil {
 		return nil, err
 	}
 	return app, nil

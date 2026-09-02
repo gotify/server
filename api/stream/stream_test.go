@@ -322,7 +322,7 @@ func TestDeleteUser(t *testing.T) {
 	expectNoMessage(userTwo...)
 	expectNoMessage(userThree...)
 
-	api.NotifyDeletedUser(1)
+	api.NotifyDeletedUser(nil, 1)
 
 	api.Notify(1, &model.MessageExternal{ID: 2, Message: "there"})
 	expectNoMessage(userOne...)

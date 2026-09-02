@@ -118,7 +118,9 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	userChangeNotifier.OnUserDeleted(streamHandler.NotifyDeletedUser)
 	userChangeNotifier.OnUserDeleted(pluginManager.RemoveUser)
-	userChangeNotifier.OnUserAdded(pluginManager.InitializeForUserID)
+	userChangeNotifier.OnUserAdded(func(tx *database.GormDatabase, uid uint) error {
+		return pluginManager.InitializeForUserID(tx, uid, nil)
+	})
 
 	ui.Register(g, *vInfo, conf.Registration, conf.LocalAuthEnabled, conf.OIDC.Enabled, conf.OIDC.IDPName, conf.OIDC.AutoRedirect)
 
