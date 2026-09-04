@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/gotify/server/v2/auth/password"
-	"github.com/gotify/server/v2/fracdex"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/auth/password"
+	"github.com/gotify/server/v3/fracdex"
+	"github.com/gotify/server/v3/model"
 	"github.com/mattn/go-isatty"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/mysql"

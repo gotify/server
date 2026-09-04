@@ -5,13 +5,12 @@
 Check config in ./dex/config/dex.conf and do a `docker-compose up -d`.
 
 Use this gotify config.
-```
-oidc:
-  enabled: true
-  issuer: http://127.0.0.1:5556/dex
-  clientid: gotify
-  clientsecret: secret
-  redirecturl: http://127.0.0.1:8080/auth/oidc/callback
+```ini
+GOTIFY_OIDC_ENABLED=true
+GOTIFY_OIDC_ISSUER=http://127.0.0.1:5556/dex
+GOTIFY_OIDC_CLIENTID=gotify
+GOTIFY_OIDC_CLIENTSECRET=secret
+GOTIFY_OIDC_REDIRECTURL=http://127.0.0.1:8080/auth/oidc/callback
 ```
 
 When testing external apps like gotify/android change every occurence of
@@ -29,13 +28,16 @@ openssl req -x509 -newkey rsa:4096 -nodes -keyout ./authelia/config/key -out ./a
 Check config in ./authelia/config/configuration.yml and do a `docker-compose up -d`.
 
 Use this gotify config.
-```
-oidc:
-  enabled: true
-  issuer: https://127.0.0.1:9091
-  clientid: gotify
-  clientsecret: secret
-  redirecturl: http://127.0.0.1:8080/auth/oidc/callback
+```ini
+GOTIFY_OIDC_ENABLED=true
+GOTIFY_OIDC_ISSUER=https://127.0.0.1:9091
+GOTIFY_OIDC_CLIENTID=gotify
+GOTIFY_OIDC_CLIENTSECRET=secret
+GOTIFY_OIDC_REDIRECTURL=http://127.0.0.1:8080/auth/oidc/callback
+GOTIFY_OIDC_SCOPES=openid,profile,email,groups
+# GOTIFY_OIDC_GROUPS_CLAIM=groups
+# GOTIFY_OIDC_GROUPS_USER=
+# GOTIFY_OIDC_GROUPS_ADMIN=authelia-group
 ```
 
 When testing external apps like gotify/android change every occurence of

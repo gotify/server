@@ -7,11 +7,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/gotify/server/v2/plugin/compat"
+	"github.com/gotify/server/v3/plugin/compat"
 )
 
 // ModulePath is for convenient access of the module path of this mock plugin
-const ModulePath = "github.com/gotify/server/v2/plugin/testing/mock"
+const ModulePath = "github.com/gotify/server/v3/plugin/testing/mock"
 
 // Name is for convenient access of the module path of the name of this mock plugin
 const Name = "mock plugin"

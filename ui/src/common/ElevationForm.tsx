@@ -18,6 +18,7 @@ const ElevationForm = observer(() => {
     const localAuthEnabled = config.get('localAuth');
     const oidcEnabled = config.get('oidc');
     const oidcPending = elevateStore.oidcElevatePending;
+    const oidcIdpName = config.get('oidcIdpName');
 
     const handleLocalElevate = async () => {
         try {
@@ -31,7 +32,7 @@ const ElevationForm = observer(() => {
         return (
             <Box sx={{textAlign: 'center', my: 2}}>
                 <CircularProgress sx={{mb: 2}} />
-                <Typography sx={{mb: 1}}>Waiting for OIDC sign-in...</Typography>
+                <Typography sx={{mb: 1}}>Waiting for {oidcIdpName} sign-in...</Typography>
                 <Typography variant="body2" color="textSecondary" sx={{mb: 1}}>
                     Complete sign-in in the new tab, then close it to continue.
                 </Typography>
@@ -40,7 +41,7 @@ const ElevationForm = observer(() => {
                     variant="outlined"
                     fullWidth
                     onClick={() => elevateStore.cleanupOidcElevate()}>
-                    Cancel OIDC Login
+                    Cancel {oidcIdpName} Login
                 </Button>
             </Box>
         );
@@ -91,7 +92,7 @@ const ElevationForm = observer(() => {
                         color="primary"
                         fullWidth
                         onClick={() => elevateStore.oidcElevate(ElevateDuration)}>
-                        Elevate via OIDC
+                        Elevate via {oidcIdpName}
                     </Button>
                 </>
             )}

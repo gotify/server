@@ -10,8 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/gotify/server/v2/auth"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/model"
 )
 
 // The MessageDatabase interface for encapsulating database access.

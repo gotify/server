@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/v2/test"
+	"github.com/gotify/server/v3/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -132,10 +132,10 @@ func TestWrapIncompatiblePlugins(t *testing.T) {
 	tmpDir := test.NewTmpDir("gotify_testwrapincompatibleplugins")
 	defer tmpDir.Clean()
 	for i, modulePath := range []string{
-		"github.com/gotify/server/v2/plugin/testing/broken/noinstance",
-		"github.com/gotify/server/v2/plugin/testing/broken/nothing",
-		"github.com/gotify/server/v2/plugin/testing/broken/unknowninfo",
-		"github.com/gotify/server/v2/plugin/testing/broken/malformedconstructor",
+		"github.com/gotify/server/v3/plugin/testing/broken/noinstance",
+		"github.com/gotify/server/v3/plugin/testing/broken/nothing",
+		"github.com/gotify/server/v3/plugin/testing/broken/unknowninfo",
+		"github.com/gotify/server/v3/plugin/testing/broken/malformedconstructor",
 	} {
 		fName := tmpDir.Path(fmt.Sprintf("broken_%d.so", i))
 		exec.Command("go", "get", "-d").Run()

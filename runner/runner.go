@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gotify/server/v2/config"
+	"github.com/gotify/server/v3/config"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"

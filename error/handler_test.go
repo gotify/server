@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/v2/mode"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/mode"
+	"github.com/gotify/server/v3/model"
 	"github.com/stretchr/testify/assert"
 )
 

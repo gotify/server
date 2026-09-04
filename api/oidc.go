@@ -10,15 +10,16 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/v2/auth"
-	"github.com/gotify/server/v2/config"
-	"github.com/gotify/server/v2/database"
-	"github.com/gotify/server/v2/decaymap"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/config"
+	"github.com/gotify/server/v3/database"
+	"github.com/gotify/server/v3/decaymap"
+	"github.com/gotify/server/v3/model"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/zitadel/oidc/v3/pkg/client/rp"
@@ -62,10 +63,14 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 		Provider:           provider,
 		UserChangeNotifier: userChangeNotifier,
 		UsernameClaim:      conf.OIDC.UsernameClaim,
+		GroupsClaim:        conf.OIDC.GroupsClaim,
+		GroupsUser:         conf.OIDC.GroupsUser,
+		GroupsAdmin:        conf.OIDC.GroupsAdmin,
 		PasswordStrength:   conf.PassStrength,
 		SecureCookie:       conf.Server.SecureCookie,
 		AutoRegister:       conf.OIDC.AutoRegister,
 		LinkByUsername:     conf.OIDC.LinkByUsername,
+		Prompt:             conf.OIDC.Prompt,
 		pendingSessions:    decaymap.NewDecayMap[string, *pendingOIDCSession](time.Now(), pendingSessionMaxAge),
 	}
 }
@@ -90,10 +95,14 @@ type OIDCAPI struct {
 	Provider           rp.RelyingParty
 	UserChangeNotifier *UserChangeNotifier
 	UsernameClaim      string
+	GroupsClaim        string
+	GroupsUser         []string
+	GroupsAdmin        []string
 	PasswordStrength   int
 	SecureCookie       bool
 	AutoRegister       bool
 	LinkByUsername     bool
+	Prompt             []string
 	pendingSessions    *decaymap.DecayMap[string, *pendingOIDCSession]
 }
 
@@ -131,7 +140,7 @@ func (a *OIDCAPI) LoginHandler() gin.HandlerFunc {
 			return
 		}
 		a.pendingSessions.Set(time.Now(), state, &pendingOIDCSession{ClientName: clientName, CreatedAt: time.Now()})
-		rp.AuthURLHandler(func() string { return state }, a.Provider)(w, r)
+		rp.AuthURLHandler(func() string { return state }, a.Provider, a.promptURLParams()...)(w, r)
 	})
 }
 
@@ -174,7 +183,14 @@ func (a *OIDCAPI) ElevateHandler(ctx *gin.Context) {
 		return
 	}
 	a.pendingSessions.Set(time.Now(), state, &pendingOIDCSession{CreatedAt: time.Now(), Elevate: &elevate})
-	rp.AuthURLHandler(func() string { return state }, a.Provider)(ctx.Writer, ctx.Request)
+	rp.AuthURLHandler(func() string { return state }, a.Provider, a.promptURLParams()...)(ctx.Writer, ctx.Request)
+}
+
+func (a *OIDCAPI) promptURLParams() []rp.URLParamOpt {
+	if len(a.Prompt) == 0 {
+		return nil
+	}
+	return []rp.URLParamOpt{rp.WithPromptURLParam(a.Prompt...)}
 }
 
 // swagger:operation GET /auth/oidc/callback oidc oidcCallback
@@ -207,7 +223,7 @@ func (a *OIDCAPI) ElevateHandler(ctx *gin.Context) {
 //	        $ref: "#/definitions/Error"
 func (a *OIDCAPI) CallbackHandler() gin.HandlerFunc {
 	callback := func(w http.ResponseWriter, r *http.Request, tokens *oidc.Tokens[*oidc.IDTokenClaims], state string, provider rp.RelyingParty, info *oidc.UserInfo) {
-		user, status, err := a.resolveUser(tokens.IDTokenClaims.GetIssuer(), info)
+		user, status, err := a.resolveUser(tokens.IDTokenClaims, info)
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return
@@ -315,6 +331,9 @@ func (a *OIDCAPI) ExternalAuthorizeHandler(ctx *gin.Context) {
 		rp.AuthURLOpt(rp.WithURLParam("redirect_uri", req.RedirectURI)),
 		rp.WithCodeChallenge(req.CodeChallenge),
 	}
+	for _, opt := range a.promptURLParams() {
+		authOpts = append(authOpts, rp.AuthURLOpt(opt))
+	}
 	ctx.JSON(http.StatusOK, &model.OIDCExternalAuthorizeResponse{
 		AuthorizeURL: rp.AuthURL(state, a.Provider, authOpts...),
 		State:        state,
@@ -373,7 +392,7 @@ func (a *OIDCAPI) ExternalTokenHandler(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to get user info: %w", err))
 		return
 	}
-	user, status, resolveErr := a.resolveUser(tokens.IDTokenClaims.GetIssuer(), info)
+	user, status, resolveErr := a.resolveUser(tokens.IDTokenClaims, info)
 	if resolveErr != nil {
 		ctx.AbortWithError(status, resolveErr)
 		return
@@ -404,7 +423,8 @@ func (a *OIDCAPI) generateState() (string, error) {
 //     this OIDC identity, which requires GOTIFY_OIDC_LINK_BY_USERNAME and
 //     that the user is not already bound to a different identity.
 //  3. Otherwise auto-register a new user, which requires GOTIFY_OIDC_AUTOREGISTER.
-func (a *OIDCAPI) resolveUser(issuer string, info *oidc.UserInfo) (*model.User, int, error) {
+func (a *OIDCAPI) resolveUser(idToken *oidc.IDTokenClaims, info *oidc.UserInfo) (*model.User, int, error) {
+	issuer := idToken.GetIssuer()
 	if issuer == "" {
 		return nil, http.StatusInternalServerError, errors.New("issuer claim was empty")
 	}
@@ -424,11 +444,25 @@ func (a *OIDCAPI) resolveUser(issuer string, info *oidc.UserInfo) (*model.User, 
 	if err != nil {
 		return nil, http.StatusInternalServerError, fmt.Errorf("database error: %w", err)
 	}
+
+	hasAdminGroup, status, err := a.resolvePermission(idToken.Claims, info.Claims)
+	if err != nil {
+		log.Err(err).Str("oidc_id", oidcID).Interface("idTokenClaims", idToken.Claims).Interface("userinfoClaims", info.Claims).Msg("OIDC: resolve permission")
+		return nil, status, err
+	}
+
 	if user != nil {
+		if len(a.GroupsAdmin) > 0 && user.Admin != hasAdminGroup {
+			user.Admin = hasAdminGroup
+			if err := a.DB.UpdateUser(user); err != nil {
+				return nil, http.StatusInternalServerError, fmt.Errorf("database error: %w", err)
+			}
+			log.Warn().Str("oidc_id", oidcID).Str("username", user.Name).Bool("admin", user.Admin).Msg("OIDC change permission")
+		}
 		return user, 0, nil
 	}
 
-	usernameRaw, ok := info.Claims[a.UsernameClaim]
+	usernameRaw, ok := lookupClaim(a.UsernameClaim, idToken.Claims, info.Claims)
 	if !ok {
 		return nil, http.StatusInternalServerError, fmt.Errorf("username claim %q is missing", a.UsernameClaim)
 	}
@@ -442,12 +476,12 @@ func (a *OIDCAPI) resolveUser(issuer string, info *oidc.UserInfo) (*model.User, 
 		return nil, http.StatusInternalServerError, fmt.Errorf("database error: %w", err)
 	}
 	if byUsername != nil {
-		return a.linkExistingUser(byUsername, oidcID)
+		return a.linkExistingUser(byUsername, oidcID, hasAdminGroup)
 	}
-	return a.registerUser(username, oidcID)
+	return a.registerUser(username, oidcID, hasAdminGroup)
 }
 
-func (a *OIDCAPI) linkExistingUser(user *model.User, oidcID string) (*model.User, int, error) {
+func (a *OIDCAPI) linkExistingUser(user *model.User, oidcID string, hasAdminGroup bool) (*model.User, int, error) {
 	if !a.LinkByUsername {
 		log.Warn().Str("oidc_id", oidcID).Str("username", user.Name).Msgf("OIDC login rejected: a local user with the username already exists and %s is disabled", config.EnvOIDCLinkByUsername)
 		return nil, http.StatusForbidden, fmt.Errorf("a local user with the username %s already exists and linking by username is disabled", user.Name)
@@ -457,21 +491,34 @@ func (a *OIDCAPI) linkExistingUser(user *model.User, oidcID string) (*model.User
 		return nil, http.StatusForbidden, fmt.Errorf("the user %s is already bound to a different OIDC identity", user.Name)
 	}
 	user.OIDCID = &oidcID
+	if len(a.GroupsAdmin) > 0 {
+		user.Admin = hasAdminGroup
+	}
 	if err := a.DB.UpdateUser(user); err != nil {
 		return nil, http.StatusInternalServerError, fmt.Errorf("failed to bind user to OIDC identity: %w", err)
 	}
+	log.Warn().Str("oidc_id", oidcID).Str("username", user.Name).Bool("admin", user.Admin).Msg("OIDC link by username")
 	return user, 0, nil
 }
 
-func (a *OIDCAPI) registerUser(username, oidcID string) (*model.User, int, error) {
+func (a *OIDCAPI) registerUser(username, oidcID string, hasAdminGroup bool) (*model.User, int, error) {
 	if !a.AutoRegister {
 		return nil, http.StatusForbidden, errors.New("user does not exist and auto-registration is disabled")
 	}
-	user := &model.User{Name: username, Admin: false, Pass: nil, OIDCID: &oidcID}
+	user := &model.User{
+		Name:   username,
+		Pass:   nil,
+		OIDCID: &oidcID,
+	}
+
+	if len(a.GroupsAdmin) > 0 {
+		user.Admin = hasAdminGroup
+	}
+
 	if err := a.DB.CreateUser(user); err != nil {
 		return nil, http.StatusInternalServerError, fmt.Errorf("failed to create user: %w", err)
 	}
-	log.Info().Str("oidc_id", oidcID).Str("username", user.Name).Msg("OIDC auto registration")
+	log.Info().Str("oidc_id", oidcID).Str("username", user.Name).Bool("admin", user.Admin).Msg("OIDC auto registration")
 	if err := a.UserChangeNotifier.fireUserAdded(user.ID); err != nil {
 		log.Error().Err(err).Uint("user_id", user.ID).Msg("Could not notify user change")
 	}
@@ -501,4 +548,60 @@ func (a *OIDCAPI) popPendingSession(key string) (*pendingOIDCSession, bool) {
 		return session, true
 	}
 	return nil, false
+}
+
+func (a *OIDCAPI) resolvePermission(idTokenClaims, userInfoClaims map[string]any) (bool, int, error) {
+	if a.GroupsClaim == "" {
+		return false, 0, nil
+	}
+
+	groupsRaw, ok := lookupClaim(a.GroupsClaim, idTokenClaims, userInfoClaims)
+	if !ok {
+		return false, http.StatusInternalServerError, fmt.Errorf("groups claim %q is missing", a.GroupsClaim)
+	}
+
+	var groups []string
+	switch groupsRaw := groupsRaw.(type) {
+	case []string:
+		groups = groupsRaw
+	case []any:
+		for _, groupRaw := range groupsRaw {
+			group, ok := groupRaw.(string)
+			if !ok {
+				return false, http.StatusInternalServerError, fmt.Errorf("groups claim %q contains a non-string element: %#v", a.GroupsClaim, groupRaw)
+			}
+			groups = append(groups, group)
+		}
+	case string:
+		groups = append(groups, groupsRaw)
+	default:
+		return false, http.StatusInternalServerError, fmt.Errorf("groups claim %q is not a string or string array: %#v", a.GroupsClaim, groupsRaw)
+	}
+
+	switch {
+	case containsAny(a.GroupsAdmin, groups):
+		return true, 0, nil
+	case len(a.GroupsUser) == 0 || containsAny(a.GroupsUser, groups):
+		return false, 0, nil
+	default:
+		return false, http.StatusForbidden, errors.New("user is not in any allowed group")
+	}
+}
+
+func lookupClaim(name string, idTokenClaims, userInfoClaims map[string]any) (any, bool) {
+	if value, ok := idTokenClaims[name]; ok {
+		return value, true
+	}
+	value, ok := userInfoClaims[name]
+	return value, ok
+}
+
+func containsAny(configured, actual []string) bool {
+	for _, value := range actual {
+		if slices.Contains(configured, value) {
+			return true
+		}
+	}
+
+	return false
 }

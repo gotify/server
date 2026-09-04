@@ -15,9 +15,9 @@ import (
 	"github.com/fortytw2/leaktest"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/gotify/server/v2/auth"
-	"github.com/gotify/server/v2/mode"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/mode"
+	"github.com/gotify/server/v3/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -97,6 +97,24 @@ func TestWritePingFails(t *testing.T) {
 
 	api.Notify(1, &model.MessageExternal{Message: "HI"})
 	user.expectNoMessage()
+}
+
+func TestNotifyDoesNotPanicWhenClientIsClosed(t *testing.T) {
+	mode.Set(mode.TestDev)
+	defer leaktest.Check(t)()
+
+	server, api := bootTestServer(staticUserID())
+	defer server.Close()
+	defer api.Close()
+
+	ws, _, err := websocket.DefaultDialer.Dial(wsURL(server.URL), nil)
+	assert.Nil(t, err)
+	defer ws.Close()
+
+	waitForConnectedClients(api, 1)
+
+	clients(api, 1)[0].Close()
+	api.Notify(1, &model.MessageExternal{Message: "after close"})
 }
 
 func TestPing(t *testing.T) {

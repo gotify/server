@@ -24,4 +24,15 @@ type GotifyInfo struct {
 	// required: true
 	// example: true
 	Oidc bool `json:"oidc"`
+	// Name of the OIDC identity provider.
+	//
+	// required: true
+	// example: OIDC
+	OIDCIDPName string `json:"oidcIdpName"`
+	// If the WebUI should automatically redirect to the OIDC identity
+	// provider instead of showing the login page.
+	//
+	// required: true
+	// example: false
+	OIDCAutoRedirect bool `json:"oidcAutoRedirect"`
 }

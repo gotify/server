@@ -64,10 +64,16 @@ type OIDC struct {
 	ClientID       string
 	ClientSecret   string
 	UsernameClaim  string
+	GroupsClaim    string
+	GroupsUser     []string
+	GroupsAdmin    []string
 	RedirectURL    string
 	AutoRegister   bool
 	LinkByUsername bool
 	Scopes         []string
+	IDPName        string
+	AutoRedirect   bool
+	Prompt         []string
 }
 
 type Configuration struct {
@@ -117,6 +123,8 @@ func Get() (*Configuration, []FutureLog) {
 			UsernameClaim: "preferred_username",
 			AutoRegister:  true,
 			Scopes:        []string{"openid", "profile", "email"},
+			IDPName:       "OIDC",
+			Prompt:        []string{"login"},
 		},
 	}
 
@@ -176,10 +184,16 @@ func Get() (*Configuration, []FutureLog) {
 	add(parseString(&c.OIDC.ClientID, EnvOIDCClientID))
 	add(parseString(&c.OIDC.ClientSecret, EnvOIDCClientSecret))
 	add(parseString(&c.OIDC.UsernameClaim, EnvOIDCUsernameClaim))
+	add(parseString(&c.OIDC.GroupsClaim, EnvOIDCGroupsClaim))
+	add(parseList(&c.OIDC.GroupsUser, EnvOIDCGroupsUser))
+	add(parseList(&c.OIDC.GroupsAdmin, EnvOIDCGroupsAdmin))
 	add(parseString(&c.OIDC.RedirectURL, EnvOIDCRedirectURL))
 	add(parseBool(&c.OIDC.AutoRegister, EnvOIDCAutoRegister))
 	add(parseBool(&c.OIDC.LinkByUsername, EnvOIDCLinkByUsername))
 	add(parseList(&c.OIDC.Scopes, EnvOIDCScopes))
+	add(parseString(&c.OIDC.IDPName, EnvOIDCIDPName))
+	add(parseBool(&c.OIDC.AutoRedirect, EnvOIDCAutoRedirect))
+	add(parseList(&c.OIDC.Prompt, EnvOIDCPrompt))
 
 	add(parseString(&c.NoColor, EnvNoColor))
 

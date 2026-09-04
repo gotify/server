@@ -14,9 +14,9 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/v2/auth"
-	"github.com/gotify/server/v2/model"
-	"github.com/gotify/server/v2/plugin/compat"
+	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/model"
+	"github.com/gotify/server/v3/plugin/compat"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )

@@ -11,16 +11,16 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/location"
-	"github.com/gotify/server/v2/api"
-	"github.com/gotify/server/v2/api/stream"
-	"github.com/gotify/server/v2/auth"
-	"github.com/gotify/server/v2/config"
-	"github.com/gotify/server/v2/database"
-	"github.com/gotify/server/v2/docs"
-	gerror "github.com/gotify/server/v2/error"
-	"github.com/gotify/server/v2/model"
-	"github.com/gotify/server/v2/plugin"
-	"github.com/gotify/server/v2/ui"
+	"github.com/gotify/server/v3/api"
+	"github.com/gotify/server/v3/api/stream"
+	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/config"
+	"github.com/gotify/server/v3/database"
+	"github.com/gotify/server/v3/docs"
+	gerror "github.com/gotify/server/v3/error"
+	"github.com/gotify/server/v3/model"
+	"github.com/gotify/server/v3/plugin"
+	"github.com/gotify/server/v3/ui"
 	"github.com/rs/zerolog/log"
 )
 
@@ -120,7 +120,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	userChangeNotifier.OnUserDeleted(pluginManager.RemoveUser)
 	userChangeNotifier.OnUserAdded(pluginManager.InitializeForUserID)
 
-	ui.Register(g, *vInfo, conf.Registration, conf.LocalAuthEnabled, conf.OIDC.Enabled)
+	ui.Register(g, *vInfo, conf.Registration, conf.LocalAuthEnabled, conf.OIDC.Enabled, conf.OIDC.IDPName, conf.OIDC.AutoRedirect)
 
 	if conf.OIDC.Enabled {
 		oidcHandler := api.NewOIDC(conf, db, userChangeNotifier)
@@ -191,7 +191,14 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	//     schema:
 	//         $ref: "#/definitions/GotifyInfo"
 	g.GET("gotifyinfo", func(ctx *gin.Context) {
-		ctx.JSON(200, &model.GotifyInfo{Version: vInfo.Version, Oidc: conf.OIDC.Enabled, Register: conf.Registration, LocalAuth: conf.LocalAuthEnabled})
+		ctx.JSON(200, &model.GotifyInfo{
+			Version:          vInfo.Version,
+			Oidc:             conf.OIDC.Enabled,
+			Register:         conf.Registration,
+			LocalAuth:        conf.LocalAuthEnabled,
+			OIDCIDPName:      conf.OIDC.IDPName,
+			OIDCAutoRedirect: conf.OIDC.AutoRedirect,
+		})
 	})
 
 	g.Group("/").Use(authentication.RequireApplicationOrClient).POST("/message", messageHandler.CreateMessage)

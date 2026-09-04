@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/model"
 	"github.com/rs/zerolog/log"
 )
 
@@ -24,6 +24,7 @@ type client struct {
 	conn    *websocket.Conn
 	onClose func(*client)
 	write   chan *model.MessageExternal
+	closed  chan struct{}
 	userID  uint
 	token   string
 	once    once
@@ -33,6 +34,7 @@ func newClient(conn *websocket.Conn, userID uint, token string, onClose func(*cl
 	return &client{
 		conn:    conn,
 		write:   make(chan *model.MessageExternal, 1),
+		closed:  make(chan struct{}),
 		userID:  userID,
 		token:   token,
 		onClose: onClose,
@@ -43,7 +45,7 @@ func newClient(conn *websocket.Conn, userID uint, token string, onClose func(*cl
 func (c *client) Close() {
 	c.once.Do(func() {
 		c.conn.Close()
-		close(c.write)
+		close(c.closed)
 	})
 }
 
@@ -51,7 +53,7 @@ func (c *client) Close() {
 func (c *client) NotifyClose() {
 	c.once.Do(func() {
 		c.conn.Close()
-		close(c.write)
+		close(c.closed)
 		c.onClose(c)
 	})
 }
@@ -87,11 +89,9 @@ func (c *client) startWriteHandler(pingPeriod time.Duration) {
 
 	for {
 		select {
-		case message, ok := <-c.write:
-			if !ok {
-				return
-			}
-
+		case <-c.closed:
+			return
+		case message := <-c.write:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := writeJSON(c.conn, message); err != nil {
 				printWebSocketError("WriteError", err)

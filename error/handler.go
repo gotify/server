@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/model"
 )
 
 // Handler creates a gin middleware for handling errors.

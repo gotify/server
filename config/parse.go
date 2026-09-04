@@ -72,7 +72,11 @@ func parseList(target *[]string, env string) error {
 	if err != nil {
 		return err
 	}
-	if !ok || raw == "" {
+	if !ok {
+		return nil
+	}
+	if raw == "" {
+		*target = []string{}
 		return nil
 	}
 	reader := csv.NewReader(strings.NewReader(raw))

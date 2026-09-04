@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gotify/server/v2/model"
-	"github.com/gotify/server/v2/test"
+	"github.com/gotify/server/v3/model"
+	"github.com/gotify/server/v3/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"

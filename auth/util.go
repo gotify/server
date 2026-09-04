@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/model"
 )
 
 const authKey = "auth"

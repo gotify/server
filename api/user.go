@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/v2/auth"
-	"github.com/gotify/server/v2/auth/password"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/auth/password"
+	"github.com/gotify/server/v3/model"
 )
 
 // The UserDatabase interface for encapsulating database access.

@@ -3,9 +3,9 @@ package testdb_test
 import (
 	"testing"
 
-	"github.com/gotify/server/v2/mode"
-	"github.com/gotify/server/v2/model"
-	"github.com/gotify/server/v2/test/testdb"
+	"github.com/gotify/server/v3/mode"
+	"github.com/gotify/server/v3/model"
+	"github.com/gotify/server/v3/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

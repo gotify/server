@@ -13,20 +13,20 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/v2/auth"
-	"github.com/gotify/server/v2/model"
-	"github.com/gotify/server/v2/plugin/compat"
-	"github.com/gotify/server/v2/plugin/testing/mock"
-	"github.com/gotify/server/v2/test"
-	"github.com/gotify/server/v2/test/testdb"
+	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/model"
+	"github.com/gotify/server/v3/plugin/compat"
+	"github.com/gotify/server/v3/plugin/testing/mock"
+	"github.com/gotify/server/v3/test"
+	"github.com/gotify/server/v3/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 const (
-	examplePluginPath  = "github.com/gotify/server/v2/plugin/example/echo"
+	examplePluginPath  = "github.com/gotify/server/v3/plugin/example/echo"
 	mockPluginPath     = mock.ModulePath
-	danglingPluginPath = "github.com/gotify/server/v2/plugin/testing/removed"
+	danglingPluginPath = "github.com/gotify/server/v3/plugin/testing/removed"
 )
 
 type ManagerSuite struct {

@@ -5,7 +5,9 @@ export interface IConfig {
     register: boolean;
     version: IVersion;
     oidc: boolean;
+    oidcAutoRedirect: boolean;
     localAuth: boolean;
+    oidcIdpName: string;
 }
 
 declare global {
@@ -19,7 +21,9 @@ const config: IConfig = {
     register: false,
     version: {commit: 'unknown', buildDate: 'unknown', version: 'unknown'},
     oidc: false,
+    oidcAutoRedirect: false,
     localAuth: true,
+    oidcIdpName: 'OIDC',
     ...window.config,
 };
 

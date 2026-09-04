@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gotify/server/v2/config"
-	"github.com/gotify/server/v2/mode"
-	"github.com/gotify/server/v2/model"
-	"github.com/gotify/server/v2/test/testdb"
+	"github.com/gotify/server/v3/config"
+	"github.com/gotify/server/v3/mode"
+	"github.com/gotify/server/v3/model"
+	"github.com/gotify/server/v3/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -42,7 +42,11 @@ func (s *IntegrationSuite) BeforeTest(string, string) {
 	g, closable := Create(
 		s.db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
-		&config.Configuration{PassStrength: 5, LocalAuthEnabled: true},
+		&config.Configuration{
+			PassStrength:     5,
+			LocalAuthEnabled: true,
+			OIDC:             config.OIDC{IDPName: "Company XYZ SSO"},
+		},
 	)
 	s.closable = closable
 	s.server = httptest.NewServer(g)
@@ -58,6 +62,11 @@ func (s *IntegrationSuite) TestVersionInfo() {
 	req := s.newRequest("GET", "version", "")
 
 	doRequestAndExpect(s.T(), req, 200, `{"version":"1.0.0", "commit":"asdasds", "buildDate":"2018-02-20-17:30:47"}`)
+}
+
+func (s *IntegrationSuite) TestGotifyInfo() {
+	req := s.newRequest("GET", "gotifyinfo", "")
+	doRequestAndExpect(s.T(), req, 200, `{"version":"1.0.0", "oidc":false, "register":false, "localAuth":true, "oidcIdpName":"Company XYZ SSO", "oidcAutoRedirect":false}`)
 }
 
 func (s *IntegrationSuite) TestHeaderInProd() {

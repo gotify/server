@@ -10,8 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/gotify/server/v2/auth"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/model"
 )
 
 // The API provides a handler for a WebSocket stream API.
@@ -84,7 +84,10 @@ func (a *API) Notify(userID uint, msg *model.MessageExternal) {
 	defer a.lock.RUnlock()
 	if clients, ok := a.clients[userID]; ok {
 		for _, c := range clients {
-			c.write <- msg
+			select {
+			case c.write <- msg:
+			case <-c.closed:
+			}
 		}
 	}
 }

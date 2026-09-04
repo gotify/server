@@ -9,26 +9,38 @@ import (
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"github.com/gotify/server/v2/model"
+	"github.com/gotify/server/v3/model"
 )
 
 //go:embed build/*
 var box embed.FS
 
 type uiConfig struct {
-	Register  bool              `json:"register"`
-	Version   model.VersionInfo `json:"version"`
-	LocalAuth bool              `json:"localAuth"`
-	OIDC      bool              `json:"oidc"`
+	Register         bool              `json:"register"`
+	Version          model.VersionInfo `json:"version"`
+	LocalAuth        bool              `json:"localAuth"`
+	OIDC             bool              `json:"oidc"`
+	OIDCIDPName      string            `json:"oidcIdpName"`
+	OIDCAutoRedirect bool              `json:"oidcAutoRedirect"`
 }
 
 // Register registers the ui on the root path.
-func Register(r *gin.Engine, version model.VersionInfo, register, localAuthEnabled, oidcEnabled bool) {
+func Register(
+	r *gin.Engine,
+	version model.VersionInfo,
+	register bool,
+	localAuthEnabled bool,
+	oidcEnabled bool,
+	oidcIDPName string,
+	oidcAutoRedirect bool,
+) {
 	uiConfigBytes, err := json.Marshal(uiConfig{
-		Version:   version,
-		Register:  register,
-		LocalAuth: localAuthEnabled,
-		OIDC:      oidcEnabled,
+		Version:          version,
+		Register:         register,
+		LocalAuth:        localAuthEnabled,
+		OIDC:             oidcEnabled,
+		OIDCIDPName:      oidcIDPName,
+		OIDCAutoRedirect: oidcAutoRedirect,
 	})
 	if err != nil {
 		panic(err)

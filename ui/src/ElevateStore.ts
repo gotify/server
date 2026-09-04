@@ -82,7 +82,7 @@ export class ElevateStore {
         }
 
         if (!this.elevated) {
-            this.snack('OIDC elevation was not completed.');
+            this.snack(`${config.get('oidcIdpName')} elevation was not completed.`);
         }
         this.cleanupOidcElevate();
     };

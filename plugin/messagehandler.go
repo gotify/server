@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gotify/server/v2/model"
-	"github.com/gotify/server/v2/plugin/compat"
+	"github.com/gotify/server/v3/model"
+	"github.com/gotify/server/v3/plugin/compat"
 )
 
 type redirectToChannel struct {

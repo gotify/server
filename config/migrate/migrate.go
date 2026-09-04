@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gotify/server/v2/config"
+	"github.com/gotify/server/v3/config"
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
 )
