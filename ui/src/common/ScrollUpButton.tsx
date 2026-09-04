@@ -9,10 +9,9 @@ const ScrollUpButton = () => {
             const currentScrollPos = Math.max(window.pageYOffset - 1000, 0);
             const opacity = Math.min(currentScrollPos / 1000, 1);
             const nextState = {display: currentScrollPos > 0 ? 'inherit' : 'none', opacity};
-            if (state.display !== nextState.display || state.opacity !== nextState.opacity) {
-                setState(nextState);
-            }
+            setState(nextState);
         };
+        scrollHandler();
         window.addEventListener('scroll', scrollHandler);
         return () => window.removeEventListener('scroll', scrollHandler);
     }, []);

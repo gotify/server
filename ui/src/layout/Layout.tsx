@@ -37,14 +37,25 @@ const useStyles = makeStyles()((theme: Theme) => ({
         marginTop: 64,
         padding: theme.spacing(3),
         width: '100%',
+        [theme.breakpoints.up('sm')]: {
+            marginLeft: 250,
+            width: 'calc(100% - 250px)',
+        },
         [theme.breakpoints.down('sm')]: {
             marginTop: 0,
             padding: theme.spacing(1),
         },
     },
+    contentWithConnectionError: {
+        marginTop: 128,
+        [theme.breakpoints.down('sm')]: {
+            marginTop: 0,
+        },
+    },
 }));
 
 const localStorageThemeKey = 'gotify-theme';
+const connectionBannerHeight = 64;
 
 const Layout = observer(() => {
     const {
@@ -106,7 +117,7 @@ const Layout = observer(() => {
                     <div key={refreshKey}>
                         {!connectionErrorMessage ? null : (
                             <ConnectionErrorBanner
-                                height={64}
+                                height={connectionBannerHeight}
                                 retry={() => tryReconnect()}
                                 message={connectionErrorMessage}
                             />
@@ -116,7 +127,7 @@ const Layout = observer(() => {
                             <Header
                                 admin={admin}
                                 name={name}
-                                style={{top: !connectionErrorMessage ? 0 : 64}}
+                                style={{top: !connectionErrorMessage ? 0 : connectionBannerHeight}}
                                 version={version}
                                 loggedIn={loggedIn}
                                 themeMode={currentTheme}
@@ -124,14 +135,25 @@ const Layout = observer(() => {
                                 showSettings={() => setShowSettings(true)}
                                 logout={logout}
                                 setNavOpen={setNavOpen}
+                                navOpen={navOpen}
                             />
                             <div style={{display: 'flex'}}>
                                 <Navigation
                                     loggedIn={loggedIn}
+                                    admin={admin}
+                                    name={name}
+                                    logout={logout}
+                                    showSettings={() => setShowSettings(true)}
+                                    bannerVisible={Boolean(connectionErrorMessage)}
                                     navOpen={navOpen}
                                     setNavOpen={setNavOpen}
                                 />
-                                <main className={classes.content}>
+                                <main
+                                    className={`${classes.content} ${
+                                        connectionErrorMessage
+                                            ? classes.contentWithConnectionError
+                                            : ''
+                                    }`}>
                                     <Routes>
                                         <Route path="/login" element={<Login />} />
                                         <Route path="/" element={authed(<Messages />)} />
