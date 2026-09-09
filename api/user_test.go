@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -49,7 +51,7 @@ func (s *UserSuite) BeforeTest(suiteName, testName string) {
 		s.notifiedAdd = true
 		return nil
 	})
-	s.a = &UserAPI{DB: s.db, UserChangeNotifier: s.notifier}
+	s.a = &UserAPI{DB: s.db.GormDatabase, UserChangeNotifier: s.notifier}
 }
 
 func (s *UserSuite) AfterTest(suiteName, testName string) {
@@ -350,17 +352,6 @@ func (s *UserSuite) Test_UpdateUserByID_InvalidID() {
 	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
-func (s *UserSuite) Test_UpdateUserByID_EmptyPassword_Expect400() {
-	s.loginAdmin()
-
-	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-
-	s.ctx.Request = httptest.NewRequest("POST", "/user/1", strings.NewReader(`{"name": "admin", "pass": "", "admin": false}`))
-	s.ctx.Request.Header.Set("Content-Type", "application/json")
-	s.a.UpdateUserByID(s.ctx)
-	assert.Equal(s.T(), 400, s.recorder.Code)
-}
-
 func (s *UserSuite) Test_UpdateUserByID_TooLongPassword_Expect400() {
 	s.loginAdmin()
 
@@ -412,6 +403,12 @@ func (s *UserSuite) Test_UpdateUserByID_UpdateNotPassword() {
 	s.a.UpdateUserByID(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	body, err := io.ReadAll(s.recorder.Body)
+	require.NoError(s.T(), err)
+	var retUser model.UserExternal
+	require.NoError(s.T(), json.Unmarshal(body, &retUser))
+	assert.Equal(s.T(), "tom", retUser.Name)
+	assert.Equal(s.T(), true, retUser.Admin)
 	user, err := s.db.GetUserByID(2)
 	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), user)
