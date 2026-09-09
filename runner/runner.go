@@ -108,7 +108,14 @@ type LoggingRoundTripper struct {
 
 func (l *LoggingRoundTripper) RoundTrip(r *http.Request) (resp *http.Response, err error) {
 	resp, err = l.RoundTripper.RoundTrip(r)
-	if resp.StatusCode == 429 {
+	if err != nil {
+		log.Warn().
+			Str("client", l.Name).
+			Err(err).
+			Str("method", r.Method).
+			Str("url", r.URL.String()).
+			Msg("Request failed")
+	} else if resp.StatusCode == 429 {
 		log.Warn().
 			Str("client", l.Name).
 			Str("retry_after", resp.Header.Get("Retry-After")).
@@ -122,13 +129,6 @@ func (l *LoggingRoundTripper) RoundTrip(r *http.Request) (resp *http.Response, e
 			Str("method", r.Method).
 			Str("url", r.URL.String()).
 			Msg("Request failed: unexpected status code")
-	} else if err != nil {
-		log.Warn().
-			Str("client", l.Name).
-			Err(err).
-			Str("method", r.Method).
-			Str("url", r.URL.String()).
-			Msg("Request failed")
 	}
 	return resp, err
 }
