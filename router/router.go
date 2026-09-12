@@ -158,7 +158,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		}
 	}
 
-	g.Group("/user").Use(authentication.Optional).POST("", userHandler.CreateUser)
+	g.Group("/user").Use(authentication.OptionalAdmin).POST("", userHandler.CreateUser)
 
 	g.POST("/auth/local/login", sessionHandler.Login)
 

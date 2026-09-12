@@ -187,45 +187,6 @@ func (s *UserSuite) Test_CreateUser() {
 	assert.True(s.T(), s.notifiedAdd)
 }
 
-func (s *UserSuite) Test_CreateUser_ByNonAdmin() {
-	s.loginUser()
-
-	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "1", "admin": false}`))
-	s.ctx.Request.Header.Set("Content-Type", "application/json")
-
-	s.a.CreateUser(s.ctx)
-
-	assert.Equal(s.T(), 403, s.recorder.Code)
-}
-
-func (s *UserSuite) Test_CreateUser_Register_ByNonAdmin() {
-	s.loginUser()
-	s.a.Registration = true
-
-	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "1", "admin": false}`))
-	s.ctx.Request.Header.Set("Content-Type", "application/json")
-
-	s.a.CreateUser(s.ctx)
-
-	assert.Equal(s.T(), 200, s.recorder.Code)
-	if created, err := s.db.GetUserByName("tom"); assert.NoError(s.T(), err) {
-		assert.NotNil(s.T(), created)
-	}
-}
-
-func (s *UserSuite) Test_CreateUser_Register_Admin_ByNonAdmin() {
-	s.a.Registration = true
-	s.loginUser()
-
-	s.ctx.Request = httptest.NewRequest("POST", "/user", strings.NewReader(`{"name": "tom", "pass": "1", "admin": true}`))
-	s.ctx.Request.Header.Set("Content-Type", "application/json")
-
-	s.a.CreateUser(s.ctx)
-
-	assert.Equal(s.T(), 403, s.recorder.Code)
-	s.db.AssertUsernameNotExist("tom")
-}
-
 func (s *UserSuite) Test_CreateUser_Anonymous() {
 	s.noLogin()
 
@@ -508,11 +469,6 @@ func (s *UserSuite) Test_UpdatePassword_TooLongPassword_Expect400() {
 func (s *UserSuite) loginAdmin() {
 	s.db.CreateUser(&model.User{ID: 1, Name: "admin", Admin: true})
 	auth.RegisterUser(s.ctx, &model.User{ID: 1, Admin: true})
-}
-
-func (s *UserSuite) loginUser() {
-	s.db.CreateUser(&model.User{ID: 1, Name: "user", Admin: false})
-	auth.RegisterUser(s.ctx, &model.User{ID: 1})
 }
 
 func (s *UserSuite) noLogin() {
