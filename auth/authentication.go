@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v3/auth/password"
 	"github.com/gotify/server/v3/model"
+	"github.com/rs/zerolog/log"
 )
 
 type authState int
@@ -307,6 +308,9 @@ func (a *Auth) tokenFromAuthorizationHeader(ctx *gin.Context) string {
 func (a *Auth) checkClientAdmin(client *model.Client) (authState, error) {
 	if user, err := a.DB.GetUserByID(client.UserID); err != nil {
 		return authStateSkip, err
+	} else if user == nil {
+		log.Warn().Uint("client_id", client.ID).Uint("user_id", client.UserID).Msg("User for authenticated client doesn't exist")
+		return authStateForbidden, nil
 	} else if !user.Admin {
 		return authStateForbidden, nil
 	}

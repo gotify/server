@@ -63,6 +63,9 @@ func (s *AuthenticationSuite) SetupSuite() {
 			{Token: "clienttoken_admin_elevated", Name: "elevated phone2", ElevatedUntil: &elevated},
 		},
 	})
+
+	// client whose user does not exist anymore
+	s.DB.CreateClient(&model.Client{Token: "clienttoken_orphan_elevated", Name: "orphan phone", UserID: 999, ElevatedUntil: &elevated})
 }
 
 func (s *AuthenticationSuite) TearDownSuite() {
@@ -139,6 +142,11 @@ func (s *AuthenticationSuite) TestNothingProvided() {
 	ctx.Request = httptest.NewRequest("GET", "/", nil)
 	s.auth.RequireApplicationToken(ctx)
 	assert.Equal(s.T(), 401, recorder.Code)
+}
+
+func (s *AuthenticationSuite) TestOrphanedClientToken() {
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_orphan_elevated", s.auth.RequireAdmin, 403)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_orphan_elevated", s.auth.OptionalAdmin, 403)
 }
 
 func (s *AuthenticationSuite) TestHeaderApiKeyToken() {
