@@ -63,6 +63,9 @@ func (s *AuthenticationSuite) SetupSuite() {
 			{Token: "clienttoken_admin_elevated", Name: "elevated phone2", ElevatedUntil: &elevated},
 		},
 	})
+
+	// client whose user does not exist anymore
+	s.DB.CreateClient(&model.Client{Token: "clienttoken_orphan_elevated", Name: "orphan phone", UserID: 999, ElevatedUntil: &elevated})
 }
 
 func (s *AuthenticationSuite) TearDownSuite() {
@@ -139,6 +142,11 @@ func (s *AuthenticationSuite) TestNothingProvided() {
 	ctx.Request = httptest.NewRequest("GET", "/", nil)
 	s.auth.RequireApplicationToken(ctx)
 	assert.Equal(s.T(), 401, recorder.Code)
+}
+
+func (s *AuthenticationSuite) TestOrphanedClientToken() {
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_orphan_elevated", s.auth.RequireAdmin, 403)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_orphan_elevated", s.auth.OptionalAdmin, 403)
 }
 
 func (s *AuthenticationSuite) TestHeaderApiKeyToken() {
@@ -282,33 +290,47 @@ func (s *AuthenticationSuite) TestBasicAuthDisabled() {
 	s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHc=", s.auth.RequireClient, 403)
 	s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHc=", s.auth.RequireAdmin, 403)
 	s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHc=", s.auth.RequireElevatedClient, 403)
+	s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHc=", s.auth.OptionalAdmin, 403)
 }
 
-func (s *AuthenticationSuite) TestOptionalAuth() {
-	// various invalid users
-	ctx := s.assertQueryRequest("token", "ergerogerg", s.auth.Optional, 200)
+func (s *AuthenticationSuite) TestOptionalAdminAuth() {
+	ctx := s.assertQueryRequest("token", "ergerogerg", s.auth.OptionalAdmin, 200)
 	assert.Nil(s.T(), TryGetUserID(ctx))
-	ctx = s.assertHeaderRequest("X-Gotify-Key", "ergerogerg", s.auth.Optional, 200)
-	assert.Nil(s.T(), TryGetUserID(ctx))
-	ctx = s.assertHeaderRequest("Authorization", "Basic bm90ZXhpc3Rpbmc6cHc=", s.auth.Optional, 200)
-	assert.Nil(s.T(), TryGetUserID(ctx))
-	ctx = s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHd4", s.auth.Optional, 200)
-	assert.Nil(s.T(), TryGetUserID(ctx))
-	ctx = s.assertQueryRequest("tokenx", "clienttoken", s.auth.Optional, 200)
-	assert.Nil(s.T(), TryGetUserID(ctx))
-	ctx = s.assertQueryRequest("token", "apptoken_admin", s.auth.Optional, 200)
+	ctx = s.assertQueryRequest("token", "apptoken_admin", s.auth.OptionalAdmin, 200)
 	assert.Nil(s.T(), TryGetUserID(ctx))
 
-	// user existing:pw
-	ctx = s.assertHeaderRequest("Authorization", "Basic ZXhpc3Rpbmc6cHc=", s.auth.Optional, 200)
-	assert.Equal(s.T(), uint(1), *TryGetUserID(ctx))
-	ctx = s.assertQueryRequest("token", "clienttoken", s.auth.Optional, 200)
-	assert.Equal(s.T(), uint(1), *TryGetUserID(ctx))
+	// nothing provided
+	ctx = s.assertRequest(s.auth.OptionalAdmin, 200)
+	assert.Nil(s.T(), TryGetUserID(ctx))
 
-	// user admin:pw
-	ctx = s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHc=", s.auth.Optional, 200)
+	// user existing:pw (non-admin)
+	s.assertHeaderRequest("Authorization", "Basic ZXhpc3Rpbmc6cHc=", s.auth.OptionalAdmin, 403)
+
+	// clienttoken (non-admin, not elevated)
+	s.assertQueryRequest("token", "clienttoken", s.auth.OptionalAdmin, 403)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken", s.auth.OptionalAdmin, 403)
+	s.assertHeaderRequest("Authorization", "Bearer clienttoken", s.auth.OptionalAdmin, 403)
+
+	// clienttoken_elevated (non-admin, elevated)
+	s.assertQueryRequest("token", "clienttoken_elevated", s.auth.OptionalAdmin, 403)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_elevated", s.auth.OptionalAdmin, 403)
+	s.assertHeaderRequest("Authorization", "Bearer clienttoken_elevated", s.auth.OptionalAdmin, 403)
+
+	// user admin:pw (basic auth counts as elevated)
+	ctx = s.assertHeaderRequest("Authorization", "Basic YWRtaW46cHc=", s.auth.OptionalAdmin, 200)
 	assert.Equal(s.T(), uint(2), *TryGetUserID(ctx))
-	ctx = s.assertQueryRequest("token", "clienttoken_admin", s.auth.Optional, 200)
+
+	// clienttoken_admin (not elevated)
+	s.assertQueryRequest("token", "clienttoken_admin", s.auth.OptionalAdmin, 403)
+	s.assertHeaderRequest("X-Gotify-Key", "clienttoken_admin", s.auth.OptionalAdmin, 403)
+	s.assertHeaderRequest("Authorization", "Bearer clienttoken_admin", s.auth.OptionalAdmin, 403)
+
+	// clienttoken_admin_elevated
+	ctx = s.assertQueryRequest("token", "clienttoken_admin_elevated", s.auth.OptionalAdmin, 200)
+	assert.Equal(s.T(), uint(2), *TryGetUserID(ctx))
+	ctx = s.assertHeaderRequest("X-Gotify-Key", "clienttoken_admin_elevated", s.auth.OptionalAdmin, 200)
+	assert.Equal(s.T(), uint(2), *TryGetUserID(ctx))
+	ctx = s.assertHeaderRequest("Authorization", "Bearer clienttoken_admin_elevated", s.auth.OptionalAdmin, 200)
 	assert.Equal(s.T(), uint(2), *TryGetUserID(ctx))
 }
 
@@ -363,6 +385,15 @@ func (s *AuthenticationSuite) assertHeaderRequest(key, value string, f fMiddlewa
 	ctx, _ = gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest("GET", "/", nil)
 	ctx.Request.Header.Set(key, value)
+	f(ctx)
+	assert.Equal(s.T(), code, recorder.Code)
+	return ctx
+}
+
+func (s *AuthenticationSuite) assertRequest(f fMiddleware, code int) (ctx *gin.Context) {
+	recorder := httptest.NewRecorder()
+	ctx, _ = gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("GET", "/", nil)
 	f(ctx)
 	assert.Equal(s.T(), code, recorder.Code)
 	return ctx

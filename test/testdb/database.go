@@ -54,6 +54,12 @@ func (d *Database) User(id uint) *AppClientBuilder {
 	return &AppClientBuilder{db: d, userID: id}
 }
 
+// AdminUser creates an admin user and returns a builder for applications and clients.
+func (d *Database) AdminUser(id uint) *AppClientBuilder {
+	d.CreateUser(&model.User{ID: id, Name: "user" + fmt.Sprint(id), Admin: true})
+	return &AppClientBuilder{db: d, userID: id}
+}
+
 // NewUser creates a user and returns the user.
 func (d *Database) NewUser(id uint) *model.User {
 	return d.NewUserWithName(id, "user"+fmt.Sprint(id))
@@ -171,6 +177,14 @@ func (ab *AppClientBuilder) NewClientWithToken(id uint, token string) *model.Cli
 	client := &model.Client{ID: id, Token: token, UserID: ab.userID}
 	ab.db.CreateClient(client)
 	return client
+}
+
+// ElevatedClientWithToken creates an elevated client.
+func (ab *AppClientBuilder) ElevatedClientWithToken(id uint, token string) *AppClientBuilder {
+	future := time.Date(3000, time.January, 1, 0, 0, 0, 0, time.UTC)
+	client := &model.Client{ID: id, Token: token, UserID: ab.userID, ElevatedUntil: &future}
+	ab.db.CreateClient(client)
+	return ab
 }
 
 // Message creates a message and returns itself.

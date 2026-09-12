@@ -2245,7 +2245,7 @@
             "basicAuth": []
           }
         ],
-        "description": "With enabled registration: non admin users can be created without authentication.\nWith disabled registrations: users can only be created by admin users.\n\nRequires elevated authentication.",
+        "description": "With enabled registration: non admin users can be created without authentication.\nWith disabled registrations: users can only be created by admin users with an elevated session.\n\nRequires elevated authentication.",
         "consumes": [
           "application/json"
         ],

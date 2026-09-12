@@ -407,6 +407,33 @@ func (s *IntegrationSuite) TestAuthentication() {
 	assert.Equal(s.T(), "android-client", token.Name)
 }
 
+func (s *IntegrationSuite) TestCreateUser_RequiresElevatedAdmin() {
+	s.db.AdminUser(2).ClientWithToken(1, "Cadminplain").ElevatedClientWithToken(2, "Cadminelevated")
+	s.db.User(3).ElevatedClientWithToken(3, "Cnormalelevated")
+
+	body := `{"name": "newadmin", "pass": "secret", "admin": true}`
+
+	// admin, but not elevated
+	req := s.newRequest("POST", "user", body)
+	req.Header.Set("X-Gotify-Key", "Cadminplain")
+	doRequestAndExpect(s.T(), req, 403, `{"error":"Forbidden", "errorCode":403, "errorDescription":"session not elevated, use basic auth or call /client:elevate"}`)
+	s.db.AssertUsernameNotExist("newadmin")
+
+	// elevated, but not admin
+	req = s.newRequest("POST", "user", body)
+	req.Header.Set("X-Gotify-Key", "Cnormalelevated")
+	doRequestAndExpect(s.T(), req, 403, forbiddenJSON)
+	s.db.AssertUsernameNotExist("newadmin")
+
+	// elevated admin
+	req = s.newRequest("POST", "user", body)
+	req.Header.Set("X-Gotify-Key", "Cadminelevated")
+	doRequestAndExpect(s.T(), req, 200, `{"id": 4, "name": "newadmin", "admin": true, "createdAt":"2020-01-01T00:00:00Z"}`)
+	created, err := s.db.GetUserByName("newadmin")
+	assert.NoError(s.T(), err)
+	assert.NotNil(s.T(), created)
+}
+
 func (s *IntegrationSuite) newRequest(method, url, body string) *http.Request {
 	req, err := http.NewRequest(method, fmt.Sprintf("%s/%s", s.server.URL, url), strings.NewReader(body))
 	req.Header.Add("Content-Type", "application/json")

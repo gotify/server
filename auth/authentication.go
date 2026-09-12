@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v3/auth/password"
 	"github.com/gotify/server/v3/model"
+	"github.com/rs/zerolog/log"
 )
 
 type authState int
@@ -48,7 +49,22 @@ type Auth struct {
 
 // RequireAdmin requires an elevated client token or basic auth, the user must be an admin.
 func (a *Auth) RequireAdmin(ctx *gin.Context) {
-	a.evaluateOr401(ctx, a.handleUser(a.checkUserAdmin), a.handleClient(a.checkClientAdmin, a.checkClientElevated))
+	a.evaluateOr401(ctx, a.adminHandlers()...)
+}
+
+// OptionalAdmin allows optional authentication. When authentication is present
+// an elevated client token or basic auth of an admin user must be provided.
+func (a *Auth) OptionalAdmin(ctx *gin.Context) {
+	if !a.evaluate(ctx, a.adminHandlers()...) {
+		ctx.Next()
+	}
+}
+
+func (a *Auth) adminHandlers() []func(ctx *gin.Context) (authState, error) {
+	return []func(ctx *gin.Context) (authState, error){
+		a.handleUser(a.checkUserAdmin),
+		a.handleClient(a.checkClientAdmin, a.checkClientElevated),
+	}
 }
 
 // RequireClient returns a gin middleware which requires a client token or basic authentication header to be supplied
@@ -82,12 +98,6 @@ func (a *Auth) RequireApplicationToken(ctx *gin.Context) {
 // RequireAny requires client, application, or basic auth.
 func (a *Auth) RequireApplicationOrClient(ctx *gin.Context) {
 	a.evaluateOr401(ctx, a.handleApplication, a.handleClient(), a.handleUser())
-}
-
-func (a *Auth) Optional(ctx *gin.Context) {
-	if !a.evaluate(ctx, a.handleUser(), a.handleClient()) {
-		ctx.Next()
-	}
 }
 
 func (a *Auth) evaluate(ctx *gin.Context, funcs ...func(ctx *gin.Context) (authState, error)) bool {
@@ -298,6 +308,9 @@ func (a *Auth) tokenFromAuthorizationHeader(ctx *gin.Context) string {
 func (a *Auth) checkClientAdmin(client *model.Client) (authState, error) {
 	if user, err := a.DB.GetUserByID(client.UserID); err != nil {
 		return authStateSkip, err
+	} else if user == nil {
+		log.Warn().Uint("client_id", client.ID).Uint("user_id", client.UserID).Msg("User for authenticated client doesn't exist")
+		return authStateForbidden, nil
 	} else if !user.Admin {
 		return authStateForbidden, nil
 	}

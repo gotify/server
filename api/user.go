@@ -153,7 +153,7 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 // Create a user.
 //
 // With enabled registration: non admin users can be created without authentication.
-// With disabled registrations: users can only be created by admin users.
+// With disabled registrations: users can only be created by admin users with an elevated session.
 //
 // Requires elevated authentication.
 //
@@ -202,34 +202,23 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 			Admin: user.Admin,
 			Pass:  pw,
 		}
-		existingUser, err := a.DB.GetUserByName(internal.Name)
-		if success := successOrAbort(ctx, 500, err); !success {
-			return
-		}
 
-		var requestedBy *model.User
-		uid := auth.TryGetUserID(ctx)
-		if uid != nil {
-			requestedBy, err = a.DB.GetUserByID(*uid)
-			if err != nil {
-				ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("could not get user: %s", err))
-				return
-			}
-		}
-
-		if requestedBy == nil || !requestedBy.Admin {
-			status := http.StatusUnauthorized
-			if requestedBy != nil {
-				status = http.StatusForbidden
-			}
+		// The auth middleware guarantees authenticated requests to be elevated admins.
+		// Only unauthenticated requests are limited to the registration checks.
+		if auth.TryGetUserID(ctx) == nil {
 			if !a.Registration {
-				ctx.AbortWithError(status, errors.New("you are not allowed to access this api"))
+				ctx.AbortWithError(http.StatusUnauthorized, errors.New("you are not allowed to access this api"))
 				return
 			}
 			if internal.Admin {
-				ctx.AbortWithError(status, errors.New("you are not allowed to create an admin user"))
+				ctx.AbortWithError(http.StatusUnauthorized, errors.New("you are not allowed to create an admin user"))
 				return
 			}
+		}
+
+		existingUser, err := a.DB.GetUserByName(internal.Name)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
 		}
 
 		if existingUser == nil {
