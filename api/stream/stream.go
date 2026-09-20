@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/config"
 	"github.com/gotify/server/v3/model"
 )
 
@@ -201,17 +202,11 @@ func isAllowedOrigin(r *http.Request, allowedOrigins []*regexp.Regexp) bool {
 		return true
 	}
 
-	for _, allowedOrigin := range allowedOrigins {
-		if allowedOrigin.MatchString(strings.ToLower(u.Hostname())) {
-			return true
-		}
-	}
-
-	return false
+	return config.MatchesFully(allowedOrigins, strings.ToLower(u.Hostname()))
 }
 
 func newUpgrader(allowedWebSocketOrigins []string) *websocket.Upgrader {
-	compiledAllowedOrigins := compileAllowedWebSocketOrigins(allowedWebSocketOrigins)
+	compiledAllowedOrigins := config.CompileAllowedOrigins(allowedWebSocketOrigins)
 	return &websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -219,13 +214,4 @@ func newUpgrader(allowedWebSocketOrigins []string) *websocket.Upgrader {
 			return isAllowedOrigin(r, compiledAllowedOrigins)
 		},
 	}
-}
-
-func compileAllowedWebSocketOrigins(allowedOrigins []string) []*regexp.Regexp {
-	var compiledAllowedOrigins []*regexp.Regexp
-	for _, origin := range allowedOrigins {
-		compiledAllowedOrigins = append(compiledAllowedOrigins, regexp.MustCompile(origin))
-	}
-
-	return compiledAllowedOrigins
 }

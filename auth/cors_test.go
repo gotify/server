@@ -13,7 +13,7 @@ import (
 func TestCorsConfig(t *testing.T) {
 	mode.Set(mode.Prod)
 	serverConf := config.Configuration{}
-	serverConf.Server.Cors.AllowOrigins = []string{"http://test.com"}
+	serverConf.Server.Cors.AllowOrigins = []string{"http://gotify\\.net|http://push\\.gotify\\.net", "http://other\\.gotify\\.net"}
 	serverConf.Server.Cors.AllowHeaders = []string{"content-type"}
 	serverConf.Server.Cors.AllowMethods = []string{"GET"}
 
@@ -29,9 +29,11 @@ func TestCorsConfig(t *testing.T) {
 		AllowBrowserExtensions: true,
 	}, actual)
 	assert.NotNil(t, allowF)
-	assert.True(t, allowF("http://test.com"))
-	assert.False(t, allowF("https://test.com"))
-	assert.False(t, allowF("https://other.com"))
+	assert.True(t, allowF("http://gotify.net"))
+	assert.True(t, allowF("http://push.gotify.net"))
+	assert.True(t, allowF("http://other.gotify.net"))
+	assert.False(t, allowF("http://gotify.net.evil.net"))
+	assert.False(t, allowF("http://evil-gotify.net"))
 }
 
 func TestEmptyCorsConfigWithResponseHeaders(t *testing.T) {
