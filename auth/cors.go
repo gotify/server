@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"regexp"
 	"strings"
 	"time"
 
@@ -15,16 +14,11 @@ func CorsConfig(conf *config.Configuration) cors.Config {
 		MaxAge:                 12 * time.Hour,
 		AllowBrowserExtensions: true,
 	}
-	compiledOrigins := compileAllowedCORSOrigins(conf.Server.Cors.AllowOrigins)
+	compiledOrigins := config.CompileAllowedOrigins(conf.Server.Cors.AllowOrigins)
 	corsConf.AllowMethods = conf.Server.Cors.AllowMethods
 	corsConf.AllowHeaders = conf.Server.Cors.AllowHeaders
 	corsConf.AllowOriginFunc = func(origin string) bool {
-		for _, compiledOrigin := range compiledOrigins {
-			if compiledOrigin.MatchString(strings.ToLower(origin)) {
-				return true
-			}
-		}
-		return false
+		return config.MatchesFully(compiledOrigins, strings.ToLower(origin))
 	}
 	if allowedOrigin := headerIgnoreCase(conf, "access-control-allow-origin"); allowedOrigin != "" && len(compiledOrigins) == 0 {
 		corsConf.AllowOrigins = append(corsConf.AllowOrigins, allowedOrigin)
@@ -40,13 +34,4 @@ func headerIgnoreCase(conf *config.Configuration, search string) (value string) 
 		}
 	}
 	return ""
-}
-
-func compileAllowedCORSOrigins(allowedOrigins []string) []*regexp.Regexp {
-	var compiledAllowedOrigins []*regexp.Regexp
-	for _, origin := range allowedOrigins {
-		compiledAllowedOrigins = append(compiledAllowedOrigins, regexp.MustCompile(origin))
-	}
-
-	return compiledAllowedOrigins
 }

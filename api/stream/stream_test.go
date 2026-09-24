@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/config"
 	"github.com/gotify/server/v3/mode"
 	"github.com/gotify/server/v3/model"
 	"github.com/stretchr/testify/assert"
@@ -481,16 +482,22 @@ func Test_isAllowedOrigin_withoutAllowedOrigins_failsWhenNotSameOrigin(t *testin
 
 func Test_isAllowedOriginMatching(t *testing.T) {
 	mode.Set(mode.Prod)
-	compiledAllowedOrigins := compileAllowedWebSocketOrigins([]string{"go.{4}\\.example\\.com", "go\\.example\\.com"})
+	compiledAllowedOrigins := config.CompileAllowedOrigins([]string{"gotify\\.net|push\\.gotify\\.net", "other\\.gotify\\.net"})
 
 	req := httptest.NewRequest("GET", "http://example.me/stream", nil)
-	req.Header.Set("Origin", "http://gorify.example.com")
+	req.Header.Set("Origin", "http://gotify.net")
 	assert.True(t, isAllowedOrigin(req, compiledAllowedOrigins))
 
-	req.Header.Set("Origin", "http://go.example.com")
+	req.Header.Set("Origin", "http://push.gotify.net")
 	assert.True(t, isAllowedOrigin(req, compiledAllowedOrigins))
 
-	req.Header.Set("Origin", "http://hello.example.com")
+	req.Header.Set("Origin", "http://other.gotify.net")
+	assert.True(t, isAllowedOrigin(req, compiledAllowedOrigins))
+
+	req.Header.Set("Origin", "http://gotify.net.evil.net")
+	assert.False(t, isAllowedOrigin(req, compiledAllowedOrigins))
+
+	req.Header.Set("Origin", "http://evil-gotify.net")
 	assert.False(t, isAllowedOrigin(req, compiledAllowedOrigins))
 }
 
@@ -515,11 +522,6 @@ func Test_invalidOrigin_returnsFalse(t *testing.T) {
 	req.Header.Set("Origin", "http\\://otherexample.de")
 	actual := isAllowedOrigin(req, nil)
 	assert.False(t, actual)
-}
-
-func Test_compileAllowedWebSocketOrigins(t *testing.T) {
-	assert.Equal(t, 0, len(compileAllowedWebSocketOrigins([]string{})))
-	assert.Equal(t, 3, len(compileAllowedWebSocketOrigins([]string{"^.*$", "", "abc"})))
 }
 
 func clients(api *API, user uint) []*client {
