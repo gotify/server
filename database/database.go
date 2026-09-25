@@ -172,14 +172,24 @@ func createDirectoryIfSqlite(dialect, connection string) {
 
 // GormDatabase is a wrapper for the gorm framework.
 type GormDatabase struct {
-	DB *gorm.DB
+	DB     *gorm.DB
+	Nested bool
 }
 
 // Close closes the gorm database connection.
 func (d *GormDatabase) Close() {
+	if d.Nested {
+		return
+	}
 	sqldb, err := d.DB.DB()
 	if err != nil {
 		return
 	}
 	sqldb.Close()
+}
+
+func (d *GormDatabase) Txn(fn func(txdb *GormDatabase) error) error {
+	return d.DB.Transaction(func(tx *gorm.DB) error {
+		return fn(&GormDatabase{DB: tx, Nested: true})
+	}, &sql.TxOptions{Isolation: sql.LevelSerializable})
 }
