@@ -31,7 +31,7 @@
     "react-timeago": "^8.3.0",
     "react-virtuoso": "^4.13.0",
     "remark-gfm": "^4.0.1",
-    "remove-markdown": "^0.6.2",
+    "remove-markdown": "^0.7.0",
     "tss-react": "^4.9.19",
     "vite": "^8.0.8",
     "vitest": "^5.0.0"
