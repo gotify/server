@@ -343,6 +343,38 @@ func (s *ClientSuite) Test_ElevateClient_expectBadRequestOnMissingDuration() {
 	assert.Nil(s.T(), client.ElevatedUntil)
 }
 
+func (s *ClientSuite) Test_ElevateClient_expectBadRequestOnDurationAboveMax() {
+	s.db.User(5).Client(8)
+
+	test.WithUser(s.ctx, 5)
+	// One second past the 30-day ceiling must be rejected.
+	s.withElevateRequest(8, model.MaxElevationDurationSeconds+1)
+
+	s.a.ElevateClient(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	client, err := s.db.GetClientByID(8)
+	assert.NoError(s.T(), err)
+	assert.Nil(s.T(), client.ElevatedUntil)
+}
+
+func (s *ClientSuite) Test_ElevateClient_expectBadRequestOnOverflowDuration() {
+	s.db.User(5).Client(8)
+
+	test.WithUser(s.ctx, 5)
+	// A value that would overflow time.Duration (wrapping to a past
+	// timestamp) must be rejected rather than silently accepted.
+	s.ctx.AddParam("id", "8")
+	s.withElevateBody(`{"durationSeconds":9223372036854775807}`)
+
+	s.a.ElevateClient(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	client, err := s.db.GetClientByID(8)
+	assert.NoError(s.T(), err)
+	assert.Nil(s.T(), client.ElevatedUntil)
+}
+
 func (s *ClientSuite) withFormData(formData string) {
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(formData))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
