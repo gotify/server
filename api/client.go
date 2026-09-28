@@ -315,7 +315,7 @@ func (a *ClientAPI) ElevateClient(ctx *gin.Context) {
 			return
 		}
 
-		elevatedUntil := time.Now().Add(time.Duration(params.DurationSeconds) * time.Second)
+		elevatedUntil := time.Now().Add(model.ElevationDuration(params.DurationSeconds))
 		if err := a.DB.UpdateClientElevatedUntil(client.ID, &elevatedUntil); err != nil {
 			ctx.AbortWithError(500, err)
 			return
