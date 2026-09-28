@@ -32,6 +32,7 @@ We wanted a simple server for sending and receiving messages (in real time per W
 <img alt="Gotify UI screenshot" src="ui.png" align="right" width="500px"/>
 
 * send messages via REST-API
+* send messages from AI agents via [MCP](#mcp)
 * receive messages via WebSocket
 * manage users, clients and applications
 * [Plugins](https://gotify.net/docs/plugin)
@@ -52,6 +53,30 @@ We wanted a simple server for sending and receiving messages (in real time per W
 [Configuration](https://gotify.net/docs/config) ᛫
 [REST-API](https://gotify.net/api-docs) ᛫
 [Setup Dev Environment](https://gotify.net/docs/dev-setup)
+
+## MCP
+
+Gotify provides a [Model Context Protocol](https://modelcontextprotocol.io/) endpoint at `/mcp` (Streamable HTTP, stateless),
+which exposes a `send_message` tool to AI agents. Authenticate with an application token via the `Authorization: Bearer <token>` or
+`X-Gotify-Key` header, or the `token` query parameter. The endpoint can be disabled with `GOTIFY_SERVER_MCP_ENABLED=false`.
+
+Claude Code:
+```sh
+claude mcp add gotify --transport http https://gotify.example.com/mcp --header "Authorization: Bearer <apptoken>"
+```
+
+VS Code / Cherry Studio and other clients:
+```json
+{
+  "servers": {
+    "gotify": {
+      "type": "http",
+      "url": "https://gotify.example.com/mcp",
+      "headers": { "Authorization": "Bearer <apptoken>" }
+    }
+  }
+}
+```
 
 ## Contributing
 

@@ -24,6 +24,7 @@ const (
 	EnvServerCorsAllowHeaders           = "GOTIFY_SERVER_CORS_ALLOWHEADERS"
 	EnvServerTrustedProxies             = "GOTIFY_SERVER_TRUSTEDPROXIES"
 	EnvServerSecureCookie               = "GOTIFY_SERVER_SECURECOOKIE"
+	EnvServerMCPEnabled                 = "GOTIFY_SERVER_MCP_ENABLED"
 	EnvDatabaseDialect                  = "GOTIFY_DATABASE_DIALECT"
 	EnvDatabaseConnection               = "GOTIFY_DATABASE_CONNECTION"
 	EnvDefaultUserName                  = "GOTIFY_DEFAULTUSER_NAME"

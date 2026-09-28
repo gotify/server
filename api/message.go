@@ -383,6 +383,15 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		app = fetchedApp
 	}
 
+	created, err := a.createMessage(app, &message)
+	if success := successOrAbort(ctx, 500, err); !success {
+		return
+	}
+	ctx.JSON(200, created)
+}
+
+// createMessage fills in defaults from the application, stores the message and notifies the user.
+func (a *MessageAPI) createMessage(app *model.Application, message *model.CreateMessage) (*model.MessageExternal, error) {
 	message.ApplicationID = app.ID
 	if strings.TrimSpace(message.Title) == "" {
 		message.Title = app.Name
@@ -392,12 +401,12 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		message.Priority = &app.DefaultPriority
 	}
 
-	msgInternal := toInternalMessage(&message)
-	if success := successOrAbort(ctx, 500, a.DB.CreateMessage(msgInternal)); !success {
-		return
+	msgInternal := toInternalMessage(message)
+	if err := a.DB.CreateMessage(msgInternal); err != nil {
+		return nil, err
 	}
-	a.Notifier.Notify(auth.GetUserID(ctx), toExternalMessage(msgInternal))
-	ctx.JSON(200, toExternalMessage(msgInternal))
+	a.Notifier.Notify(app.UserID, toExternalMessage(msgInternal))
+	return toExternalMessage(msgInternal), nil
 }
 
 func toInternalMessage(msg *model.CreateMessage) *model.Message {

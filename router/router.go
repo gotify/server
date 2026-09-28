@@ -203,6 +203,11 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 	g.Group("/").Use(authentication.RequireApplicationOrClient).POST("/message", messageHandler.CreateMessage)
 
+	if conf.Server.MCP.Enabled {
+		mcpHandler := api.NewMCP(&messageHandler, vInfo.Version)
+		g.Match([]string{http.MethodGet, http.MethodPost, http.MethodDelete}, "/mcp", authentication.RequireApplicationToken, mcpHandler.Handle)
+	}
+
 	clientAuth := g.Group("")
 	{
 		clientAuth.Use(authentication.RequireClient)

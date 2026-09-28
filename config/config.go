@@ -36,6 +36,10 @@ type Cors struct {
 	AllowHeaders []string
 }
 
+type MCP struct {
+	Enabled bool
+}
+
 type Server struct {
 	KeepAlivePeriodSeconds int
 	ListenAddr             string
@@ -46,6 +50,7 @@ type Server struct {
 	Cors                   Cors
 	TrustedProxies         []string
 	SecureCookie           bool
+	MCP                    MCP
 }
 
 type Database struct {
@@ -105,6 +110,9 @@ func Get() (*Configuration, []FutureLog) {
 			},
 			Stream: Stream{
 				PingPeriodSeconds: 45,
+			},
+			MCP: MCP{
+				Enabled: true,
 			},
 		},
 		Database: Database{
@@ -166,6 +174,7 @@ func Get() (*Configuration, []FutureLog) {
 
 	add(parseList(&c.Server.TrustedProxies, EnvServerTrustedProxies))
 	add(parseBool(&c.Server.SecureCookie, EnvServerSecureCookie))
+	add(parseBool(&c.Server.MCP.Enabled, EnvServerMCPEnabled))
 
 	add(parseString(&c.Database.Dialect, EnvDatabaseDialect))
 	add(parseString(&c.Database.Connection, EnvDatabaseConnection))
