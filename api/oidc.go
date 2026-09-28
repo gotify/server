@@ -86,7 +86,7 @@ type pendingOIDCSession struct {
 
 type pendingElevation struct {
 	ClientID        uint `form:"id" binding:"required"`
-	DurationSeconds int  `form:"durationSeconds" binding:"required"`
+	DurationSeconds int  `form:"durationSeconds" binding:"required,min=1,max=2592000"`
 }
 
 // OIDCAPI provides handlers for OIDC authentication.
