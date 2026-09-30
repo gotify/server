@@ -2,6 +2,7 @@ package docs
 
 import (
 	"net/http/httptest"
+	"regexp"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -21,4 +22,13 @@ func TestUI(t *testing.T) {
 
 	content := recorder.Body.String()
 	assert.NotEmpty(t, content)
+}
+
+func TestUIExternalResourcesHaveIntegrity(t *testing.T) {
+	tags := regexp.MustCompile(`<(?:script|link)[^>]*https://[^>]*>`).FindAllString(ui, -1)
+	assert.Len(t, tags, 3)
+	for _, tag := range tags {
+		assert.Regexp(t, `integrity="sha512-[A-Za-z0-9+/=]+"`, tag)
+		assert.Contains(t, tag, `crossorigin="anonymous"`)
+	}
 }
