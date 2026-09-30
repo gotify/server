@@ -6,13 +6,13 @@ import (
 
 // Message holds information about a message.
 type Message struct {
-	ID            uint `gorm:"autoIncrement;primaryKey;index"`
-	ApplicationID uint
+	ID            uint   `gorm:"autoIncrement;primaryKey;index"`
+	ApplicationID uint   `gorm:"index:idx_message_app_date,priority:1"`
 	Message       string `gorm:"type:text"`
 	Title         string `gorm:"type:text"`
 	Priority      int
 	Extras        []byte
-	Date          time.Time
+	Date          time.Time `gorm:"index:idx_message_app_date,priority:2"`
 }
 
 // MessageExternal Model

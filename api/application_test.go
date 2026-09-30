@@ -87,7 +87,7 @@ func (s *ApplicationSuite) Test_ensureApplicationHasCorrectJsonRepresentation() 
 		SortKey:     "a1",
 		CreatedAt:   testdb.Now,
 	}
-	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true, "defaultPriority":0, "createdAt":"2020-01-01T00:00:00Z", "lastUsed":null, "sortKey":"a1"}`)
+	test.JSONEquals(s.T(), actual, `{"id":1,"token":"Aasdasfgeeg","name":"myapp","description":"mydesc", "image": "asd", "internal":true, "defaultPriority":0, "retentionSeconds":0, "createdAt":"2020-01-01T00:00:00Z", "lastUsed":null, "sortKey":"a1"}`)
 }
 
 func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() {
@@ -633,6 +633,31 @@ func (s *ApplicationSuite) Test_UpdateApplicationDefaultPriority_expectSuccess()
 		DefaultPriority: 4,
 		SortKey:         "a0",
 		CreatedAt:       testdb.Now,
+	}
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	if app, err := s.db.GetApplicationByID(2); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), expected, app)
+	}
+}
+
+func (s *ApplicationSuite) Test_UpdateApplicationRetentionSeconds_expectSuccess() {
+	s.db.User(5).NewAppWithToken(2, "app-2")
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=name&description=&retentionSeconds=3600")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "2"}}
+	s.a.UpdateApplication(s.ctx)
+
+	expected := &model.Application{
+		ID:               2,
+		Token:            "app-2",
+		UserID:           5,
+		Name:             "name",
+		Description:      "",
+		SortKey:          "a0",
+		RetentionSeconds: 3600,
+		CreatedAt:        testdb.Now,
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)

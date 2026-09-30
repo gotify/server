@@ -54,6 +54,11 @@ type ApplicationParams struct {
 	//
 	// example: a1
 	SortKey string `form:"sortKey" query:"sortKey" json:"sortKey"`
+	// The number of seconds after which messages from this application are
+	// automatically deleted. 0 means the server's default retention period is used.
+	//
+	// example: 2592000
+	RetentionSeconds uint `form:"retentionSeconds" query:"retentionSeconds" json:"retentionSeconds"`
 }
 
 // CreateApplication creates an application and returns the access token.
@@ -94,13 +99,14 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 	if err := ctx.Bind(&applicationParams); err == nil {
 		tokenPublic, tokenPrivate := generateApplicationToken()
 		app := model.Application{
-			Name:            applicationParams.Name,
-			Description:     applicationParams.Description,
-			DefaultPriority: applicationParams.DefaultPriority,
-			SortKey:         applicationParams.SortKey,
-			Token:           tokenPublic,
-			UserID:          auth.GetUserID(ctx),
-			Internal:        false,
+			Name:             applicationParams.Name,
+			Description:      applicationParams.Description,
+			DefaultPriority:  applicationParams.DefaultPriority,
+			SortKey:          applicationParams.SortKey,
+			RetentionSeconds: applicationParams.RetentionSeconds,
+			Token:            tokenPublic,
+			UserID:           auth.GetUserID(ctx),
+			Internal:         false,
 		}
 
 		if err := a.DB.CreateApplication(&app); err != nil {
@@ -264,6 +270,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 				app.Description = applicationParams.Description
 				app.Name = applicationParams.Name
 				app.DefaultPriority = applicationParams.DefaultPriority
+				app.RetentionSeconds = applicationParams.RetentionSeconds
 				if applicationParams.SortKey != "" {
 					app.SortKey = applicationParams.SortKey
 				}

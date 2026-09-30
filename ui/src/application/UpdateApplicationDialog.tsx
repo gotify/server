@@ -11,26 +11,34 @@ import React, {useState} from 'react';
 
 interface IProps {
     fClose: VoidFunction;
-    fOnSubmit: (name: string, description: string, defaultPriority: number) => Promise<void>;
+    fOnSubmit: (
+        name: string,
+        description: string,
+        defaultPriority: number,
+        retentionSeconds: number
+    ) => Promise<void>;
     initialName: string;
     initialDescription: string;
     initialDefaultPriority: number;
+    initialRetentionSeconds: number;
 }
 
 export const UpdateApplicationDialog = ({
     initialName,
     initialDescription,
     initialDefaultPriority,
+    initialRetentionSeconds,
     fClose,
     fOnSubmit,
 }: IProps) => {
     const [name, setName] = useState(initialName);
     const [description, setDescription] = useState(initialDescription);
     const [defaultPriority, setDefaultPriority] = useState(initialDefaultPriority);
+    const [retentionSeconds, setRetentionSeconds] = useState(initialRetentionSeconds);
 
     const submitEnabled = name.length !== 0;
     const submitAndClose = async () => {
-        await fOnSubmit(name, description, defaultPriority);
+        await fOnSubmit(name, description, defaultPriority, retentionSeconds);
         fClose();
     };
 
@@ -64,6 +72,14 @@ export const UpdateApplicationDialog = ({
                     label="Default Priority"
                     value={defaultPriority}
                     onChange={(e) => setDefaultPriority(e)}
+                    fullWidth
+                />
+                <NumberField
+                    margin="dense"
+                    className="retention-seconds"
+                    label="Message Retention (seconds, 0 = server default)"
+                    value={retentionSeconds}
+                    onChange={(e) => setRetentionSeconds(e)}
                     fullWidth
                 />
             </DialogContent>

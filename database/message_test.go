@@ -223,6 +223,64 @@ func (s *DatabaseSuite) TestGetMessagesSince() {
 	hasIDInclusiveBetween(s.T(), actual, 100, 2, 2)
 }
 
+func (s *DatabaseSuite) TestPruneMessages() {
+	user := &model.User{Name: "test", Pass: []byte{1}}
+	require.NoError(s.T(), s.db.CreateUser(user))
+
+	refTime := time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+	hour := time.Hour
+
+	// appWithOverride has its own 1h retention period.
+	appWithOverride := &model.Application{UserID: user.ID, Token: "A0000000000", Name: "override", RetentionSeconds: 3600}
+	require.NoError(s.T(), s.db.CreateApplication(appWithOverride))
+
+	// appWithoutOverride relies on the server's global default.
+	appWithoutOverride := &model.Application{UserID: user.ID, Token: "A0000000001", Name: "default"}
+	require.NoError(s.T(), s.db.CreateApplication(appWithoutOverride))
+
+	old := &model.Message{ApplicationID: appWithOverride.ID, Message: "old", Date: refTime.Add(-2 * hour)}
+	require.NoError(s.T(), s.db.CreateMessage(old))
+	recent := &model.Message{ApplicationID: appWithOverride.ID, Message: "recent", Date: refTime.Add(-30 * time.Minute)}
+	require.NoError(s.T(), s.db.CreateMessage(recent))
+	atCutoff := &model.Message{ApplicationID: appWithOverride.ID, Message: "at cutoff", Date: refTime.Add(-hour)}
+	require.NoError(s.T(), s.db.CreateMessage(atCutoff))
+
+	defaultOld := &model.Message{ApplicationID: appWithoutOverride.ID, Message: "default old", Date: refTime.Add(-2 * hour)}
+	require.NoError(s.T(), s.db.CreateMessage(defaultOld))
+	defaultRecent := &model.Message{ApplicationID: appWithoutOverride.ID, Message: "default recent", Date: refTime.Add(-30 * time.Minute)}
+	require.NoError(s.T(), s.db.CreateMessage(defaultRecent))
+
+	deleted, err := s.db.PruneMessages(refTime, 3600)
+	require.NoError(s.T(), err)
+	// appWithOverride: "old" and "at cutoff" (<=1h) are pruned, "recent" stays.
+	// appWithoutOverride: "default old" is pruned via the global default, "default recent" stays.
+	assert.Equal(s.T(), int64(3), deleted)
+
+	msgs, err := s.db.GetMessagesByApplication(appWithOverride.ID)
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), msgs, 1)
+	assertEquals(s.T(), msgs[0], recent)
+
+	msgs, err = s.db.GetMessagesByApplication(appWithoutOverride.ID)
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), msgs, 1)
+	assertEquals(s.T(), msgs[0], defaultRecent)
+
+	// A fresh application with no override, pruned with a global default of 0, keeps its messages forever.
+	appUnlimited := &model.Application{UserID: user.ID, Token: "A0000000002", Name: "unlimited"}
+	require.NoError(s.T(), s.db.CreateApplication(appUnlimited))
+	veryOld := &model.Message{ApplicationID: appUnlimited.ID, Message: "very old", Date: refTime.Add(-24 * 365 * hour)}
+	require.NoError(s.T(), s.db.CreateMessage(veryOld))
+
+	deleted, err = s.db.PruneMessages(refTime, 0)
+	require.NoError(s.T(), err)
+	assert.Equal(s.T(), int64(0), deleted)
+
+	msgs, err = s.db.GetMessagesByApplication(appUnlimited.ID)
+	require.NoError(s.T(), err)
+	assert.Len(s.T(), msgs, 1, "messages are kept forever when neither the app nor the global default set a retention period")
+}
+
 func hasIDInclusiveBetween(t *testing.T, msgs []*model.Message, from, to, decrement int) {
 	index := 0
 	for expectedID := from; expectedID >= to; expectedID -= decrement {

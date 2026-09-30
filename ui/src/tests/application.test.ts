@@ -18,11 +18,12 @@ enum Col {
     Name = 3,
     Description = 4,
     DefaultPriority = 5,
-    LastUsed = 6,
-    Created = 7,
-    EditRegenerateToken = 8,
-    EditUpdate = 9,
-    EditDelete = 10,
+    RetentionSeconds = 6,
+    LastUsed = 7,
+    Created = 8,
+    EditRegenerateToken = 9,
+    EditUpdate = 10,
+    EditDelete = 11,
 }
 
 const $table = selector.table('#app-table');

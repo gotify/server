@@ -7,6 +7,7 @@ export interface IApplication {
     image: string;
     internal: boolean;
     defaultPriority: number;
+    retentionSeconds: number;
     lastUsed: string | null;
     createdAt: string;
 }

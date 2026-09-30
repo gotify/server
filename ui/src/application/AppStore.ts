@@ -86,7 +86,7 @@ export class AppStore extends BaseStore<IApplication> {
         ...app
     }: Pick<
         IApplication,
-        'id' | 'name' | 'description' | 'defaultPriority' | 'sortKey'
+        'id' | 'name' | 'description' | 'defaultPriority' | 'retentionSeconds' | 'sortKey'
     >): Promise<void> => {
         await axios.put(`${config.get('url')}application/${id}`, app);
         await this.refresh();
@@ -97,12 +97,14 @@ export class AppStore extends BaseStore<IApplication> {
     public create = async (
         name: string,
         description: string,
-        defaultPriority: number
+        defaultPriority: number,
+        retentionSeconds: number
     ): Promise<string> => {
         const response = await axios.post(`${config.get('url')}application`, {
             name,
             description,
             defaultPriority,
+            retentionSeconds,
         });
         await this.refresh();
         this.snack('Application created');

@@ -85,6 +85,14 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 			}
 		}
 	}()
+	go func() {
+		ticker := time.NewTicker(1 * time.Minute)
+		for range ticker.C {
+			if _, err := db.PruneMessages(time.Now(), conf.MessageRetentionSeconds); err != nil {
+				log.Error().Err(err).Msg("Error pruning expired messages")
+			}
+		}
+	}()
 	authentication := auth.Auth{
 		DB:               db,
 		SecureCookie:     conf.Server.SecureCookie,

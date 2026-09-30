@@ -131,6 +131,7 @@ const Applications = observer(() => {
                                     <TableCell>Name</TableCell>
                                     <TableCell>Description</TableCell>
                                     <TableCell>Priority</TableCell>
+                                    <TableCell>Retention</TableCell>
                                     <TableCell>Last Used</TableCell>
                                     <TableCell>Created</TableCell>
                                     <TableCell />
@@ -178,12 +179,19 @@ const Applications = observer(() => {
             {toUpdateApp != null && (
                 <UpdateApplicationDialog
                     fClose={() => setToUpdateApp(undefined)}
-                    fOnSubmit={(name, description, defaultPriority) =>
-                        appStore.update({...toUpdateApp, name, description, defaultPriority})
+                    fOnSubmit={(name, description, defaultPriority, retentionSeconds) =>
+                        appStore.update({
+                            ...toUpdateApp,
+                            name,
+                            description,
+                            defaultPriority,
+                            retentionSeconds,
+                        })
                     }
                     initialDescription={toUpdateApp?.description}
                     initialName={toUpdateApp?.name}
                     initialDefaultPriority={toUpdateApp?.defaultPriority}
+                    initialRetentionSeconds={toUpdateApp?.retentionSeconds}
                 />
             )}
             {toRegenerateTokenApp != null && (
@@ -286,6 +294,9 @@ const Row = ({app, fRegenerateToken, fDelete, fUpload, fDeleteImage, fEdit}: IRo
             <TableCell>{app.name}</TableCell>
             <TableCell>{app.description}</TableCell>
             <TableCell>{app.defaultPriority}</TableCell>
+            <TableCell>
+                {app.retentionSeconds === 0 ? 'server default' : `${app.retentionSeconds}s`}
+            </TableCell>
             <TableCell>
                 <LastUsedCell lastUsed={app.lastUsed} />
             </TableCell>

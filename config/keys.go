@@ -48,5 +48,6 @@ const (
 	EnvOIDCIDPName                      = "GOTIFY_OIDC_IDP_NAME"
 	EnvOIDCAutoRedirect                 = "GOTIFY_OIDC_AUTO_REDIRECT"
 	EnvOIDCPrompt                       = "GOTIFY_OIDC_PROMPT"
+	EnvMessageRetentionSeconds          = "GOTIFY_MESSAGERETENTIONSECONDS"
 	EnvNoColor                          = "NOCOLOR"
 )

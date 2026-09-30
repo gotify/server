@@ -87,7 +87,11 @@ type Configuration struct {
 	Registration      bool
 	LocalAuthEnabled  bool
 	OIDC              OIDC
-	NoColor           string
+	// MessageRetentionSeconds is the default number of seconds after which
+	// messages are automatically deleted, for applications that don't set
+	// their own RetentionSeconds. 0 means messages are kept forever.
+	MessageRetentionSeconds int
+	NoColor                 string
 }
 
 // Get returns the configuration extracted from env variables.
@@ -194,6 +198,8 @@ func Get() (*Configuration, []FutureLog) {
 	add(parseString(&c.OIDC.IDPName, EnvOIDCIDPName))
 	add(parseBool(&c.OIDC.AutoRedirect, EnvOIDCAutoRedirect))
 	add(parseList(&c.OIDC.Prompt, EnvOIDCPrompt))
+
+	add(parseInt(&c.MessageRetentionSeconds, EnvMessageRetentionSeconds))
 
 	add(parseString(&c.NoColor, EnvNoColor))
 

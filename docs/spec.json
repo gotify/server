@@ -2604,6 +2604,13 @@
           "x-go-name": "Name",
           "example": "Backup Server"
         },
+        "retentionSeconds": {
+          "description": "The number of seconds after which messages from this application are automatically\ndeleted. 0 means the server's default retention period is used.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "RetentionSeconds",
+          "example": 2592000
+        },
         "sortKey": {
           "description": "The sort key of this application. Uses fractional indexing.",
           "type": "string",
@@ -2646,6 +2653,13 @@
           "type": "string",
           "x-go-name": "Name",
           "example": "Backup Server"
+        },
+        "retentionSeconds": {
+          "description": "The number of seconds after which messages from this application are\nautomatically deleted. 0 means the server's default retention period is used.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "RetentionSeconds",
+          "example": 2592000
         },
         "sortKey": {
           "description": "The sortKey for the application. Uses fractional indexing.",

@@ -64,4 +64,10 @@ type Application struct {
 	// required: true
 	// example: a1
 	SortKey string `gorm:"type:bytes;uniqueIndex:uix_application_user_id_sort_key,priority:2,length:255" form:"sortKey" query:"sortKey" json:"sortKey"`
+	// The number of seconds after which messages from this application are automatically
+	// deleted. 0 means the server's default retention period is used.
+	//
+	// required: false
+	// example: 2592000
+	RetentionSeconds uint `gorm:"default:0;not null" form:"retentionSeconds" query:"retentionSeconds" json:"retentionSeconds"`
 }
