@@ -483,6 +483,43 @@ func (s *ApplicationSuite) Test_UploadAppImage_WithImageFile_DeleteExstingImage(
 	assert.Len(s.T(), listing, 1)
 }
 
+func (s *ApplicationSuite) Test_UploadAppImage_UpdateFails_KeepsExistingImage() {
+	existingImageName := "existing.png"
+	s.db.User(5)
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: existingImageName})
+	fakeImage(s.T(), s.imageDir.Path(existingImageName))
+	s.a.DB = &failingUpdateAppDB{ApplicationDatabase: s.db}
+
+	cType, buffer, err := upload(map[string]*os.File{"file": mustOpen("../test/assets/image.png")})
+	require.NoError(s.T(), err)
+	s.ctx.Request = httptest.NewRequest("POST", "/irrelevant", &buffer)
+	s.ctx.Request.Header.Set("Content-Type", cType)
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	s.a.UploadApplicationImage(s.ctx)
+
+	assert.Equal(s.T(), 500, s.recorder.Code)
+	app, err := s.db.GetApplicationByID(1)
+	require.NoError(s.T(), err)
+	assert.Equal(s.T(), existingImageName, app.Image)
+	listing, err := os.ReadDir(s.imageDir.Path())
+	require.NoError(s.T(), err)
+	require.Len(s.T(), listing, 1)
+	assert.Equal(s.T(), existingImageName, listing[0].Name())
+}
+
+func (s *ApplicationSuite) Test_WriteImage_RemovesPartialFileOnError() {
+	dst := s.imageDir.Path("partial.png")
+	src := io.MultiReader(strings.NewReader("partial image data"), errReader{errors.New("connection reset")})
+
+	err := writeImage(dst, src)
+
+	assert.EqualError(s.T(), err, "connection reset")
+	_, err = os.Stat(dst)
+	assert.True(s.T(), os.IsNotExist(err), "the partially written file must be removed")
+}
+
 func (s *ApplicationSuite) Test_UploadAppImage_WithTextFile_expectBadRequest() {
 	s.db.User(5).App(1)
 
@@ -762,3 +799,16 @@ func fakeImage(t *testing.T, path string) {
 	err = os.WriteFile(path, data, 0o644)
 	assert.Nil(t, err)
 }
+
+// failingUpdateAppDB fails every UpdateApplication call.
+type failingUpdateAppDB struct {
+	ApplicationDatabase
+}
+
+func (d *failingUpdateAppDB) UpdateApplication(*model.Application) error {
+	return errors.New("update failed")
+}
+
+type errReader struct{ err error }
+
+func (r errReader) Read([]byte) (int, error) { return 0, r.err }
