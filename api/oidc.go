@@ -264,7 +264,7 @@ func (a *OIDCAPI) handleElevationCallback(w http.ResponseWriter, elevate *pendin
 		http.Error(w, "client not found", http.StatusNotFound)
 		return
 	}
-	elevatedUntil := time.Now().Add(time.Duration(elevate.DurationSeconds) * time.Second)
+	elevatedUntil := time.Now().Add(model.ElevationDuration(elevate.DurationSeconds))
 	if err := a.DB.UpdateClientElevatedUntil(client.ID, &elevatedUntil); err != nil {
 		http.Error(w, fmt.Sprintf("failed to elevate session: %v", err), http.StatusInternalServerError)
 		return
