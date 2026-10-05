@@ -15,27 +15,23 @@ type ElevateRequest struct {
 
 var DefaultElevationDuration = time.Hour
 
-// maxElevationDuration caps a requested elevation duration. A practically
-// "infinite" elevation is an intentionally supported relief valve, so this is
-// deliberately large (~100 years) rather than a security limit. Its only
-// purpose is to keep the value well below the point where
-// time.Duration(seconds) * time.Second overflows (int64 nanoseconds wrap past
-// ~292 years), which would otherwise yield an elevatedUntil in the past and
-// silently drop the elevation.
-const maxElevationDuration = 100 * 365 * 24 * time.Hour
+// maxElevationSeconds caps a requested elevation duration (~100 years). A
+// practically "infinite" elevation is intentionally supported, so this is not a
+// security limit; its only purpose is to keep the value well below the point
+// where time.Duration(seconds) * time.Second overflows int64 nanoseconds
+// (~292 years) and would otherwise wrap to a bogus (even past) timestamp.
+const maxElevationSeconds = 100 * 365 * 24 * 60 * 60
 
 // ElevationDuration converts a requested duration in seconds to a
-// time.Duration, clamping absurdly large or negative values to a safe range so
-// the subsequent time.Time.Add cannot overflow into a past timestamp.
+// time.Duration, clamping the seconds (before multiplying) to a safe range so
+// the subsequent multiply cannot overflow. Negative values are preserved so the
+// client can still cancel an elevation (the UI sends durationSeconds: -1, which
+// must set elevatedUntil in the past rather than grant a fresh elevation).
 func ElevationDuration(seconds int) time.Duration {
-	if seconds <= 0 {
-		return DefaultElevationDuration
+	if seconds > maxElevationSeconds {
+		seconds = maxElevationSeconds
+	} else if seconds < -maxElevationSeconds {
+		seconds = -maxElevationSeconds
 	}
-	d := time.Duration(seconds) * time.Second
-	// Detect overflow (wrap to negative) or an intentionally huge value and
-	// clamp to the ceiling.
-	if d <= 0 || d > maxElevationDuration {
-		return maxElevationDuration
-	}
-	return d
+	return time.Duration(seconds) * time.Second
 }
