@@ -30,8 +30,8 @@ type SendMessageInput struct {
 	Title       string `json:"title,omitempty" jsonschema:"The message title. Defaults to the application name."`
 	Priority    *int   `json:"priority,omitempty" jsonschema:"The message priority. Higher values are more urgent: 0 is silent, 1-3 low, 4-7 normal, 8-10 high. Defaults to the application default priority."`
 	Markdown    bool   `json:"markdown,omitempty" jsonschema:"Whether the message content should be rendered as Markdown."`
-	ClickURL    string `json:"click_url,omitempty" jsonschema:"A URL to open when the notification is clicked."`
-	BigImageURL string `json:"big_image_url,omitempty" jsonschema:"A URL of an image to show in the notification."`
+	ClickURL    string `json:"click_url,omitempty" jsonschema:"A URL to open when the notification is clicked. Only supported by the Android client."`
+	BigImageURL string `json:"big_image_url,omitempty" jsonschema:"A URL of an image to show in the notification. Only supported by the Android client."`
 }
 
 // NewMCP creates a new MCPAPI.
