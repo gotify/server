@@ -12,20 +12,20 @@ func TestElevationDuration(t *testing.T) {
 		want    time.Duration
 	}{
 		{"normal", 900, 900 * time.Second},
-		{"zero falls back to default", 0, DefaultElevationDuration},
-		{"negative falls back to default", -5, DefaultElevationDuration},
-		{"huge value is clamped", 9223372036854775807, maxElevationDuration},
-		{"just under ceiling is unchanged", 100 * 365 * 24 * 3600, maxElevationDuration},
+		{"zero stays zero", 0, 0},
+		// Negative values must be preserved so the client can cancel an
+		// elevation (UI sends -1); they must NOT become a positive duration.
+		{"cancel -1 preserved", -1, -1 * time.Second},
+		{"huge clamped to max", 9223372036854775807, maxElevationSeconds * time.Second},
+		// Values that would overflow when multiplied but land positive are
+		// clamped by clamping seconds first.
+		{"overflow-positive clamped", 20023544073, maxElevationSeconds * time.Second},
+		{"large negative clamped", -9223372037, -maxElevationSeconds * time.Second},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got := ElevationDuration(c.seconds)
-			if got != c.want {
+			if got := ElevationDuration(c.seconds); got != c.want {
 				t.Fatalf("ElevationDuration(%d) = %v, want %v", c.seconds, got, c.want)
-			}
-			// The resulting time must always be in the future (no overflow).
-			if time.Now().Add(got).Before(time.Now()) {
-				t.Fatalf("ElevationDuration(%d) produced a past time", c.seconds)
 			}
 		})
 	}
