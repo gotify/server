@@ -343,6 +343,26 @@ func (s *ClientSuite) Test_ElevateClient_expectBadRequestOnMissingDuration() {
 	assert.Nil(s.T(), client.ElevatedUntil)
 }
 
+func (s *ClientSuite) Test_ElevateClient_clampsHugeDuration() {
+	s.db.User(5).Client(8)
+
+	test.WithUser(s.ctx, 5)
+	// A value that would overflow time.Duration must be clamped to the ceiling
+	// (not rejected, and not wrapped to a past timestamp).
+	s.ctx.AddParam("id", "8")
+	s.withElevateBody(`{"durationSeconds":9223372036854775807}`)
+
+	before := time.Now()
+	s.a.ElevateClient(s.ctx)
+
+	assert.Equal(s.T(), 204, s.ctx.Writer.Status())
+	client, err := s.db.GetClientByID(8)
+	assert.NoError(s.T(), err)
+	assert.NotNil(s.T(), client.ElevatedUntil)
+	// Must be in the future (overflow would have produced a past time).
+	assert.True(s.T(), client.ElevatedUntil.After(before), "elevatedUntil should be in the future, got %v", client.ElevatedUntil)
+}
+
 func (s *ClientSuite) withFormData(formData string) {
 	s.ctx.Request = httptest.NewRequest("POST", "/token", strings.NewReader(formData))
 	s.ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
