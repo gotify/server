@@ -2717,10 +2717,10 @@ mobx-utils@^6.1.1:
   resolved "https://registry.yarnpkg.com/mobx-utils/-/mobx-utils-6.1.1.tgz#61c66563e7646fb75462c189f4110a76d2e35768"
   integrity sha512-ZR4tOKucWAHOdMjqElRl2BEvrzK7duuDdKmsbEbt2kzgVpuLuoYLiDCjc3QwWQl8CmOlxPgaZQpZ7emwNqPkIg==
 
-mobx@^6.13.7:
-  version "6.16.1"
-  resolved "https://registry.yarnpkg.com/mobx/-/mobx-6.16.1.tgz#8b3166186d1298b1848395e10e64b5c43d6dc43b"
-  integrity sha512-syNcDdX3KT+Jq3je6eGjBhuc24Z68td2VG0zNFqRswaE433D9SNH5VRy/xrGbJsUixfppLLccXhAW9JSf6n+SQ==
+mobx@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/mobx/-/mobx-7.0.0.tgz#3228a0be641229a3c64ca5363fcbf4f605e6a8ce"
+  integrity sha512-J+hR/wq6RdBnB4QXQRqGrWL9vOOLKaYhXh0ooxLAW4AE72av10Y5+xiaxohUYmPZiUswfpxMjQooYqpWkv+Fxg==
 
 modern-tar@^0.7.6:
   version "0.7.6"
