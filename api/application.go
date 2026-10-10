@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -421,8 +422,16 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 				return
 			}
 			head := make([]byte, 261)
-			open, _ := file.Open()
-			open.Read(head)
+			open, err := file.Open()
+			if err != nil {
+				ctx.AbortWithError(500, err)
+				return
+			}
+			defer open.Close()
+			if _, err := open.Read(head); err != nil && err != io.EOF {
+				ctx.AbortWithError(500, err)
+				return
+			}
 			if !filetype.IsImage(head) {
 				ctx.AbortWithError(400, errors.New("file must be an image"))
 				return
