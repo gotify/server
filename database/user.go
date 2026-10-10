@@ -44,23 +44,19 @@ func (d *GormDatabase) GetUserByID(id uint) (*model.User, error) {
 	return nil, err
 }
 
-// CountUser returns the user count which satisfies the given condition.
-func (d *GormDatabase) CountUser(condition ...any) (int64, error) {
-	c := int64(-1)
+// GetUsers returns the users which satisfy the given condition.
+func (d *GormDatabase) GetUsers(condition ...any) ([]*model.User, error) {
+	users := make([]*model.User, 0)
 	handle := d.DB.Model(new(model.User))
 	if len(condition) == 1 {
 		handle = handle.Where(condition[0])
 	} else if len(condition) > 1 {
 		handle = handle.Where(condition[0], condition[1:]...)
 	}
-	err := handle.Count(&c).Error
-	return c, err
-}
-
-// GetUsers returns all users.
-func (d *GormDatabase) GetUsers() ([]*model.User, error) {
-	var users []*model.User
-	err := d.DB.Find(&users).Error
+	err := handle.Find(&users).Error
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
 	return users, err
 }
 
