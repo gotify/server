@@ -32,21 +32,6 @@
       "autoReplaceStringTemplate": "{{{newValue}}}",
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/^go.mod$/"
-      ],
-      "depTypeTemplate": "language",
-      "matchStrings": [
-        "toolchain go(?<currentValue>[0-9.]+)\\n"
-      ],
-      "extractVersionTemplate": "^(?<version>.+)-linux-amd64$",
-      "depNameTemplate": "docker.io/gotify/build",
-      "autoReplaceStringTemplate": "toolchain go{{{newValue}}}\n",
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker"
     }
   ],
   "ignoreDeps": [
