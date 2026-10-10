@@ -3,6 +3,8 @@ package api
 import (
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -438,19 +440,24 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 				return generateImageName() + ext
 			})
 
-			err = ctx.SaveUploadedFile(file, a.ImageDir+name)
+			err = saveImage(file, a.ImageDir+name)
 			if err != nil {
 				ctx.AbortWithError(500, err)
 				return
 			}
 
-			if app.Image != "" {
-				os.Remove(a.ImageDir + app.Image)
+			oldImage := app.Image
+			app.Image = name
+			if err := a.DB.UpdateApplication(app); err != nil {
+				// The application still references the old image, so keep
+				// it and drop the new one that nothing references.
+				os.Remove(a.ImageDir + name)
+				ctx.AbortWithError(500, err)
+				return
 			}
 
-			app.Image = name
-			if success := successOrAbort(ctx, 500, a.DB.UpdateApplication(app)); !success {
-				return
+			if oldImage != "" {
+				os.Remove(a.ImageDir + oldImage)
 			}
 			ctx.JSON(200, withResolvedImage(app))
 		} else {
@@ -531,6 +538,34 @@ func withResolvedImage(app *model.Application) *model.Application {
 		app.Image = "image/" + app.Image
 	}
 	return app
+}
+
+// saveImage writes the uploaded file to dst. If it can't be written
+// completely, the partially written file is removed.
+func saveImage(file *multipart.FileHeader, dst string) error {
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	return writeImage(dst, src)
+}
+
+func writeImage(dst string, src io.Reader) (err error) {
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if closeErr := out.Close(); err == nil {
+			err = closeErr
+		}
+		if err != nil {
+			os.Remove(dst)
+		}
+	}()
+	_, err = io.Copy(out, src)
+	return err
 }
 
 func exist(path string) bool {
