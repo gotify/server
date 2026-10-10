@@ -36,6 +36,10 @@ type Cors struct {
 	AllowHeaders []string
 }
 
+type MCP struct {
+	Enabled bool
+}
+
 type Server struct {
 	KeepAlivePeriodSeconds int
 	ListenAddr             string
@@ -87,6 +91,7 @@ type Configuration struct {
 	Registration      bool
 	LocalAuthEnabled  bool
 	OIDC              OIDC
+	MCP               MCP
 	NoColor           string
 }
 
@@ -125,6 +130,9 @@ func Get() (*Configuration, []FutureLog) {
 			Scopes:        []string{"openid", "profile", "email"},
 			IDPName:       "OIDC",
 			Prompt:        []string{"login"},
+		},
+		MCP: MCP{
+			Enabled: true,
 		},
 	}
 
@@ -177,6 +185,7 @@ func Get() (*Configuration, []FutureLog) {
 	add(parseString(&c.UploadedImagesDir, EnvUploadedImagesDir))
 	add(parseString(&c.PluginsDir, EnvPluginsDir))
 	add(parseBool(&c.Registration, EnvRegistration))
+	add(parseBool(&c.MCP.Enabled, EnvMCPEnabled))
 	add(parseBool(&c.LocalAuthEnabled, EnvLocalAuthEnabled))
 
 	add(parseBool(&c.OIDC.Enabled, EnvOIDCEnabled))

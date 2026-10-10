@@ -38,6 +38,7 @@ func TestConfigEnv(t *testing.T) {
 	assert.Equal(t, "Company XYZ SSO", conf.OIDC.IDPName)
 	assert.Equal(t, []string{}, conf.OIDC.Prompt)
 	assert.Equal(t, []string{"openid", "profile", "email"}, conf.OIDC.Scopes)
+	assert.True(t, conf.MCP.Enabled, "should enable mcp by default")
 }
 
 func TestLocalAuthDisabled(t *testing.T) {

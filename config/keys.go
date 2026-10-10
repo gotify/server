@@ -32,6 +32,7 @@ const (
 	EnvUploadedImagesDir                = "GOTIFY_UPLOADEDIMAGESDIR"
 	EnvPluginsDir                       = "GOTIFY_PLUGINSDIR"
 	EnvRegistration                     = "GOTIFY_REGISTRATION"
+	EnvMCPEnabled                       = "GOTIFY_MCP_ENABLED"
 	EnvLocalAuthEnabled                 = "GOTIFY_LOCALAUTH_ENABLED"
 	EnvOIDCEnabled                      = "GOTIFY_OIDC_ENABLED"
 	EnvOIDCIssuer                       = "GOTIFY_OIDC_ISSUER"
