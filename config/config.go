@@ -50,7 +50,6 @@ type Server struct {
 	Cors                   Cors
 	TrustedProxies         []string
 	SecureCookie           bool
-	MCP                    MCP
 }
 
 type Database struct {
@@ -92,6 +91,7 @@ type Configuration struct {
 	Registration      bool
 	LocalAuthEnabled  bool
 	OIDC              OIDC
+	MCP               MCP
 	NoColor           string
 }
 
@@ -110,9 +110,6 @@ func Get() (*Configuration, []FutureLog) {
 			},
 			Stream: Stream{
 				PingPeriodSeconds: 45,
-			},
-			MCP: MCP{
-				Enabled: true,
 			},
 		},
 		Database: Database{
@@ -133,6 +130,9 @@ func Get() (*Configuration, []FutureLog) {
 			Scopes:        []string{"openid", "profile", "email"},
 			IDPName:       "OIDC",
 			Prompt:        []string{"login"},
+		},
+		MCP: MCP{
+			Enabled: true,
 		},
 	}
 
@@ -174,7 +174,6 @@ func Get() (*Configuration, []FutureLog) {
 
 	add(parseList(&c.Server.TrustedProxies, EnvServerTrustedProxies))
 	add(parseBool(&c.Server.SecureCookie, EnvServerSecureCookie))
-	add(parseBool(&c.Server.MCP.Enabled, EnvServerMCPEnabled))
 
 	add(parseString(&c.Database.Dialect, EnvDatabaseDialect))
 	add(parseString(&c.Database.Connection, EnvDatabaseConnection))
@@ -186,6 +185,7 @@ func Get() (*Configuration, []FutureLog) {
 	add(parseString(&c.UploadedImagesDir, EnvUploadedImagesDir))
 	add(parseString(&c.PluginsDir, EnvPluginsDir))
 	add(parseBool(&c.Registration, EnvRegistration))
+	add(parseBool(&c.MCP.Enabled, EnvMCPEnabled))
 	add(parseBool(&c.LocalAuthEnabled, EnvLocalAuthEnabled))
 
 	add(parseBool(&c.OIDC.Enabled, EnvOIDCEnabled))

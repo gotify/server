@@ -33,7 +33,7 @@ func startMCPServer(t *testing.T, enabled bool) (*testdb.Database, *httptest.Ser
 	g, closable := Create(
 		db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0"},
-		&config.Configuration{PassStrength: 5, LocalAuthEnabled: true, Server: config.Server{MCP: config.MCP{Enabled: enabled}}},
+		&config.Configuration{PassStrength: 5, LocalAuthEnabled: true, MCP: config.MCP{Enabled: enabled}},
 	)
 	server := httptest.NewServer(g)
 	t.Cleanup(func() {
