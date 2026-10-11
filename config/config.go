@@ -50,6 +50,7 @@ type Server struct {
 	Cors                   Cors
 	TrustedProxies         []string
 	SecureCookie           bool
+	MaxBodyBytes           int
 }
 
 type Database struct {
@@ -111,6 +112,7 @@ func Get() (*Configuration, []FutureLog) {
 			Stream: Stream{
 				PingPeriodSeconds: 45,
 			},
+			MaxBodyBytes: 10 * 1024 * 1024,
 		},
 		Database: Database{
 			Dialect:    "sqlite3",
@@ -174,6 +176,7 @@ func Get() (*Configuration, []FutureLog) {
 
 	add(parseList(&c.Server.TrustedProxies, EnvServerTrustedProxies))
 	add(parseBool(&c.Server.SecureCookie, EnvServerSecureCookie))
+	add(parseInt(&c.Server.MaxBodyBytes, EnvServerMaxBodyBytes))
 
 	add(parseString(&c.Database.Dialect, EnvDatabaseDialect))
 	add(parseString(&c.Database.Connection, EnvDatabaseConnection))

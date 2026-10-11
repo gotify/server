@@ -43,6 +43,7 @@ func (s *IntegrationSuite) BeforeTest(string, string) {
 		s.db.GormDatabase,
 		&model.VersionInfo{Version: "1.0.0", BuildDate: "2018-02-20-17:30:47", Commit: "asdasds"},
 		&config.Configuration{
+			Server:           config.Server{MaxBodyBytes: 1024},
 			PassStrength:     5,
 			LocalAuthEnabled: true,
 			OIDC:             config.OIDC{IDPName: "Company XYZ SSO"},
@@ -359,6 +360,22 @@ func (s *IntegrationSuite) TestSendMessage() {
 	assert.Equal(s.T(), "backup done", msg.Title)
 	assert.Equal(s.T(), uint(1), msg.ID)
 	assert.Equal(s.T(), token.ID, msg.ApplicationID)
+}
+
+func (s *IntegrationSuite) TestMaxBodyBytes() {
+	s.db.User(2).AppWithToken(1, "Aapp")
+
+	// 1024 bytes, exactly the configured limit.
+	req := s.newRequest("POST", "message", `{"message":"`+strings.Repeat("a", 1010)+`"}`)
+	req.Header.Add("X-Gotify-Key", "Aapp")
+	res, err := client.Do(req)
+	assert.Nil(s.T(), err)
+	assert.Equal(s.T(), 200, res.StatusCode)
+
+	// 1025 bytes, one byte over the limit.
+	req = s.newRequest("POST", "message", `{"message":"`+strings.Repeat("a", 1011)+`"}`)
+	req.Header.Add("X-Gotify-Key", "Aapp")
+	doRequestAndExpect(s.T(), req, 413, `{"error":"Request Entity Too Large", "errorCode":413, "errorDescription":"http: request body too large"}`)
 }
 
 func (s *IntegrationSuite) TestPluginLoadFail_expectPanic() {
