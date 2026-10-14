@@ -117,7 +117,13 @@ export class MessagesStore {
 
     @action
     public removeSingle = async (message: IMessage) => {
-        if (!this.pendingDeletes.has(message.id)) {
+        // Claim the pending delete before awaiting the request.  The entry is
+        // removed (and the undo snackbar closed) up front so that a second
+        // invocation — e.g. the browser firing both `pagehide` and
+        // `beforeunload` — can no longer pass the guard while the first
+        // request is still in flight.  Doing this after the `await` used to
+        // send two DELETEs for the same id, the second one 404ing.
+        if (!this.cancelPendingDelete(message)) {
             return;
         }
 
@@ -131,7 +137,6 @@ export class MessagesStore {
         if (this.exists(message.appid)) {
             this.removeFromList(this.state[message.appid].messages, message);
         }
-        this.cancelPendingDelete(message);
     };
 
     public sendMessage = async (
