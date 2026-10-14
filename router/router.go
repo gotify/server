@@ -43,6 +43,12 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	g.Use(accessLogger(), gin.Recovery(), gerror.Handler(), location.Default())
 	g.NoRoute(gerror.NotFound())
 
+	if conf.Server.MaxBodyBytes > 0 {
+		g.Use(func(ctx *gin.Context) {
+			ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, int64(conf.Server.MaxBodyBytes))
+		})
+	}
+
 	if conf.Server.SSL.Enabled && conf.Server.SSL.RedirectToHTTPS {
 		g.Use(func(ctx *gin.Context) {
 			if ctx.Request.TLS != nil {
