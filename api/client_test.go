@@ -254,9 +254,24 @@ func (s *ClientSuite) Test_UpdateClient_expectSuccess() {
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	test.BodyEquals(s.T(), &model.Client{ID: 1, Name: "firefox", CreatedAt: testdb.Now}, s.recorder)
 	if client, err := s.db.GetClientByID(1); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), expected, client)
 	}
+}
+
+func (s *ClientSuite) Test_UpdateClient_doesNotExposeToken_andNormalizesElevatedUntil() {
+	expired := testdb.Now.Add(-time.Minute)
+	s.db.User(5).ClientWithToken(1, "CVHA0kbE4q8f2TmLnXu7yRs")
+	assert.NoError(s.T(), s.db.UpdateClientElevatedUntil(1, &expired))
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=firefox")
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+	s.a.UpdateClient(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	test.BodyEquals(s.T(), &model.Client{ID: 1, Name: "firefox", CreatedAt: testdb.Now}, s.recorder)
 }
 
 func (s *ClientSuite) Test_UpdateClient_expectNotFound() {

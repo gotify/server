@@ -591,7 +591,7 @@ func (s *ApplicationSuite) Test_RemoveAppImage_expectSuccess() {
 	s.db.User(5)
 
 	imageFile := "existing.png"
-	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Image: imageFile})
+	s.db.CreateApplication(&model.Application{UserID: 5, ID: 1, Token: "AQm3x-Zp9LwKt7RbN2cYf5h", Image: imageFile})
 	fakeImage(s.T(), s.imageDir.Path(imageFile))
 
 	test.WithUser(s.ctx, 5)
@@ -603,6 +603,7 @@ func (s *ApplicationSuite) Test_RemoveAppImage_expectSuccess() {
 	assert.True(s.T(), os.IsNotExist(err))
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	assert.NotContains(s.T(), s.recorder.Body.String(), "AQm3x-Zp9LwKt7RbN2cYf5h")
 }
 
 func (s *ApplicationSuite) Test_UpdateApplicationNameAndDescription_expectSuccess() {
@@ -624,6 +625,14 @@ func (s *ApplicationSuite) Test_UpdateApplicationNameAndDescription_expectSucces
 	}
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	test.BodyEquals(s.T(), &model.Application{
+		ID:          2,
+		Name:        "new_name",
+		Description: "new_description_text",
+		Image:       "static/defaultapp.png",
+		SortKey:     "a0",
+		CreatedAt:   testdb.Now,
+	}, s.recorder)
 	if app, err := s.db.GetApplicationByID(2); assert.NoError(s.T(), err) {
 		assert.Equal(s.T(), expected, app)
 	}

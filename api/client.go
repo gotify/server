@@ -106,6 +106,7 @@ func (a *ClientAPI) UpdateClient(ctx *gin.Context) {
 				if success := successOrAbort(ctx, 500, a.DB.UpdateClient(client)); !success {
 					return
 				}
+				sanitizeClient(client, time.Now())
 				ctx.JSON(200, client)
 			}
 		} else {
@@ -200,12 +201,16 @@ func (a *ClientAPI) GetClients(ctx *gin.Context) {
 	}
 	now := time.Now()
 	for _, client := range clients {
-		client.Token = ""
-		if client.ElevatedUntil != nil && !now.Before(*client.ElevatedUntil) {
-			client.ElevatedUntil = nil
-		}
+		sanitizeClient(client, now)
 	}
 	ctx.JSON(200, clients)
+}
+
+func sanitizeClient(client *model.Client, now time.Time) {
+	client.Token = ""
+	if client.ElevatedUntil != nil && !now.Before(*client.ElevatedUntil) {
+		client.ElevatedUntil = nil
+	}
 }
 
 // DeleteClient deletes a client by its id.

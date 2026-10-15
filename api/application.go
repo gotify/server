@@ -109,8 +109,9 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 			handleApplicationError(ctx, err)
 			return
 		}
+		sanitizeApplication(&app)
 		app.Token = tokenPrivate
-		ctx.JSON(200, withResolvedImage(&app))
+		ctx.JSON(200, &app)
 	}
 }
 
@@ -145,8 +146,7 @@ func (a *ApplicationAPI) GetApplications(ctx *gin.Context) {
 		return
 	}
 	for _, app := range apps {
-		app.Token = ""
-		withResolvedImage(app)
+		sanitizeApplication(app)
 	}
 	ctx.JSON(200, apps)
 }
@@ -274,7 +274,7 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 					handleApplicationError(ctx, err)
 					return
 				}
-				ctx.JSON(200, withResolvedImage(app))
+				ctx.JSON(200, sanitizeApplication(app))
 			}
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
@@ -467,7 +467,7 @@ func (a *ApplicationAPI) UploadApplicationImage(ctx *gin.Context) {
 			if oldImage != "" {
 				os.Remove(a.ImageDir + oldImage)
 			}
-			ctx.JSON(200, withResolvedImage(app))
+			ctx.JSON(200, sanitizeApplication(app))
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
 		}
@@ -531,14 +531,15 @@ func (a *ApplicationAPI) RemoveApplicationImage(ctx *gin.Context) {
 				return
 			}
 			os.Remove(a.ImageDir + image)
-			ctx.JSON(200, withResolvedImage(app))
+			ctx.JSON(200, sanitizeApplication(app))
 		} else {
 			ctx.AbortWithError(404, fmt.Errorf("app with id %d doesn't exists", id))
 		}
 	})
 }
 
-func withResolvedImage(app *model.Application) *model.Application {
+func sanitizeApplication(app *model.Application) *model.Application {
+	app.Token = ""
 	if app.Image == "" {
 		// This must stay in sync with the isDefaultImage check in ui/src/application/Applications.tsx.
 		app.Image = "static/defaultapp.png"
