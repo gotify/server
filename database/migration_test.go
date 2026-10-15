@@ -7,7 +7,6 @@ import (
 	"github.com/gotify/server/v3/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +21,7 @@ type MigrationSuite struct {
 
 func (s *MigrationSuite) BeforeTest(suiteName, testName string) {
 	s.tmpDir = test.NewTmpDir("gotify_migrationsuite")
-	db, err := gorm.Open(sqlite.Open(s.tmpDir.Path("test_obsolete.db")), &gorm.Config{})
+	db, err := gorm.Open(sqliteDialector(s.tmpDir.Path("test_obsolete.db")), &gorm.Config{})
 	assert.NoError(s.T(), err)
 	sqlDB, err := db.DB()
 	assert.NoError(s.T(), err)

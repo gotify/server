@@ -15,7 +15,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -55,7 +54,7 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 	case "postgres":
 		db, err = gorm.Open(postgres.Open(connection), gormConfig)
 	case "sqlite3":
-		db, err = gorm.Open(sqlite.Open(connection), gormConfig)
+		db, err = gorm.Open(sqliteDialector(connection), gormConfig)
 	}
 
 	if err != nil {
