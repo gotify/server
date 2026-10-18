@@ -6,7 +6,6 @@ const AUDIO_REPEAT_DELAY = 1000;
 
 export const registerReactions = (stores: StoreMapping) => {
     window.addEventListener('pagehide', stores.messagesStore.executePendingDeletes);
-    window.addEventListener('beforeunload', stores.messagesStore.executePendingDeletes);
 
     const clearAll = () => {
         stores.messagesStore.clearAll();
