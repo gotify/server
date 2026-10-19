@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/database"
 	"github.com/gotify/server/v3/decaymap"
 	"github.com/gotify/server/v3/mode"
 	"github.com/gotify/server/v3/model"
@@ -49,7 +50,7 @@ func (s *OIDCSuite) BeforeTest(suiteName, testName string) {
 	s.db = testdb.NewDB(s.T())
 	s.notified = false
 	notifier := new(UserChangeNotifier)
-	notifier.OnUserAdded(func(uint) error {
+	notifier.OnUserAdded(func(tx *database.GormDatabase, uid uint) error {
 		s.notified = true
 		return nil
 	})
