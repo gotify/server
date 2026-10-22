@@ -22,18 +22,13 @@ var DefaultElevationDuration = time.Hour
 // (~292 years) and would otherwise wrap to a bogus (even past) timestamp.
 const maxElevation = 100 * 365 * 24 * time.Hour
 
-// ElevationDuration converts a requested duration in seconds to a
-// time.Duration, clamping to a safe range before multiplying so the result
-// cannot overflow. Negative requests collapse to a one-second past duration so
-// the client can still cancel an elevation (the UI sends durationSeconds: -1,
-// which must set elevatedUntil in the past rather than grant a fresh elevation).
-func ElevationDuration(seconds int) time.Duration {
-	s := int64(seconds)
-	if s > int64(maxElevation/time.Second) {
-		return maxElevation
+// ElevationTime calculates the time at which an elevation will expire.
+func ElevationTime(base time.Time, deltaSeconds int) time.Time {
+	if deltaSeconds > int(maxElevation/time.Second) {
+		deltaSeconds = int(maxElevation / time.Second)
 	}
-	if s < 0 {
-		return -time.Second
+	if deltaSeconds < 0 {
+		return time.Time{}
 	}
-	return time.Duration(s) * time.Second
+	return base.Add(time.Duration(deltaSeconds) * time.Second)
 }

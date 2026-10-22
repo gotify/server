@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestElevationDuration(t *testing.T) {
+func TestElevationTime(t *testing.T) {
 	// Use runtime variables so arithmetic doesn't happen as a constant
 	// expression and overflow Go's constant checker on either arch.
 	maxInt := math.MaxInt
@@ -24,25 +24,27 @@ func TestElevationDuration(t *testing.T) {
 		expectedForHuge = maxElevation
 	}
 
+	baseTime := time.Now()
+
 	cases := []struct {
 		name    string
 		seconds int
-		want    time.Duration
+		want    time.Time
 	}{
-		{"normal", 900, 900 * time.Second},
-		{"zero stays zero", 0, 0},
+		{"normal", 900, baseTime.Add(900 * time.Second)},
+		{"zero stays zero", 0, baseTime},
 		// Negative values collapse to a one-second past duration so the
 		// client can cancel an elevation (UI sends -1); they must NOT grant
 		// a fresh positive elevation.
-		{"cancel -1 preserved as past", -1, -time.Second},
-		{"large negative preserved as past", minInt, -time.Second},
+		{"negative value cancels", -1, time.Time{}},
+		{"large negative cancels", minInt, time.Time{}},
 		// A huge positive request is clamped on 64-bit; on 32-bit no clamp
 		// is reachable since math.MaxInt < maxElevationSeconds there.
-		{"huge clamped to max", maxInt, expectedForHuge},
+		{"huge clamped to max", maxInt, baseTime.Add(expectedForHuge)},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if got := ElevationDuration(c.seconds); got != c.want {
+			if got := ElevationTime(baseTime, c.seconds); got != c.want {
 				t.Fatalf("ElevationDuration(%d) = %v, want %v", c.seconds, got, c.want)
 			}
 		})

@@ -358,6 +358,27 @@ func (s *ClientSuite) Test_ElevateClient_expectBadRequestOnMissingDuration() {
 	assert.Nil(s.T(), client.ElevatedUntil)
 }
 
+func (s *ClientSuite) Test_ElevateClient_cancelSuccess() {
+	s.db.User(5).Client(8)
+
+	test.WithUser(s.ctx, 5)
+	elevatedUntil := time.Now().Add(1 * time.Hour)
+	err := s.db.UpdateClientElevatedUntil(8, &elevatedUntil)
+	assert.NoError(s.T(), err)
+	client, err := s.db.GetClientByID(8)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), elevatedUntil.Unix(), client.ElevatedUntil.Unix())
+
+	s.withElevateRequest(8, -1)
+
+	s.a.ElevateClient(s.ctx)
+
+	assert.Equal(s.T(), 204, s.ctx.Writer.Status())
+	client, err = s.db.GetClientByID(8)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), &time.Time{}, client.ElevatedUntil)
+}
+
 func (s *ClientSuite) Test_ElevateClient_clampsHugeDuration() {
 	s.db.User(5).Client(8)
 
