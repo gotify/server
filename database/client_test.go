@@ -5,6 +5,7 @@ import (
 
 	"github.com/gotify/server/v3/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func (s *DatabaseSuite) TestClient() {
@@ -192,5 +193,21 @@ func (s *DatabaseSuite) TestClientSelectHidesExpired() {
 	if cs, err := s.db.GetClientsByUser(user.ID); assert.NoError(s.T(), err) {
 		assert.Len(s.T(), cs, 1)
 		assert.Equal(s.T(), valid.Token, cs[0].Token)
+	}
+}
+
+func (s *DatabaseSuite) TestUpdateDeletedClientDoesNotRecreateIt() {
+	user := &model.User{Name: "stale", Pass: []byte{1}}
+	require.NoError(s.T(), s.db.CreateUser(user))
+
+	client := &model.Client{UserID: user.ID, Token: "CSTALE", Name: "android"}
+	require.NoError(s.T(), s.db.CreateClient(client))
+	require.NoError(s.T(), s.db.DeleteClientByID(client.ID))
+
+	client.Name = "renamed"
+	assert.NoError(s.T(), s.db.UpdateClient(client))
+
+	if c, err := s.db.GetClientByID(client.ID); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), c)
 	}
 }

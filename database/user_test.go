@@ -180,3 +180,16 @@ func (s *DatabaseSuite) TestDeleteUserDeletesApplicationsAndClientsAndPluginConf
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), msg)
 }
+
+func (s *DatabaseSuite) TestUpdateDeletedUserDoesNotRecreateIt() {
+	user := &model.User{Name: "stale", Pass: []byte{1}}
+	require.NoError(s.T(), s.db.CreateUser(user))
+	require.NoError(s.T(), s.db.DeleteUserByID(user.ID))
+
+	user.Admin = true
+	assert.NoError(s.T(), s.db.UpdateUser(user))
+
+	if u, err := s.db.GetUserByID(user.ID); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), u)
+	}
+}
