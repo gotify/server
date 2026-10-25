@@ -33,9 +33,9 @@ func TestElevationTime(t *testing.T) {
 	}{
 		{"normal", 900, baseTime.Add(900 * time.Second)},
 		{"zero stays zero", 0, baseTime},
-		// Negative values collapse to a one-second past duration so the
-		// client can cancel an elevation (UI sends -1); they must NOT grant
-		// a fresh positive elevation.
+		// Negative values collapse to the zero time so the client can cancel
+		// an elevation (UI sends -1); they must NOT grant a fresh positive
+		// elevation.
 		{"negative value cancels", -1, time.Time{}},
 		{"large negative cancels", minInt, time.Time{}},
 		// A huge positive request is clamped on 64-bit; on 32-bit no clamp
@@ -45,7 +45,7 @@ func TestElevationTime(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			if got := ElevationTime(baseTime, c.seconds); got != c.want {
-				t.Fatalf("ElevationDuration(%d) = %v, want %v", c.seconds, got, c.want)
+				t.Fatalf("ElevationTime(%d) = %v, want %v", c.seconds, got, c.want)
 			}
 		})
 	}
