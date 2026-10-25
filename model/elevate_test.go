@@ -33,11 +33,11 @@ func TestElevationTime(t *testing.T) {
 	}{
 		{"normal", 900, baseTime.Add(900 * time.Second)},
 		{"zero stays zero", 0, baseTime},
-		// Negative values collapse to the zero time so the client can cancel
-		// an elevation (UI sends -1); they must NOT grant a fresh positive
-		// elevation.
-		{"negative value cancels", -1, time.Time{}},
-		{"large negative cancels", minInt, time.Time{}},
+		// Negative values collapse to a one-second past duration so the
+		// client can cancel an elevation (UI sends -1); they must NOT grant
+		// a fresh positive elevation.
+		{"negative value cancels", -1, baseTime.Add(-time.Second)},
+		{"large negative cancels", minInt, baseTime.Add(-time.Second)},
 		// A huge positive request is clamped on 64-bit; on 32-bit no clamp
 		// is reachable since math.MaxInt < maxElevationSeconds there.
 		{"huge clamped to max", maxInt, baseTime.Add(expectedForHuge)},

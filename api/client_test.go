@@ -371,12 +371,13 @@ func (s *ClientSuite) Test_ElevateClient_cancelSuccess() {
 
 	s.withElevateRequest(8, -1)
 
+	before := time.Now()
 	s.a.ElevateClient(s.ctx)
 
 	assert.Equal(s.T(), 204, s.ctx.Writer.Status())
 	client, err = s.db.GetClientByID(8)
 	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), &time.Time{}, client.ElevatedUntil)
+	assert.True(s.T(), client.ElevatedUntil.Before(before))
 }
 
 func (s *ClientSuite) Test_ElevateClient_clampsHugeDuration() {
