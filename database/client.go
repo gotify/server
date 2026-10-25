@@ -60,7 +60,7 @@ func (d *GormDatabase) DeleteClientByID(id uint) error {
 // UpdateClient updates a client.
 func (d *GormDatabase) UpdateClient(client *model.Client) error {
 	client.PopulateExpiresAt()
-	return d.DB.Save(client).Error
+	return d.updateExisting(client)
 }
 
 // UpdateClientTokensLastUsed updates the last used timestamp of clients and
@@ -74,7 +74,7 @@ func (d *GormDatabase) UpdateClientTokensLastUsedAndExpiresAt(tokens []string, t
 		for _, c := range clients {
 			c.LastUsed = t
 			c.PopulateExpiresAt()
-			if err := tx.Save(c).Error; err != nil {
+			if err := tx.Model(c).Select("last_used", "expires_at").Updates(c).Error; err != nil {
 				return err
 			}
 		}

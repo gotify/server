@@ -112,6 +112,10 @@ func New(dialect, connection, defaultUser, defaultPass string, strength int, cre
 	return &GormDatabase{DB: db}, nil
 }
 
+func (d *GormDatabase) updateExisting(value any) error {
+	return d.DB.Select("*").Updates(value).Error
+}
+
 func fillMissingCreatedAt(db *gorm.DB, now time.Time) error {
 	models := []any{
 		new(model.User),
