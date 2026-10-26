@@ -80,7 +80,7 @@ func (c *PluginAPI) GetPlugins(ctx *gin.Context) {
 				Website:      info.Website,
 				License:      info.License,
 				Enabled:      conf.Enabled,
-				Capabilities: inst.Supports().Strings(),
+				Capabilities: inst.Instance().Supports().Strings(),
 			})
 		}
 	}
@@ -255,7 +255,7 @@ func (c *PluginAPI) GetDisplay(ctx *gin.Context) {
 			ctx.AbortWithError(404, errors.New("plugin instance not found"))
 			return
 		}
-		ctx.JSON(200, instance.GetDisplay(location.Get(ctx)))
+		ctx.JSON(200, instance.Instance().GetDisplay(location.Get(ctx)))
 	})
 }
 
@@ -317,7 +317,7 @@ func (c *PluginAPI) GetConfig(ctx *gin.Context) {
 			return
 		}
 
-		if aborted := supportOrAbort(ctx, instance, compat.Configurer); aborted {
+		if aborted := supportOrAbort(ctx, instance.Instance(), compat.Configurer); aborted {
 			return
 		}
 
@@ -381,11 +381,11 @@ func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 			return
 		}
 
-		if aborted := supportOrAbort(ctx, instance, compat.Configurer); aborted {
+		if aborted := supportOrAbort(ctx, instance.Instance(), compat.Configurer); aborted {
 			return
 		}
 
-		newConf := instance.DefaultConfig()
+		newConf := instance.Instance().DefaultConfig()
 		newconfBytes, err := io.ReadAll(ctx.Request.Body)
 		if err != nil {
 			ctx.AbortWithError(500, err)
@@ -395,7 +395,7 @@ func (c *PluginAPI) UpdateConfig(ctx *gin.Context) {
 			ctx.AbortWithError(400, err)
 			return
 		}
-		if err := instance.ValidateAndSetConfig(newConf); err != nil {
+		if err := instance.Instance().ValidateAndSetConfig(newConf); err != nil {
 			ctx.AbortWithError(400, err)
 			return
 		}

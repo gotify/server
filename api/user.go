@@ -9,48 +9,40 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v3/auth"
 	"github.com/gotify/server/v3/auth/password"
+	"github.com/gotify/server/v3/database"
 	"github.com/gotify/server/v3/model"
 )
 
-// The UserDatabase interface for encapsulating database access.
-type UserDatabase interface {
-	GetUsers() ([]*model.User, error)
-	GetUserByID(id uint) (*model.User, error)
-	GetUserByName(name string) (*model.User, error)
-	DeleteUserByID(id uint) error
-	UpdateUser(user *model.User) error
-	CreateUser(user *model.User) error
-	CountUser(condition ...any) (int64, error)
-}
+var errCannotDeleteLastAdmin = errors.New("cannot delete last admin")
 
 // UserChangeNotifier notifies listeners for user changes.
 type UserChangeNotifier struct {
-	userDeletedCallbacks []func(uid uint) error
-	userAddedCallbacks   []func(uid uint) error
+	userDeletedCallbacks []func(tx *database.GormDatabase, uid uint) error
+	userAddedCallbacks   []func(tx *database.GormDatabase, uid uint) error
 }
 
 // OnUserDeleted is called on user deletion.
-func (c *UserChangeNotifier) OnUserDeleted(cb func(uid uint) error) {
+func (c *UserChangeNotifier) OnUserDeleted(cb func(tx *database.GormDatabase, uid uint) error) {
 	c.userDeletedCallbacks = append(c.userDeletedCallbacks, cb)
 }
 
 // OnUserAdded is called on user creation.
-func (c *UserChangeNotifier) OnUserAdded(cb func(uid uint) error) {
+func (c *UserChangeNotifier) OnUserAdded(cb func(tx *database.GormDatabase, uid uint) error) {
 	c.userAddedCallbacks = append(c.userAddedCallbacks, cb)
 }
 
-func (c *UserChangeNotifier) fireUserDeleted(uid uint) error {
+func (c *UserChangeNotifier) fireUserDeleted(tx *database.GormDatabase, uid uint) error {
 	for _, cb := range c.userDeletedCallbacks {
-		if err := cb(uid); err != nil {
+		if err := cb(tx, uid); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (c *UserChangeNotifier) fireUserAdded(uid uint) error {
+func (c *UserChangeNotifier) fireUserAdded(tx *database.GormDatabase, uid uint) error {
 	for _, cb := range c.userAddedCallbacks {
-		if err := cb(uid); err != nil {
+		if err := cb(tx, uid); err != nil {
 			return err
 		}
 	}
@@ -59,7 +51,7 @@ func (c *UserChangeNotifier) fireUserAdded(uid uint) error {
 
 // The UserAPI provides handlers for managing users.
 type UserAPI struct {
-	DB                 UserDatabase
+	DB                 *database.GormDatabase
 	PasswordStrength   int
 	UserChangeNotifier *UserChangeNotifier
 	Registration       bool
@@ -222,11 +214,14 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 		}
 
 		if existingUser == nil {
-			if success := successOrAbort(ctx, 500, a.DB.CreateUser(internal)); !success {
-				return
-			}
-			if err := a.UserChangeNotifier.fireUserAdded(internal.ID); err != nil {
-				ctx.AbortWithError(500, err)
+			// this should not cause conflicts, so no need to retry
+			err = a.DB.Txn(func(txdb *database.GormDatabase) error {
+				if err := txdb.CreateUser(internal); err != nil {
+					return err
+				}
+				return a.UserChangeNotifier.fireUserAdded(txdb, internal.ID)
+			})
+			if success := successOrAbort(ctx, 500, err); !success {
 				return
 			}
 			ctx.JSON(200, toExternalUser(internal))
@@ -332,19 +327,26 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 			return
 		}
 		if user != nil {
-			adminCount, err := a.DB.CountUser(&model.User{Admin: true})
-			if success := successOrAbort(ctx, 500, err); !success {
-				return
+			for range 3 {
+				err = a.DB.Txn(func(txdb *database.GormDatabase) error {
+					if err := txdb.DeleteUserByID(id); err != nil {
+						return err
+					}
+					anotherAdmin, err := txdb.GetUsers(&model.User{Admin: true})
+					if err != nil {
+						return err
+					}
+					if user.Admin && len(anotherAdmin) == 0 {
+						ctx.AbortWithError(400, errCannotDeleteLastAdmin)
+						return errCannotDeleteLastAdmin
+					}
+					return a.UserChangeNotifier.fireUserDeleted(txdb, id)
+				})
+				if err == nil || ctx.IsAborted() {
+					return
+				}
 			}
-			if user.Admin && adminCount == 1 {
-				ctx.AbortWithError(400, errors.New("cannot delete last admin"))
-				return
-			}
-			if err := a.UserChangeNotifier.fireUserDeleted(id); err != nil {
-				ctx.AbortWithError(500, err)
-				return
-			}
-			successOrAbort(ctx, 500, a.DB.DeleteUserByID(id))
+			successOrAbort(ctx, 500, err)
 		} else {
 			ctx.AbortWithError(404, errors.New("user does not exist"))
 		}
@@ -459,15 +461,7 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 				return
 			}
 			if dbUser != nil {
-				adminCount, err := a.DB.CountUser(&model.User{Admin: true})
-				if success := successOrAbort(ctx, 500, err); !success {
-					return
-				}
-				if !updatedUser.Admin && dbUser.Admin && adminCount == 1 {
-					ctx.AbortWithError(400, errors.New("cannot delete last admin"))
-					return
-				}
-
+				dbUserWasAdmin := dbUser.Admin
 				dbUser.Name = updatedUser.Name
 				dbUser.Admin = updatedUser.Admin
 
@@ -483,10 +477,35 @@ func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 					}
 					dbUser.Pass = pw
 				}
-				if success := successOrAbort(ctx, 500, a.DB.UpdateUser(dbUser)); !success {
-					return
+
+				for range 3 {
+					err = a.DB.Txn(func(txdb *database.GormDatabase) error {
+						if err := txdb.UpdateUser(dbUser); err != nil {
+							return err
+						}
+
+						anotherAdmin, err := txdb.GetUsers(&model.User{Admin: true})
+						if err != nil {
+							return err
+						}
+						if !updatedUser.Admin && dbUserWasAdmin && len(anotherAdmin) == 0 {
+							ctx.AbortWithError(400, errCannotDeleteLastAdmin)
+							return errCannotDeleteLastAdmin
+						}
+
+						return nil
+					})
+
+					if ctx.IsAborted() {
+						return
+					}
+
+					if err == nil {
+						ctx.JSON(200, toExternalUser(dbUser))
+						return
+					}
 				}
-				ctx.JSON(200, toExternalUser(dbUser))
+				ctx.AbortWithError(500, err)
 			} else {
 				ctx.AbortWithError(404, errors.New("user does not exist"))
 			}

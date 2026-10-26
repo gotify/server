@@ -519,7 +519,7 @@ func (a *OIDCAPI) registerUser(username, oidcID string, hasAdminGroup bool) (*mo
 		return nil, http.StatusInternalServerError, fmt.Errorf("failed to create user: %w", err)
 	}
 	log.Info().Str("oidc_id", oidcID).Str("username", user.Name).Bool("admin", user.Admin).Msg("OIDC auto registration")
-	if err := a.UserChangeNotifier.fireUserAdded(user.ID); err != nil {
+	if err := a.UserChangeNotifier.fireUserAdded(a.DB, user.ID); err != nil {
 		log.Error().Err(err).Uint("user_id", user.ID).Msg("Could not notify user change")
 	}
 	return user, 0, nil
