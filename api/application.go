@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v3/auth"
+	"github.com/gotify/server/v3/fracdex"
 	"github.com/gotify/server/v3/model"
 	"github.com/h2non/filetype"
 	"gorm.io/gorm"
@@ -94,6 +95,9 @@ type ApplicationParams struct {
 func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 	applicationParams := ApplicationParams{}
 	if err := ctx.Bind(&applicationParams); err == nil {
+		if !validateSortKey(ctx, applicationParams.SortKey) {
+			return
+		}
 		tokenPublic, tokenPrivate := generateApplicationToken()
 		app := model.Application{
 			Name:            applicationParams.Name,
@@ -263,6 +267,9 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 		if app != nil && app.UserID == auth.GetUserID(ctx) {
 			applicationParams := ApplicationParams{}
 			if err := ctx.Bind(&applicationParams); err == nil {
+				if !validateSortKey(ctx, applicationParams.SortKey) {
+					return
+				}
 				app.Description = applicationParams.Description
 				app.Name = applicationParams.Name
 				app.DefaultPriority = applicationParams.DefaultPriority
@@ -600,6 +607,14 @@ func ValidApplicationImageExt(ext string) bool {
 	default:
 		return false
 	}
+}
+
+func validateSortKey(ctx *gin.Context, sortKey string) bool {
+	if err := fracdex.ValidateOrderKey(sortKey); err != nil {
+		ctx.AbortWithError(400, err)
+		return false
+	}
+	return true
 }
 
 func handleApplicationError(ctx *gin.Context, err error) {

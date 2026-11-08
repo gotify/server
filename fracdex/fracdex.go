@@ -19,17 +19,11 @@ const (
 // If b is empty it indicates largest key.
 // b must be empty string or > a.
 func KeyBetween(a, b string) (string, error) {
-	if a != "" {
-		err := validateOrderKey(a)
-		if err != nil {
-			return "", err
-		}
+	if err := ValidateOrderKey(a); err != nil {
+		return "", err
 	}
-	if b != "" {
-		err := validateOrderKey(b)
-		if err != nil {
-			return "", err
-		}
+	if err := ValidateOrderKey(b); err != nil {
+		return "", err
 	}
 	if a != "" && b != "" && a >= b {
 		return "", fmt.Errorf("%s >= %s", a, b)
@@ -192,7 +186,13 @@ func getIntPart(key string) (string, error) {
 	return key[0:intPartLen], nil
 }
 
-func validateOrderKey(key string) error {
+func ValidateOrderKey(key string) error {
+	if key == "" {
+		return nil
+	}
+	if len(key) > 255 {
+		return fmt.Errorf("invalid order key: too long")
+	}
 	if key == smallestInt {
 		return fmt.Errorf("invalid order key: %s", key)
 	}
@@ -294,7 +294,7 @@ func Float64Approx(key string) (float64, error) {
 		return 0.0, errors.New("invalid order key")
 	}
 
-	err := validateOrderKey(key)
+	err := ValidateOrderKey(key)
 	if err != nil {
 		return 0.0, err
 	}
