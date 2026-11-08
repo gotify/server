@@ -12,6 +12,7 @@ const (
 	base62Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	smallestInt  = "A00000000000000000000000000"
 	zero         = "a0"
+	maxKeyLen    = 255
 )
 
 // KeyBetween returns a key that sorts lexicographically between a and b.
@@ -25,6 +26,17 @@ func KeyBetween(a, b string) (string, error) {
 	if err := ValidateOrderKey(b); err != nil {
 		return "", err
 	}
+	key, err := keyBetweenInternal(a, b)
+	if err != nil {
+		return "", err
+	}
+	if len(key) > maxKeyLen {
+		return "", errors.New("range overflow")
+	}
+	return key, nil
+}
+
+func keyBetweenInternal(a, b string) (string, error) {
 	if a != "" && b != "" && a >= b {
 		return "", fmt.Errorf("%s >= %s", a, b)
 	}
@@ -193,7 +205,7 @@ func ValidateOrderKey(key string) error {
 	if key == "" {
 		return nil
 	}
-	if len(key) > 255 {
+	if len(key) > maxKeyLen {
 		return fmt.Errorf("invalid order key: too long")
 	}
 	if key == smallestInt {
