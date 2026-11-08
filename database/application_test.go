@@ -5,6 +5,7 @@ import (
 
 	"github.com/gotify/server/v3/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func (s *DatabaseSuite) TestApplication() {
@@ -97,5 +98,18 @@ func (s *DatabaseSuite) TestDeleteAppDeletesMessages() {
 	}
 	if msgs, err := s.db.GetMessagesByApplication(66); assert.NoError(s.T(), err) {
 		assert.NotEmpty(s.T(), msgs)
+	}
+}
+
+func (s *DatabaseSuite) TestUpdateDeletedApplicationDoesNotRecreateIt() {
+	app := &model.Application{UserID: 1, Token: "ASTALE", Name: "backup"}
+	require.NoError(s.T(), s.db.CreateApplication(app))
+	require.NoError(s.T(), s.db.DeleteApplicationByID(app.ID))
+
+	app.Name = "renamed"
+	assert.NoError(s.T(), s.db.UpdateApplication(app))
+
+	if a, err := s.db.GetApplicationByID(app.ID); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), a)
 	}
 }

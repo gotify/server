@@ -72,7 +72,7 @@ func (d *GormDatabase) GetApplicationsByUser(userID uint) ([]*model.Application,
 
 // UpdateApplication updates an application.
 func (d *GormDatabase) UpdateApplication(app *model.Application) error {
-	return d.DB.Save(app).Error
+	return d.updateExisting(app)
 }
 
 // UpdateApplicationTokenLastUsed updates the last used time of the application token.

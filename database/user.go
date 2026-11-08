@@ -83,7 +83,7 @@ func (d *GormDatabase) DeleteUserByID(id uint) error {
 
 // UpdateUser updates a user.
 func (d *GormDatabase) UpdateUser(user *model.User) error {
-	return d.DB.Save(user).Error
+	return d.updateExisting(user)
 }
 
 // CreateUser creates a user.

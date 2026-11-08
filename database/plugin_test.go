@@ -68,3 +68,16 @@ func (s *DatabaseSuite) TestPluginConf() {
 	assert.Equal(s.T(), false, pluginConf.Enabled)
 	assert.Equal(s.T(), testConf, string(pluginConf.Config))
 }
+
+func (s *DatabaseSuite) TestUpdateDeletedPluginConfDoesNotRecreateIt() {
+	conf := &model.PluginConf{UserID: 1, ModulePath: "github.com/gotify/stale", Token: "PSTALE"}
+	require.NoError(s.T(), s.db.CreatePluginConf(conf))
+	require.NoError(s.T(), s.db.DeletePluginConfByID(conf.ID))
+
+	conf.Enabled = true
+	assert.NoError(s.T(), s.db.UpdatePluginConf(conf))
+
+	if c, err := s.db.GetPluginConfByToken(conf.Token); assert.NoError(s.T(), err) {
+		assert.Nil(s.T(), c)
+	}
+}
