@@ -51,6 +51,9 @@ func KeyBetween(a, b string) (string, error) {
 		if res == "" {
 			return "", errors.New("range underflow")
 		}
+		if res == smallestInt {
+			return res + midpoint("", ""), nil
+		}
 		return res, nil
 	}
 
