@@ -116,3 +116,62 @@ func TestToFloat64Approx(t *testing.T) {
 	test("a400", 0.0, "invalid order key: a400")
 	test("a!", 0.0, "invalid order key: a!")
 }
+
+func FuzzValidateOrderKey(f *testing.F) {
+	for _, seed := range [][2]string{
+		{"", ""},
+		{"a0", "a1"},
+		{"Zz", "a0"},
+		{"a0V", "a1"},
+		{"", "Y00"},
+		{"bzz", ""},
+		{"b125", "b129"},
+		{"zzzzzzzzzzzzzzzzzzzzzzzzzzz", ""},
+		{"", "A00000000000000000000000001"},
+		{strings.Repeat("z", 255), strings.Repeat("z", 256)},
+		{"a0 ", "a0!"},
+	} {
+		f.Add(seed[0], seed[1])
+	}
+
+	f.Fuzz(func(t *testing.T, a, b string) {
+		// Validating must never panic
+		if ValidateOrderKey(a) != nil || ValidateOrderKey(b) != nil {
+			return
+		}
+
+		// Any valid key must be safe to use with other fracdex functions.
+		checkBetween := func(lo, hi string) {
+			if lo != "" && hi != "" && lo >= hi {
+				return
+			}
+			mid, err := KeyBetween(lo, hi)
+			if err != nil {
+				return
+			}
+			assert.NoError(t, ValidateOrderKey(mid), "KeyBetween(%q, %q) = %q", lo, hi, mid)
+			assert.NotEmpty(t, mid, "KeyBetween(%q, %q)", lo, hi)
+			if lo != "" {
+				assert.Greater(t, mid, lo, "KeyBetween(%q, %q) = %q", lo, hi, mid)
+			}
+			if hi != "" {
+				assert.Less(t, mid, hi, "KeyBetween(%q, %q) = %q", lo, hi, mid)
+			}
+		}
+
+		checkBetween(a, "")
+		checkBetween("", a)
+		checkBetween(b, "")
+		checkBetween("", b)
+		checkBetween(a, b)
+		checkBetween(b, a)
+
+		for _, key := range []string{a, b} {
+			if key == "" {
+				continue
+			}
+			_, err := Float64Approx(key)
+			assert.NoError(t, err, "Float64Approx(%q)", key)
+		}
+	})
+}
