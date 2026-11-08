@@ -203,6 +203,11 @@ func ValidateOrderKey(key string) error {
 	if err != nil {
 		return err
 	}
+	for _, c := range key {
+		if !strings.ContainsRune(base62Digits, c) {
+			return fmt.Errorf("invalid order key: %s", key)
+		}
+	}
 	f := key[len(i):]
 	if strings.HasSuffix(f, "0") {
 		return fmt.Errorf("invalid order key: %s", key)
