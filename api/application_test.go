@@ -103,6 +103,32 @@ func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnEmptyName() 
 	}
 }
 
+func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnTooLongSortKey() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=app&sortKey=" + strings.Repeat("z", 256))
+	s.a.CreateApplication(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), app)
+	}
+}
+
+func (s *ApplicationSuite) Test_CreateApplication_expectBadRequestOnInvalidSortKey() {
+	s.db.User(5)
+
+	test.WithUser(s.ctx, 5)
+	s.withFormData("name=app&sortKey=a10")
+	s.a.CreateApplication(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	if app, err := s.db.GetApplicationsByUser(5); assert.NoError(s.T(), err) {
+		assert.Empty(s.T(), app)
+	}
+}
+
 func (s *ApplicationSuite) Test_CreateApplication_ignoresReadOnlyPropertiesInParams() {
 	s.db.User(5)
 
@@ -762,6 +788,38 @@ func (s *ApplicationSuite) Test_UpdateApplication_duplicateSortKey() {
 
 	assert.EqualError(s.T(), s.ctx.Errors[0].Err, "sort key is not unique")
 	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
+func (s *ApplicationSuite) Test_UpdateApplication_expectBadRequestOnTooLongSortKey() {
+	user := s.db.User(5)
+	user.App(1) // sortKey=a0
+
+	s.withFormData("name=new_name&sortKey=" + strings.Repeat("z", 256))
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	s.a.UpdateApplication(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), "a0", app.SortKey)
+	}
+}
+
+func (s *ApplicationSuite) Test_UpdateApplication_expectBadRequestOnInvalidSortKey() {
+	user := s.db.User(5)
+	user.App(1) // sortKey=a0
+
+	s.withFormData("name=new_name&sortKey=a10")
+	test.WithUser(s.ctx, 5)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
+
+	s.a.UpdateApplication(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	if app, err := s.db.GetApplicationByID(1); assert.NoError(s.T(), err) {
+		assert.Equal(s.T(), "a0", app.SortKey)
+	}
 }
 
 func (s *ApplicationSuite) withFormData(formData string) {

@@ -12,6 +12,7 @@ const (
 	base62Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	smallestInt  = "A00000000000000000000000000"
 	zero         = "a0"
+	maxKeyLen    = 255
 )
 
 // KeyBetween returns a key that sorts lexicographically between a and b.
@@ -19,18 +20,23 @@ const (
 // If b is empty it indicates largest key.
 // b must be empty string or > a.
 func KeyBetween(a, b string) (string, error) {
-	if a != "" {
-		err := validateOrderKey(a)
-		if err != nil {
-			return "", err
-		}
+	if err := ValidateOrderKey(a); err != nil {
+		return "", err
 	}
-	if b != "" {
-		err := validateOrderKey(b)
-		if err != nil {
-			return "", err
-		}
+	if err := ValidateOrderKey(b); err != nil {
+		return "", err
 	}
+	key, err := keyBetweenInternal(a, b)
+	if err != nil {
+		return "", err
+	}
+	if len(key) > maxKeyLen {
+		return "", errors.New("range overflow")
+	}
+	return key, nil
+}
+
+func keyBetweenInternal(a, b string) (string, error) {
 	if a != "" && b != "" && a >= b {
 		return "", fmt.Errorf("%s >= %s", a, b)
 	}
@@ -56,6 +62,9 @@ func KeyBetween(a, b string) (string, error) {
 		}
 		if res == "" {
 			return "", errors.New("range underflow")
+		}
+		if res == smallestInt {
+			return res + midpoint("", ""), nil
 		}
 		return res, nil
 	}
@@ -192,7 +201,13 @@ func getIntPart(key string) (string, error) {
 	return key[0:intPartLen], nil
 }
 
-func validateOrderKey(key string) error {
+func ValidateOrderKey(key string) error {
+	if key == "" {
+		return nil
+	}
+	if len(key) > maxKeyLen {
+		return fmt.Errorf("invalid order key: too long")
+	}
 	if key == smallestInt {
 		return fmt.Errorf("invalid order key: %s", key)
 	}
@@ -202,6 +217,11 @@ func validateOrderKey(key string) error {
 	i, err := getIntPart(key)
 	if err != nil {
 		return err
+	}
+	for _, c := range key {
+		if !strings.ContainsRune(base62Digits, c) {
+			return fmt.Errorf("invalid order key: %s", key)
+		}
 	}
 	f := key[len(i):]
 	if strings.HasSuffix(f, "0") {
@@ -294,7 +314,7 @@ func Float64Approx(key string) (float64, error) {
 		return 0.0, errors.New("invalid order key")
 	}
 
-	err := validateOrderKey(key)
+	err := ValidateOrderKey(key)
 	if err != nil {
 		return 0.0, err
 	}
