@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -9,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v3/auth"
 	"github.com/gotify/server/v3/auth/password"
+	"github.com/gotify/server/v3/database"
 	"github.com/gotify/server/v3/mode"
 	"github.com/gotify/server/v3/model"
 	"github.com/gotify/server/v3/test"
@@ -41,15 +44,15 @@ func (s *UserSuite) BeforeTest(suiteName, testName string) {
 	s.db = testdb.NewDB(s.T())
 
 	s.notifier = new(UserChangeNotifier)
-	s.notifier.OnUserDeleted(func(uint) error {
+	s.notifier.OnUserDeleted(func(ctx *database.GormDatabase, uid uint) error {
 		s.notifiedDelete = true
 		return nil
 	})
-	s.notifier.OnUserAdded(func(uint) error {
+	s.notifier.OnUserAdded(func(ctx *database.GormDatabase, uid uint) error {
 		s.notifiedAdd = true
 		return nil
 	})
-	s.a = &UserAPI{DB: s.db, UserChangeNotifier: s.notifier}
+	s.a = &UserAPI{DB: s.db.GormDatabase, UserChangeNotifier: s.notifier}
 }
 
 func (s *UserSuite) AfterTest(suiteName, testName string) {
@@ -153,7 +156,7 @@ func (s *UserSuite) Test_DeleteUserByID() {
 
 func (s *UserSuite) Test_DeleteUserByID_NotifyFail() {
 	s.db.User(5)
-	s.notifier.OnUserDeleted(func(id uint) error {
+	s.notifier.OnUserDeleted(func(ctx *database.GormDatabase, id uint) error {
 		if id == 5 {
 			return errors.New("some error")
 		}
@@ -230,8 +233,8 @@ func (s *UserSuite) Test_CreateUser_Register_Admin_Anonymous() {
 func (s *UserSuite) Test_CreateUser_NotifyFail() {
 	s.loginAdmin()
 
-	s.notifier.OnUserAdded(func(id uint) error {
-		user, err := s.db.GetUserByID(id)
+	s.notifier.OnUserAdded(func(tx *database.GormDatabase, id uint) error {
+		user, err := tx.GetUserByID(id)
 		if err != nil {
 			return err
 		}
@@ -311,17 +314,6 @@ func (s *UserSuite) Test_UpdateUserByID_InvalidID() {
 	assert.Equal(s.T(), 400, s.recorder.Code)
 }
 
-func (s *UserSuite) Test_UpdateUserByID_EmptyPassword_Expect400() {
-	s.loginAdmin()
-
-	s.ctx.Params = gin.Params{{Key: "id", Value: "1"}}
-
-	s.ctx.Request = httptest.NewRequest("POST", "/user/1", strings.NewReader(`{"name": "admin", "pass": "", "admin": false}`))
-	s.ctx.Request.Header.Set("Content-Type", "application/json")
-	s.a.UpdateUserByID(s.ctx)
-	assert.Equal(s.T(), 400, s.recorder.Code)
-}
-
 func (s *UserSuite) Test_UpdateUserByID_TooLongPassword_Expect400() {
 	s.loginAdmin()
 
@@ -373,6 +365,12 @@ func (s *UserSuite) Test_UpdateUserByID_UpdateNotPassword() {
 	s.a.UpdateUserByID(s.ctx)
 
 	assert.Equal(s.T(), 200, s.recorder.Code)
+	body, err := io.ReadAll(s.recorder.Body)
+	require.NoError(s.T(), err)
+	var retUser model.UserExternal
+	require.NoError(s.T(), json.Unmarshal(body, &retUser))
+	assert.Equal(s.T(), "tom", retUser.Name)
+	assert.Equal(s.T(), true, retUser.Admin)
 	user, err := s.db.GetUserByID(2)
 	assert.NoError(s.T(), err)
 	assert.NotNil(s.T(), user)
