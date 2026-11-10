@@ -1007,12 +1007,12 @@
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-2.1.0.tgz#052aa67a48eccc4309d7f0191b7e41434b90bb78"
   integrity sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==
 
-"@types/node@^25.9.3":
-  version "25.9.4"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.9.4.tgz#18b63c47f88c1fbbed9d55ea2b66ffd494a47001"
-  integrity sha512-dszCsrKb5U7ZsVZBWiHFklTloVl0mSEnWH/iZXfZUlI4rzCUnsvGmgqfuVRHL54ugE7/wRuxEIXRa2iMZ+BG6g==
+"@types/node@^26.0.0":
+  version "26.6.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.6.5.tgz#cb35209e7767c503551b5fa42a48231c7441d979"
+  integrity sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==
   dependencies:
-    undici-types ">=7.24.0 <7.24.7"
+    undici-types "~8.9.0"
 
 "@types/notifyjs@^3.0.5":
   version "3.0.5"
@@ -3296,10 +3296,10 @@ typescript@^6.0.0:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-6.0.3.tgz#90251dc007916e972786cb94d74d15b185577d21"
   integrity sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==
 
-"undici-types@>=7.24.0 <7.24.7":
-  version "7.24.6"
-  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-7.24.6.tgz#61275b485d7fd4e9d269c7cf04ec2873c9cc0f91"
-  integrity sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg==
+undici-types@~8.9.0:
+  version "8.9.0"
+  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-8.9.0.tgz#e240d97c8b5d85e5347ce73d25865c7906c1ec9f"
+  integrity sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==
 
 unified@^11.0.0:
   version "11.0.5"
