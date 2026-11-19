@@ -364,9 +364,15 @@ func (s *IntegrationSuite) TestSendMessage() {
 
 func (s *IntegrationSuite) TestUpdateMessage() {
 	s.db.User(1).ClientWithToken(1, "Cclient")
-	s.db.User(1).AppWithToken(1, "Abackup")
-	s.db.User(1).AppWithToken(2, "Aother")
-	s.db.User(2).AppWithToken(3, "Aforeign")
+	for _, app := range []*model.Application{
+		s.db.User(1).NewAppWithToken(1, "Abackup"),
+		s.db.User(1).NewAppWithToken(2, "Aother"),
+		s.db.User(2).NewAppWithToken(3, "Aforeign"),
+	} {
+		app.AllowMessageUpdate = true
+		assert.Nil(s.T(), s.db.UpdateApplication(app))
+	}
+	s.db.User(1).AppWithToken(4, "Anotallowed")
 
 	req := s.newRequest("POST", "message", `{"message": "Backup 40%", "title": "Backup"}`)
 	req.Header.Add("X-Gotify-Key", "Abackup")
@@ -390,6 +396,10 @@ func (s *IntegrationSuite) TestUpdateMessage() {
 	req = s.newRequest("PUT", "message/1000", `{"message": "Backup 100%"}`)
 	req.Header.Add("X-Gotify-Key", "Abackup")
 	doRequestAndExpect(s.T(), req, 404, notFound)
+
+	req = s.newRequest("PUT", path, `{"message": "Backup 100%"}`)
+	req.Header.Add("X-Gotify-Key", "Anotallowed")
+	doRequestAndExpect(s.T(), req, 403, `{"error":"Forbidden", "errorCode":403, "errorDescription":"updating messages is not enabled for this application"}`)
 
 	for _, token := range []string{"Cclient", "Ainvalid"} {
 		req = s.newRequest("PUT", path, `{"message": "Backup 100%"}`)

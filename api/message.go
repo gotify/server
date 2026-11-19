@@ -402,6 +402,9 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 //
 // Update a message.
 //
+// Updating has to be enabled per application (`allowMessageUpdate`), it is disabled
+// by default. Otherwise 403 is returned.
+//
 // Only the application that created the message can update it. The message keeps
 // its id and creation date. Title, message, priority and extras are replaced with
 // the values from the request body, the same defaults as for creating a message apply:
@@ -456,11 +459,15 @@ func (a *MessageAPI) UpdateMessage(ctx *gin.Context) {
 		}
 
 		app := auth.GetApplication(ctx)
+		if app == nil || !app.AllowMessageUpdate {
+			ctx.AbortWithError(403, errors.New("updating messages is not enabled for this application"))
+			return
+		}
 		msg, err := a.DB.GetMessageByID(id)
 		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
-		if app == nil || msg == nil || msg.ApplicationID != app.ID {
+		if msg == nil || msg.ApplicationID != app.ID {
 			ctx.AbortWithError(404, errors.New("message does not exist"))
 			return
 		}

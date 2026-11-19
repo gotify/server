@@ -1650,7 +1650,7 @@
             "appTokenQuery": []
           }
         ],
-        "description": "Only the application that created the message can update it. The message keeps\nits id and creation date. Title, message, priority and extras are replaced with\nthe values from the request body, the same defaults as for creating a message apply:\nan omitted title or priority falls back to the application defaults and omitted\nextras are removed. Any \"appid\" in the body is ignored.\n\nClients connected to the stream with `updates=true` receive the updated message.",
+        "description": "Updating has to be enabled per application (`allowMessageUpdate`), it is disabled\nby default. Otherwise 403 is returned.\n\nOnly the application that created the message can update it. The message keeps\nits id and creation date. Title, message, priority and extras are replaced with\nthe values from the request body, the same defaults as for creating a message apply:\nan omitted title or priority falls back to the application defaults and omitted\nextras are removed. Any \"appid\" in the body is ignored.\n\nClients connected to the stream with `updates=true` receive the updated message.",
         "consumes": [
           "application/json"
         ],
@@ -2629,10 +2629,17 @@
         "description",
         "internal",
         "image",
+        "allowMessageUpdate",
         "createdAt",
         "sortKey"
       ],
       "properties": {
+        "allowMessageUpdate": {
+          "description": "Whether the application may update its own messages with its application token.\nDisabled by default, it has to be enabled per application.",
+          "type": "boolean",
+          "x-go-name": "AllowMessageUpdate",
+          "example": false
+        },
         "createdAt": {
           "description": "The date the application was created.",
           "type": "string",
@@ -2714,6 +2721,12 @@
         "name"
       ],
       "properties": {
+        "allowMessageUpdate": {
+          "description": "Whether the application may update its own messages with its application token.\nDefaults to false on create. When omitted on update, the current value is kept.",
+          "type": "boolean",
+          "x-go-name": "AllowMessageUpdate",
+          "example": false
+        },
         "defaultPriority": {
           "description": "The default priority of messages sent by this application. Defaults to 0.",
           "type": "integer",

@@ -286,6 +286,16 @@ describe('Messages', () => {
                 headers: {'X-Gotify-Key': token},
             });
 
+        const allowMessageUpdate = async (name: string) => {
+            const apps = await axios.get<IApplication[]>(`${gotify.url}/application`, axiosAuth);
+            const app = apps.data.find((a) => a.name === name)!;
+            await axios.put(
+                `${gotify.url}/application/${app.id}`,
+                {...app, allowMessageUpdate: true},
+                axiosAuth
+            );
+        };
+
         it('creates a message', async () => {
             id = (await createMessage(progress, backupServerToken)).data.id;
             await expectMessages({
@@ -295,6 +305,15 @@ describe('Messages', () => {
                 backup: [progress, backup2, backup1],
             });
             expect(await count(page, '#messages .message .edited')).toBe(0);
+        });
+        it('does not update when updates are not allowed for the application', async () => {
+            await expect(updateMessage(done, backupServerToken)).rejects.toMatchObject({
+                response: {status: 403},
+            });
+        });
+        it('allows updates for the applications', async () => {
+            await allowMessageUpdate('Backup');
+            await allowMessageUpdate('Linux');
         });
         it('updates the message without reload', async () => {
             await updateMessage(done, backupServerToken);
