@@ -42,6 +42,7 @@ export interface IMessage {
     title: string;
     priority: number;
     date: string;
+    updated?: string;
     image?: string;
     extras?: IMessageExtras;
 }

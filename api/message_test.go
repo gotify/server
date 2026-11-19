@@ -28,6 +28,7 @@ type MessageSuite struct {
 	ctx             *gin.Context
 	recorder        *httptest.ResponseRecorder
 	notifiedMessage *model.MessageExternal
+	updatedMessage  *model.MessageExternal
 }
 
 func (s *MessageSuite) BeforeTest(suiteName, testName string) {
@@ -37,6 +38,7 @@ func (s *MessageSuite) BeforeTest(suiteName, testName string) {
 	s.ctx.Request = httptest.NewRequest("GET", "/irrelevant", nil)
 	s.db = testdb.NewDB(s.T())
 	s.notifiedMessage = nil
+	s.updatedMessage = nil
 	s.a = &MessageAPI{DB: s.db, Notifier: s}
 }
 
@@ -46,6 +48,10 @@ func (s *MessageSuite) AfterTest(string, string) {
 
 func (s *MessageSuite) Notify(userID uint, msg *model.MessageExternal) {
 	s.notifiedMessage = msg
+}
+
+func (s *MessageSuite) NotifyUpdated(userID uint, msg *model.MessageExternal) {
+	s.updatedMessage = msg
 }
 
 func (s *MessageSuite) Test_ensureCorrectJsonRepresentation() {
@@ -647,6 +653,180 @@ func (s *MessageSuite) Test_CreateMessage_appToken_ignoresBodyAppId() {
 		assert.Empty(s.T(), msgs7)
 	}
 	assert.Equal(s.T(), 200, s.recorder.Code)
+}
+
+func (s *MessageSuite) Test_UpdateMessage() {
+	created, _ := time.Parse("2006/01/02", "2017/01/02")
+	updated, _ := time.Parse("2006/01/02", "2017/01/03")
+	timeNow = func() time.Time { return updated }
+	defer func() { timeNow = time.Now }()
+
+	app := s.db.User(4).NewAppWithTokenAndDefaultPriority(7, "app-token", 3)
+	s.db.CreateMessage(&model.Message{ID: 9, ApplicationID: 7, Title: "old", Message: "Backup 40%", Priority: 1, Date: created, Extras: []byte(`{"gotify::test":1}`)})
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "9"}}
+	s.ctx.Request = httptest.NewRequest("PUT", "/message/9", strings.NewReader(`{"title": "Backup", "message": "Backup 100%", "priority": 2}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateMessage(s.ctx)
+
+	expected := &model.MessageExternal{ID: 9, ApplicationID: 7, Title: "Backup", Message: "Backup 100%", Priority: intPtr(2), Date: created, Updated: &updated}
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	test.BodyEquals(s.T(), expected, s.recorder)
+	msg, err := s.db.GetMessageByID(9)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), expected, toExternalMessage(msg))
+	assert.Equal(s.T(), expected, s.updatedMessage)
+	assert.Nil(s.T(), s.notifiedMessage)
+}
+
+func (s *MessageSuite) Test_UpdateMessage_usesApplicationDefaults() {
+	s.db.User(4)
+	app := &model.Application{ID: 7, UserID: 4, Token: "app-token", Name: "backup-server", DefaultPriority: 3}
+	s.db.CreateApplication(app)
+	s.db.CreateMessage(&model.Message{ID: 9, ApplicationID: 7, Title: "old", Message: "old", Priority: 1})
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "9"}}
+	s.ctx.Request = httptest.NewRequest("PUT", "/message/9", strings.NewReader(`{"message": "new"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateMessage(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	msg, err := s.db.GetMessageByID(9)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "new", msg.Message)
+	assert.Equal(s.T(), "backup-server", msg.Title)
+	assert.Equal(s.T(), 3, msg.Priority)
+}
+
+func (s *MessageSuite) Test_UpdateMessage_replacesExtras() {
+	app := s.db.User(4).NewAppWithToken(7, "app-token")
+	s.db.CreateMessage(&model.Message{ID: 9, ApplicationID: 7, Message: "approve?", Extras: []byte(`{"gotify::old":{"a":1}}`)})
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "9"}}
+	s.ctx.Request = httptest.NewRequest("PUT", "/message/9", strings.NewReader(`{"message": "approved", "extras": {"gotify::new":{"b":2}}}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateMessage(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	msg, err := s.db.GetMessageByID(9)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), map[string]any{"gotify::new": map[string]any{"b": float64(2)}}, toExternalMessage(msg).Extras)
+}
+
+func (s *MessageSuite) Test_UpdateMessage_removesExtrasWhenOmitted() {
+	app := s.db.User(4).NewAppWithToken(7, "app-token")
+	s.db.CreateMessage(&model.Message{ID: 9, ApplicationID: 7, Message: "approve?", Extras: []byte(`{"gotify::old":{"a":1}}`)})
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "9"}}
+	s.ctx.Request = httptest.NewRequest("PUT", "/message/9", strings.NewReader(`{"message": "approved"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateMessage(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	msg, err := s.db.GetMessageByID(9)
+	assert.NoError(s.T(), err)
+	assert.Nil(s.T(), toExternalMessage(msg).Extras)
+}
+
+func (s *MessageSuite) Test_UpdateMessage_ignoresAppID() {
+	app := s.db.User(4).NewAppWithToken(7, "app-token")
+	s.db.User(4).App(8)
+	s.db.CreateMessage(&model.Message{ID: 9, ApplicationID: 7, Message: "old"})
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "9"}}
+	s.ctx.Request = httptest.NewRequest("PUT", "/message/9", strings.NewReader(`{"message": "new", "appid": 8}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateMessage(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	msg, err := s.db.GetMessageByID(9)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), uint(7), msg.ApplicationID)
+}
+
+func (s *MessageSuite) Test_UpdateMessage_messageOfOtherApplication() {
+	app := s.db.User(4).NewAppWithToken(7, "app-token")
+	s.db.User(4).App(8).Message(9)
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "9"}}
+	s.ctx.Request = httptest.NewRequest("PUT", "/message/9", strings.NewReader(`{"message": "new"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateMessage(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+	msg, err := s.db.GetMessageByID(9)
+	assert.NoError(s.T(), err)
+	assert.NotEqual(s.T(), "new", msg.Message)
+	assert.Nil(s.T(), msg.Updated)
+	assert.Nil(s.T(), s.updatedMessage)
+}
+
+func (s *MessageSuite) Test_UpdateMessage_messageOfOtherUser() {
+	app := s.db.User(4).NewAppWithToken(7, "app-token")
+	s.db.User(5).App(8).Message(9)
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "9"}}
+	s.ctx.Request = httptest.NewRequest("PUT", "/message/9", strings.NewReader(`{"message": "new"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateMessage(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+	assert.Nil(s.T(), s.updatedMessage)
+}
+
+func (s *MessageSuite) Test_UpdateMessage_notExistingID() {
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithToken(7, "app-token"))
+	s.ctx.Params = gin.Params{{Key: "id", Value: "9"}}
+	s.ctx.Request = httptest.NewRequest("PUT", "/message/9", strings.NewReader(`{"message": "new"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateMessage(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+	assert.Nil(s.T(), s.updatedMessage)
+}
+
+func (s *MessageSuite) Test_UpdateMessage_invalidID() {
+	auth.RegisterApplication(s.ctx, s.db.User(4).NewAppWithToken(7, "app-token"))
+	s.ctx.Params = gin.Params{{Key: "id", Value: "string"}}
+	s.ctx.Request = httptest.NewRequest("PUT", "/message/string", strings.NewReader(`{"message": "new"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateMessage(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+}
+
+func (s *MessageSuite) Test_UpdateMessage_failWhenNoMessage() {
+	app := s.db.User(4).NewAppWithToken(7, "app-token")
+	s.db.CreateMessage(&model.Message{ID: 9, ApplicationID: 7, Message: "old"})
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "9"}}
+	s.ctx.Request = httptest.NewRequest("PUT", "/message/9", strings.NewReader(`{"title": "new"}`))
+	s.ctx.Request.Header.Set("Content-Type", "application/json")
+
+	s.a.UpdateMessage(s.ctx)
+
+	assert.Equal(s.T(), 400, s.recorder.Code)
+	msg, err := s.db.GetMessageByID(9)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "old", msg.Message)
+	assert.Nil(s.T(), s.updatedMessage)
 }
 
 func (s *MessageSuite) withURL(scheme, host, path, query string) {

@@ -1638,6 +1638,82 @@
       }
     },
     "/message/{id}": {
+      "put": {
+        "security": [
+          {
+            "appTokenAuthorizationHeader": []
+          },
+          {
+            "appTokenHeader": []
+          },
+          {
+            "appTokenQuery": []
+          }
+        ],
+        "description": "Only the application that created the message can update it. The message keeps\nits id and creation date. Title, message, priority and extras are replaced with\nthe values from the request body, the same defaults as for creating a message apply:\nan omitted title or priority falls back to the application defaults and omitted\nextras are removed. Any \"appid\" in the body is ignored.\n\nClients connected to the stream with `updates=true` receive the updated message.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "message"
+        ],
+        "summary": "Update a message.",
+        "operationId": "updateMessage",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "the message id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "the new content of the message",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateMessage"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
       "delete": {
         "security": [
           {
@@ -2139,6 +2215,7 @@
             "basicAuth": []
           }
         ],
+        "description": "With `updates=true`, the stream additionally returns messages that were updated.\nAn updated message has the id of a message that was sent before and the `updated` field set.\nClients should replace the existing message with the same id instead of adding a new one.",
         "produces": [
           "application/json"
         ],
@@ -2147,6 +2224,15 @@
         ],
         "summary": "Websocket, return newly created messages.",
         "operationId": "streamMessages",
+        "parameters": [
+          {
+            "type": "boolean",
+            "default": false,
+            "description": "also return updated messages",
+            "name": "updates",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Ok",
@@ -3082,6 +3168,14 @@
           "type": "string",
           "x-go-name": "Title",
           "example": "Backup"
+        },
+        "updated": {
+          "description": "The date the message was last updated. Not set if the message was never updated.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Updated",
+          "readOnly": true,
+          "example": "2018-02-27T19:40:12.1234567+01:00"
         }
       },
       "x-go-name": "MessageExternal",

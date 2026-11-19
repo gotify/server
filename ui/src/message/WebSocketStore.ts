@@ -20,7 +20,7 @@ export class WebSocketStore {
         this.wsActive = true;
 
         const wsUrl = config.get('url').replace('http', 'ws').replace('https', 'wss');
-        const ws = new WebSocket(wsUrl + 'stream');
+        const ws = new WebSocket(wsUrl + 'stream?updates=true');
 
         ws.onerror = (e) => {
             this.wsActive = false;

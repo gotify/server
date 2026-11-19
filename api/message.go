@@ -24,6 +24,7 @@ type MessageDatabase interface {
 	DeleteMessagesByUser(userID uint) error
 	DeleteMessagesByApplication(applicationID uint) error
 	CreateMessage(message *model.Message) error
+	UpdateMessage(message *model.Message) error
 }
 
 var timeNow = time.Now
@@ -33,10 +34,16 @@ type Notifier interface {
 	Notify(userID uint, message *model.MessageExternal)
 }
 
+// MessageNotifier notifies when a message was created or updated.
+type MessageNotifier interface {
+	Notifier
+	NotifyUpdated(userID uint, message *model.MessageExternal)
+}
+
 // The MessageAPI provides handlers for managing messages.
 type MessageAPI struct {
 	DB       MessageDatabase
-	Notifier Notifier
+	Notifier MessageNotifier
 }
 
 type pagingParams struct {
@@ -390,8 +397,105 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 	ctx.JSON(200, created)
 }
 
+// UpdateMessage updates a message, authentication via application token is required.
+// swagger:operation PUT /message/{id} message updateMessage
+//
+// Update a message.
+//
+// Only the application that created the message can update it. The message keeps
+// its id and creation date. Title, message, priority and extras are replaced with
+// the values from the request body, the same defaults as for creating a message apply:
+// an omitted title or priority falls back to the application defaults and omitted
+// extras are removed. Any "appid" in the body is ignored.
+//
+// Clients connected to the stream with `updates=true` receive the updated message.
+//
+//	---
+//	consumes: [application/json]
+//	produces: [application/json]
+//	security: [appTokenAuthorizationHeader: [], appTokenHeader: [], appTokenQuery: []]
+//	parameters:
+//	- name: id
+//	  in: path
+//	  description: the message id
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	- name: body
+//	  in: body
+//	  description: the new content of the message
+//	  required: true
+//	  schema:
+//	    $ref: "#/definitions/CreateMessage"
+//	responses:
+//	  200:
+//	    description: Ok
+//	    schema:
+//	      $ref: "#/definitions/Message"
+//	  400:
+//	    description: Bad Request
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  401:
+//	    description: Unauthorized
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  404:
+//	    description: Not Found
+//	    schema:
+//	        $ref: "#/definitions/Error"
+func (a *MessageAPI) UpdateMessage(ctx *gin.Context) {
+	withID(ctx, "id", func(id uint) {
+		update := model.CreateMessage{}
+		if err := ctx.Bind(&update); err != nil {
+			return
+		}
+
+		app := auth.GetApplication(ctx)
+		msg, err := a.DB.GetMessageByID(id)
+		if success := successOrAbort(ctx, 500, err); !success {
+			return
+		}
+		if app == nil || msg == nil || msg.ApplicationID != app.ID {
+			ctx.AbortWithError(404, errors.New("message does not exist"))
+			return
+		}
+
+		applyApplicationDefaults(app, &update)
+		updated := toInternalMessage(&update)
+		now := timeNow()
+		msg.Title = updated.Title
+		msg.Message = updated.Message
+		msg.Priority = updated.Priority
+		msg.Extras = updated.Extras
+		msg.Updated = &now
+		if success := successOrAbort(ctx, 500, a.DB.UpdateMessage(msg)); !success {
+			return
+		}
+
+		external := toExternalMessage(msg)
+		a.Notifier.NotifyUpdated(app.UserID, external)
+		ctx.JSON(200, external)
+	})
+}
+
 // createMessage fills in defaults from the application, stores the message and notifies the user.
 func (a *MessageAPI) createMessage(app *model.Application, message *model.CreateMessage) (*model.MessageExternal, error) {
+	applyApplicationDefaults(app, message)
+	msgInternal := toInternalMessage(message)
+	if err := a.DB.CreateMessage(msgInternal); err != nil {
+		return nil, err
+	}
+	a.Notifier.Notify(app.UserID, toExternalMessage(msgInternal))
+	return toExternalMessage(msgInternal), nil
+}
+
+// applyApplicationDefaults sets the application id and fills in the title and priority from the application if unset.
+func applyApplicationDefaults(app *model.Application, message *model.CreateMessage) {
 	message.ApplicationID = app.ID
 	if strings.TrimSpace(message.Title) == "" {
 		message.Title = app.Name
@@ -400,13 +504,6 @@ func (a *MessageAPI) createMessage(app *model.Application, message *model.Create
 	if message.Priority == nil {
 		message.Priority = &app.DefaultPriority
 	}
-
-	msgInternal := toInternalMessage(message)
-	if err := a.DB.CreateMessage(msgInternal); err != nil {
-		return nil, err
-	}
-	a.Notifier.Notify(app.UserID, toExternalMessage(msgInternal))
-	return toExternalMessage(msgInternal), nil
 }
 
 func toInternalMessage(msg *model.CreateMessage) *model.Message {
@@ -434,6 +531,7 @@ func toExternalMessage(msg *model.Message) *model.MessageExternal {
 		Title:         msg.Title,
 		Priority:      &msg.Priority,
 		Date:          msg.Date,
+		Updated:       msg.Updated,
 	}
 	if len(msg.Extras) != 0 {
 		res.Extras = make(map[string]any)
