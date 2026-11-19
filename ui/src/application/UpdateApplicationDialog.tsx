@@ -4,6 +4,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import {NumberField} from '../common/NumberField';
@@ -11,26 +13,34 @@ import React, {useState} from 'react';
 
 interface IProps {
     fClose: VoidFunction;
-    fOnSubmit: (name: string, description: string, defaultPriority: number) => Promise<void>;
+    fOnSubmit: (
+        name: string,
+        description: string,
+        defaultPriority: number,
+        allowMessageDelete: boolean
+    ) => Promise<void>;
     initialName: string;
     initialDescription: string;
     initialDefaultPriority: number;
+    initialAllowMessageDelete: boolean;
 }
 
 export const UpdateApplicationDialog = ({
     initialName,
     initialDescription,
     initialDefaultPriority,
+    initialAllowMessageDelete,
     fClose,
     fOnSubmit,
 }: IProps) => {
     const [name, setName] = useState(initialName);
     const [description, setDescription] = useState(initialDescription);
     const [defaultPriority, setDefaultPriority] = useState(initialDefaultPriority);
+    const [allowMessageDelete, setAllowMessageDelete] = useState(initialAllowMessageDelete);
 
     const submitEnabled = name.length !== 0;
     const submitAndClose = async () => {
-        await fOnSubmit(name, description, defaultPriority);
+        await fOnSubmit(name, description, defaultPriority, allowMessageDelete);
         fClose();
     };
 
@@ -65,6 +75,16 @@ export const UpdateApplicationDialog = ({
                     value={defaultPriority}
                     onChange={(e) => setDefaultPriority(e)}
                     fullWidth
+                />
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={allowMessageDelete}
+                            className="allow-message-delete"
+                            onChange={(e) => setAllowMessageDelete(e.target.checked)}
+                        />
+                    }
+                    label="Allow the application to delete its own messages"
                 />
             </DialogContent>
             <DialogActions>

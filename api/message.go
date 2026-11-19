@@ -272,7 +272,8 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 // Deletes a message with an id.
 //
 // __NOTE__: When authenticating with an application token, only messages
-// of this application can be deleted.
+// of this application can be deleted. This has to be enabled per application
+// (`allowMessageDelete`), it is disabled by default. Otherwise 403 is returned.
 //
 //	---
 //	produces: [application/json]
@@ -305,6 +306,10 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 //	        $ref: "#/definitions/Error"
 func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
+		if tokenApp := auth.GetApplication(ctx); tokenApp != nil && !tokenApp.AllowMessageDelete {
+			ctx.AbortWithError(403, errors.New("deleting messages is not enabled for this application"))
+			return
+		}
 		msg, err := a.DB.GetMessageByID(id)
 		if success := successOrAbort(ctx, 500, err); !success {
 			return

@@ -273,7 +273,7 @@ func (s *MessageSuite) Test_DeleteMessage_appToken() {
 	app, err := s.db.GetApplicationByID(1)
 	assert.NoError(s.T(), err)
 
-	auth.RegisterApplication(s.ctx, app)
+	auth.RegisterApplication(s.ctx, allowDeletes(app))
 	s.ctx.Params = gin.Params{{Key: "id", Value: "50"}}
 	s.a.DeleteMessage(s.ctx)
 
@@ -288,7 +288,7 @@ func (s *MessageSuite) Test_DeleteMessage_appToken_messageOfOtherApp() {
 	app, err := s.db.GetApplicationByID(1)
 	assert.NoError(s.T(), err)
 
-	auth.RegisterApplication(s.ctx, app)
+	auth.RegisterApplication(s.ctx, allowDeletes(app))
 	s.ctx.Params = gin.Params{{Key: "id", Value: "50"}}
 	s.a.DeleteMessage(s.ctx)
 
@@ -302,7 +302,7 @@ func (s *MessageSuite) Test_DeleteMessage_appToken_messageOfOtherUser() {
 	app, err := s.db.GetApplicationByID(1)
 	assert.NoError(s.T(), err)
 
-	auth.RegisterApplication(s.ctx, app)
+	auth.RegisterApplication(s.ctx, allowDeletes(app))
 	s.ctx.Params = gin.Params{{Key: "id", Value: "50"}}
 	s.a.DeleteMessage(s.ctx)
 
@@ -315,12 +315,30 @@ func (s *MessageSuite) Test_DeleteMessage_appToken_notExistingID() {
 	app, err := s.db.GetApplicationByID(1)
 	assert.NoError(s.T(), err)
 
-	auth.RegisterApplication(s.ctx, app)
+	auth.RegisterApplication(s.ctx, allowDeletes(app))
 	s.ctx.Params = gin.Params{{Key: "id", Value: "51"}}
 	s.a.DeleteMessage(s.ctx)
 
 	assert.Equal(s.T(), 404, s.recorder.Code)
 	s.db.AssertMessageExist(50)
+}
+
+func (s *MessageSuite) Test_DeleteMessage_appToken_notAllowedForApplication() {
+	s.db.User(6).AppWithToken(1, "Aapp").Message(50)
+	app, err := s.db.GetApplicationByID(1)
+	assert.NoError(s.T(), err)
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "50"}}
+	s.a.DeleteMessage(s.ctx)
+
+	assert.Equal(s.T(), 403, s.recorder.Code)
+	s.db.AssertMessageExist(50)
+}
+
+func allowDeletes(app *model.Application) *model.Application {
+	app.AllowMessageDelete = true
+	return app
 }
 
 func (s *MessageSuite) Test_DeleteMessageWithID() {

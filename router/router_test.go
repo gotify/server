@@ -364,16 +364,29 @@ func (s *IntegrationSuite) TestSendMessage() {
 
 func (s *IntegrationSuite) TestDeleteMessage() {
 	user := s.db.User(2)
-	user.AppWithToken(1, "Aapp").Message(10).Message(11)
+	user.AppWithToken(1, "Aapp").Message(10).Message(11).Message(12)
 	user.AppWithToken(2, "Aother").Message(20)
 	user.ClientWithToken(1, "Cclient")
 	s.db.User(3).AppWithToken(3, "Aforeign").Message(30)
+
+	forbidden := `{"error":"Forbidden", "errorCode":403, "errorDescription":"deleting messages is not enabled for this application"}`
+
+	// deleting is disabled by default
+	req := s.newRequest("DELETE", "message/12", "")
+	req.Header.Set("X-Gotify-Key", "Aapp")
+	doRequestAndExpect(s.T(), req, 403, forbidden)
+	s.db.AssertMessageExist(12)
+
+	app, err := s.db.GetApplicationByID(1)
+	assert.Nil(s.T(), err)
+	app.AllowMessageDelete = true
+	assert.Nil(s.T(), s.db.UpdateApplication(app))
 
 	notFound := `{"error":"Not Found", "errorCode":404, "errorDescription":"message does not exist"}`
 	unauthorized := `{"error":"Unauthorized", "errorCode":401, "errorDescription":"you need to provide a valid access token or user credentials to access this api"}`
 
 	// own message with application token
-	req := s.newRequest("DELETE", "message/10", "")
+	req = s.newRequest("DELETE", "message/10", "")
 	req.Header.Set("X-Gotify-Key", "Aapp")
 	res, err := client.Do(req)
 	assert.Nil(s.T(), err)

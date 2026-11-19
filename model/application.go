@@ -48,6 +48,12 @@ type Application struct {
 	// required: false
 	// example: 4
 	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`
+	// Whether the application may delete its own messages with its application token.
+	// Disabled by default, it has to be enabled per application.
+	//
+	// required: true
+	// example: false
+	AllowMessageDelete bool `gorm:"not null;default:false" form:"allowMessageDelete" query:"allowMessageDelete" json:"allowMessageDelete"`
 	// The date the application was created.
 	//
 	// read only: true
