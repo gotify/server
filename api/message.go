@@ -271,9 +271,12 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 //
 // Deletes a message with an id.
 //
+// __NOTE__: When authenticating with an application token, only messages
+// of this application can be deleted.
+//
 //	---
 //	produces: [application/json]
-//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	security: [appTokenAuthorizationHeader: [], appTokenHeader: [], appTokenQuery: [], clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 //	parameters:
 //	- name: id
 //	  in: path
@@ -308,6 +311,14 @@ func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 		}
 		if msg == nil {
 			ctx.AbortWithError(404, errors.New("message does not exist"))
+			return
+		}
+		if tokenApp := auth.GetApplication(ctx); tokenApp != nil {
+			if msg.ApplicationID == tokenApp.ID {
+				successOrAbort(ctx, 500, a.DB.DeleteMessageByID(id))
+			} else {
+				ctx.AbortWithError(404, errors.New("message does not exist"))
+			}
 			return
 		}
 		app, err := a.DB.GetApplicationByID(msg.ApplicationID)

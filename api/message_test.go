@@ -268,6 +268,61 @@ func (s *MessageSuite) Test_DeleteMessage() {
 	s.db.AssertMessageNotExist(50)
 }
 
+func (s *MessageSuite) Test_DeleteMessage_appToken() {
+	s.db.User(6).AppWithToken(1, "Aapp").Message(50)
+	app, err := s.db.GetApplicationByID(1)
+	assert.NoError(s.T(), err)
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "50"}}
+	s.a.DeleteMessage(s.ctx)
+
+	assert.Equal(s.T(), 200, s.recorder.Code)
+	s.db.AssertMessageNotExist(50)
+}
+
+func (s *MessageSuite) Test_DeleteMessage_appToken_messageOfOtherApp() {
+	user := s.db.User(6)
+	user.AppWithToken(1, "Aapp")
+	user.AppWithToken(2, "Aother").Message(50)
+	app, err := s.db.GetApplicationByID(1)
+	assert.NoError(s.T(), err)
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "50"}}
+	s.a.DeleteMessage(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+	s.db.AssertMessageExist(50)
+}
+
+func (s *MessageSuite) Test_DeleteMessage_appToken_messageOfOtherUser() {
+	s.db.User(6).AppWithToken(1, "Aapp")
+	s.db.User(7).AppWithToken(2, "Aother").Message(50)
+	app, err := s.db.GetApplicationByID(1)
+	assert.NoError(s.T(), err)
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "50"}}
+	s.a.DeleteMessage(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+	s.db.AssertMessageExist(50)
+}
+
+func (s *MessageSuite) Test_DeleteMessage_appToken_notExistingID() {
+	s.db.User(6).AppWithToken(1, "Aapp").Message(50)
+	app, err := s.db.GetApplicationByID(1)
+	assert.NoError(s.T(), err)
+
+	auth.RegisterApplication(s.ctx, app)
+	s.ctx.Params = gin.Params{{Key: "id", Value: "51"}}
+	s.a.DeleteMessage(s.ctx)
+
+	assert.Equal(s.T(), 404, s.recorder.Code)
+	s.db.AssertMessageExist(50)
+}
+
 func (s *MessageSuite) Test_DeleteMessageWithID() {
 	s.db.User(2).AppWithToken(5, "mytoken").Message(55)
 

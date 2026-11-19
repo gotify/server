@@ -1641,6 +1641,15 @@
       "delete": {
         "security": [
           {
+            "appTokenAuthorizationHeader": []
+          },
+          {
+            "appTokenHeader": []
+          },
+          {
+            "appTokenQuery": []
+          },
+          {
             "clientTokenAuthorizationHeader": []
           },
           {
@@ -1653,6 +1662,7 @@
             "basicAuth": []
           }
         ],
+        "description": "__NOTE__: When authenticating with an application token, only messages\nof this application can be deleted.",
         "produces": [
           "application/json"
         ],
