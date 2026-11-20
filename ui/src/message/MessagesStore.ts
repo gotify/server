@@ -21,6 +21,7 @@ interface MessagesState {
     hasMore: boolean;
     nextSince: number;
     loaded: boolean;
+    loading: boolean;
 }
 
 interface PendingDelete {
@@ -31,8 +32,6 @@ interface PendingDelete {
 export class MessagesStore {
     @observable private accessor state: Record<string, MessagesState> = {};
     @observable private accessor pendingDeletes: Map<number, PendingDelete> = observable.map();
-
-    private loading = false;
 
     public constructor(
         private readonly appStore: BaseStore<IApplication>,
@@ -55,23 +54,26 @@ export class MessagesStore {
     @action
     public loadMore = async (appId: number) => {
         const state = this.stateOf(appId);
-        if (!state.hasMore || this.loading) {
+        if (!state.hasMore || state.loading) {
             return Promise.resolve();
         }
-        this.loading = true;
+        state.loading = true;
 
         try {
             const pagedResult = await this.fetchMessages(appId, state.nextSince).then(
                 (resp) => resp.data
             );
             runInAction(() => {
-                state.messages.replace([...state.messages, ...pagedResult.messages]);
+                const oldest = state.messages[state.messages.length - 1];
+                state.messages.push(
+                    ...pagedResult.messages.filter(({id}) => !oldest || id < oldest.id)
+                );
                 state.nextSince = pagedResult.paging.since ?? 0;
                 state.hasMore = 'next' in pagedResult.paging;
                 state.loaded = true;
             });
         } finally {
-            this.loading = false;
+            runInAction(() => (state.loading = false));
         }
 
         return Promise.resolve();
@@ -79,12 +81,8 @@ export class MessagesStore {
 
     @action
     public publishSingleMessage = (message: IMessage) => {
-        if (this.exists(AllMessages)) {
-            this.stateOf(AllMessages).messages.unshift(message);
-        }
-        if (this.exists(message.appid)) {
-            this.stateOf(message.appid).messages.unshift(message);
-        }
+        this.stateOf(AllMessages).messages.unshift(message);
+        this.stateOf(message.appid).messages.unshift(message);
     };
 
     @action
@@ -132,12 +130,8 @@ export class MessagesStore {
             adapter: 'fetch',
             fetchOptions: {keepalive: true},
         });
-        if (this.exists(AllMessages)) {
-            this.removeFromList(this.state[AllMessages].messages, message);
-        }
-        if (this.exists(message.appid)) {
-            this.removeFromList(this.state[message.appid].messages, message);
-        }
+        this.removeFromList(this.stateOf(AllMessages).messages, message);
+        this.removeFromList(this.stateOf(message.appid).messages, message);
         this.cancelPendingDelete(message);
     };
 
@@ -170,8 +164,6 @@ export class MessagesStore {
         this.clearAll();
         this.loadMore(appId);
     };
-
-    public exists = (id: number) => this.stateOf(id).loaded;
 
     @action
     private removeFromList(messages: IMessage[], messageToDelete: IMessage): false | number {
@@ -234,5 +226,6 @@ export class MessagesStore {
         hasMore: true,
         nextSince: 0,
         loaded: false,
+        loading: false,
     });
 }
