@@ -838,6 +838,11 @@
     modern-tar "^0.7.6"
     yargs "^18.0.0"
 
+"@remix-run/route-pattern@^0.22.1":
+  version "0.22.1"
+  resolved "https://registry.yarnpkg.com/@remix-run/route-pattern/-/route-pattern-0.22.1.tgz#4937466528a59a7c9d882f725aac92536d20e010"
+  integrity sha512-czdGJWh09Lapvcqt7Vb09KlrU2PhRJ8xQaI+AItTuD9aDJ5MAgxnS38lnys6Ll+6RJEqPiaUqTwIQhVLwFvv+w==
+
 "@rolldown/binding-android-arm64@1.1.3":
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/@rolldown/binding-android-arm64/-/binding-android-arm64-1.1.3.tgz#cc6153029c3d9afc9caaae2dc362d899ae94ac4f"
@@ -2976,10 +2981,11 @@ react-markdown@^10.1.0:
     vfile "^6.0.0"
 
 react-router@^8.0.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/react-router/-/react-router-8.1.0.tgz#242c9169bdf8da4e080279c92048f0016eb3aa4b"
-  integrity sha512-Mdfi61uObuvWNN9OhChOC0HV6YWOIfKRzEWOvCHRSuQg8IM+Nv10edaM/2HE8ZixBpUTdQbruyWqC3sDkkh9vw==
+  version "8.5.2"
+  resolved "https://registry.yarnpkg.com/react-router/-/react-router-8.5.2.tgz#cd97f90c6d8c93e6569b1ce95652783d42356275"
+  integrity sha512-luPXqNUAIZAmCHbeBysc2KO7VJjckIMZk4ByEetS7Jotit8R6lLSVVeC76UE//AYK6QD6tAnVAPGkvmqMd+b1w==
   dependencies:
+    "@remix-run/route-pattern" "^0.22.1"
     cookie-es "^3.1.1"
 
 react-timeago@^8.3.0:
