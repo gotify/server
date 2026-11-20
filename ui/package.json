@@ -21,7 +21,6 @@
     "fractional-indexing": "^4.0.0",
     "mobx": "^7.0.0",
     "mobx-react-lite": "^4.1.0",
-    "mobx-utils": "^6.1.1",
     "notifyjs": "^3.0.0",
     "notistack": "^3.0.2",
     "react": "^19.1.1",

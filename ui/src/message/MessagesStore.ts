@@ -1,8 +1,15 @@
 import {BaseStore} from '../common/BaseStore';
-import {action, IObservableArray, observable, reaction, runInAction} from 'mobx';
+import {
+    action,
+    computed,
+    IComputedValue,
+    IObservableArray,
+    observable,
+    reaction,
+    runInAction,
+} from 'mobx';
 import axios, {AxiosResponse} from 'axios';
 import * as config from '../config';
-import {createTransformer} from 'mobx-utils';
 import {SnackReporter} from '../snack/SnackManager';
 import {IApplication, IMessage, IPagedMessages} from '../types';
 import {closeSnackbar, SnackbarKey} from 'notistack';
@@ -204,9 +211,18 @@ export class MessagesStore {
             .map((message: IMessage): IMessage => ({...message, image: appToImage[message.appid]}));
     };
 
-    public get = createTransformer(this.getUnCached);
+    private cache = new Map<number, IComputedValue<Array<IMessage>>>();
 
-    private clearCache = () => (this.get = createTransformer(this.getUnCached));
+    public get = (appId: number): Array<IMessage> => {
+        let cached = this.cache.get(appId);
+        if (!cached) {
+            cached = computed(() => this.getUnCached(appId));
+            this.cache.set(appId, cached);
+        }
+        return cached.get();
+    };
+
+    private clearCache = () => this.cache.clear();
 
     private createEmptyStatesForApps = (apps: IApplication[]) => {
         apps.map((app) => app.id).forEach((id) => this.stateOf(id, /*create*/ true));
