@@ -135,7 +135,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		oidcGroup.GET("/callback", oidcHandler.CallbackHandler())
 		oidcGroup.POST("/external/authorize", oidcHandler.ExternalAuthorizeHandler)
 		oidcGroup.POST("/external/token", oidcHandler.ExternalTokenHandler)
-		oidcGroup.GET("/elevate", oidcHandler.ElevateHandler)
+		oidcGroup.GET("/elevate", authentication.OptionalClientCookie, oidcHandler.ElevateHandler)
+		oidcGroup.POST("/elevate", authentication.OptionalClientCookie, oidcHandler.ElevateConfirmHandler)
 	}
 
 	g.Match([]string{"GET", "HEAD"}, "/health", healthHandler.Health)

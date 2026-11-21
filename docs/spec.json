@@ -813,7 +813,10 @@
     },
     "/auth/oidc/elevate": {
       "get": {
-        "description": "Redirects the user to the OIDC provider's authorization endpoint. After\nsuccessful authentication, the referenced client session is elevated for\nthe requested duration.",
+        "description": "Redirects to the OIDC provider if the session cookie belongs to the client,\notherwise shows a confirmation page. After successful authentication, the\nclient session is elevated for the requested duration.",
+        "produces": [
+          "text/html"
+        ],
         "tags": [
           "oidc"
         ],
@@ -837,8 +840,55 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "Confirmation page"
+          },
           "302": {
             "description": "Redirect to OIDC provider"
+          },
+          "default": {
+            "description": "Error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "tags": [
+          "oidc"
+        ],
+        "summary": "Confirm the elevation of a client session and start the OIDC flow (browser).",
+        "operationId": "oidcElevateConfirm",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "description": "the client id to elevate",
+            "name": "id",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "how long the elevation should last, in seconds",
+            "name": "durationSeconds",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to OIDC provider"
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
           },
           "default": {
             "description": "Error",

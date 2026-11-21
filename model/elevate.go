@@ -19,8 +19,13 @@ const maxElevation = 100 * 365 * 24 * time.Hour
 
 // ElevationTime calculates the time at which an elevation will expire.
 func ElevationTime(base time.Time, deltaSeconds int) time.Time {
+	return base.Add(ElevationDuration(deltaSeconds))
+}
+
+// ElevationDuration calculates how long an elevation will last.
+func ElevationDuration(deltaSeconds int) time.Duration {
 	// Prevent int64 overflow by limiting to an arbitrary high number.
 	seconds := min(time.Duration(deltaSeconds), maxElevation/time.Second)
 	seconds = max(seconds, -1)
-	return base.Add(seconds * time.Second)
+	return seconds * time.Second
 }
