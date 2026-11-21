@@ -13,6 +13,7 @@ type Message struct {
 	Priority      int
 	Extras        []byte
 	Date          time.Time
+	Updated       *time.Time
 }
 
 // MessageExternal Model
@@ -63,6 +64,11 @@ type MessageExternal struct {
 	// required: true
 	// example: 2018-02-27T19:36:10.5045044+01:00
 	Date time.Time `json:"date"`
+	// The date the message was last updated. Not set if the message was never updated.
+	//
+	// read only: true
+	// example: 2018-02-27T19:40:12.1234567+01:00
+	Updated *time.Time `json:"updated,omitempty"`
 }
 
 // CreateMessage Model

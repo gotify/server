@@ -276,6 +276,85 @@ describe('Messages', () => {
             });
         });
     });
+    describe('update a message', () => {
+        const progress = m('Backup running', 'Gotify Backup 40%');
+        const done = m('Backup finished', 'Gotify Backup 100%');
+        let id: number;
+
+        const updateMessage = (msg: Partial<IMessage>, token: string) =>
+            axios.put<IMessage>(`${gotify.url}/message/${id}`, msg, {
+                headers: {'X-Gotify-Key': token},
+            });
+
+        const allowMessageUpdate = async (name: string) => {
+            const apps = await axios.get<IApplication[]>(`${gotify.url}/application`, axiosAuth);
+            const app = apps.data.find((a) => a.name === name)!;
+            await axios.put(
+                `${gotify.url}/application/${app.id}`,
+                {...app, allowMessageUpdate: true},
+                axiosAuth
+            );
+        };
+
+        it('creates a message', async () => {
+            id = (await createMessage(progress, backupServerToken)).data.id;
+            await expectMessages({
+                all: [progress, backup2, linux3, windows3, backup1, windows1],
+                windows: [windows3, windows1],
+                linux: [linux3],
+                backup: [progress, backup2, backup1],
+            });
+            expect(await count(page, '#messages .message .edited')).toBe(0);
+        });
+        it('does not update when updates are not allowed for the application', async () => {
+            await expect(updateMessage(done, backupServerToken)).rejects.toMatchObject({
+                response: {status: 403},
+            });
+        });
+        it('allows updates for the applications', async () => {
+            await allowMessageUpdate('Backup');
+            await allowMessageUpdate('Linux');
+        });
+        it('updates the message without reload', async () => {
+            await updateMessage(done, backupServerToken);
+            await waitForExists(page, '#messages .message .title', done.title);
+            expect(await extractMessages(6)).toEqual([
+                done,
+                backup2,
+                linux3,
+                windows3,
+                backup1,
+                windows1,
+            ]);
+            expect(await count(page, '#messages .message .edited')).toBe(1);
+        });
+        it('updates the message in the application view', async () => {
+            await navigate('Backup');
+            await updateMessage(progress, backupServerToken);
+            await waitForExists(page, '#messages .message .title', progress.title);
+            expect(await extractMessages(3)).toEqual([progress, backup2, backup1]);
+            await updateMessage(done, backupServerToken);
+            await waitForExists(page, '#messages .message .title', done.title);
+            expect(await extractMessages(3)).toEqual([done, backup2, backup1]);
+            await navigate('All Messages');
+        });
+        it('keeps the update after reload', async () => {
+            await page.reload();
+            await waitForExists(page, selector.heading(), 'All Messages');
+            await expectMessages({
+                all: [done, backup2, linux3, windows3, backup1, windows1],
+                windows: [windows3, windows1],
+                linux: [linux3],
+                backup: [done, backup2, backup1],
+            });
+            expect(await count(page, '#messages .message .edited')).toBe(1);
+        });
+        it('does not update a message of another application', async () => {
+            await expect(updateMessage(linux1, linuxServerToken)).rejects.toMatchObject({
+                response: {status: 404},
+            });
+        });
+    });
     it('deletes all messages', async () => {
         await navigate('All Messages');
         await page.click('#delete-all');

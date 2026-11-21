@@ -64,6 +64,7 @@ const Messages = observer(() => {
             onExpand={(expanded) => (expandedState.current[message.id] = expanded)}
             title={message.title}
             date={message.date}
+            updated={message.updated}
             appName={appStore.getName(message.appid)}
             expanded={expandedState.current[message.id] ?? false}
             content={message.message}

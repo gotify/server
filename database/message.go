@@ -23,6 +23,11 @@ func (d *GormDatabase) CreateMessage(message *model.Message) error {
 	return d.DB.Create(message).Error
 }
 
+// UpdateMessage updates a message.
+func (d *GormDatabase) UpdateMessage(message *model.Message) error {
+	return d.DB.Save(message).Error
+}
+
 // GetMessagesByUser returns all messages from a user.
 func (d *GormDatabase) GetMessagesByUser(userID uint) ([]*model.Message, error) {
 	var messages []*model.Message

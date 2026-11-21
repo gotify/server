@@ -638,3 +638,34 @@ func waitForConnectedClients(api *API, count int) {
 		time.Sleep(10 * time.Millisecond)
 	}
 }
+
+func TestNotifyUpdatedOnlyToClientsWithUpdates(t *testing.T) {
+	mode.Set(mode.TestDev)
+
+	defer leaktest.Check(t)()
+	server, api := bootTestServer(staticUserID())
+	defer server.Close()
+	defer api.Close()
+
+	wsURL := wsURL(server.URL)
+
+	legacy := testClient(t, wsURL)
+	defer legacy.conn.Close()
+	disabled := testClient(t, wsURL+"?updates=false")
+	defer disabled.conn.Close()
+	withUpdates := testClient(t, wsURL+"?updates=true")
+	defer withUpdates.conn.Close()
+
+	waitForConnectedClients(api, 3)
+
+	api.Notify(1, &model.MessageExternal{ID: 1, Message: "Backup 40%"})
+	expectMessage(&model.MessageExternal{ID: 1, Message: "Backup 40%"}, legacy, disabled, withUpdates)
+
+	updated := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+	api.NotifyUpdated(1, &model.MessageExternal{ID: 1, Message: "Backup 100%", Updated: &updated})
+	expectMessage(&model.MessageExternal{ID: 1, Message: "Backup 100%", Updated: &updated}, withUpdates)
+	expectNoMessage(legacy, disabled)
+
+	api.NotifyUpdated(2, &model.MessageExternal{ID: 2, Message: "other user", Updated: &updated})
+	expectNoMessage(legacy, disabled, withUpdates)
+}

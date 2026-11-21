@@ -48,6 +48,12 @@ type Application struct {
 	// required: false
 	// example: 4
 	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`
+	// Whether the application may update its own messages with its application token.
+	// Disabled by default, it has to be enabled per application.
+	//
+	// required: true
+	// example: false
+	AllowMessageUpdate bool `gorm:"not null;default:false" form:"allowMessageUpdate" query:"allowMessageUpdate" json:"allowMessageUpdate"`
 	// The date the application was created.
 	//
 	// read only: true

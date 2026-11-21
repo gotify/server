@@ -86,6 +86,19 @@ export class MessagesStore {
     };
 
     @action
+    public updateSingleMessage = (message: IMessage) => {
+        [AllMessages, message.appid]
+            .filter((appId) => this.exists(appId))
+            .forEach((appId) => {
+                const messages = this.stateOf(appId).messages;
+                const index = messages.findIndex((existing) => existing.id === message.id);
+                if (index !== -1) {
+                    messages[index] = message;
+                }
+            });
+    };
+
+    @action
     public removeByApp = async (appId: number) => {
         if (appId === AllMessages) {
             await axios.delete(config.get('url') + 'message');

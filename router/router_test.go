@@ -362,6 +362,77 @@ func (s *IntegrationSuite) TestSendMessage() {
 	assert.Equal(s.T(), token.ID, msg.ApplicationID)
 }
 
+func (s *IntegrationSuite) TestUpdateMessage() {
+	s.db.User(1).ClientWithToken(1, "Cclient")
+	for _, app := range []*model.Application{
+		s.db.User(1).NewAppWithToken(1, "Abackup"),
+		s.db.User(1).NewAppWithToken(2, "Aother"),
+		s.db.User(2).NewAppWithToken(3, "Aforeign"),
+	} {
+		app.AllowMessageUpdate = true
+		assert.Nil(s.T(), s.db.UpdateApplication(app))
+	}
+	s.db.User(1).AppWithToken(4, "Anotallowed")
+
+	req := s.newRequest("POST", "message", `{"message": "Backup 40%", "title": "Backup"}`)
+	req.Header.Add("X-Gotify-Key", "Abackup")
+	res, err := client.Do(req)
+	assert.Nil(s.T(), err)
+	assert.Equal(s.T(), 200, res.StatusCode)
+	created := &model.MessageExternal{}
+	json.NewDecoder(res.Body).Decode(created)
+	assert.Nil(s.T(), created.Updated)
+
+	path := fmt.Sprintf("message/%d", created.ID)
+	notFound := `{"error":"Not Found", "errorCode":404, "errorDescription":"message does not exist"}`
+	unauthorized := `{"error":"Unauthorized", "errorCode":401, "errorDescription":"you need to provide a valid access token or user credentials to access this api"}`
+
+	for _, token := range []string{"Aother", "Aforeign"} {
+		req = s.newRequest("PUT", path, `{"message": "Backup 100%"}`)
+		req.Header.Add("X-Gotify-Key", token)
+		doRequestAndExpect(s.T(), req, 404, notFound)
+	}
+
+	req = s.newRequest("PUT", "message/1000", `{"message": "Backup 100%"}`)
+	req.Header.Add("X-Gotify-Key", "Abackup")
+	doRequestAndExpect(s.T(), req, 404, notFound)
+
+	req = s.newRequest("PUT", path, `{"message": "Backup 100%"}`)
+	req.Header.Add("X-Gotify-Key", "Anotallowed")
+	doRequestAndExpect(s.T(), req, 403, `{"error":"Forbidden", "errorCode":403, "errorDescription":"updating messages is not enabled for this application"}`)
+
+	for _, token := range []string{"Cclient", "Ainvalid"} {
+		req = s.newRequest("PUT", path, `{"message": "Backup 100%"}`)
+		req.Header.Add("X-Gotify-Key", token)
+		doRequestAndExpect(s.T(), req, 401, unauthorized)
+	}
+
+	req = s.newRequest("PUT", path, `{"message": "Backup 100%"}`)
+	req.SetBasicAuth("admin", "pw")
+	doRequestAndExpect(s.T(), req, 403, forbiddenJSON)
+
+	req = s.newRequest("PUT", path, `{"message": "Backup 100%", "title": "Backup"}`)
+	req.Header.Add("X-Gotify-Key", "Abackup")
+	res, err = client.Do(req)
+	assert.Nil(s.T(), err)
+	assert.Equal(s.T(), 200, res.StatusCode)
+
+	req = s.newRequest("GET", "message", "")
+	req.SetBasicAuth("admin", "pw")
+	res, err = client.Do(req)
+	assert.Nil(s.T(), err)
+	assert.Equal(s.T(), 200, res.StatusCode)
+	msgs := &model.PagedMessages{}
+	json.NewDecoder(res.Body).Decode(&msgs)
+	if assert.Len(s.T(), msgs.Messages, 1) {
+		msg := msgs.Messages[0]
+		assert.Equal(s.T(), created.ID, msg.ID)
+		assert.Equal(s.T(), "Backup 100%", msg.Message)
+		assert.True(s.T(), created.Date.Equal(msg.Date))
+		assert.NotNil(s.T(), msg.Updated)
+	}
+}
+
 func (s *IntegrationSuite) TestMaxBodyBytes() {
 	s.db.User(2).AppWithToken(1, "Aapp")
 
