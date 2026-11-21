@@ -10,7 +10,8 @@ import Container from '../common/Container';
 import {Markdown} from '../common/Markdown';
 import * as config from '../config';
 import {IMessageExtras} from '../types';
-import {contentType, RenderMode} from './extras';
+import {actionButtons, contentType, RenderMode} from './extras';
+import MessageActions from './MessageActions';
 import {TimeAgoFormatter} from '../common/TimeAgoFormatter';
 
 const PREVIEW_LENGTH = 500;
@@ -132,6 +133,7 @@ const Message = ({
     const [expanded, setExpanded] = React.useState(initialExpanded);
     const [isOverflowing, setOverflowing] = React.useState(false);
     const smallHeader = useMediaQuery(theme.breakpoints.down('md'));
+    const buttons = React.useMemo(() => actionButtons(extras), [extras]);
 
     const refreshOverflowing = React.useCallback(() => {
         const ref = contentRef.current;
@@ -199,6 +201,7 @@ const Message = ({
                         }`}>
                         {renderContent()}
                     </Typography>
+                    <MessageActions buttons={buttons} />
                 </div>
                 {isOverflowing && (
                     <Button
