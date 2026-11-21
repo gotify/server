@@ -1641,6 +1641,15 @@
       "delete": {
         "security": [
           {
+            "appTokenAuthorizationHeader": []
+          },
+          {
+            "appTokenHeader": []
+          },
+          {
+            "appTokenQuery": []
+          },
+          {
             "clientTokenAuthorizationHeader": []
           },
           {
@@ -1653,6 +1662,7 @@
             "basicAuth": []
           }
         ],
+        "description": "__NOTE__: When authenticating with an application token, only messages\nof this application can be deleted. This has to be enabled per application\n(`allowMessageDelete`), it is disabled by default. Otherwise 403 is returned.",
         "produces": [
           "application/json"
         ],
@@ -2543,10 +2553,17 @@
         "description",
         "internal",
         "image",
+        "allowMessageDelete",
         "createdAt",
         "sortKey"
       ],
       "properties": {
+        "allowMessageDelete": {
+          "description": "Whether the application may delete its own messages with its application token.\nDisabled by default, it has to be enabled per application.",
+          "type": "boolean",
+          "x-go-name": "AllowMessageDelete",
+          "example": false
+        },
         "createdAt": {
           "description": "The date the application was created.",
           "type": "string",
@@ -2628,6 +2645,12 @@
         "name"
       ],
       "properties": {
+        "allowMessageDelete": {
+          "description": "Whether the application may delete its own messages with its application token.\nDefaults to false on create. When omitted on update, the current value is kept.",
+          "type": "boolean",
+          "x-go-name": "AllowMessageDelete",
+          "example": false
+        },
         "defaultPriority": {
           "description": "The default priority of messages sent by this application. Defaults to 0.",
           "type": "integer",

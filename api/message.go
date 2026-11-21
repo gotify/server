@@ -271,9 +271,13 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 //
 // Deletes a message with an id.
 //
+// __NOTE__: When authenticating with an application token, only messages
+// of this application can be deleted. This has to be enabled per application
+// (`allowMessageDelete`), it is disabled by default. Otherwise 403 is returned.
+//
 //	---
 //	produces: [application/json]
-//	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	security: [appTokenAuthorizationHeader: [], appTokenHeader: [], appTokenQuery: [], clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 //	parameters:
 //	- name: id
 //	  in: path
@@ -302,12 +306,24 @@ func (a *MessageAPI) DeleteMessageWithApplication(ctx *gin.Context) {
 //	        $ref: "#/definitions/Error"
 func (a *MessageAPI) DeleteMessage(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
+		if tokenApp := auth.GetApplication(ctx); tokenApp != nil && !tokenApp.AllowMessageDelete {
+			ctx.AbortWithError(403, errors.New("deleting messages is not enabled for this application"))
+			return
+		}
 		msg, err := a.DB.GetMessageByID(id)
 		if success := successOrAbort(ctx, 500, err); !success {
 			return
 		}
 		if msg == nil {
 			ctx.AbortWithError(404, errors.New("message does not exist"))
+			return
+		}
+		if tokenApp := auth.GetApplication(ctx); tokenApp != nil {
+			if msg.ApplicationID == tokenApp.ID {
+				successOrAbort(ctx, 500, a.DB.DeleteMessageByID(id))
+			} else {
+				ctx.AbortWithError(404, errors.New("message does not exist"))
+			}
 			return
 		}
 		app, err := a.DB.GetApplicationByID(msg.ApplicationID)
