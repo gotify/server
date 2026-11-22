@@ -15,14 +15,30 @@ export const contentType = (extras?: IMessageExtras): RenderMode => {
     return result.success ? result.data['client::display'].contentType : RenderMode.Plain;
 };
 
-const actionButton = z.object({
-    label: z.string().check(z.trim(), z.minLength(1)),
-    http: z.object({
-        method: z.string().check(z.toUpperCase()),
+// fetch rejects these methods and a body on GET/HEAD requests without sending anything.
+const forbiddenMethods = ['CONNECT', 'TRACE', 'TRACK'];
+const bodylessMethods = ['GET', 'HEAD'];
+
+const httpAction = z
+    .object({
+        method: z.string().check(
+            z.toUpperCase(),
+            z.refine((method) => !forbiddenMethods.includes(method), 'Unsupported method')
+        ),
         url: z.url({protocol: /^https?$/}),
         headers: z._default(z.record(z.string(), z.string()), {}),
         body: z.optional(z.string()),
-    }),
+    })
+    .check(
+        z.refine(({method, body}) => body === undefined || !bodylessMethods.includes(method), {
+            message: 'GET and HEAD requests cannot have a body',
+            path: ['body'],
+        })
+    );
+
+const actionButton = z.object({
+    label: z.string().check(z.trim(), z.minLength(1)),
+    http: httpAction,
 });
 
 export type IActionButton = z.infer<typeof actionButton>;

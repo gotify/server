@@ -61,6 +61,21 @@ describe('actionButtons', () => {
         expect(result.error).toContain('→ at ["client::action"].buttons[2].http.method');
     });
 
+    it('reports requests fetch cannot send', () => {
+        const result = parse(
+            button({method: 'get', body: 'a'}),
+            button({method: 'trace'}),
+            button({method: 'post', body: 'a'})
+        );
+        expect(result.buttons.map((b) => b.http.method)).toEqual(['POST']);
+        expect(result.error).toContain(
+            'GET and HEAD requests cannot have a body\n  → at ["client::action"].buttons[0].http.body'
+        );
+        expect(result.error).toContain(
+            'Unsupported method\n  → at ["client::action"].buttons[1].http.method'
+        );
+    });
+
     it.each([
         ['null', null],
         ['a string', 'string'],
@@ -74,6 +89,11 @@ describe('actionButtons', () => {
         ['a data url', button({url: 'data:text/plain,hi'})],
         ['a non-string header', button({headers: {A: 'b', C: 1}})],
         ['a non-string body', button({body: {a: 1}})],
+        ['a GET body', button({method: 'get', body: 'a'})],
+        ['a HEAD body', button({method: 'HEAD', body: ''})],
+        ['the CONNECT method', button({method: 'connect'})],
+        ['the TRACE method', button({method: 'TRACE'})],
+        ['the TRACK method', button({method: 'track'})],
     ])('rejects a button with %s', (_, invalid) => {
         const result = parse(invalid);
         expect(result.buttons).toEqual([]);
