@@ -36,12 +36,26 @@ const httpAction = z
         })
     );
 
-const actionButton = z.object({
-    label: z.string().check(z.trim(), z.minLength(1)),
-    http: httpAction,
+const openAction = z.object({
+    url: z.url({protocol: /^https?$/}),
 });
 
+// A button either sends a request (http) or opens a page (open).
+const actionButton = z
+    .object({
+        label: z.string().check(z.trim(), z.minLength(1)),
+        http: z.optional(httpAction),
+        open: z.optional(openAction),
+    })
+    .check(
+        z.refine(
+            ({http, open}) => (http === undefined) !== (open === undefined),
+            'A button needs either http or open'
+        )
+    );
+
 export type IActionButton = z.infer<typeof actionButton>;
+export type IHttpAction = z.infer<typeof httpAction>;
 
 const actionExtras = z.optional(
     z.object({

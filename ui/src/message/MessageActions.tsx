@@ -1,3 +1,4 @@
+import OpenInNew from '@mui/icons-material/OpenInNew';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -6,7 +7,7 @@ import React from 'react';
 import {makeStyles} from 'tss-react/mui';
 import {useStores} from '../stores';
 import {IMessageExtras} from '../types';
-import {actionButtons, IActionButton} from './extras';
+import {actionButtons, IHttpAction} from './extras';
 
 const useStyles = makeStyles()((theme) => ({
     actions: {
@@ -25,7 +26,7 @@ const useStyles = makeStyles()((theme) => ({
     },
 }));
 
-const executeAction = ({http}: IActionButton): Promise<Response> =>
+const executeAction = (http: IHttpAction): Promise<Response> =>
     fetch(http.url, {
         method: http.method,
         headers: http.headers,
@@ -34,29 +35,29 @@ const executeAction = ({http}: IActionButton): Promise<Response> =>
         referrerPolicy: 'no-referrer',
     });
 
-const describeTarget = ({http}: IActionButton) => {
-    const url = new URL(http.url);
-    return `${http.method} ${url.host}${url.pathname}`;
+const describeUrl = (url: string) => {
+    const {host, pathname} = new URL(url);
+    return `${host}${pathname}`;
 };
 
-const ActionButton = ({button}: {button: IActionButton}) => {
+const HttpActionButton = ({label, http}: {label: string; http: IHttpAction}) => {
     const {snackManager} = useStores();
     const [running, setRunning] = React.useState(false);
 
     const onClick = async () => {
         setRunning(true);
         try {
-            const response = await executeAction(button);
+            const response = await executeAction(http);
             if (response.ok) {
-                snackManager.snack(`Action '${button.label}' succeeded.`);
+                snackManager.snack(`Action '${label}' succeeded.`);
             } else {
                 snackManager.snack(
-                    `Action '${button.label}' failed: ${response.status} ${response.statusText}`.trim()
+                    `Action '${label}' failed: ${response.status} ${response.statusText}`.trim()
                 );
             }
         } catch {
             snackManager.snack(
-                `Action '${button.label}': no readable response (network error or CORS). The request may still have been processed.`
+                `Action '${label}': no readable response (network error or CORS). The request may still have been processed.`
             );
         } finally {
             setRunning(false);
@@ -64,7 +65,7 @@ const ActionButton = ({button}: {button: IActionButton}) => {
     };
 
     return (
-        <Tooltip title={describeTarget(button)}>
+        <Tooltip title={`${http.method} ${describeUrl(http.url)}`}>
             <span>
                 <Button
                     className="action"
@@ -73,12 +74,27 @@ const ActionButton = ({button}: {button: IActionButton}) => {
                     disabled={running}
                     onClick={onClick}
                     startIcon={running ? <CircularProgress size={16} /> : undefined}>
-                    {button.label}
+                    {label}
                 </Button>
             </span>
         </Tooltip>
     );
 };
+
+const OpenActionButton = ({label, url}: {label: string; url: string}) => (
+    <Tooltip title={`Open ${describeUrl(url)}`}>
+        <Button
+            className="action"
+            variant="outlined"
+            size="small"
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            endIcon={<OpenInNew />}>
+            {label}
+        </Button>
+    </Tooltip>
+);
 
 const ActionError = ({error}: {error: string}) => {
     const {classes} = useStyles();
@@ -111,9 +127,13 @@ export const MessageActions = ({extras}: {extras?: IMessageExtras}) => {
         <>
             {buttons.length > 0 && (
                 <div className={`${classes.actions} actions`}>
-                    {buttons.map((button, index) => (
-                        <ActionButton key={index} button={button} />
-                    ))}
+                    {buttons.map(({label, http, open}, index) =>
+                        http ? (
+                            <HttpActionButton key={index} label={label} http={http} />
+                        ) : (
+                            open && <OpenActionButton key={index} label={label} url={open.url} />
+                        )
+                    )}
                 </div>
             )}
             {error && <ActionError error={error} />}

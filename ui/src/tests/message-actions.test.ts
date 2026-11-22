@@ -56,6 +56,7 @@ describe('Message actions', () => {
                             },
                             {label: 'Invalid', http: {method: 'post', url: 'javascript:alert(1)'}},
                             {label: 'Broken', http: {method: 'post', url: `${gotify.url}/message`}},
+                            {label: 'Version', open: {url: `${gotify.url}/version`}},
                         ],
                     },
                 },
@@ -68,7 +69,7 @@ describe('Message actions', () => {
         const labels = await page.$$eval('.message .actions .action', (els) =>
             els.map((e) => e.textContent)
         );
-        expect(labels).toEqual(['Power off', 'Broken']);
+        expect(labels).toEqual(['Power off', 'Broken', 'Version']);
     });
 
     it('shows the parsing error of invalid buttons', async () => {
@@ -92,6 +93,15 @@ describe('Message actions', () => {
             '#notistack-snackbar',
             "Action 'Broken' failed: 401 Unauthorized"
         );
+    });
+
+    it('opens the url of an open button in a new tab', async () => {
+        const url = `${gotify.url}/version`;
+        await clickByText(page, '.message .actions .action', 'Version');
+        const target = await gotify.browser.waitForTarget((t) => t.url() === url);
+        const tab = await target.page();
+        expect(await tab?.evaluate(() => window.opener)).toBeNull();
+        await tab?.close();
     });
 
     it('does logout', () => auth.logout(page));
