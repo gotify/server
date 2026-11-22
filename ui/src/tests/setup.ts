@@ -4,7 +4,6 @@ import {rimrafSync} from 'rimraf';
 import path from 'path';
 import puppeteer, {Browser, Page} from 'puppeteer';
 import fs from 'fs';
-// @ts-expect-error no types
 import wait from 'wait-on';
 import kill from 'tree-kill';
 import {startDex, DexUser, DexInstance} from './dex';
@@ -119,7 +118,7 @@ const testFilePath = (): string => {
 
 const waitForGotify = (url: string): Promise<void> =>
     new Promise((resolve, err) => {
-        wait({resources: [url], timeout: 40000}, (error: string) => {
+        wait({resources: [url], timeout: 40000}, (error) => {
             if (error) {
                 console.log(error);
                 err(error);

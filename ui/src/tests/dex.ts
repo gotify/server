@@ -5,7 +5,6 @@ import os from 'os';
 import path from 'path';
 import {rimrafSync} from 'rimraf';
 import {stringify} from 'yaml';
-// @ts-expect-error no types
 import wait from 'wait-on';
 
 // All dex test users share this password. The hash is bcrypt("password").
@@ -56,7 +55,7 @@ const waitForDex = (port: number): Promise<void> =>
                 resources: [`http-get://127.0.0.1:${port}/dex/.well-known/openid-configuration`],
                 timeout: 60000,
             },
-            (error: string) => (error ? reject(error) : resolve())
+            (error) => (error ? reject(error) : resolve())
         );
     });
 
