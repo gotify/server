@@ -61,44 +61,13 @@ describe('actionButtons', () => {
         expect(result.error).toContain('→ at ["client::action"].buttons[2].http.method');
     });
 
-    it('parses buttons that open a url', () => {
-        const result = parse(
-            {label: 'Status page', open: {url: 'https://status.example.com/'}},
-            {label: 'Power off', http: {method: 'post', url: 'https://x.y/'}}
-        );
-        expect(result).toEqual({
-            buttons: [
-                {label: 'Status page', open: {url: 'https://status.example.com/'}},
-                {label: 'Power off', http: {method: 'POST', url: 'https://x.y/', headers: {}}},
-            ],
-        });
-    });
-
-    it('reports buttons with both or neither http and open', () => {
-        const result = parse(
-            {
-                label: 'both',
-                http: {method: 'GET', url: 'https://x.y/'},
-                open: {url: 'https://x.y/'},
-            },
-            {label: 'neither'}
-        );
-        expect(result.buttons).toEqual([]);
-        expect(result.error).toContain(
-            'A button needs either http or open\n  → at ["client::action"].buttons[0]'
-        );
-        expect(result.error).toContain(
-            'A button needs either http or open\n  → at ["client::action"].buttons[1]'
-        );
-    });
-
     it('reports requests fetch cannot send', () => {
         const result = parse(
             button({method: 'get', body: 'a'}),
             button({method: 'trace'}),
             button({method: 'post', body: 'a'})
         );
-        expect(result.buttons.map((b) => b.http?.method)).toEqual(['POST']);
+        expect(result.buttons.map((b) => b.http.method)).toEqual(['POST']);
         expect(result.error).toContain(
             'GET and HEAD requests cannot have a body\n  → at ["client::action"].buttons[0].http.body'
         );
@@ -120,8 +89,6 @@ describe('actionButtons', () => {
         ['a data url', button({url: 'data:text/plain,hi'})],
         ['a non-string header', button({headers: {A: 'b', C: 1}})],
         ['a non-string body', button({body: {a: 1}})],
-        ['an open without url', {label: 'a', open: {}}],
-        ['an open javascript url', {label: 'a', open: {url: 'javascript:alert(1)'}}],
         ['a GET body', button({method: 'get', body: 'a'})],
         ['a HEAD body', button({method: 'HEAD', body: ''})],
         ['the CONNECT method', button({method: 'connect'})],
