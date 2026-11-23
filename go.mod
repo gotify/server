@@ -16,7 +16,7 @@ require (
 	github.com/robfig/cron v1.2.0
 	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.12.1
-	github.com/zitadel/oidc/v3 v3.52.0
+	github.com/zitadel/oidc/v3 v3.53.0
 	golang.org/x/crypto v0.59.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.6.0

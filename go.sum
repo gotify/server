@@ -160,8 +160,8 @@ github.com/ugorji/go/codec v1.3.1 h1:waO7eEiFDwidsBN6agj1vJQ4AG7lh2yqXyOXqhgQuyY
 github.com/ugorji/go/codec v1.3.1/go.mod h1:pRBVtBSKl77K30Bv8R2P+cLSGaTtex6fsA2Wjqmfxj4=
 github.com/yosida95/uritemplate/v3 v3.0.2 h1:Ed3Oyj9yrmi9087+NczuL5BwkIc4wvTb5zIM+UJPGz4=
 github.com/yosida95/uritemplate/v3 v3.0.2/go.mod h1:ILOh0sOhIJR3+L/8afwt/kE++YT040gmv5BQTMR2HP4=
-github.com/zitadel/oidc/v3 v3.52.0 h1:UWIDloHmoi8wFM6oLW94OlxQmf/CYQU2tZxTQhxQWQU=
-github.com/zitadel/oidc/v3 v3.52.0/go.mod h1:jLFGXtanUQnh7H6GTrmqbMTooFfkBM+Nt8yUveFbsGs=
+github.com/zitadel/oidc/v3 v3.53.0 h1:wueKcGaQ6KBmVbrZcGZQvZ2YCkTZ9Vyw58I1r9Ebjps=
+github.com/zitadel/oidc/v3 v3.53.0/go.mod h1:+Iu1z9HFf2w1UaZzoXOq/l54M+MIQQntCankBczWeu8=
 github.com/zitadel/schema v1.3.2 h1:gfJvt7dOMfTmxzhscZ9KkapKo3Nei3B6cAxjav+lyjI=
 github.com/zitadel/schema v1.3.2/go.mod h1:IZmdfF9Wu62Zu6tJJTH3UsArevs3Y4smfJIj3L8fzxw=
 go.mongodb.org/mongo-driver/v2 v2.8.0 h1:CxWDGQYY8QQwNjAl/aq2sfWakdnWZynnqJ9F4DhHbP8=
