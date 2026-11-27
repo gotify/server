@@ -3,9 +3,11 @@ package api
 import (
 	"context"
 	"crypto/rand"
+	_ "embed"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"html/template"
 	"io"
 	"log/slog"
 	"net/http"
@@ -15,6 +17,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/render"
 	"github.com/gotify/server/v3/auth"
 	"github.com/gotify/server/v3/config"
 	"github.com/gotify/server/v3/database"
@@ -26,6 +29,18 @@ import (
 	httphelper "github.com/zitadel/oidc/v3/pkg/http"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
 )
+
+type elevateConfirmData struct {
+	ClientID        uint
+	DurationSeconds int
+	Duration        string
+	IDPName         string
+}
+
+//go:embed oidc_elevate.html
+var elevateConfirmHTML string
+
+var elevateConfirmTemplate = template.Must(template.New("elevate").Parse(elevateConfirmHTML))
 
 func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNotifier *UserChangeNotifier) *OIDCAPI {
 	cookieKey := make([]byte, 32)
@@ -71,6 +86,7 @@ func NewOIDC(conf *config.Configuration, db *database.GormDatabase, userChangeNo
 		AutoRegister:       conf.OIDC.AutoRegister,
 		LinkByUsername:     conf.OIDC.LinkByUsername,
 		Prompt:             conf.OIDC.Prompt,
+		IDPName:            conf.OIDC.IDPName,
 		pendingSessions:    decaymap.NewDecayMap[string, *pendingOIDCSession](time.Now(), pendingSessionMaxAge),
 	}
 }
@@ -103,6 +119,7 @@ type OIDCAPI struct {
 	AutoRegister       bool
 	LinkByUsername     bool
 	Prompt             []string
+	IDPName            string
 	pendingSessions    *decaymap.DecayMap[string, *pendingOIDCSession]
 }
 
@@ -148,11 +165,12 @@ func (a *OIDCAPI) LoginHandler() gin.HandlerFunc {
 //
 // Start the OIDC flow to elevate an existing client session (browser).
 //
-// Redirects the user to the OIDC provider's authorization endpoint. After
-// successful authentication, the referenced client session is elevated for
-// the requested duration.
+// Redirects to the OIDC provider if the session cookie belongs to the client,
+// otherwise shows a confirmation page. After successful authentication, the
+// client session is elevated for the requested duration.
 //
 //	---
+//	produces: [text/html]
 //	parameters:
 //	- name: id
 //	  in: query
@@ -166,6 +184,8 @@ func (a *OIDCAPI) LoginHandler() gin.HandlerFunc {
 //	  required: true
 //	  type: integer
 //	responses:
+//	  200:
+//	    description: Confirmation page
 //	  302:
 //	    description: Redirect to OIDC provider
 //	  default:
@@ -177,12 +197,62 @@ func (a *OIDCAPI) ElevateHandler(ctx *gin.Context) {
 	if err := ctx.BindQuery(&elevate); err != nil {
 		return
 	}
+	if client := auth.GetClient(ctx); client != nil && client.ID == elevate.ClientID {
+		a.startElevation(ctx, &elevate)
+		return
+	}
+	ctx.Render(http.StatusOK, render.HTML{Template: elevateConfirmTemplate, Data: elevateConfirmData{
+		ClientID:        elevate.ClientID,
+		DurationSeconds: elevate.DurationSeconds,
+		Duration:        model.ElevationDuration(elevate.DurationSeconds).String(),
+		IDPName:         a.IDPName,
+	}})
+}
+
+// swagger:operation POST /auth/oidc/elevate oidc oidcElevateConfirm
+//
+// Confirm the elevation of a client session and start the OIDC flow (browser).
+//
+//	---
+//	consumes: [application/x-www-form-urlencoded]
+//	parameters:
+//	- name: id
+//	  in: formData
+//	  description: the client id to elevate
+//	  required: true
+//	  type: integer
+//	  format: int64
+//	- name: durationSeconds
+//	  in: formData
+//	  description: how long the elevation should last, in seconds
+//	  required: true
+//	  type: integer
+//	responses:
+//	  302:
+//	    description: Redirect to OIDC provider
+//	  403:
+//	    description: Forbidden
+//	    schema:
+//	        $ref: "#/definitions/Error"
+//	  default:
+//	    description: Error
+//	    schema:
+//	        $ref: "#/definitions/Error"
+func (a *OIDCAPI) ElevateConfirmHandler(ctx *gin.Context) {
+	var elevate pendingElevation
+	if err := ctx.Bind(&elevate); err != nil {
+		return
+	}
+	a.startElevation(ctx, &elevate)
+}
+
+func (a *OIDCAPI) startElevation(ctx *gin.Context, elevate *pendingElevation) {
 	state, err := a.generateState()
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	a.pendingSessions.Set(time.Now(), state, &pendingOIDCSession{CreatedAt: time.Now(), Elevate: &elevate})
+	a.pendingSessions.Set(time.Now(), state, &pendingOIDCSession{CreatedAt: time.Now(), Elevate: elevate})
 	rp.AuthURLHandler(func() string { return state }, a.Provider, a.promptURLParams()...)(ctx.Writer, ctx.Request)
 }
 

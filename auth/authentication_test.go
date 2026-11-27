@@ -461,3 +461,21 @@ func (s *AuthenticationSuite) assertCsrfRequest(headers map[string]string, cooki
 }
 
 type fMiddleware gin.HandlerFunc
+
+func (s *AuthenticationSuite) TestOptionalClientCookie() {
+	ctx := s.assertRequest(s.auth.OptionalClientCookie, 200)
+	assert.Nil(s.T(), GetClient(ctx))
+
+	ctx = s.assertCookieRequest("clienttoken", s.auth.OptionalClientCookie, 200)
+	assert.NotNil(s.T(), GetClient(ctx))
+
+	ctx = s.assertCookieRequest(enhancedTokenPrefix+"garbage", s.auth.OptionalClientCookie, 200)
+	assert.Nil(s.T(), GetClient(ctx))
+
+	// only the cookie counts
+	ctx = s.assertQueryRequest("token", "clienttoken", s.auth.OptionalClientCookie, 200)
+	assert.Nil(s.T(), GetClient(ctx))
+
+	// cross-origin is rejected even without a cookie
+	s.assertCsrfRequest(map[string]string{"Sec-Fetch-Site": "cross-site"}, "", s.auth.OptionalClientCookie, 403)
+}

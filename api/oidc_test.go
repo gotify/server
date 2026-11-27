@@ -132,30 +132,82 @@ func (s *OIDCSuite) Test_LoginHandler_AuthURL() {
 	}
 }
 
-func (s *OIDCSuite) Test_ElevateHandler_AuthURL() {
+func (s *OIDCSuite) withElevateProvider() {
 	issuer := newDiscoveryServer(s.T())
-
 	provider, err := rp.NewRelyingPartyOIDC(
 		context.Background(), issuer.URL, "client", "secret", "https://gotify.example/callback", []string{"openid"},
 	)
 	assert.NoError(s.T(), err)
 	s.a.Provider = provider
 	s.a.Prompt = []string{"login"}
+	s.a.IDPName = "Example IdP"
+}
+
+func (s *OIDCSuite) assertElevateConfirmPage(recorder *httptest.ResponseRecorder, clientID uint, duration string) {
+	assert.Equal(s.T(), http.StatusOK, recorder.Code)
+	assert.Empty(s.T(), recorder.Header().Get("Location"))
+	assert.Contains(s.T(), recorder.Header().Get("Content-Type"), "text/html")
+	assert.Contains(s.T(), recorder.Body.String(), fmt.Sprintf("You are about to elevate the client session with id <b>%d</b> for <b>%s</b>.", clientID, duration))
+}
+
+func (s *OIDCSuite) Test_ElevateHandler_SessionMatchesClient_RedirectsToIdP() {
+	s.withElevateProvider()
+	client := &model.Client{ID: 1, UserID: 1, Token: "t1", Name: "browser"}
+	assert.NoError(s.T(), s.db.CreateClient(client))
 
 	recorder := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(recorder)
 	ctx.Request = httptest.NewRequest("GET", "/auth/oidc/elevate?id=1&durationSeconds=60", nil)
+	auth.RegisterClient(ctx, client)
 
 	s.a.ElevateHandler(ctx)
 
-	location, err := url.Parse(recorder.Header().Get("Location"))
-	assert.NoError(s.T(), err)
-	query := location.Query()
-	assert.NotEmpty(s.T(), query.Get("state"))
-	assert.Equal(s.T(), "login", query.Get("prompt"))
-	assert.Equal(s.T(), "client", query.Get("client_id"))
-	assert.Equal(s.T(), "https://gotify.example/callback", query.Get("redirect_uri"))
-	assert.Equal(s.T(), "openid", query.Get("scope"))
+	assert.Equal(s.T(), http.StatusFound, recorder.Code)
+	assert.NotEmpty(s.T(), recorder.Header().Get("Location"))
+}
+
+func (s *OIDCSuite) Test_ElevateHandler_SessionOfOtherClient_ShowsConfirmPage() {
+	s.withElevateProvider()
+	client := &model.Client{ID: 1, UserID: 1, Token: "t1", Name: "browser"}
+	assert.NoError(s.T(), s.db.CreateClient(client))
+
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("GET", "/auth/oidc/elevate?id=2&durationSeconds=60", nil)
+	auth.RegisterClient(ctx, client)
+
+	s.a.ElevateHandler(ctx)
+
+	s.assertElevateConfirmPage(recorder, 2, "1m0s")
+}
+
+func (s *OIDCSuite) Test_ElevateHandler_NoSession_ShowsConfirmPage() {
+	// GHSA-qcrr-392r-g62h
+	s.withElevateProvider()
+
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("GET", "/auth/oidc/elevate?id=77&durationSeconds=315360000", nil)
+	ctx.Request.Header.Set("Sec-Fetch-Site", "cross-site")
+
+	s.a.ElevateHandler(ctx)
+
+	s.assertElevateConfirmPage(recorder, 77, "87600h0m0s")
+}
+
+func (s *OIDCSuite) Test_ElevateConfirmHandler_RedirectsToIdP() {
+	s.withElevateProvider()
+
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("POST", "/auth/oidc/elevate", strings.NewReader("id=77&durationSeconds=60"))
+	ctx.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	s.a.ElevateConfirmHandler(ctx)
+	ctx.Writer.WriteHeaderNow()
+
+	assert.Equal(s.T(), http.StatusFound, recorder.Code)
+	assert.NotEmpty(s.T(), recorder.Header().Get("Location"))
 }
 
 func (s *OIDCSuite) Test_ResolveUser_ReturningUser_MatchedByOIDCID() {

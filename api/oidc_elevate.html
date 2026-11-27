@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gotify Session Elevation</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: sans-serif; max-width: 32em; margin: 3em auto; padding: 0 1em; text-align: center; }
+    button { display: block; width: 100%; box-sizing: border-box; margin-top: 1em; padding: 0.75em; font-size: 1em; }
+  </style>
+</head>
+<body>
+  <h1>Gotify Session Elevation</h1>
+  <p>You are about to elevate the client session with id <b>{{.ClientID}}</b> for <b>{{.Duration}}</b>.</p>
+  <p>Only continue if you want to elevate this client.</p>
+  <form method="post" action="elevate">
+    <input type="hidden" name="id" value="{{.ClientID}}" />
+    <input type="hidden" name="durationSeconds" value="{{.DurationSeconds}}" />
+    <button type="submit">Continue to {{.IDPName}}</button>
+  </form>
+  <p>Close this tab to abort.</p>
+</body>
+</html>

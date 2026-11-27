@@ -152,11 +152,36 @@ func (a *Auth) rejectForeignOrigin(ctx *gin.Context) bool {
 	if _, isCookie := a.readTokenFromRequest(ctx); !isCookie {
 		return false
 	}
+	return a.rejectCrossOrigin(ctx)
+}
+
+func (a *Auth) rejectCrossOrigin(ctx *gin.Context) bool {
 	if err := a.CrossOrigin.Check(ctx.Request); err != nil {
 		ctx.AbortWithError(403, err)
 		return true
 	}
 	return false
+}
+
+// OptionalClientCookie optionally registers the client of the session cookie.
+func (a *Auth) OptionalClientCookie(ctx *gin.Context) {
+	if a.rejectCrossOrigin(ctx) {
+		return
+	}
+	token := a.tokenFromCookie(ctx)
+	if token == "" {
+		ctx.Next()
+		return
+	}
+	client, err := a.clientByToken(token)
+	if err != nil && !errors.Is(err, errCannotParseToken) {
+		ctx.AbortWithError(500, err)
+		return
+	}
+	if client != nil {
+		RegisterClient(ctx, client)
+	}
+	ctx.Next()
 }
 
 func (a *Auth) handleUser(checks ...func(*model.User) (authState, error)) func(ctx *gin.Context) (authState, error) {
@@ -186,18 +211,10 @@ func (a *Auth) handleUser(checks ...func(*model.User) (authState, error)) func(c
 func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) func(ctx *gin.Context) (authState, error) {
 	return func(ctx *gin.Context) (authState, error) {
 		token, isCookie := a.readTokenFromRequest(ctx)
-		originalToken := token
 		if token == "" {
 			return authStateSkip, nil
 		}
-		if strings.HasPrefix(token, enhancedTokenPrefix) {
-			complexToken, err := ParseEnhancedToken(token)
-			if err != nil || !complexToken.ValidateTimestamp(timeNow().Unix()) {
-				return authStateSkip, err
-			}
-			token = complexToken.PublicForm()
-		}
-		client, err := a.DB.GetClientByToken(token)
+		client, err := a.clientByToken(token)
 		if err != nil {
 			return authStateSkip, err
 		}
@@ -212,7 +229,7 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 				return authStateSkip, err
 			}
 			if isCookie {
-				SetCookie(ctx.Writer, originalToken, CookieMaxAge, a.SecureCookie)
+				SetCookie(ctx.Writer, token, CookieMaxAge, a.SecureCookie)
 			}
 		}
 
@@ -224,6 +241,17 @@ func (a *Auth) handleClient(checks ...func(*model.Client) (authState, error)) fu
 
 		return authStateOk, nil
 	}
+}
+
+func (a *Auth) clientByToken(token string) (*model.Client, error) {
+	if strings.HasPrefix(token, enhancedTokenPrefix) {
+		complexToken, err := ParseEnhancedToken(token)
+		if err != nil || !complexToken.ValidateTimestamp(timeNow().Unix()) {
+			return nil, err
+		}
+		token = complexToken.PublicForm()
+	}
+	return a.DB.GetClientByToken(token)
 }
 
 func (a *Auth) handleApplication(ctx *gin.Context) (authState, error) {
