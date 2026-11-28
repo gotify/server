@@ -53,6 +53,11 @@ type ApplicationParams struct {
 	//
 	// example: 5
 	DefaultPriority int `form:"defaultPriority" query:"defaultPriority" json:"defaultPriority"`
+	// Whether the application may update its own messages with its application token.
+	// Defaults to false on create. When omitted on update, the current value is kept.
+	//
+	// example: false
+	AllowMessageUpdate *bool `form:"allowMessageUpdate" query:"allowMessageUpdate" json:"allowMessageUpdate"`
 	// The sortKey for the application. Uses fractional indexing.
 	//
 	// example: a1
@@ -107,6 +112,9 @@ func (a *ApplicationAPI) CreateApplication(ctx *gin.Context) {
 			Token:           tokenPublic,
 			UserID:          auth.GetUserID(ctx),
 			Internal:        false,
+		}
+		if applicationParams.AllowMessageUpdate != nil {
+			app.AllowMessageUpdate = *applicationParams.AllowMessageUpdate
 		}
 
 		if err := a.DB.CreateApplication(&app); err != nil {
@@ -273,6 +281,9 @@ func (a *ApplicationAPI) UpdateApplication(ctx *gin.Context) {
 				app.Description = applicationParams.Description
 				app.Name = applicationParams.Name
 				app.DefaultPriority = applicationParams.DefaultPriority
+				if applicationParams.AllowMessageUpdate != nil {
+					app.AllowMessageUpdate = *applicationParams.AllowMessageUpdate
+				}
 				if applicationParams.SortKey != "" {
 					app.SortKey = applicationParams.SortKey
 				}

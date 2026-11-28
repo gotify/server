@@ -86,7 +86,7 @@ export class AppStore extends BaseStore<IApplication> {
         ...app
     }: Pick<
         IApplication,
-        'id' | 'name' | 'description' | 'defaultPriority' | 'sortKey'
+        'id' | 'name' | 'description' | 'defaultPriority' | 'sortKey' | 'allowMessageUpdate'
     >): Promise<void> => {
         await axios.put(`${config.get('url')}application/${id}`, app);
         await this.refresh();

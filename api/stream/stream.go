@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -81,10 +82,22 @@ func (a *API) NotifyDeletedClient(userID uint, token string) {
 
 // Notify notifies the clients with the given userID that a new messages was created.
 func (a *API) Notify(userID uint, msg *model.MessageExternal) {
+	a.notify(userID, msg, func(*client) bool { return true })
+}
+
+// NotifyUpdated notifies the clients with the given userID, that subscribed to updates, that a message was updated.
+func (a *API) NotifyUpdated(userID uint, msg *model.MessageExternal) {
+	a.notify(userID, msg, func(c *client) bool { return c.updates })
+}
+
+func (a *API) notify(userID uint, msg *model.MessageExternal, include func(*client) bool) {
 	a.lock.RLock()
 	defer a.lock.RUnlock()
 	if clients, ok := a.clients[userID]; ok {
 		for _, c := range clients {
+			if !include(c) {
+				continue
+			}
 			select {
 			case c.write <- msg:
 			case <-c.closed:
@@ -118,10 +131,21 @@ func (a *API) register(client *client) {
 //
 // Websocket, return newly created messages.
 //
+// With `updates=true`, the stream additionally returns messages that were updated.
+// An updated message has the id of a message that was sent before and the `updated` field set.
+// Clients should replace the existing message with the same id instead of adding a new one.
+//
 //	---
 //	schema: ws, wss
 //	produces: [application/json]
 //	security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
+//	parameters:
+//	- name: updates
+//	  in: query
+//	  description: also return updated messages
+//	  required: false
+//	  type: boolean
+//	  default: false
 //	responses:
 //	  200:
 //	    description: Ok
@@ -154,7 +178,8 @@ func (a *API) Handle(ctx *gin.Context) {
 	if c := auth.GetClient(ctx); c != nil {
 		token = c.Token
 	}
-	client := newClient(conn, auth.GetUserID(ctx), token, a.remove)
+	updates, _ := strconv.ParseBool(ctx.Query("updates"))
+	client := newClient(conn, auth.GetUserID(ctx), token, updates, a.remove)
 	a.register(client)
 	go client.startReading(a.pongTimeout)
 	go client.startWriteHandler(a.pingPeriod)

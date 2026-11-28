@@ -20,6 +20,10 @@ export const registerReactions = (stores: StoreMapping) => {
 
     const loadAll = () => {
         stores.wsStore.listen((message) => {
+            if (message.updated) {
+                stores.messagesStore.updateSingleMessage(message);
+                return;
+            }
             stores.messagesStore.publishSingleMessage(message);
             Notifications.notifyNewMessage(message);
             if (message.priority >= 4 && Date.now() > lastAudio + AUDIO_REPEAT_DELAY) {

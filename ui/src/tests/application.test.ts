@@ -107,6 +107,29 @@ describe('Application', () => {
         await waitforApp('desktop', 'kitchen_computer', 2)();
         await waitforApp('raspberry_pi', 'home_pi', 3)();
     });
+    describe('message updates', () => {
+        const $switch = '#app-dialog .allow-message-update input';
+        const isAllowed = async (row: number) => {
+            await page.click($table.cell(row, Col.EditUpdate, '.edit'));
+            await page.waitForSelector($switch);
+            const checked = await page.$eval($switch, (el) => (el as HTMLInputElement).checked);
+            await page.keyboard.press('Escape');
+            await waitToDisappear(page, $dialog.selector());
+            return checked;
+        };
+        it('are not allowed by default', async () => {
+            expect(await isAllowed(1)).toBe(false);
+        });
+        it('can be allowed per application', async () => {
+            await page.click($table.cell(1, Col.EditUpdate, '.edit'));
+            await page.waitForSelector($switch);
+            await page.click($switch);
+            await page.click($dialog.button('.update'));
+            await waitToDisappear(page, $dialog.selector());
+            expect(await isAllowed(1)).toBe(true);
+            expect(await isAllowed(3)).toBe(false);
+        });
+    });
     describe('security updates', () => {
         it('regenerates application token', async () => {
             await page.click($table.cell(1, Col.EditRegenerateToken, '.regenerate-token'));

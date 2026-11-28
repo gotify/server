@@ -95,6 +95,7 @@ interface IProps {
     title: string;
     image?: string;
     date: string;
+    updated?: string;
     content: string;
     priority: number;
     appName: string;
@@ -118,6 +119,7 @@ const Message = ({
     fDelete,
     title,
     date,
+    updated,
     image,
     priority,
     content,
@@ -179,6 +181,7 @@ const Message = ({
                         appName={appName}
                         image={image}
                         date={date}
+                        updated={updated}
                     />
                 ) : (
                     <HeaderWide
@@ -187,6 +190,7 @@ const Message = ({
                         appName={appName}
                         image={image}
                         date={date}
+                        updated={updated}
                     />
                 )}
 
@@ -221,9 +225,10 @@ const HeaderWide = ({
     appName,
     image,
     date,
+    updated,
     fDelete,
     title,
-}: Pick<IProps, 'appName' | 'image' | 'fDelete' | 'date' | 'title'>) => {
+}: Pick<IProps, 'appName' | 'image' | 'fDelete' | 'date' | 'updated' | 'title'>) => {
     const {classes} = useStyles();
 
     return (
@@ -249,6 +254,7 @@ const HeaderWide = ({
             </div>
             <Typography variant="body1" className={classes.date}>
                 <TimeAgo date={date} formatter={TimeAgoFormatter.narrow} />
+                <Edited updated={updated} />
             </Typography>
             <IconButton
                 onClick={fDelete}
@@ -264,9 +270,10 @@ const HeaderSmall = ({
     appName,
     image,
     date,
+    updated,
     fDelete,
     title,
-}: Pick<IProps, 'appName' | 'image' | 'fDelete' | 'date' | 'title'>) => {
+}: Pick<IProps, 'appName' | 'image' | 'fDelete' | 'date' | 'updated' | 'title'>) => {
     const {classes} = useStyles();
 
     return (
@@ -280,6 +287,7 @@ const HeaderSmall = ({
                 </Typography>
                 <Typography variant="body1" className={classes.date}>
                     <TimeAgo date={date} formatter={TimeAgoFormatter.long} />
+                    <Edited updated={updated} />
                 </Typography>
             </div>
             <div style={{display: 'flex', alignItems: 'end', flexDirection: 'column'}}>
@@ -303,5 +311,13 @@ const HeaderSmall = ({
         </div>
     );
 };
+
+const Edited = ({updated}: Pick<IProps, 'updated'>) =>
+    updated ? (
+        <span className="edited" title={new Date(updated).toLocaleString()} style={{opacity: 0.7}}>
+            {' '}
+            (edited)
+        </span>
+    ) : null;
 
 export default Message;

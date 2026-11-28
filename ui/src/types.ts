@@ -7,6 +7,7 @@ export interface IApplication {
     image: string;
     internal: boolean;
     defaultPriority: number;
+    allowMessageUpdate: boolean;
     lastUsed: string | null;
     createdAt: string;
 }
@@ -42,6 +43,7 @@ export interface IMessage {
     title: string;
     priority: number;
     date: string;
+    updated?: string;
     image?: string;
     extras?: IMessageExtras;
 }
