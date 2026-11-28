@@ -2796,9 +2796,9 @@ mitt@^3.0.1:
   integrity sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==
 
 mobx-react-lite@^5.0.0:
-  version "5.1.3"
-  resolved "https://registry.yarnpkg.com/mobx-react-lite/-/mobx-react-lite-5.1.3.tgz#8ef099ee04332bef4c5b616626bb782341fcb1a6"
-  integrity sha512-/Qh+wwtyNp9zXXns+B2MxVHC/npHsYvnVJNe0ddvHW4rgAxTOgVr0z/6hWSm2mqdT0jv1QWYZuJ6+3dediv+wQ==
+  version "5.1.4"
+  resolved "https://registry.yarnpkg.com/mobx-react-lite/-/mobx-react-lite-5.1.4.tgz#8868f900eb8953629c401c222cea4f35ad911424"
+  integrity sha512-05czVT1a+xN/ngy1zxhKH5dhXh3F/9ER6Ioh2ysZYzIm/mPDXWVj8AkiPsjnXtDYLNdn/etxCB0cX2bRZGOKsw==
 
 mobx@^7.0.0:
   version "7.1.7"
@@ -3136,9 +3136,9 @@ remark-stringify@^11.0.0:
     unified "^11.0.0"
 
 remove-markdown@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/remove-markdown/-/remove-markdown-0.8.0.tgz#7ba2bf16d45e3327957294f0d213da3c89ae11eb"
-  integrity sha512-VP1v6BYAa6VlLPHzr3JpVDV+f2IHqLKBauXZm08alrB9rJC4mQ1IoePsWOzpJx8GTfFwF+j6fmCtI8DLh1qIdA==
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/remove-markdown/-/remove-markdown-0.8.1.tgz#f12cdf36d5f4f25ab0b6ae22f2fce6998dc8740f"
+  integrity sha512-vMYUaV+6fFY0IbO7sig/ZaZM3Kj/jZV8/TEqan/dR/U25AGGPKnM6j0SwljWH9uN0ph+F5w8DJ91IQOyKqb1yw==
 
 resolve-from@^4.0.0:
   version "4.0.0"
