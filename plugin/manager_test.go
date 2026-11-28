@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"sync"
 	"testing"
 	"time"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/gotify/server/v3/test/testdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"gorm.io/gorm"
 )
 
 const (
@@ -70,10 +72,12 @@ func (s *ManagerSuite) SetupSuite() {
 
 	p := new(mock.Plugin)
 	assert.Nil(s.T(), manager.LoadPlugin(p))
-	assert.Nil(s.T(), manager.initializeSingleUserPlugin(compat.UserContext{
+	wg := &sync.WaitGroup{}
+	assert.Nil(s.T(), manager.initializeSingleUserPlugin(s.db.GormDatabase, compat.UserContext{
 		ID:    1,
 		Admin: true,
-	}, p))
+	}, p, wg))
+	wg.Wait()
 
 	s.manager = manager
 	s.msgReceiver = make(chan MessageWithUserID)
@@ -102,7 +106,10 @@ func (s *ManagerSuite) getConfForMockPlugin(uid uint) *model.PluginConf {
 
 func (s *ManagerSuite) getMockPluginInstance(uid uint) *mock.PluginInstance {
 	pid := s.getConfForMockPlugin(uid).ID
-	return s.manager.instances[pid].(*mock.PluginInstance)
+	instance, ok := s.manager.instances[pid]
+	assert.True(s.T(), ok)
+	assert.Equal(s.T(), uid, instance.userID)
+	return instance.instance.(*mock.PluginInstance)
 }
 
 func (s *ManagerSuite) makeDanglingPluginConf(uid uint) *model.PluginConf {
@@ -200,7 +207,9 @@ func (s *ManagerSuite) TestInitializePlugin_alreadyEnabledInConf_expectAutoEnabl
 		Enabled:    true,
 	})
 
-	assert.Nil(s.T(), s.manager.InitializeForUserID(2))
+	wg := &sync.WaitGroup{}
+	assert.Nil(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 2, wg))
+	wg.Wait()
 	inst := s.getMockPluginInstance(2)
 	assert.True(s.T(), inst.Enabled)
 }
@@ -215,7 +224,9 @@ func (s *ManagerSuite) TestInitializePlugin_alreadyEnabledInConf_failedToLoadCon
 		Config:     []byte(`invalid: """`),
 	})
 
-	assert.Nil(s.T(), s.manager.InitializeForUserID(3))
+	wg := &sync.WaitGroup{}
+	assert.Nil(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 3, wg))
+	wg.Wait()
 	inst := s.getMockPluginInstance(3)
 	assert.False(s.T(), inst.Enabled)
 }
@@ -230,14 +241,18 @@ func (s *ManagerSuite) TestInitializePlugin_alreadyEnabled_cannotEnable_disabled
 		Enabled:    true,
 	})
 
-	assert.Nil(s.T(), s.manager.InitializeForUserID(4))
+	wg := &sync.WaitGroup{}
+	assert.Nil(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 4, wg))
+	wg.Wait()
 	inst := s.getMockPluginInstance(4)
 	assert.False(s.T(), inst.Enabled)
 	assert.False(s.T(), s.getConfForMockPlugin(4).Enabled)
 }
 
 func (s *ManagerSuite) TestInitializePlugin_userIDNotExist_expectError() {
-	assert.Error(s.T(), s.manager.InitializeForUserID(99))
+	wg := &sync.WaitGroup{}
+	assert.Error(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 99, wg))
+	wg.Wait()
 }
 
 func (s *ManagerSuite) TestSetPluginEnabled() {
@@ -252,7 +267,9 @@ func (s *ManagerSuite) TestSetPluginEnabled_EnableReturnsError_cannotEnable() {
 	errExpected := errors.New("test error")
 	mock.ReturnErrorOnEnableForUser(5, errExpected)
 
-	assert.Nil(s.T(), s.manager.InitializeForUserID(5))
+	wg := &sync.WaitGroup{}
+	assert.Nil(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 5, wg))
+	wg.Wait()
 
 	pid := s.getConfForMockPlugin(5).ID
 	assert.Error(s.T(), s.manager.SetPluginEnabled(pid, false))
@@ -266,7 +283,9 @@ func (s *ManagerSuite) TestSetPluginEnabled_DisableReturnsError_cannotDisable() 
 	errExpected := errors.New("test error")
 	mock.ReturnErrorOnDisableForUser(6, errExpected)
 
-	assert.Nil(s.T(), s.manager.InitializeForUserID(6))
+	wg := &sync.WaitGroup{}
+	assert.Nil(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 6, wg))
+	wg.Wait()
 
 	pid := s.getConfForMockPlugin(6).ID
 	assert.Nil(s.T(), s.manager.SetPluginEnabled(pid, true))
@@ -279,23 +298,27 @@ func (s *ManagerSuite) TestAddRemoveNewUser() {
 	s.db.User(7)
 	s.makeDanglingPluginConf(7)
 
-	assert.Nil(s.T(), s.manager.InitializeForUserID(7))
+	wg := &sync.WaitGroup{}
+	assert.Nil(s.T(), s.manager.InitializeForUserID(s.db.GormDatabase, 7, wg))
+	wg.Wait()
 	pid := s.getConfForExamplePlugin(7).ID
 	assert.True(s.T(), s.manager.HasInstance(pid))
 
 	assert.Nil(s.T(), s.manager.SetPluginEnabled(s.getConfForMockPlugin(7).ID, true))
 
-	assert.Nil(s.T(), s.manager.RemoveUser(7))
+	assert.Nil(s.T(), s.manager.RemoveUser(s.db.GormDatabase, 7))
 	assert.False(s.T(), s.manager.HasInstance(pid))
 }
 
-func (s *ManagerSuite) TestRemoveUser_DisableFail_cannotRemove() {
-	s.manager.initializeForUser(*s.db.NewUserWithName(8, "disable_fail_2"))
+func (s *ManagerSuite) TestRemoveUser_DisableFail_forceRemove() {
+	wg := &sync.WaitGroup{}
+	s.manager.initializeForUser(s.db.GormDatabase, *s.db.NewUserWithName(8, "disable_fail_2"), wg)
+	wg.Wait()
 	errExpected := errors.New("test error")
 	mock.ReturnErrorOnDisableForUser(8, errExpected)
 	s.manager.SetPluginEnabled(s.getConfForMockPlugin(8).ID, true)
 
-	assert.EqualError(s.T(), s.manager.RemoveUser(8), errExpected.Error())
+	assert.Nil(s.T(), s.manager.RemoveUser(s.db.GormDatabase, 8))
 }
 
 func (s *ManagerSuite) TestRemoveUser_danglingConf_expectSuccess() {
@@ -313,7 +336,7 @@ func (s *ManagerSuite) TestRemoveUser_danglingConf_expectSuccess() {
 		UserID:     9,
 		Token:      auth.GeneratePluginToken(),
 	})
-	assert.Nil(s.T(), s.manager.RemoveUser(9))
+	assert.Nil(s.T(), s.manager.RemoveUser(s.db.GormDatabase, 9))
 }
 
 func (s *ManagerSuite) TestTriggerMessage() {
@@ -380,7 +403,7 @@ func TestNewManager_InternalApplicationManagement(t *testing.T) {
 		if app, err := db.GetApplicationByToken("Ainternal_obsolete"); assert.NoError(t, err) {
 			assert.True(t, app.Internal)
 		}
-		_, err := NewManager(db, "", nil, nil)
+		_, err := NewManager(db.GormDatabase, "", nil, nil)
 		assert.Nil(t, err)
 		if app, err := db.GetApplicationByToken("Ainternal_obsolete"); assert.NoError(t, err) {
 			assert.False(t, app.Internal)
@@ -406,7 +429,7 @@ func TestNewManager_InternalApplicationManagement(t *testing.T) {
 		if app, err := db.GetApplicationByToken("Ainternal_not_loaded"); assert.NoError(t, err) {
 			assert.True(t, app.Internal)
 		}
-		_, err := NewManager(db, "", nil, nil)
+		_, err := NewManager(db.GormDatabase, "", nil, nil)
 		assert.Nil(t, err)
 		if app, err := db.GetApplicationByToken("Ainternal_not_loaded"); assert.NoError(t, err) {
 			assert.False(t, app.Internal)
@@ -433,10 +456,12 @@ func TestNewManager_InternalApplicationManagement(t *testing.T) {
 		if app, err := db.GetApplicationByToken("Ainternal_loaded"); assert.NoError(t, err) {
 			assert.False(t, app.Internal)
 		}
-		manager, err := NewManager(db, "", nil, nil)
+		manager, err := NewManager(db.GormDatabase, "", nil, nil)
 		assert.Nil(t, err)
 		assert.Nil(t, manager.LoadPlugin(new(mock.Plugin)))
-		assert.Nil(t, manager.InitializeForUserID(1))
+		wg := &sync.WaitGroup{}
+		assert.Nil(t, manager.InitializeForUserID(db.GormDatabase, 1, wg))
+		wg.Wait()
 		if app, err := db.GetApplicationByToken("Ainternal_loaded"); assert.NoError(t, err) {
 			assert.True(t, app.Internal)
 		}
@@ -456,12 +481,14 @@ func TestNewManager_MessengerAddedAfterInit_createsApplication(t *testing.T) {
 		Token:      auth.GeneratePluginToken(),
 	}))
 
-	manager, err := NewManager(db, "", nil, nil)
+	manager, err := NewManager(db.GormDatabase, "", nil, nil)
 	assert.Nil(t, err)
 	assert.Nil(t, manager.LoadPlugin(new(mock.Plugin)))
 	// The mock plugin supports Messenger, so re-initializing must back-fill the
 	// missing internal application instead of leaving ApplicationID at 0.
-	assert.Nil(t, manager.InitializeForUserID(1))
+	wg := &sync.WaitGroup{}
+	assert.Nil(t, manager.InitializeForUserID(db.GormDatabase, 1, wg))
+	wg.Wait()
 
 	conf, err := db.GetPluginConfByUserAndPath(1, mock.ModulePath)
 	assert.NoError(t, err)
@@ -477,29 +504,6 @@ func TestNewManager_MessengerAddedAfterInit_createsApplication(t *testing.T) {
 	}
 }
 
-// failingDB wraps a real test database so that individual operations can be
-// forced to fail, allowing the error branches around internal-application
-// creation to be exercised.
-type failingDB struct {
-	*testdb.Database
-	failCreateApplication error
-	failUpdatePluginConf  error
-}
-
-func (d *failingDB) CreateApplication(app *model.Application) error {
-	if d.failCreateApplication != nil {
-		return d.failCreateApplication
-	}
-	return d.Database.CreateApplication(app)
-}
-
-func (d *failingDB) UpdatePluginConf(conf *model.PluginConf) error {
-	if d.failUpdatePluginConf != nil {
-		return d.failUpdatePluginConf
-	}
-	return d.Database.UpdatePluginConf(conf)
-}
-
 func seedMessengerConfWithoutApplication(t *testing.T, db Database) {
 	t.Helper()
 	assert.NoError(t, db.CreatePluginConf(&model.PluginConf{
@@ -511,35 +515,42 @@ func seedMessengerConfWithoutApplication(t *testing.T, db Database) {
 }
 
 func TestNewManager_MessengerAddedAfterInit_createApplicationError(t *testing.T) {
-	db := &failingDB{
-		Database:              testdb.NewDBWithDefaultUser(t),
-		failCreateApplication: errors.New("create application failed"),
-	}
+	expectedError := errors.New("create application failed")
+	db := testdb.NewDBWithDefaultUser(t)
 	seedMessengerConfWithoutApplication(t, db)
+	db.GormDatabase.DB.Callback().Create().Before("gorm:create").Register("failCreateApplication", func(tx *gorm.DB) {
+		tx.AddError(expectedError)
+	})
 
-	manager, err := NewManager(db, "", nil, nil)
+	manager, err := NewManager(db.GormDatabase, "", nil, nil)
 	assert.Nil(t, err)
 	assert.Nil(t, manager.LoadPlugin(new(mock.Plugin)))
 
 	// Back-filling the missing internal application must surface the database
 	// error instead of silently continuing with ApplicationID == 0.
-	assert.EqualError(t, manager.InitializeForUserID(1), "create application failed")
+	wg := &sync.WaitGroup{}
+	err = manager.InitializeForUserID(db.GormDatabase, 1, wg)
+	wg.Wait()
+	assert.ErrorIs(t, err, expectedError)
 }
 
 func TestNewManager_MessengerAddedAfterInit_updatePluginConfError(t *testing.T) {
-	db := &failingDB{
-		Database:             testdb.NewDBWithDefaultUser(t),
-		failUpdatePluginConf: errors.New("update plugin conf failed"),
-	}
+	expectedError := errors.New("update plugin conf failed")
+	db := testdb.NewDBWithDefaultUser(t)
 	seedMessengerConfWithoutApplication(t, db)
+	db.GormDatabase.DB.Callback().Update().Before("gorm:update").Register("failUpdatePluginConf", func(tx *gorm.DB) {
+		tx.AddError(expectedError)
+	})
 
-	manager, err := NewManager(db, "", nil, nil)
+	manager, err := NewManager(db.GormDatabase, "", nil, nil)
 	assert.Nil(t, err)
 	assert.Nil(t, manager.LoadPlugin(new(mock.Plugin)))
 
 	// Persisting the back-filled ApplicationID may fail; that error must be
 	// propagated as well.
-	assert.EqualError(t, manager.InitializeForUserID(1), "update plugin conf failed")
+	wg := &sync.WaitGroup{}
+	assert.ErrorIs(t, manager.InitializeForUserID(db.GormDatabase, 1, wg), expectedError)
+	wg.Wait()
 }
 
 func TestPluginFileLoadError(t *testing.T) {

@@ -72,6 +72,13 @@ func (d *Database) NewUserWithName(id uint, name string) *model.User {
 	return user
 }
 
+// NewUserWithNameAdmin creates a user with a name and admin status and returns the user.
+func (d *Database) NewUserWithNameAdmin(id uint, name string, admin bool) *model.User {
+	user := &model.User{ID: id, Name: name, Admin: admin}
+	d.CreateUser(user)
+	return user
+}
+
 // App creates an application and returns a message builder.
 func (ab *AppClientBuilder) App(id uint) *MessageBuilder {
 	return ab.app(id, false)
