@@ -18,6 +18,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/zitadel/oidc/v3 v3.52.0
 	golang.org/x/crypto v0.59.0
+	golang.org/x/term v0.48.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/postgres v1.6.3

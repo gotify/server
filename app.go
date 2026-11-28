@@ -62,6 +62,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stdout, b)
 		}
 		return 0
+	case "user":
+		return runUser(fs.Args()[1:], stdout, stderr)
 	case "migrate-config":
 		content, err := migrate.Config(fs.Arg(1))
 		if err != nil {
@@ -130,6 +132,8 @@ Commands:
   serve                       Start the Gotify server.
   migrate-config <file.yml>   Convert an old YAML config file to the new env
                               format and print it to stdout.
+  user <command>              Manage users, e.g. to recover a lost admin
+                              account. See "gotify user help".
   version                     Show version information
 `)
 }
