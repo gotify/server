@@ -178,12 +178,19 @@ const Applications = observer(() => {
             {toUpdateApp != null && (
                 <UpdateApplicationDialog
                     fClose={() => setToUpdateApp(undefined)}
-                    fOnSubmit={(name, description, defaultPriority) =>
-                        appStore.update({...toUpdateApp, name, description, defaultPriority})
+                    fOnSubmit={(name, description, defaultPriority, allowMessageDelete) =>
+                        appStore.update({
+                            ...toUpdateApp,
+                            name,
+                            description,
+                            defaultPriority,
+                            allowMessageDelete,
+                        })
                     }
                     initialDescription={toUpdateApp?.description}
                     initialName={toUpdateApp?.name}
                     initialDefaultPriority={toUpdateApp?.defaultPriority}
+                    initialAllowMessageDelete={toUpdateApp?.allowMessageDelete}
                 />
             )}
             {toRegenerateTokenApp != null && (

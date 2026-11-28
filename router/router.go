@@ -209,6 +209,7 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	})
 
 	g.Group("/").Use(authentication.RequireApplicationOrClient).POST("/message", messageHandler.CreateMessage)
+	g.Group("/").Use(authentication.RequireApplicationOrClient).DELETE("/message/:id", messageHandler.DeleteMessage)
 
 	if conf.MCP.Enabled {
 		mcpHandler := api.NewMCP(&messageHandler, vInfo.Version)
@@ -244,7 +245,6 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 		{
 			message.GET("", messageHandler.GetMessages)
 			message.DELETE("", messageHandler.DeleteMessages)
-			message.DELETE("/:id", messageHandler.DeleteMessage)
 		}
 
 		clientAuth.GET("/stream", streamHandler.Handle)
