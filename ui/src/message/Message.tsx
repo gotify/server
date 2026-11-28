@@ -11,6 +11,7 @@ import {Markdown} from '../common/Markdown';
 import * as config from '../config';
 import {IMessageExtras} from '../types';
 import {contentType, RenderMode} from './extras';
+import {MessageActions} from './MessageActions';
 import {TimeAgoFormatter} from '../common/TimeAgoFormatter';
 
 const PREVIEW_LENGTH = 500;
@@ -199,6 +200,7 @@ const Message = ({
                         }`}>
                         {renderContent()}
                     </Typography>
+                    <MessageActions extras={extras} />
                 </div>
                 {isOverflowing && (
                     <Button
